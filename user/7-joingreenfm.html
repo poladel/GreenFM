@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Green FM</title>
+    <link rel="stylesheet" href="GFM.css">
+</head>
+<body>
+    <div class="container">
+        <!-------------------- SIDEBAR -------------------->
+        <div class="sidebars">
+            <div class="sidebar">
+                <img src="../img/GFMLogo.png" alt="GFM Logo" class="logo">
+                <h1 class="title">Join Green FM</h1>
+                <ul class="menu">
+                    <li><a href="1-home.html" class="active">HOME</a></li>
+                    <li><a href="2-live.html">LIVE</a></li>
+                    <li><a href="3-forum.html">FORUM</a></li>
+                    <li><a href="4-archives.html">ARCHIVES</a></li>
+                    <li><a href="5-playlist.html">PLAYLIST</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar1">
+                <ul class="menu">
+                    <li><a href="6-blocktimer.html" id="blocktimer-link">BE A BLOCKTIMER</a></li>
+                    <li><a href="7-joingreenfm.html" id="joingreenfm-link">JOIN GREEN FM</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar2">
+                <ul class="menu">
+                    <li><a href="8-about.html">ABOUT US</a></li>
+                    <li><a href="9-contact.html">CONTACT US</a></li>
+                </ul>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="../img/FBLogo.png" alt="Facebook" class="social-icon"></a>
+                    <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="../img/IGLogo.png" alt="Instagram" class="social-icon"></a>
+                </div>
+            </div>
+        </div>
+        
+        <!-------------------- CONTENTS START -------------------->
+        <div class="posts-title-container">
+            <h3 class="posts-title">JOIN GREEN FM</h3>
+        </div>
+        <div class="form-questions-container">
+            <form id="joingreenfmForm">
+                <label>Full Name</label>
+                <div class="name-section">
+                    <input type="text" name="last-name" placeholder="Last Name">
+                    <input type="text" name="first-name" placeholder="First Name">
+                    <input type="text" name="mi" placeholder="M.I">
+                </div>
+
+                <label>Student Number</label>
+                <input type="text" name="student-number">
+
+                <label>DLSU-D Email</label>
+                <input type="email" name="email" placeholder="@dlsud.edu.ph">
+
+                <label>College</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="college" value="College of Liberal Arts and Communication"> College of Liberal Arts and Communication</label>
+                    <label><input type="radio" name="college" value="College of Business Administration and Accountancy"> College of Business Administration and Accountancy</label>
+                    <label><input type="radio" name="college" value="College of Criminal Justice Education"> College of Criminal Justice Education</label>
+                    <label><input type="radio" name="college" value="College of Education"> College of Education</label>
+                    <label><input type="radio" name="college" value="College of Engineering, Architecture, and Technology"> College of Engineering, Architecture, and Technology</label>
+                    <label><input type="radio" name="college" value="College of International Hospitality and Tourism Management"> College of International Hospitality and Tourism Management</label>
+                    <label><input type="radio" name="college" value="College of Nursing and Allied Health Sciences"> College of Nursing and Allied Health Sciences</label>
+                    <label><input type="radio" name="college" value="College of Science and Computer Studies"> College of Science and Computer Studies</label>
+                    <label><input type="radio" name="college" value="College of Tourism and Hospitality Management"> College of Tourism and Hospitality Management</label>
+                </div>
+
+                <label>Program</label>
+                <select name="program">
+                    <option value="" disabled selected>Select your program</option>
+                    <option value="Communication Arts">Communication Arts</option>
+                    <option value="Accountancy">Accountancy</option>
+                    <option value="Criminology">Criminology</option>
+                    <option value="Elementary Education">Elementary Education</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Hotel and Restaurant Management">Hotel and Restaurant Management</option>
+                    <option value="Nursing">Nursing</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Tourism Management">Tourism Management</option>
+                    <!-- Add more programs as needed -->
+                </select>
+
+                <label>College Year</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="college-year" value="1st Year"> 1st Year</label>
+                    <label><input type="radio" name="college-year" value="2nd Year"> 2nd Year</label>
+                    <label><input type="radio" name="college-year" value="3rd Year"> 3rd Year</label>
+                    <label><input type="radio" name="college-year" value="4th Year"> 4th Year</label>
+                    <label><input type="radio" name="college-year" value="5th Year"> 5th Year</label>
+                </div>
+
+                <label>Section</label>
+                <input type="text" name="section">
+
+                <label>Facebook Profile URL</label>
+                <input type="text" name="facebook-url" placeholder="http://www.facebook.com/">
+
+                <label>Affiliated Organizations</label>
+                <input type="text" name="organizations">
+
+                <br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    <script src="GFM.js"></script>
+</body>
+</html>
