@@ -5,11 +5,49 @@ body {
     font-family: Helvetica, Arial, sans-serif;
 }
 
-.container {
-    margin-left: 180px;
-    display: block; /* Change from flex to block */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-wrap {
+    flex: 1;
+}
+
+.container {
+    margin-left: 180px;
+    display: block;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    background-color: #ffffff9a;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 0.9em;
+    color: #333;
+    margin-top: 40px;
+}
+
+footer a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Sidebar */
 .sidebar, .sidebar1, .sidebar2 {
     position: fixed;
     top: 10px;
@@ -169,4 +207,25 @@ input[type="text"], input[type="email"], select {
 input[type="text"]::placeholder, 
 input[type="email"]::placeholder {
     color: #999;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 0.9em;
+    color: #333;
+    margin-top: 40px;
+}
+
+footer a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    text-decoration: underline;
 }
