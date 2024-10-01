@@ -7,125 +7,136 @@
     <link rel="stylesheet" href="GFM.css">
 </head>
 <body>
-    <div class="container">
-        <!-------------------- SIDEBAR -------------------->
-        <div class="sidebars">
-            <div class="sidebar">
-                <img src="../img/GFMLogo.png" alt="GFM Logo" class="logo">
-                <h1 class="title">Be A Blocktimer</h1>
-                <ul class="menu">
-                    <li><a href="1-home.html" class="active">HOME</a></li>
-                    <li><a href="2-live.html">LIVE</a></li>
-                    <li><a href="3-forum.html">FORUM</a></li>
-                    <li><a href="4-archives.html">ARCHIVES</a></li>
-                    <li><a href="5-playlist.html">PLAYLIST</a></li>
-                </ul>
-            </div>
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <!-------------------- SIDEBAR -------------------->
+                <div class="sidebars">
+                    <div class="sidebar">
+                        <img src="../img/GFMLogo.png" alt="GFM Logo" class="logo">
+                        <h1 class="title">95.9 GREEN FM</h1>
+                        <ul class="menu">
+                            <li><a href="1-home.html" class="active">HOME</a></li>
+                            <li><a href="2-live.html">LIVE</a></li>
+                            <li><a href="3-forum.html">FORUM</a></li>
+                            <li><a href="4-archives.html">ARCHIVES</a></li>
+                            <li><a href="5-playlist.html">PLAYLIST</a></li>
+                        </ul>
+                    </div>
 
-            <div class="sidebar1">
-                <ul class="menu">
-                    <li><a href="6-blocktimer.html" id="blocktimer-link">BE A BLOCKTIMER</a></li>
-                    <li><a href="7-joingreenfm.html" id="joingreenfm-link">JOIN GREEN FM</a></li>
-                </ul>
-            </div>
+                    <div class="sidebar1">
+                        <ul class="menu">
+                            <li><a href="6-blocktimer.html" id="blocktimer-link">BE A BLOCKTIMER</a></li>
+                            <li><a href="7-joingreenfm.html" id="joingreenfm-link">JOIN GREEN FM</a></li>
+                        </ul>
+                    </div>
 
-            <div class="sidebar2">
-                <ul class="menu">
-                    <li><a href="8-about.html">ABOUT US</a></li>
-                    <li><a href="9-contact.html">CONTACT US</a></li>
-                </ul>
-                <div class="social-icons">
-                    <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="../img/FBLogo.png" alt="Facebook" class="social-icon"></a>
-                    <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="../img/IGLogo.png" alt="Instagram" class="social-icon"></a>
+                    <div class="sidebar2">
+                        <ul class="menu">
+                            <li><a href="8-about.html">ABOUT US</a></li>
+                            <li><a href="9-contact.html">CONTACT US</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="../img/FBLogo.png" alt="Facebook" class="social-icon"></a>
+                            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="../img/IGLogo.png" alt="Instagram" class="social-icon"></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-------------------- CONTENTS START -------------------->
+                <div class="posts-title-container">
+                    <h3 class="posts-title">BLOCKTIMER APPLICATION FORM</h3>
+                </div>
+                
+                <div class="form-questions-container">
+                    <form id="blocktimerForm">
+                        <label>Type of Office/Organization</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="organization-type" value="Administration"> Administration</label>
+                            <label><input type="radio" name="organization-type" value="Student Government"> Student Government</label>
+                            <label><input type="radio" name="organization-type" value="Department"> Department</label>
+                            <label><input type="radio" name="organization-type" value="Program Council"> Program Council</label>
+                            <label><input type="radio" name="organization-type" value="Faculty"> Faculty</label>
+                            <label><input type="radio" name="organization-type" value="Interest Organization"> Interest Organization</label>
+                        </div>
+
+                        <label>Name of Office/Organization</label>
+                        <input type="text" name="office-organization">
+
+                        <label>Proponent's Name</label>
+                        <div class="name-section">
+                            <input type="text" name="proponent-last-name" placeholder="Last Name">
+                            <input type="text" name="proponent-first-name" placeholder="First Name">
+                            <input type="text" name="proponent-mi" placeholder="M.I">
+                        </div>
+
+                        <label>Co-Proponent's Name</label>
+                        <div class="name-section">
+                            <input type="text" name="co-proponent-last-name" placeholder="Last Name">
+                            <input type="text" name="co-proponent-first-name" placeholder="First Name">
+                            <input type="text" name="co-proponent-mi" placeholder="M.I">
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="co-proponent-not-applicable"> Not Applicable</label>
+                        </div>
+
+                        <label>Name of Executive Producer</label>
+                        <div class="name-section">
+                            <input type="text" name="producer-last-name" placeholder="Last Name">
+                            <input type="text" name="producer-first-name" placeholder="First Name">
+                            <input type="text" name="producer-mi" placeholder="M.I">
+                        </div>
+
+                        <label>Name of Faculty Staff or Staff Adviser</label>
+                        <div class="name-section">
+                            <input type="text" name="faculty-last-name" placeholder="Last Name">
+                            <input type="text" name="faculty-first-name" placeholder="First Name">
+                            <input type="text" name="faculty-mi" placeholder="M.I">
+                        </div>
+                        <label>Department</label>
+                        <input type="text" name="faculty-department">
+
+                        <label>Name of Host</label>
+                        <div class="name-section">
+                            <input type="text" name="host-last-name" placeholder="Last Name">
+                            <input type="text" name="host-first-name" placeholder="First Name">
+                            <input type="text" name="host-mi" placeholder="M.I">
+                        </div>
+
+                        <label>Name of Technical Staff</label>
+                        <div class="name-section">
+                            <input type="text" name="technical-last-name" placeholder="Last Name">
+                            <input type="text" name="technical-first-name" placeholder="First Name">
+                            <input type="text" name="technical-mi" placeholder="M.I">
+                        </div>
+
+                        <label>Name of Creative Staff</label>
+                        <div class="name-section">
+                            <input type="text" name="creative-last-name" placeholder="Last Name">
+                            <input type="text" name="creative-first-name" placeholder="First Name">
+                            <input type="text" name="creative-mi" placeholder="M.I">
+                        </div>
+
+                        <label>Title of Show</label>
+                        <input type="text" name="show-title">
+
+                        <label>Type of Show</label>
+                        <input type="text" name="show-type">
+
+                        <br>
+                        <button type="submit">Submit</button>
+                    </form>
                 </div>
             </div>
-        </div>
-
-        <!-------------------- CONTENTS START -------------------->
-        <div class="posts-title-container">
-            <h3 class="posts-title">BLOCKTIMER APPLICATION FORM</h3>
         </div>
         
-        <div class="form-questions-container">
-            <form id="blocktimerForm">
-                <label>Type of Office/Organization</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="organization-type" value="Administration"> Administration</label>
-                    <label><input type="radio" name="organization-type" value="Student Government"> Student Government</label>
-                    <label><input type="radio" name="organization-type" value="Department"> Department</label>
-                    <label><input type="radio" name="organization-type" value="Program Council"> Program Council</label>
-                    <label><input type="radio" name="organization-type" value="Faculty"> Faculty</label>
-                    <label><input type="radio" name="organization-type" value="Interest Organization"> Interest Organization</label>
-                </div>
-
-                <label>Name of Office/Organization</label>
-                <input type="text" name="office-organization">
-
-                <label>Proponent's Name</label>
-                <div class="name-section">
-                    <input type="text" name="proponent-last-name" placeholder="Last Name">
-                    <input type="text" name="proponent-first-name" placeholder="First Name">
-                    <input type="text" name="proponent-mi" placeholder="M.I">
-                </div>
-
-                <label>Co-Proponent's Name</label>
-                <div class="name-section">
-                    <input type="text" name="co-proponent-last-name" placeholder="Last Name">
-                    <input type="text" name="co-proponent-first-name" placeholder="First Name">
-                    <input type="text" name="co-proponent-mi" placeholder="M.I">
-                </div>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" name="co-proponent-not-applicable"> Not Applicable</label>
-                </div>
-
-                <label>Name of Executive Producer</label>
-                <div class="name-section">
-                    <input type="text" name="producer-last-name" placeholder="Last Name">
-                    <input type="text" name="producer-first-name" placeholder="First Name">
-                    <input type="text" name="producer-mi" placeholder="M.I">
-                </div>
-
-                <label>Name of Faculty Staff or Staff Adviser</label>
-                <div class="name-section">
-                    <input type="text" name="faculty-last-name" placeholder="Last Name">
-                    <input type="text" name="faculty-first-name" placeholder="First Name">
-                    <input type="text" name="faculty-mi" placeholder="M.I">
-                </div>
-                <label>Department</label>
-                <input type="text" name="faculty-department">
-
-                <label>Name of Host</label>
-                <div class="name-section">
-                    <input type="text" name="host-last-name" placeholder="Last Name">
-                    <input type="text" name="host-first-name" placeholder="First Name">
-                    <input type="text" name="host-mi" placeholder="M.I">
-                </div>
-
-                <label>Name of Technical Staff</label>
-                <div class="name-section">
-                    <input type="text" name="technical-last-name" placeholder="Last Name">
-                    <input type="text" name="technical-first-name" placeholder="First Name">
-                    <input type="text" name="technical-mi" placeholder="M.I">
-                </div>
-
-                <label>Name of Creative Staff</label>
-                <div class="name-section">
-                    <input type="text" name="creative-last-name" placeholder="Last Name">
-                    <input type="text" name="creative-first-name" placeholder="First Name">
-                    <input type="text" name="creative-mi" placeholder="M.I">
-                </div>
-
-                <label>Title of Show</label>
-                <input type="text" name="show-title">
-
-                <label>Type of Show</label>
-                <input type="text" name="show-type">
-
-                <br>
-                <button type="submit">Submit</button>
-            </form>
-        </div>
+        <!-------------------- FOOTER -------------------->
+        <footer>
+            © Copyright 2015 De La Salle University - Dasmariñas &nbsp;&nbsp;&nbsp;
+            <a href="#">FAQ</a> | <a href="#">Help</a>
+        </footer>
     </div>
+
     <script src="GFM.js"></script>
 </body>
 </html>
