@@ -54,4 +54,11 @@ document.addEventListener("DOMContentLoaded", function() {
             joingreenfmForm.style.display = "block";
         }
     }
+
+    // Example of setting the active class dynamically
+    document.querySelectorAll('.menu a').forEach(link => {
+        if (link.href === window.location.href) {
+            link.classList.add('active');
+        }
+    });
 });
