@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Example of setting the active class dynamically
+    // Setting the active class dynamically
     document.querySelectorAll('.menu a').forEach(link => {
         if (link.href === window.location.href) {
             link.classList.add('active');
