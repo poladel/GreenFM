@@ -39,12 +39,12 @@ app.get('/', (req, res) => {
     res.sendFile(userFilePath);
 });
 
+// Route for the 'user' sections
 app.get('/User-Home', (req, res) => {
     const userFilePath = path.join(__dirname, 'user', '1-home.html');
     res.sendFile(userFilePath);
 });
 
-// Route for the 'user' sections
 app.get('/User-Live', (req, res) => {
     const liveFilePath = path.join(__dirname, 'user', '2-live.html');
     res.sendFile(liveFilePath);
