@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="stylesheet" href="GFM.css">
+    <link rel="stylesheet" href="/Admin/GFM.css">
 </head>
 <body>
     <div class="page-container">
@@ -13,35 +13,42 @@
                 <!-------------------- SIDEBAR -------------------->
                 <div class="sidebars">
                     <div class="sidebar">
-                        <img src="https://www.dropbox.com/scl/fi/gchlu7lw0kzzz58ncbhyn/GFMLogo.png?rlkey=cowkrkud5cp376bw8fw0vkqow&st=os3slo5t&dl=1" alt="GFM Logo" class="logo">
+                        <img src="../img/GFMLogo.png" alt="GFM Logo" class="logo">
                         <h1 class="title">95.9 GREEN FM</h1>
                         <ul class="menu">
-                            <li><a href="1-home.html" class="active">HOME</a></li>
-                            <li><a href="2-live.html">LIVE</a></li>
-                            <li><a href="3-forum.html">FORUM</a></li>
-                            <li><a href="4-archives.html">ARCHIVES</a></li>
-                            <li><a href="5-playlist.html">PLAYLIST</a></li>
+                            <li><a href="/Admin-Home">HOME</a></li>
+                            <li><a href="/Admin-Live">LIVE</a></li>
+                            <li><a href="/Admin-Forum">FORUM</a></li>
+                            <li><a href="/Admin-Archives">ARCHIVES</a></li>
+                            <li><a href="/Admin-Playlist">PLAYLIST</a></li>
                         </ul>
                     </div>
 
                     <div class="sidebar1">
                         <ul class="menu">
-                            <li><a href="6-accounts.html" id="blocktimer-link">MANAGE ACCOUNTS</a></li>
-                            <li><a href="7-applications.html" id="joingreenfm-link">APPLICATIONS</a></li>
+                            <li><a href="/Admin-Manage">MANAGE ACCOUNTS</a></li>
+                            <li class="applications">
+                                <a href="#">APPLICATIONS</a>
+                                <ul class="submenu">
+                                    <li><a href="/Admin-Members">MEMBERS</a></li>
+                                    <li><a href="/Admin-Blocktimers">BLOCKTIMERS</a></li>
+                                </ul>
+                            </li>
                         </ul>
-                    </div>
+                    </div>                    
 
                     <div class="sidebar2">
                         <ul class="menu">
-                            <li><a href="8-about.html">ABOUT US</a></li>
-                            <li><a href="9-contact.html">CONTACT US</a></li>
+                            <li><a href="/Admin-About">ABOUT US</a></li>
+                            <li><a href="/Admin-Contact">CONTACT US</a></li>
                         </ul>
                         <div class="social-icons">
-                            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="https://www.dropbox.com/scl/fi/ss5o1tg5yt5ze2nftsx5b/facebook.png?rlkey=21x73gjggs80dxkyr73b2o1fb&st=hy8uzhij&dl=1" alt="Facebook" class="social-icon"></a>
-                            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="https://www.dropbox.com/scl/fi/v7uyxh4qiyouawyujhhs2/instagram.png?rlkey=ggr0e2tjp8qrmt3z7800c9f73&st=w7m7k8ir&dl=1" alt="Instagram" class="social-icon"></a>
+                            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="../img/FBLogo.png" alt="Facebook" class="social-icon"></a>
+                            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="../img/IGLogo.png" alt="Instagram" class="social-icon"></a>
                         </div>
                     </div>
                 </div>
+
                 <!-------------------- CONTENTS START -------------------->    
                 <div class="posts-title-container">
                     <h3 class="posts-title">POSTS</h3>
@@ -56,6 +63,6 @@
         </footer>
     </div>
 
-    <script src="GFM.js"></script>
+    <script src="/Admin-GFM.js"></script>
 </body>
 </html>

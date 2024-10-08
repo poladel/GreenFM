@@ -22,7 +22,7 @@ html, body {
 }
 
 .container {
-    margin-left: 180px;
+    margin-left: 180px; /* Ensure content does not overlap with sidebars */
     display: block;
 }
 
@@ -50,16 +50,15 @@ footer a:hover {
 /* Sidebar */
 .sidebar, .sidebar1, .sidebar2 {
     position: fixed;
-    top: 10px;
     width: 160px;
     background-color: white;
     border-radius: 15px;
     padding: 15px 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
+    z-index: 10;
 }
 
 .sidebar {
@@ -68,12 +67,12 @@ footer a:hover {
 
 .sidebar1 {
     left: 15px;
-    top: 400px;
+    top: 400px; /* Adjust this value to move it down; increase if necessary */
 }
 
 .sidebar2 {
     left: 15px;
-    top: 548px;
+    top: 548px; /* Adjust this value to move the second sidebar down if needed */
 }
 
 .logo {
@@ -112,7 +111,6 @@ footer a:hover {
     padding: 10px 20px;
     display: block;
     transition: color 0.3s, background-color 0.3s;
-    box-sizing: border-box;
 }
 
 .menu li a:hover {
@@ -153,79 +151,36 @@ footer a:hover {
     margin-left: 20px;
 }
 
-/* Form Container */
-.form-questions-container {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-left: 15px;
-    margin-top: 20px; /* Add space between post title and form */
-    width: 760px;
+/* Submenu styles */
+.applications {
+    position: relative; /* Allows positioning of submenu */
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    font-weight: 600;
-    margin-top: 10px;
-}
-
-input[type="text"], input[type="email"], select {
-    width: 97%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
+.submenu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    left: 170px; /* Position to the right of the sidebar1 */
+    top: 0; /* Align submenu to the top of Applications */
+    background-color: white;
+    border: 1px solid #ddd;
     border-radius: 5px;
-}
-
-.name-section {
-    display: flex;
-    gap: 10px;
-}
-
-.name-section input {
-    flex: 1;
-}
-
-.radio-group label {
-    display: block;
-    margin-top: 5px;
-}
-
-.radio-group input[type="radio"] {
-    margin-right: 10px;
-}
-
-.checkbox-group {
-    margin-top: 10px;
-}
-
-input[type="text"]::placeholder, 
-input[type="email"]::placeholder {
-    color: #999;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    background-color: #fff;
-    padding: 20px 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-size: 0.9em;
-    color: #333;
-    margin-top: 40px;
+    z-index: 20; /* Ensure the submenu is above other elements */
+    width: 120px; /* Set width of submenu */
+    padding: 5px 0; /* Padding for submenu items */
 }
 
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 10px;
+.submenu li {
+    text-align: left; /* Align text to left */
+    padding: 5px 10px; /* Padding for submenu items */
 }
 
-footer a:hover {
-    text-decoration: underline;
+.submenu li a {
+    color: #272525; /* Color for submenu links */
+    font-size: 0.9em; /* Font size for submenu links */
+}
+
+.applications:hover .submenu, 
+.applications.active .submenu {
+    display: block; /* Show submenu on hover or active */
 }
