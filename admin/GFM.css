@@ -50,6 +50,7 @@ footer a:hover {
 /* Sidebar */
 .sidebar, .sidebar1, .sidebar2 {
     position: fixed;
+    margin-top: 10px;
     width: 160px;
     background-color: white;
     border-radius: 15px;
@@ -140,8 +141,10 @@ footer a:hover {
     margin-left: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 800px;
+    width: 74%;
     height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
 }
 
 .posts-title {
@@ -149,6 +152,68 @@ footer a:hover {
     font-size: 16px;
     color: #333;
     margin-left: 20px;
+}
+
+/* Flex container for chat search and user containers */
+.header-container {
+    display: flex; /* Use flexbox to arrange items in a row */
+    align-items: center; /* Center items vertically */
+    margin-top: 10px; /* Space between title and header */
+}
+
+.chat-search-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-left: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10%; /* Set width for chat search container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.icons-container {
+    display: flex; /* Flexbox for icon alignment */
+    align-items: center; /* Center icons vertically */
+}
+
+.icon {
+    width: 20px; /* Set a consistent width for icons */
+    height: auto; /* Maintain aspect ratio */
+    margin: 0 5px; /* Space between icons */
+}
+
+.user-log-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-left: 15px; /* Add space between title and chat-search container */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10%; /* Set width for chat search container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.user-container {
+    display: flex; /* Flexbox for user icon and text */
+    align-items: center; /* Center items vertically */
+    margin-left: 15px; /* Space between chat-search and user container */
+    width: 100px; /* Set a shorter width for user container */
+}
+
+.user-icon {
+    width: 20px; /* Set a consistent width for user icon */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 5px; /* Space between icon and text */
+}
+
+.login-text {
+    font-size: 14px; /* Adjust font size for the login text */
+    color: #333; /* Color for the text */
 }
 
 /* Submenu styles */
@@ -162,17 +227,11 @@ footer a:hover {
     left: 170px; /* Position to the right of the sidebar1 */
     top: 0; /* Align submenu to the top of Applications */
     background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 20; /* Ensure the submenu is above other elements */
-    width: 120px; /* Set width of submenu */
+    width: 170px; /* Set width of submenu */
     padding: 5px 0; /* Padding for submenu items */
-}
-
-.submenu li {
-    text-align: left; /* Align text to left */
-    padding: 5px 10px; /* Padding for submenu items */
 }
 
 .submenu li a {
