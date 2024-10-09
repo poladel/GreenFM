@@ -51,7 +51,7 @@ footer a:hover {
 .sidebar, .sidebar1, .sidebar2 {
     position: fixed;
     top: 10px;
-    margin-top: 10px;
+    margin-top: 0px;
     width: 160px;
     background-color: white;
     border-radius: 15px;
@@ -138,13 +138,15 @@ footer a:hover {
     background-color: #ffffff;
     padding: 2px;
     text-align: left;
-    margin-top: 15px;
+    margin-top: 0px;
     margin-bottom: 10px;
     margin-left: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 800px;
+    width: 74%;
     height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
 }
 
 .posts-title {
@@ -154,7 +156,91 @@ footer a:hover {
     margin-left: 20px;
 }
 
+/* Flex container for chat search and user containers */
+.header-container {
+    display: flex; /* Use flexbox to arrange items in a row */
+    align-items: center; /* Center items vertically */
+    margin-top: 10px; /* Space between title and header */
+}
+
+.chat-search-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-left: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10%; /* Set width for chat search container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.icons-container {
+    display: flex; /* Flexbox for icon alignment */
+    align-items: center; /* Center icons vertically */
+}
+
+.icon {
+    width: 20px; /* Set a consistent width for icons */
+    height: auto; /* Maintain aspect ratio */
+    margin: 0 5px; /* Space between icons */
+}
+
+.user-log-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-left: 15px; /* Add space between title and chat-search container */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10%; /* Set width for chat search container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.user-container {
+    display: flex; /* Flexbox for user icon and text */
+    align-items: center; /* Center items vertically */
+    margin-left: 15px; /* Space between chat-search and user container */
+    width: 100px; /* Set a shorter width for user container */
+}
+
+.user-icon {
+    width: 20px; /* Set a consistent width for user icon */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 5px; /* Space between icon and text */
+}
+
+.login-text {
+    font-size: 14px; /* Adjust font size for the login text */
+    color: #333; /* Color for the text */
+}
+
 /* Form Container */
+.form-title-container {
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 97%;
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.form-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
 .form-questions-container {
     background-color: #ffffff;
     padding: 20px;
