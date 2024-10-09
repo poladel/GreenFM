@@ -26,27 +26,6 @@ html, body {
     display: block;
 }
 
-/* Footer */
-footer {
-    text-align: center;
-    background-color: #ffffff9a;
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-size: 0.9em;
-    color: #333;
-    margin-top: 40px;
-}
-
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 10px;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}
-
 /* Sidebar */
 .sidebar, .sidebar1, .sidebar2 {
     position: fixed;
