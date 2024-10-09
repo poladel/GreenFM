@@ -1,0 +1,180 @@
+/* Base styling */
+body, html {
+    background-color: #EFEFEF;
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container for the entire register box */
+.register-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-box {
+    background-color: white;
+    padding: 40px;
+    width: 360px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Logo styling */
+.logo {
+    width: 70px;
+    height: auto;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+/* Register title */
+.register-title {
+    color: #00722A;
+    font-weight: 700;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+/* Google register button */
+.google-register-button {
+    background-color: white;
+    color: #333;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    margin-bottom: 15px;
+    text-decoration: none;
+}
+
+.google-register-button:hover {
+    background-color: #f0f0f0;
+}
+
+.google-icon {
+    width: 20px;
+    height: auto;
+    margin-right: 10px;
+}
+
+/* Divider line */
+.or-divider {
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+    margin: 15px 0;
+    position: relative;
+}
+
+.or-divider::before, .or-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.or-divider::before {
+    left: 0;
+}
+
+.or-divider::after {
+    right: 0;
+}
+
+/* Form styling */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    color: #333;
+    box-sizing: border-box;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #00722A;
+    outline: none;
+}
+
+/* Register button */
+.register-button {
+    background-color: #00722A;
+    color: white;
+    padding: 10px;
+    font-size: 1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register-button:hover {
+    background-color: #00591d;
+}
+
+/* Footer links */
+.footer-links {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.footer-links a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9em;
+    color: #333;
+    background-color: #EFEFEF;
+}
+
+footer a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
