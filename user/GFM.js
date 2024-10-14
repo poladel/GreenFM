@@ -1,82 +1,111 @@
-document.addEventListener("DOMContentLoaded", function() {
-    // Get references to the "BE A BLOCKTIMER" and "JOIN GREEN FM" links
-    var blocktimerLink = document.getElementById("blocktimer-link");
-    var joingreenfmLink = document.getElementById("joingreenfm-link");
-
-    // Handle all sidebar link clicks (except "BE A BLOCKTIMER" and "JOIN GREEN FM")
-    var menuLinks = document.querySelectorAll('.sidebar .menu li a');
-    menuLinks.forEach(function(link) {
-        link.addEventListener("click", function(event) {
-            var sectionId = this.getAttribute('href').substring(1); // Get section ID from the href
-
-            // Show forms dynamically only if it's for blocktimer or join forms
-            if (sectionId === "blocktimer-form" || sectionId === "joingreenfm-form") {
-                // SPA logic to show forms dynamically
-                event.preventDefault(); // Prevent default navigation
-                if (sectionId === "blocktimer-form") {
-                    showBlocktimerForm();
-                } else if (sectionId === "joingreenfm-form") {
-                    showJoinGreenFMForm();
-                }
-            } 
-            // Other links will now function normally, allowing page navigation
-        });
-    });
-
-    // No need to prevent default behavior for "BE A BLOCKTIMER" and "JOIN GREEN FM" links
-    blocktimerLink.addEventListener("click", function(event) {
-        // Let the default behavior of the link proceed to load "6-blocktimer.html"
-    });
-
-    joingreenfmLink.addEventListener("click", function(event) {
-        // Let the default behavior of the link proceed to load "7-joingreenfm.html"
-    });
-
-    // Functions for displaying forms dynamically (for future use)
-    function showBlocktimerForm() {
-        var sections = document.querySelectorAll(".content-container > div");
-        sections.forEach(function(section) {
-            section.style.display = "none";
-        });
-        var blocktimerForm = document.getElementById("blocktimer-form");
-        if (blocktimerForm) {
-            blocktimerForm.style.display = "block";
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("blocktimerForm").addEventListener("submit", function (event) {
+        const checkboxes = document.querySelectorAll('input[name="show"]');
+        const otherCheckbox = document.getElementById("other");
+        const otherInput = document.getElementById("other-input");
+  
+        const isChecked = Array.from(checkboxes).some(
+          (checkbox) => checkbox.checked
+        );
+  
+        // Check if "Other" is checked and input is empty
+        if (otherCheckbox.checked && !otherInput.value.trim()) {
+          event.preventDefault();
+          alert('Please specify what you mean by "Other".');
+          return;
         }
-    }
-
-    function showJoinGreenFMForm() {
-        var sections = document.querySelectorAll(".content-container > div");
-        sections.forEach(function(section) {
-            section.style.display = "none";
-        });
-        var joingreenfmForm = document.getElementById("joingreenfm-form");
-        if (joingreenfmForm) {
-            joingreenfmForm.style.display = "block";
+  
+        if (!isChecked) {
+          event.preventDefault();
+          alert("Please select at least one type of show.");
         }
-    }
-
-    // Setting the active class dynamically
-    document.querySelectorAll('.menu a').forEach(link => {
-        if (link.href === window.location.href) {
-            link.classList.add('active');
-        }
+      });
+  
+    document.getElementById("add-host").addEventListener("click", function () {
+      const hostsContainer = document.getElementById("hosts-container");
+      const currentHosts =
+        hostsContainer.getElementsByClassName("host-input").length;
+  
+      // Check if the maximum number of hosts (4) has been reached
+      if (currentHosts < 4) {
+        // Create a new host input div
+        const newHostDiv = document.createElement("div");
+        newHostDiv.className = "name-section host-input"; // Added class for styling
+  
+        // Create the input fields for the new host
+        newHostDiv.innerHTML = `
+                  <input type="text" name="host-last-name" placeholder="Last Name" required>
+                  <input type="text" name="host-first-name" placeholder="First Name" required>
+                  <input type="text" name="host-mi" placeholder="M.I">
+                  <br>
+                  <input type="text" name="host-cys" placeholder="CYS" required>
+              `;
+  
+        // Append the new host input div to the hosts container
+        hostsContainer.appendChild(newHostDiv);
+      } else {
+        alert("Maximum of 4 Hosts allowed."); // Alert the user
+      }
     });
-});
-
-// JavaScript to highlight active menu item
-document.addEventListener("DOMContentLoaded", function() {
-    // Get the current URL path
-    const currentPath = window.location.pathname;
-
-    // Get all menu links
-    const menuLinks = document.querySelectorAll('.menu li a');
-
-    // Loop through the menu links
-    menuLinks.forEach(link => {
-        // Check if the link's href matches the current path
-        if (link.getAttribute('href') === currentPath) {
-            // Add the 'active' class to the matching link
-            link.classList.add('active');
+  
+    document.getElementById("add-technical").addEventListener("click", function () {
+        const technicalContainer = document.getElementById("technical-container");
+        const currentTechnical =
+          technicalContainer.getElementsByClassName("technical-input").length;
+  
+        // Check if the maximum number of hosts (4) has been reached
+        if (currentTechnical < 2) {
+          // Create a new host input div
+          const newTechnicalDiv = document.createElement("div");
+          newTechnicalDiv.className = "name-section technical-input"; // Added class for styling
+  
+          // Create the input fields for the new host
+          newTechnicalDiv.innerHTML = `
+                  <input type="text" name="technical-last-name" placeholder="Last Name" required>
+                  <input type="text" name="technical-first-name" placeholder="First Name" required>
+                  <input type="text" name="technical-mi" placeholder="M.I">
+                  <br>
+                  <input type="text" name="technical-cys" placeholder="CYS" required>
+              `;
+  
+          // Append the new host input div to the hosts container
+          technicalContainer.appendChild(newTechnicalDiv);
+        } else {
+          alert("Maximum of 2 Technical Staffs allowed."); // Alert the user
         }
+      });
+  
+    const crosspostingRadios = document.querySelectorAll(
+      'input[name="crossposting"]'
+    );
+    const fbLinkContainer = document.getElementById("fb-link-container");
+  
+    crosspostingRadios.forEach((radio) => {
+      radio.addEventListener("change", function () {
+        if (this.value === "Yes") {
+          fbLinkContainer.style.display = "block"; // Show input
+        } else {
+          fbLinkContainer.style.display = "none"; // Hide input
+        }
+      });
     });
-});
+  
+    document.getElementById("signature-upload").addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById("signature-preview");
+        const signatureImage = document.getElementById("signature-image");
+  
+        if (file) {
+          const reader = new FileReader();
+  
+          reader.onload = function (e) {
+            signatureImage.src = e.target.result; // Set the src to the file data
+            previewContainer.style.display = "block"; // Show the preview
+          };
+  
+          reader.readAsDataURL(file); // Convert the file to a Data URL
+        } else {
+          previewContainer.style.display = "none"; // Hide the preview if no file is selected
+        }
+      });
+  });

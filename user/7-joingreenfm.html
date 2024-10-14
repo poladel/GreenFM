@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="stylesheet" href="/user/GFM.css">
+    <link rel="stylesheet" href="/user/joingreenfm.css">
 </head>
 <body>
     <div class="page-container">
@@ -16,7 +16,7 @@
                         <img src="../img/GFMLogo.png" alt="GFM Logo" class="logo">
                         <h1 class="title">95.9 GREEN FM</h1>
                         <ul class="menu">
-                            <li><a href="/User-Home">HOME</a></li>
+                            <li><a href="/">HOME</a></li>
                             <li><a href="/User-Live">LIVE</a></li>
                             <li><a href="/User-Forum">FORUM</a></li>
                             <li><a href="/User-Archives">ARCHIVES</a></li>
@@ -43,76 +43,162 @@
                     </div>
                 </div>
                 
-                <!-------------------- CONTENTS START -------------------->
+
+                <!-- HEADER -->
                 <div class="form-title-container">
                     <h3 class="form-title">JOIN GREEN FM</h3>
                 </div>
-                <div class="form-questions-container">
-                    <form id="joingreenfmForm">
-                        <label>Full Name</label>
-                        <div class="name-section">
-                            <input type="text" name="last-name" placeholder="Last Name">
-                            <input type="text" name="first-name" placeholder="First Name">
-                            <input type="text" name="mi" placeholder="M.I">
-                        </div>
+                
+                <!-- PROGRESS BAR -->
+                <div class="progress-bar">
+                    <div class="circle circle-1">1</div>
+                    <div class="circle circle-2">2</div>
+                    <div class="circle circle-3">3</div>
+                </div>                                            
 
-                        <label>Student Number</label>
-                        <input type="text" name="student-number">
+                <!-- FORMS START -->
+                    <div class="forms-container">
+                        <form id="joingreenfmForm1" class="form-container1">
+                            <label>Full Name</label>
+                            <div class="name-section">
+                                <input type="text" name="last-name" placeholder="Last Name" required>
+                                <input type="text" name="first-name" placeholder="First Name" required>
+                                <input type="text" name="mi" placeholder="M.I" required>
+                            </div>
 
-                        <label>DLSU-D Email</label>
-                        <input type="email" name="email" placeholder="@dlsud.edu.ph">
+                            <label>Student Number</label>
+                            <input type="text" name="student-number" required>
 
-                        <label>College</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="college" value="College of Liberal Arts and Communication"> College of Liberal Arts and Communication</label>
-                            <label><input type="radio" name="college" value="College of Business Administration and Accountancy"> College of Business Administration and Accountancy</label>
-                            <label><input type="radio" name="college" value="College of Criminal Justice Education"> College of Criminal Justice Education</label>
-                            <label><input type="radio" name="college" value="College of Education"> College of Education</label>
-                            <label><input type="radio" name="college" value="College of Engineering, Architecture, and Technology"> College of Engineering, Architecture, and Technology</label>
-                            <label><input type="radio" name="college" value="College of International Hospitality and Tourism Management"> College of International Hospitality and Tourism Management</label>
-                            <label><input type="radio" name="college" value="College of Nursing and Allied Health Sciences"> College of Nursing and Allied Health Sciences</label>
-                            <label><input type="radio" name="college" value="College of Science and Computer Studies"> College of Science and Computer Studies</label>
-                            <label><input type="radio" name="college" value="College of Tourism and Hospitality Management"> College of Tourism and Hospitality Management</label>
-                        </div>
+                            <label>DLSU-D Email</label>
+                            <input type="email" name="email" placeholder="@dlsud.edu.ph" required>
 
-                        <label>Program</label>
-                        <select name="program">
-                            <option value="" disabled selected>Select your program</option>
-                            <option value="Communication Arts">Communication Arts</option>
-                            <option value="Accountancy">Accountancy</option>
-                            <option value="Criminology">Criminology</option>
-                            <option value="Elementary Education">Elementary Education</option>
-                            <option value="Civil Engineering">Civil Engineering</option>
-                            <option value="Hotel and Restaurant Management">Hotel and Restaurant Management</option>
-                            <option value="Nursing">Nursing</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Tourism Management">Tourism Management</option>
-                            <!-- Add more programs as needed -->
-                        </select>
+                            <label>College</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Business Administration and Accountancy" required> College of Business Administration and Accountancy</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Criminal Justice Education"> College of Criminal Justice Education</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Education"> College of Education</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Engineering, Architecture, and Technology"> College of Engineering, Architecture, and Technology</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Liberal Arts and Communication"> College of Liberal Arts and Communication</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Science"> College of Science</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Information and Computer Studies"> College of Information and Computer Studies</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="college" value="College of Tourism and Hospitality Management"> College of Tourism and Hospitality Management</label>
+                                </div>
+                            </div>
+                        </form>
 
-                        <label>College Year</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="college-year" value="1st Year"> 1st Year</label>
-                            <label><input type="radio" name="college-year" value="2nd Year"> 2nd Year</label>
-                            <label><input type="radio" name="college-year" value="3rd Year"> 3rd Year</label>
-                            <label><input type="radio" name="college-year" value="4th Year"> 4th Year</label>
-                            <label><input type="radio" name="college-year" value="5th Year"> 5th Year</label>
-                        </div>
+                        <!-- Form 2 -->
+                        <form id="joingreenfmForm2" class="form-container2">
+                            <label>Program</label>
+                            <select name="program" class="program-select" required>
+                                <option value="" disabled selected>Select your program</option>
+                                <optgroup label="CBAA">
+                                    <option value="Accountancy">Accountancy</option>
+                                    <option value="Management Accounting">Management Accounting</option>
+                                    <option value="Entrepreneurship w/ Specialization in Agripreneurship">Entrepreneurship w/ Specialization in Agripreneurship</option>
+                                    <option value="Entrepreneurship w/ Specialization in Food Entrepreneurship">Entrepreneurship w/ Specialization in Food Entrepreneurship</option>
+                                    <option value="Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics">Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics</option>
+                                    <option value="Business Ad Major in Business Economics">Business Ad Major in Business Economics</option>
+                                    <option value="Business Ad Major in Human Resource Development w/ Specialization in Business Analytics">Business Ad Major in Human Resource Development w/ Specialization in Business Analytics</option>
+                                    <option value="Business Ad Major in Marketing Management w/ Specialization in Business Analytics">Business Ad Major in Marketing Management w/ Specialization in Business Analytics</option>
+                                    <option value="Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications">Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications</option>
+                                </optgroup>
+                                <optgroup label="CJE">
+                                    <option value="Criminology">Criminology</option>
+                                    <option value="Forensic Science">Forensic Science</option>
+                                </optgroup>
+                                <optgroup label="CoE">
+                                    <option value="Early Childhood Education">Early Childhood Education</option>
+                                    <option value="Special Needs Education">Special Needs Education</option>
+                                    <option value="Secondary Education">Secondary Education</option>
+                                    <option value="Physical Education">Physical Education</option>
+                                    <option value="Certificate in Teaching Program">Certificate in Teaching Program</option>
+                                    <option value="Certificate in Teaching Values Education">Certificate in Teaching Values Education</option>
+                                    <option value="Certificate in Sign Language">Certificate in Sign Language</option>
+                                    <option value="Certificate in Teaching Early Childhood Learners">Certificate in Teaching Early Childhood Learners</option>
+                                </optgroup>
+                                <optgroup label="CEAT">
+                                    <option value="Architecture">Architecture</option>
+                                    <option value="Civil Engineering">Civil Engineering</option>
+                                    <option value="Computer Engineering">Computer Engineering</option>
+                                    <option value="Electrical Engineering">Electrical Engineering</option>
+                                    <option value="Electronics Engineering">Electronics Engineering</option>
+                                    <option value="Industrial Engineering">Industrial Engineering</option>
+                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                    <option value="Sanitary Engineering">Sanitary Engineering</option>
+                                    <option value="Multimedia Arts">Multimedia Arts</option>
+                                </optgroup>
+                                <optgroup label="CLAC">
+                                    <option value="Communication">Communication</option>
+                                    <option value="Digital and Multimedia Journalism">Digital and Multimedia Journalism</option>
+                                    <option value="Philosophy">Philosophy</option>
+                                    <option value="Political Science">Political Science</option>
+                                    <option value="Internal Development">Internal Development</option>
+                                    <option value="BA Psychology">BA Psychology</option>
+                                    <option value="BS Psychology">BS Psychology</option>
+                                </optgroup>
+                                <optgroup label="CoS">
+                                    <option value="Biology w/ Specialization in Animal Biology">Biology w/ Specialization in Animal Biology</option>
+                                    <option value="Biology w/ Specialization in Cell and Molecular Biology">Biology w/ Specialization in Cell and Molecular Biology</option>
+                                    <option value="Biology w/ Specialization in Environmental Science">Biology w/ Specialization in Environmental Science</option>
+                                    <option value="Biology w/ Specialization in Medical Biology">Biology w/ Specialization in Medical Biology</option>
+                                    <option value="Biology w/ Specialization in Microbiology">Biology w/ Specialization in Microbiology</option>
+                                    <option value="Biology w/ Specialization in Plant Biology">Biology w/ Specialization in Plant Biology</option>
+                                    <option value="Applied Mathematics">Applied Mathematics</option>
+                                </optgroup>
+                                <optgroup label="CICS">
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="Information Technology">Information Technology</option>
+                                </optgroup>
+                                <optgroup label="CTHM">
+                                    <option value="Hospitality Management">Hospitality Management</option>
+                                    <option value="Tourism Management">Tourism Management</option>
+                                </optgroup>
+                            </select>
 
-                        <label>Section</label>
-                        <input type="text" name="section">
+                            <label>College Year</label>
+                            <ul class="radio-group">
+                                <li class="radio-item">
+                                    <label><input type="radio" name="college-year" value="1st Year" required> 1st Year</label>
+                                </li>
+                                <li class="radio-item">
+                                    <label><input type="radio" name="college-year" value="2nd Year"> 2nd Year</label>
+                                </li>
+                                <li class="radio-item">
+                                    <label><input type="radio" name="college-year" value="3rd Year"> 3rd Year</label>
+                                </li>
+                                <li class="radio-item">
+                                    <label><input type="radio" name="college-year" value="4th Year"> 4th Year</label>
+                                </li>
+                                <li class="radio-item">
+                                    <label><input type="radio" name="college-year" value="5th Year"> 5th Year</label>
+                                </li>
+                            </ul>
 
-                        <label>Facebook Profile URL</label>
-                        <input type="text" name="facebook-url" placeholder="http://www.facebook.com/">
+                            <label>Section</label>
+                            <input type="text" name="section" required>
 
-                        <label>Affiliated Organizations</label>
-                        <input type="text" name="organizations">
+                            <label>Facebook Profile URL</label>
+                            <input type="text" name="facebook-url" placeholder="http://www.facebook.com/">
 
-                        <br>
-                        <button type="submit">Submit</button>
-                    </form>
-                </div>
-            </div>
+                            <label>Affiliated Organizations</label>
+                            <input type="text" name="organizations">
+                        </form>
+                    </div>
         </div>
         
         <!-------------------- FOOTER -------------------->
@@ -122,6 +208,6 @@
         </footer>
     </div>
 
-    <script src="GFM.js"></script>
+    <script src=""></script>
 </body>
 </html>
