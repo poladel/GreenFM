@@ -1,0 +1,200 @@
+<%- include('../partials/header.ejs') %>
+
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
+
+                <!-------------------- CONTENTS START -------------------->
+                <div class="form-title-container">
+                    <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
+                </div>
+                
+                <div class="form-questions-container">
+                    <form id="blocktimerForm">
+
+                        <!-------------------- 1 - Basic Information -------------------->
+                        <label>Type of Office/Organization</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="organization-type" value="Administration" required> Administration</label>
+                            <label><input type="radio" name="organization-type" value="Student Government"> Student Government</label>
+                            <label><input type="radio" name="organization-type" value="Department"> Department</label>
+                            <label><input type="radio" name="organization-type" value="Program Council"> Program Council</label>
+                            <label><input type="radio" name="organization-type" value="Faculty"> Faculty</label>
+                            <label><input type="radio" name="organization-type" value="Interest Organization"> Interest Organization</label>
+                        </div>
+
+                        <label>Name of Office/Organization</label>
+                        <input type="text" name="office-organization" required>
+
+                        <label>Proponent's Name</label>
+                        <div class="name-section">
+                            <input type="text" name="proponent-last-name" placeholder="Last Name" required>
+                            <input type="text" name="proponent-first-name" placeholder="First Name" required>
+                            <input type="text" name="proponent-mi" placeholder="M.I">
+                            <br>
+                            <input type="text" name="proponent-cys" placeholder="CYS" required>
+                        </div>
+
+                        <label>Co-Proponent's Name</label>
+                        <p>If no co-proponent, check "N/A"</p>
+                        <div class="name-section">
+                            <input type="text" name="co-proponent-last-name" placeholder="Last Name" required>
+                            <input type="text" name="co-proponent-first-name" placeholder="First Name" required>
+                            <input type="text" name="co-proponent-mi" placeholder="M.I">
+                            <br>
+                            <input type="text" name="co-proponent-cys" placeholder="CYS" required>
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="co-proponent-not-applicable"> Not Applicable</label>
+                        </div>
+
+                        <!-------------------- 2 - Show Information -------------------->
+                        <label>Title of Show</label>
+                        <input type="text" name="show-title">
+
+                        <label>Type of Show</label>
+                        <label><input type="checkbox" id="news" name="show" value="News"><label for ="news">News</label></label>
+                        <label><input type="checkbox" id="currentaffairs" name="show" value="Public or Current Affairs"><label for ="currentaffairs">Public or Current Affairs</label></label>
+                        <input type="checkbox" id="podcast" name="show" value="Podcast"><label for ="podcast">Discussion or Podcast</label><br>
+                        <input type="checkbox" id="commentary" name="show" value="Commentary"><label for ="commentary">Commentary</label><br>
+                        <input type="checkbox" id="interview" name="show" value="Interview"><label for ="interview">Interview</label><br>
+                        <input type="checkbox" id="music" name="show" value="Music"><label for ="music">Music</label><br>
+                        <input type="checkbox" id="performance" name="show" value="Performance"><label for ="performance">Performance</label><br>
+                        <input type="checkbox" id="game" name="show" value="Game"><label for ="game">Game</label><br>
+                        <input type="checkbox" id="comedy" name="show" value="Comedy"><label for ="comedy">Comedy</label><br>
+                        <input type="checkbox" id="entertainment" name="show" value="Entertainment"><label for ="entertainment">Entertainment</label><br>
+                        <input type="checkbox" id="drama" name="show" value="Drama"><label for ="drama">Drama</label><br>
+                        <input type="checkbox" id="sports" name="show" value="Sports"><label for ="sports">Sports</label><br>
+                        <input type="checkbox" id="other" name="show" value="Other"><input type="text" id="other-input" class="other-input" placeholder="Other" />
+
+                        <label>Brief Description of the Show</label>
+                        <textarea id="show-description" name="showDescription" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
+
+                        <label>Objectives of the Show</label>
+                        <textarea id="show-objectives" name="showObjectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
+
+                        <!-------------------- 3 - Staff Information -------------------->
+                        <label>Name of Executive Producer</label>
+                        <div class="name-section">
+                            <input type="text" name="producer-last-name" placeholder="Last Name">
+                            <input type="text" name="producer-first-name" placeholder="First Name">
+                            <input type="text" name="producer-mi" placeholder="M.I">
+                            <br>
+                            <input type="text" name="co-proponent-cys" placeholder="CYS" required>
+                        </div>
+
+                        <label>Name of Faculty Staff or Staff Adviser</label>
+                        <p>For students only. If not applicable, check "N/A"</p>
+                        <div class="name-section">
+                            <input type="text" name="faculty-last-name" placeholder="Last Name">
+                            <input type="text" name="faculty-first-name" placeholder="First Name">
+                            <input type="text" name="faculty-mi" placeholder="M.I">
+                            <br>
+                            <input type="text" name="faculty-department" placeholder="Department">
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="faculty-not-applicable"> Not Applicable</label>
+                        </div>
+
+                        <label>Name of Host/s</label>
+                        <p>The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
+                        <div id="hosts-container">
+                            <div class="name-section host-input">
+                                <input type="text" name="host-last-name" placeholder="Last Name" required>
+                                <input type="text" name="host-first-name" placeholder="First Name" required>
+                                <input type="text" name="host-mi" placeholder="M.I">
+                                <br>
+                                <input type="text" name="host-cys" placeholder="CYS" required>
+                            </div>
+                        </div>
+                        <button type="button" id="add-host">+ Add Host</button>
+
+
+                        <label>Name of Technical Staff/s</label>
+                        <p>Each airing of episode is to be organized by a maximum of two (2) technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
+                        <div id="technical-container">
+                            <div class="name-section technical-input">
+                                <input type="text" name="technical-last-name" placeholder="Last Name" required>
+                                <input type="text" name="technical-first-name" placeholder="First Name" required>
+                                <input type="text" name="technical-mi" placeholder="M.I">
+                                <br>
+                                <input type="text" name="technical-cys" placeholder="CYS" required>
+                            </div>
+                        </div>
+                        <button type="button" id="add-technical">+ Add Technical Staff</button>
+
+                        <label>Name of Creative Staff</label>
+                        <p>The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
+                        <div class="name-section">
+                            <input type="text" name="creative-last-name" placeholder="Last Name">
+                            <input type="text" name="creative-first-name" placeholder="First Name">
+                            <input type="text" name="creative-mi" placeholder="M.I">
+                            <br>
+                            <input type="text" name="creative-cys" placeholder="CYS" required>
+                        </div>
+
+                        <!-------------------- 4 - Blocktimer Agreement -------------------->
+                        <label>Agreement</label>
+                        <p>We have read, understood, and will responsibly comply on the guidelines for blocktimers that have been set forth by the 95.9 Green FM Management Board.</p>
+                        <label><input type="radio" name="agreement" value="Agree" required> Yes, we agree.</label>
+
+                        <!-------------------- 5 - Contact Information -------------------->
+                        <label>DLSU-D Email of Office/Organization</label>
+                        <p>If not applicable, you may enter the DLSU-D email of the contact person</p>
+                        <input type="text" name="dlsud-email" placeholder="@dlsud.edu.ph" required>
+
+                        <label>Facebook Link and/or Microsoft Teams/DLSU-D Email of Contact Person</label>
+                        <p>This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat and MS Teams Channel for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
+                        <input type="text" name="contact-person" required>
+
+                        <label>Allow automatic crossposting to your office/organization's Facebook page?</label>
+                        <p>Note: Automatic crossposting on Facebook refers to its feature where it will allow every episode of your show which will be published on 95.9 Green FM's Facebook page, to be automatically posted to your office/organization's Facebook page. For direction on how to setup our crossposting relationship, read this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a></p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="crossposting" value="Yes" required> Yes</label>
+                            <label><input type="radio" name="crossposting" value="No"> No</label>
+                        </div>
+
+                        <div id="fb-link-container" style="display: none;">
+                            <label>Facebook Crossposting Link</label>
+                            <p>Note: Please take note that "Crossposting" link is different from your office/organization's official Facebook link. For directions in getting this specific link, refer to this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a>.</p>
+                            <input type="text" name="email-fb-link" required>
+                        </div>
+
+                        <label>Contact Person's DLSU-D Email</label>
+                        <p>This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' MS Teams Channel for communication.</p>
+                        <input type="email" name="dlsud-email" placeholder="@dlsud.edu.ph" required>
+
+                        <label>Contact Person's Facebook Link</label>
+                        <p>This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat for communication.</p>
+                        <input type="email" name="dlsud-email" placeholder="https://www.facebook.com/959GreenFm" required>
+
+                        <label>Signature of Proponent</label>
+                        <div id="signature-upload-container">
+                            <input type="file" id="signature-upload" accept=".jpg, .jpeg, .png" required>
+                            <p>Upload your signature in JPG or PNG format.</p>
+                        </div>
+                        <div id="signature-preview" style="display: none;">
+                            <p>Preview:</p>
+                            <img id="signature-image" src="" alt="Signature Preview" style="max-width: 200px; max-height: 100px;">
+                        </div>
+
+                        <br>
+                        <a href="/JoinBlocktimer-Step2">
+                            <button type="button">Next</button>
+                        </a>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-------------------- FOOTER -------------------->
+        <%- include('../partials/footer.ejs') %>
+        
+    </div>
+
+    <script src="js/2-user/blocktimer.js"></script>
+    <script src="js/3-logreg/auth.js" defer></script>
+</body>
+</html>

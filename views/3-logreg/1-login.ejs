@@ -1,0 +1,47 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="login-container">
+  <div class="login-box">
+    <a href="/User-Home">
+      <img src="img/GFMLogo.png" alt="Green FM Logo" class="logo">
+    </a>
+    <h2 class="login-title">Green FM Login</h2>
+
+    <button class="google-login-button">
+      <img src="img/google.png" alt="Google Logo" class="google-icon">
+      Sign in with Google
+    </button>
+
+    <p class="or-divider">or</p>
+
+    <form class="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        <div class="username-error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <div class="password-error"></div>
+      </div>
+
+      <button type="submit" class="login-button">Log in</button>
+    </form>
+
+    <div class="footer-links">
+      <a href="/forgot-password">Forgot password?</a>
+      <a href="/Register">Sign up for Green FM</a>
+    </div>
+  </div>
+</div>
+
+<!-------------------- FOOTER -------------------->
+<%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="js/3-logreg/login.js"></script>
+</body>
+
+</html>
