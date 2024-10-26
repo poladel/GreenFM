@@ -66,7 +66,7 @@ const requireAuth = async (req, res, next) => {
                 return res.redirect('/LogIn'); // No valid user for refresh token
             }
         } else {
-            res.redirect('/LogIn'); // No token found
+            return res.redirect(`/LogIn?redirect=${encodeURIComponent(req.originalUrl)}`);
         }
     }
 };

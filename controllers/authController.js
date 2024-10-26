@@ -174,7 +174,7 @@ module.exports.register_post = async (req, res) => {
 
 // Update the login_post function in authController.js
 module.exports.login_post = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, redirect } = req.body;
 
     try {
         const user = await User.login(username, password);
@@ -191,8 +191,9 @@ module.exports.login_post = async (req, res) => {
         // Set refresh token in cookie
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
+        console.log('Redirect parameter after login:', redirect);
         // Check for redirect parameter
-        const redirectUrl = req.body.redirect || '/'; // Default to homepage if not provided
+        const redirectUrl = redirect || '/'; // Default to homepage if not provided
         
         // Return the user and redirect URL in the response
         return res.status(200).json({ user: user._id, redirect: redirectUrl });
@@ -203,7 +204,6 @@ module.exports.login_post = async (req, res) => {
 };
 
 
-    
 
 // Refresh Access Token
 module.exports.refreshToken = async (req, res) => {
