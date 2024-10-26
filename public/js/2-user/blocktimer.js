@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		});
 });
 
-document.getElementById('nextButton').addEventListener('click', async () => {
+/*document.getElementById('postButton').addEventListener('click', async () => {
     const response = await fetch('/check-auth'); // Your endpoint to check authentication
     const data = await response.json();
 
@@ -187,6 +187,34 @@ window.addEventListener('click', (event) => {
     if (event.target === modal) {
         modal.style.display = 'none';
     }
+});*/
+
+document.getElementById('postButton').addEventListener('click', async () => {
+    const response = await fetch('/check-auth'); // Endpoint to check authentication
+    const data = await response.json();
+
+    if (data.isAuthenticated) {
+        // If authenticated, user can post
+        // Add your logic for posting here
+    } else {
+        // If not authenticated, capture the current URL for redirection
+        const redirectUrl = window.location.pathname; // Capture the current URL
+        const loginPopup = document.getElementById('loginPopup');
+        loginPopup.querySelector('input[name="redirect"]').value = redirectUrl; // Set hidden input value
+        loginPopup.style.display = 'block'; // Show the modal
+    }
 });
 
+// Close the modal when the close button is clicked
+document.querySelector('.close-button').addEventListener('click', () => {
+    document.getElementById('loginPopup').style.display = 'none';
+});
+
+// Optional: Close the modal when clicking outside of the modal content
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('loginPopup');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
 

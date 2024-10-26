@@ -11,11 +11,12 @@ form.addEventListener('submit', async (e) => {
 
     const username = form.username.value;
     const password = form.password.value;
+    const redirectUrl = form.querySelector('input[name="redirect"]').value; // Get the redirect URL
 
     try {
         const res = await fetch('/LogIn', {
             method: 'POST',
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, password, redirect: redirectUrl }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -27,7 +28,7 @@ form.addEventListener('submit', async (e) => {
             passwordError.textContent = data.errors.password;
         }
         if (data.user) {
-            location.assign('/');
+            location.assign(data.redirect || '/');
         }
     } catch (err) {
         console.log(err);

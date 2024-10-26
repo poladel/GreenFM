@@ -1,21 +1,41 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
+            <!-------------------- HEADER MENUS -------------------->   
+            <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- CONTENTS START --------------------> 
+            <!-------------------- CONTENTS START --------------------> 
+            <button type="button" id="postButton">Post</button>
+            
+            <!-- Modal for login popup -->
+            <div id="loginPopup" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-button">&times;</span>
+                    <p>Please sign in to continue.</p>
+                    <form action="/LogIn" method="POST">
+                        <input type="hidden" name="redirect" value="<%= encodeURIComponent(redirectUrl) %>">
+                        <input type="text" name="username" required placeholder="Username">
+                        <input type="password" name="password" required placeholder="Password">
+                        <button type="submit">Log In</button>
+                    </form>
+                </div>
             </div>
         </div>
-
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
     </div>
+
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="js/2-user/blocktimer.js"></script>
 
 </body>
 </html>
+
+
+
+

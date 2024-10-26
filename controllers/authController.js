@@ -71,14 +71,16 @@ const createRefreshToken = (id) => {
 
 
 module.exports.login_get = (req, res) => {
+    const redirectUrl = req.query.redirect || '/';
     res.render('3-logreg/1-login', {
         pageTitle: 'Log In',
-        cssFile: 'css/login.css'
+        cssFile: 'css/login.css',
+        redirectUrl // Pass redirectUrl to the login view
     });
 }
 
 module.exports.register_get = (req, res) => {
-    res.render('3-logreg/2-register', {
+    res.render('3-logreg/2-register-1', {
         pageTitle: 'Register',
         cssFile: 'css/register.css'
     });
@@ -146,7 +148,7 @@ module.exports.register_post = async (req, res) => {
     }
 };
 
-module.exports.login_post = async (req, res) => {
+/*module.exports.login_post = async (req, res) => {
     const { username, password } = req.body;
     
     try {
@@ -168,7 +170,40 @@ module.exports.login_post = async (req, res) => {
         const errors = handleErrors(err);
         res.status(400).json({ errors });
     }
-}
+} */
+
+// Update the login_post function in authController.js
+module.exports.login_post = async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.login(username, password);
+
+        const accessToken = createAccessToken(user._id);
+        const refreshToken = createRefreshToken(user._id);
+
+        // Store refresh token in the database
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        // Set access token in cookie
+        res.cookie('jwt', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
+        // Set refresh token in cookie
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+
+        // Check for redirect parameter
+        const redirectUrl = req.body.redirect || '/'; // Default to homepage if not provided
+        
+        // Return the user and redirect URL in the response
+        return res.status(200).json({ user: user._id, redirect: redirectUrl });
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json({ errors });
+    }
+};
+
+
+    
 
 // Refresh Access Token
 module.exports.refreshToken = async (req, res) => {
