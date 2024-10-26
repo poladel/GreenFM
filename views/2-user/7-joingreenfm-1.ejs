@@ -5,166 +5,90 @@
     <div class="container">
       <%- include('../partials/nav.ejs') %>
                 
-                <!-------------------- CONTENTS START -------------------->
-                <div class="form-title-container">
-                    <h3 class="form-title">JOIN GREEN FM</h3>
-                </div>
-                <div class="form-questions-container">
-                    <form id="joingreenfmForm">
-                        <label>Full Name</label>
+      <!-------------------- CONTENTS START -------------------->
+      <div class="form-title-container">
+        <h3 class="form-title">JOIN GREEN FM</h3>
+      </div>
+      <div class="form-questions-container">
+        <form id="joingreenfmForm">
+          <label>Full Name</label>
 
-                        <!-------------------- 1 - Student Information -------------------->
-                        <div class="name-section">
-                            <input type="text" name="last-name" placeholder="Last Name" required>
-                            <input type="text" name="first-name" placeholder="First Name" required>
-                            <input type="text" name="mi" placeholder="M.I">
-                        </div>
+          <!-------------------- 1 - Student Information -------------------->
+          <div class="name-section">
+            <input type="text" name="last-name" placeholder="Last Name" required>
+            <input type="text" name="first-name" placeholder="First Name" required>
+            <input type="text" name="mi" placeholder="M.I">
+          </div>
 
-                        <label>Student Number</label>
-                        <input type="text" maxlength="9" name="student-number" required>
+          <label>Student Number</label>
+          <input type="text" maxlength="9" name="student-number" required>
 
-                        <label>DLSU-D Email</label>
-                        <input type="email" name="dlsud-email" placeholder="@dlsud.edu.ph" required>
+          <label>DLSU-D Email</label>
+          <input type="email" name="dlsud-email" placeholder="@dlsud.edu.ph" required>
 
-                        <label>College</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="college" value="CLAC" required> CLAC - College of Liberal Arts and Communication</label>
-                            <label><input type="radio" name="college" value="CBAA"> CBAA - College of Business Administration and Accountancy</label>
-                            <label><input type="radio" name="college" value="CCJE"> CCJE - College of Criminal Justice Education</label>
-                            <label><input type="radio" name="college" value="COED"> COED - College of Education</label>
-                            <label><input type="radio" name="college" value="CEAT"> CEAT - College of Engineering, Architecture, and Technology</label>
-                            <label><input type="radio" name="college" value="COSC"> COSC - College of Science</label>                        
-                            <label><input type="radio" name="college" value="CICS"> CICS - College of Information and Computer Studies</label>
-                            <label><input type="radio" name="college" value="CTHM"> CTHM - College of Tourism and Hospitality Management</label>
-                        </div>
+          <!-- College Selection -->
+          <label>College</label>
+          <div class="radio-group">
+            <label><input type="radio" name="college" value="CLAC" required> CLAC - College of Liberal Arts and Communication</label>
+            <label><input type="radio" name="college" value="CBAA"> CBAA - College of Business Administration and Accountancy</label>
+            <!-- other colleges here -->
+          </div>
 
-                        <label>Program</label>
-                        <select name="program" required>
-                            <option value="" disabled selected>Select your program</option>
-                            
-                            <optgroup label="CLAC">
-                                <option value="Communication">Communication</option>
-                                <option value="Digital and Multimedia Journalism">Digital and Multimedia Journalism</option>
-                                <option value="Philosophy">Philosophy</option>
-                                <option value="Political Science">Political Science</option>
-                                <option value="Internal Development">Internal Development</option>
-                                <option value="BA Psychology">BA Psychology</option>
-                                <option value="BS Psychology">BS Psychology</option>
-                            </optgroup>
+          <label>Program</label>
+          <select name="program" required>
+            <option value="" disabled selected>Select your program</option>
+            <optgroup label="CLAC">
+              <option value="Communication">Communication</option>
+              <!-- other programs here -->
+            </optgroup>
+          </select>
 
-                            <optgroup label="CBAA">
-                                <option value="Accountancy">Accountancy</option>
-                                <option value="Management Accounting">Management Accounting</option>  
-                                <option value="Entrepreneurship w/ Specialization in Agripreneurship">Entrepreneurship w/ Specialization in Agripreneurship</option>
-                                <option value="Entrepreneurship w/ Specialization in Food Entrepreneurship">Entrepreneurship w/ Specialization in Food Entrepreneurship</option>
-                                <option value="Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics">Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics</option>
-                                <option value="Business Ad Major in Business Economics">Business Ad Major in Business Economics</option>
-                                <option value="Business Ad Major in Human Resource Development w/ Specialization in Business Analytics">Business Ad Major in Human Resource Development w/ Specialization in Business Analytics</option>
-                                <option value="Business Ad Major in Marketing Management w/ Specialization in Business Analytics">Business Ad Major in Marketing Management w/ Specialization in Business Analytics</option>
-                                <option value="Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications">Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications</option>
-                            </optgroup>
-                            
-                            <optgroup label="CCJE">
-                                <option value="Criminology">Criminology</option>
-                                <option value="Forensic Science">Forensic Science</option>
-                            </optgroup>
-                            
-                            <optgroup label="COED">
-                                <option value="Early Childhood Education">Early Childhood Education</option>
-                                <option value="Special Needs Education">Special Needs Education</option>
-                                <option value="Secondary Education">Secondary Education</option>
-                                <option value="Physical Education">Physical Education</option>
-                                <option value="Certificate in Teaching Program">Certificate in Teaching Program</option>
-                                <option value="Certificate in Teaching Values Education">Certificate in Teaching Values Education</option>
-                                <option value="Certificate in Sign Language">Certificate in Sign Language</option>
-                                <option value="Certificate in Teaching Early Childhood Learners">Certificate in Teaching Early Childhood Learners</option>
-                            </optgroup>
-                            
-                            <optgroup label="CEAT">
-                                <option value="Architecture">Architecture</option>
-                                <option value="Civil Engineering">Civil Engineering</option>
-                                <option value="Computer Engineering">Computer Engineering</option>
-                                <option value="Electrical Engineering">Electrical Engineering</option>
-                                <option value="Electronics Engineering">Electronics Engineering</option>
-                                <option value="Industrial Engineering">Industrial Engineering</option>
-                                <option value="Mechanical Engineering">Mechanical Engineering</option>
-                                <option value="Sanitary Engineering">Sanitary Engineering</option>
-                                <option value="Multimedia Arts">Multimedia Arts</option>
-                            </optgroup>
+          <!-- College Year Selection -->
+          <label>College Year</label>
+          <div class="radio-group">
+            <label><input type="radio" name="college-year" value="1st Year" required> 1st Year</label>
+            <!-- other years here -->
+          </div>
 
-                            <optgroup label="COSC">
-                                <option value="Biology w/ Specialization in Animal Biology">Biology w/ Specialization in Animal Biology</option>
-                                <option value="Biology w/ Specialization in Cell and Molecular Biology">Biology w/ Specialization in Cell and Molecular Biology</option>
-                                <option value="Biology w/ Specialization in Environmental Science">Biology w/ Specialization in Environmental Science</option>
-                                <option value="Biology w/ Specialization in Medical Biology">CiBiology w/ Specialization in Medical Biology</option>
-                                <option value="Biology w/ Specialization in Microbiology">Biology w/ Specialization in Microbiology</option>
-                                <option value="Biology w/ Specialization in Plant Biology">Biology w/ Specialization in Plant Biology</option>
-                                <option value="Applied Mathematics">Applied Mathematics</option>
-                            </optgroup>
+          <!-- Section, Facebook, Organizations -->
+          <label>Section</label>
+          <input type="text" name="section" placeholder="ABC123" required>                  
 
-                            <optgroup label="CICS">
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Information Technology">Information Technology</option>
-                            </optgroup>
+          <label>Facebook Profile URL</label>
+          <input type="text" name="facebook-url" placeholder="https://www.facebook.com/959GreenFm" required>
 
-                            <optgroup label="CTHM">
-                                <option value="Hospitality Management">Hospitality Management</option>
-                                <option value="Tourism Management">Tourism Management</option>
-                            </optgroup>
-                        </select>
-                        
+          <label>Affiliated Organizations</label>
+          <textarea name="affiliated-orgs-list" rows="4" cols="50" placeholder="List down the organizations you belong to." required></textarea>
 
-                        <label>College Year</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="college-year" value="1st Year" required> 1st Year</label>
-                            <label><input type="radio" name="college-year" value="2nd Year"> 2nd Year</label>
-                            <label><input type="radio" name="college-year" value="3rd Year"> 3rd Year</label>
-                            <label><input type="radio" name="college-year" value="4th Year"> 4th Year</label>
-                            <label><input type="radio" name="college-year" value="5th Year"> 5th Year</label>
-                        </div>
+          <!-------------------- 2 - DEPARTMENT PREFERENCE -------------------->
 
-                        <label>Section</label>
-                        <input type="text" name="section" placeholder="ABC123" required>                  
+          <label>Preferred Department</label>
+          <div class="radio-group">
+            <label><input type="radio" name="preferred-department" value="News and Public Affairs" required> News and Public Affairs</label>
+            <!-- other departments here -->
+          </div>
 
-                        <label>Facebook Profile URL</label>
-                        <input type="text" name="facebook-url" placeholder="https://www.facebook.com/959GreenFm" required>
+          <label>Reasons for Staff Application</label>
+          <textarea name="staff-application-reasons" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
 
-                        <label>Affiliated Organizations</label>
-                        <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)." required></textarea>
+          <label>Reasons for Department Application</label>
+          <textarea name="department-application-reasons" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
 
-                        <!-------------------- 2 - DEPARTMENT PREFERENCE -------------------->
+          <label>Green FM Contribution</label>
+          <textarea name="greenfm-contribution" rows="4" cols="50" placeholder="What can you contribute to Green FM?" required></textarea>
 
-                        <label>Preferred Department</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="college-year" value="News and Public Affairs" required> News and Public Affairs</label>
-                            <label><input type="radio" name="college-year" value="Music and Entertainment"> Music and Entertainment</label>
-                            <label><input type="radio" name="college-year" value="Operations and Logistics"> Operations and Logistics</label>
-                            <label><input type="radio" name="college-year" value="Creatives and Promotions"> Creatives and Promotions</label>
-                        </div>
-
-                        <label>Reasons for Staff Application</label>
-                        <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
-
-                        <label>Reasons for Department Application</label>
-                        <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
-
-                        <label>Green FM Contribution</label>
-                        <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
-
-                        <br>
-                        <br>
-                        <a href="/JoinGFM-Step2">
-                            <button type="button">Next</button>
-                        </a>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
+          <!-- Submit button -->
+          <br><br>
+          <button type="submit">Next</button>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <script src="js/2-user-js/joingreenfm.js"></script>
+  <!-------------------- FOOTER -------------------->
+  <%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="js/2-user-js/joingreenfm.js"></script>
 </body>
 </html>
