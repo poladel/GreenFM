@@ -9,6 +9,18 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
+                <button type="button" id="nextButton">Next</button>
+                
+                <!-- Modal for login popup -->
+                <div id="loginPopup" class="modal" style="display:none;">
+                    <div class="modal-content">
+                        <span class="close-button">&times;</span>
+                        <p>Please sign in to continue.</p>
+                        <a href="/LogIn">
+                            <button type="button">Log In</button>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -16,6 +28,6 @@
         <%- include('../partials/footer.ejs') %>
         
     </div>
-
+    <script src="js/2-user/blocktimer.js"></script>
 </body>
 </html>

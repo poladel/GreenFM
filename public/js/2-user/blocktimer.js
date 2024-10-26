@@ -162,3 +162,31 @@ document.addEventListener("DOMContentLoaded", function () {
 			}
 		});
 });
+
+document.getElementById('nextButton').addEventListener('click', async () => {
+    const response = await fetch('/check-auth'); // Your endpoint to check authentication
+    const data = await response.json();
+
+    if (data.isAuthenticated) {
+        // If authenticated, redirect to the next page
+        window.location.href = '/JoinBlocktimer-Step2';
+    } else {
+        // If not authenticated, display the modal popup
+        document.getElementById('loginPopup').style.display = 'block';
+    }
+});
+
+// Close the modal when the close button is clicked
+document.querySelector('.close-button').addEventListener('click', () => {
+    document.getElementById('loginPopup').style.display = 'none';
+});
+
+// Optional: Close the modal when clicking outside of the modal content
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('loginPopup');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+

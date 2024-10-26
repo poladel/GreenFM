@@ -30,7 +30,7 @@ const handleErrors = (err) => {
 
     // Password Requirements
     if (err.message === 'Minimum of 8 Characters') {
-        errors.password += 'Minimum of 8 characters. '; // Concatenate error messages
+        errors.password += 'Minimum of 8 characters. ';
     }
     if (err.message === 'At least one uppercase letter') {
         errors.password += 'At least one uppercase letter. ';
@@ -44,7 +44,6 @@ const handleErrors = (err) => {
     if (err.message === 'At least one special character') {
         errors.password += 'At least one special character. ';
     }
-
 
     //Log in
     // Incorrect username
@@ -153,7 +152,6 @@ module.exports.login_post = async (req, res) => {
     try {
         const user = await User.login(username, password);
 
-
         const accessToken = createAccessToken(user._id);
         const refreshToken = createRefreshToken(user._id);
 
@@ -195,18 +193,25 @@ module.exports.refreshToken = async (req, res) => {
 
 // Logout User
 module.exports.logout_get = async (req, res) => {
-    const { jwt: accessToken, refreshToken } = req.cookies; // Get both access and refresh tokens
+    const { jwt: accessToken, refreshToken } = req.cookies;
 
     if (!accessToken && !refreshToken) {
         return res.sendStatus(204); // No Content if no tokens are present
     }
 
-    // Find the user by refresh token since the access token might already be invalid/expired
-    const user = await User.findOne({ refreshToken });
+    // If refreshToken exists in cookies, clear it
+    if (refreshToken) {
+        try {
+            // Optionally, you can still find the user by refresh token for logging purposes
+            const user = await User.findOne({ refreshToken });
 
-    if (user) {
-        user.refreshToken = null; // Clear refresh token in the database
-        await user.save();
+            if (user) {
+                console.log(`User ${user.username} is logging out.`);
+            }
+        } catch (err) {
+            console.error('Error finding user during logout:', err);
+            return res.status(500).send('Server error'); // Handle errors
+        }
     }
 
     // Clear both access and refresh tokens in cookies
@@ -215,6 +220,7 @@ module.exports.logout_get = async (req, res) => {
 
     res.redirect('/');
 }
+
 
 
 // Add this line to the end of authController.js

@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const authController = require('../controllers/authController');
+const { checkAuth } = require('./api/check-auth.js');
 
 const router = Router();
 
@@ -10,5 +11,6 @@ router.get('/Register', authController.register_get);
 router.post('/Register', authController.register_post);
 router.post('/refresh-token', authController.refreshToken);
 router.get('/LogOut', authController.logout_get);
+router.get('/check-auth', checkAuth);
 
 module.exports = router;
