@@ -9,15 +9,7 @@ const handleErrors = (err) => {
     console.log(err.message, err.code);
     let errors = { email: '', username: '', password: ''};
 
-    // Custom error handling for manual uniqueness check
-    if (err.message === 'Email already registered') {
-        errors.email = 'Email already registered';
-    }
-
-    if (err.message === 'Username already exists') {
-        errors.username = 'Username already exists';
-    }
-
+    //Register
     // Validation Errors
     if (err.message.includes('user validation failed')){
         Object.values(err.errors).forEach(({properties}) => {
@@ -25,17 +17,48 @@ const handleErrors = (err) => {
         });
     }
 
+    // Custom error handling for manual uniqueness check
+    //Existing Email
+    if (err.message === 'Email already registered') {
+        errors.email = 'Email already registered';
+    }
+
+    //Existing Username
+    if (err.message === 'Username already exists') {
+        errors.username = 'Username already exists';
+    }
+
+    // Password Requirements
+    if (err.message === 'Minimum of 8 Characters') {
+        errors.password += 'Minimum of 8 characters. '; // Concatenate error messages
+    }
+    if (err.message === 'At least one uppercase letter') {
+        errors.password += 'At least one uppercase letter. ';
+    }
+    if (err.message === 'At least one lowercase letter') {
+        errors.password += 'At least one lowercase letter. ';
+    }
+    if (err.message === 'At least one number') {
+        errors.password += 'At least one number. ';
+    }
+    if (err.message === 'At least one special character') {
+        errors.password += 'At least one special character. ';
+    }
+
+
+    //Log in
     // Incorrect username
     if (err.message === 'Username does not exist') {
         errors.username = 'Username does not exist';
     }
-
+    // Incorrect password
     if (err.message === 'Incorrect Password') {
         errors.password = 'Incorrect password';
     }
 
     return errors;
 }
+
 
 // Function to create access token
 const createAccessToken = (id) => {
@@ -65,18 +88,41 @@ module.exports.register_get = (req, res) => {
 // Register User
 module.exports.register_post = async (req, res) => {
     const { email, username, password } = req.body;
+    let errors = {};
 
     try {
         const emailExists = await User.findOne({ email });
         const usernameExists = await User.findOne({ username });
 
         if (emailExists) {
-            throw { message: 'Email already registered' };
+            errors.email = 'Email already registered';
         }
 
         if (usernameExists) {
-            throw { message: 'Username already exists' };
+            errors.username = 'Username already exists';
         }
+
+        // Password validation
+        if (password.length < 8) {
+            errors.password = 'Minimum of 8 characters';
+        } else {
+            // Proceed with further checks only if the password is at least 8 characters
+            if (!/[A-Z]/.test(password)) {
+                errors.password = 'At least one uppercase letter';
+            } else if (!/[a-z]/.test(password)) {
+                errors.password = 'At least one lowercase letter';
+            } else if (!/[0-9]/.test(password)) {
+                errors.password = 'At least one number';
+            } else if (!/[~`!@#$%^&*()_+=\[\]{}|\\:;"'<>,.?/]/.test(password)) {
+                errors.password = 'At least one special character';
+            }
+        }
+
+        // If both errors exist, return them without creating a user
+        if (Object.keys(errors).length > 0) {
+            return res.status(400).json({ errors });
+        }
+
 
         // Create the user if no duplicates found
         const user = await User.create({ email, username, password });

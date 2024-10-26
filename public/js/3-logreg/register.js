@@ -26,16 +26,21 @@ const emailError = document.querySelector('.email-error');
 const usernameError = document.querySelector('.username-error');
 const passwordError = document.querySelector('.password-error');
 
+// Function to clear error messages
+const clearErrors = () => {
+    emailError.textContent = "";
+    usernameError.textContent = "";
+    passwordError.textContent = "";
+};
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitButton = document.querySelector('button[type="submit"]');
     submitButton.disabled = true;
 
-    // Reset Errors
-    emailError.textContent = "";
-    usernameError.textContent = "";
-    passwordError.textContent = "";
+    // Clear previous errors
+    clearErrors();
 
     const email = form.email.value;
     const username = form.username.value;
@@ -51,15 +56,22 @@ form.addEventListener('submit', async (e) => {
         });
         const data = await res.json();
         console.log(data);
+
+        // If there are errors, display them
         if (data.errors) {
-            emailError.textContent = data.errors.email;
-            usernameError.textContent = data.errors.username;
-            passwordError.textContent = data.errors.password;
+            emailError.textContent = data.errors.email || '';  // Use fallback to avoid undefined
+            usernameError.textContent = data.errors.username || '';
+            passwordError.textContent = data.errors.password || '';
         }
+
+        // If registration is successful
         if (data.user) {
-            location.assign('/');
+            location.assign('/'); // Redirect to home or another page
         }
     } catch (err) {
         console.log(err);
+    } finally {
+        // Re-enable the submit button regardless of success or failure
+        submitButton.disabled = false;
     }
-}); 
+});
