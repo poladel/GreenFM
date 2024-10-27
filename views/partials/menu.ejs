@@ -22,7 +22,8 @@
             </div>
         <% } else { %>
             <!-- User is not logged in -->
-            <a href="/LogIn" id="login-link">
+            <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+
                 <div class="user-container">
                     <img src="img/user.png" alt="User Icon" class="user-icon">
                     <span class="login-text">LOG-IN</span>

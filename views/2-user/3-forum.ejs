@@ -4,24 +4,21 @@
     <div class="content-wrap">
         <div class="container">
             <%- include('../partials/nav.ejs') %>
-
-            <!-------------------- HEADER MENUS -------------------->   
             <%- include('../partials/menu.ejs') %>
 
-            <!-------------------- CONTENTS START --------------------> 
-            <button type="button" id="postButton">Post</button>
-            
-            <!-- Modal for login popup -->
+            <!-- Button with authentication status as data attribute -->
+            <button type="button" id="postButton" data-authenticated="<%= !!user %>">Post</button>
+
+
+
+            <!-- Modal for login prompt -->
             <div id="loginPopup" class="modal" style="display:none;">
                 <div class="modal-content">
                     <span class="close-button">&times;</span>
                     <p>Please sign in to continue.</p>
-                    <form action="/LogIn" method="POST">
-                        <input type="hidden" name="redirect" value="<%= encodeURIComponent(redirectUrl) %>">
-                        <input type="text" name="username" required placeholder="Username">
-                        <input type="password" name="password" required placeholder="Password">
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
                         <button type="submit">Log In</button>
-                    </form>
+                    </a>
                 </div>
             </div>
         </div>
@@ -31,10 +28,9 @@
     <%- include('../partials/footer.ejs') %>
 </div>
 
-<script src="js/2-user/blocktimer.js"></script>
+<script src="js/2-user/forum.js"></script>
+
+
+
 </body>
 </html>
-
-
-
-

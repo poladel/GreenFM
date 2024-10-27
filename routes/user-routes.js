@@ -39,7 +39,8 @@ userRoutes.forEach(userRoute => {
                 cssFile: 'css/user.css',
                 user: res.locals.user,
                 headerTitle: userRoute.headerTitle,
-                redirectUrl: req.query.redirect || '/'
+                currentPath: req.path,
+                isAuthenticated: !!res.locals.user
             });
         });
     }

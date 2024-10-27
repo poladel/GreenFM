@@ -13,7 +13,7 @@ userRoutes.forEach(userRoute => {
             pageTitle: userRoute.pageTitle, // Pass the page title to the view
             cssFile: 'css/user.css',
             headerTitle: userRoute.headerTitle,
-            redirectUrl: req.query.redirect || '/'
+            currentPath: req.originalUrl // Pass the current path to the view
         });
     });
 });
