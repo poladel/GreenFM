@@ -109,6 +109,7 @@ body, html {
     flex-direction: column;
     gap: 2.5vh;
     text-align: left;
+    position: relative;
 }
 
 .form-group label {
@@ -165,7 +166,7 @@ body, html {
     box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.2);
     padding: 1.5vh;
     width: 18vw;
-    z-index: 10;
+    z-index: 9999;
 }
 
 /* Update to smaller text in the validation box */
@@ -203,25 +204,6 @@ body, html {
 }
 
 .footer-links a:hover {
-    text-decoration: underline;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 1vh 0;
-    font-size: 2vh;
-    color: #333;
-    background-color: #EFEFEF;
-}
-
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 1.5vh;
-}
-
-footer a:hover {
     text-decoration: underline;
 }
 

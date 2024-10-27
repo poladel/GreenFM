@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     passwordInput.addEventListener('focus', function () {
         passwordValidation.style.display = 'block'; // Show validation box when focusing on the password input
+        console.log(passwordValidation.style.display); // Check if it changes to 'block'
     });
 
     passwordInput.addEventListener('input', function () {

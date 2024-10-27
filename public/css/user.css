@@ -39,7 +39,8 @@ html, body {
 
 /* Sidebar styling */
 .sidebar, .sidebar1, .sidebar2 {
-    width: 12vw;
+    width: 12vw; /* Responsive width */
+    max-width: 300px; /* Limit maximum width */
     background-color: white;
     border-radius: 15px;
     padding: 1vw 0;
@@ -47,6 +48,7 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow: hidden; /* Prevent overflow */
 }
 
 .logo {
@@ -86,6 +88,9 @@ html, body {
     display: block;
     transition: color 0.3s, background-color 0.3s;
     box-sizing: border-box;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .menu li a:hover {
@@ -124,7 +129,10 @@ html, body {
     width: 70vw;
     height: 50px;
     display: flex;
-    align-items: center
+    align-items: center;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .posts-title {
@@ -146,6 +154,9 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .icons-container {
@@ -171,6 +182,9 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .user-container {
@@ -270,136 +284,51 @@ footer a:hover {
     text-decoration: underline;
 }
 
-/* FORUM */
-/* Post Component Styles */
-.post-container {
-    background-color: white;
-    padding: 20px;
-    margin-top: 0.5vw;
-    margin-left: 5vw;
-    width: 61.2vw;
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.post-textbox {
-    width: 97.5%;
-    height: 80px;
-    padding: 10px;
-    font-size: 16px;
-    border: none;
-    border-radius: 10px;
-    outline: none;
-    background-color: #EFEFEF;
-    resize: none;
-    margin-bottom: 10px;
-}
-
-.post-options {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.post-option-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.option-icon {
-    width: 20px; /* Smaller width for icons */
-    height: 20px;
-}
-
-.post-button {
-    background-color: #00722A;
-    color: white;
-    font-size: 15px;
-    font-weight: bold;
-    padding: 8px 20px;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    position: relative; 
-    margin-left: auto;
-}
-
-.post-button[data-authenticated="false"] {
-    background-color: #B0B0B0; /* Color when not authenticated */
-    cursor: not-allowed; /* Change cursor to indicate action is not allowed */
-}
-
-.post-button:hover:not([data-authenticated="false"]) {
-    background-color: #00591F; /* Darker shade on hover */
-}
-
-/* Modal styles */
-.modal {
-    position: fixed; /* Fixed position */
-    top: 0; /* Position at the top */
-    left: 0; /* Position at the left */
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    display: flex; /* Use flexbox for centering */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    z-index: 1000; /* Make sure it appears above other content */
-}
-
-.modal-content {
-    background-color: white; 
-    border-radius: 15px; 
-    padding: 20px; 
-    text-align: center; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-    width: 80vw; 
-    max-width: 400px; 
-    position: relative;
-    margin: auto;
-}
-
-.close-button {
-    cursor: pointer;
-    font-size: 1.5em;
-    float: right;
-}
-
-#loginPopup button {
-    background-color: #00722A;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-#loginPopup button:hover {
-    background-color: #005B1F;
-}
-
-/* Responsive Adjustments */
+/* Media Queries */
 @media (max-width: 768px) {
-    .sidebars {
-        width: 20vw;
-        gap: 2vh;
+    .container {
+        margin-left: 5vw; /* Reduce left margin */
     }
 
-    .chat-search-container,
-    .user-log-container {
-        width: 80vw;
+    .sidebar, .sidebar1, .sidebar2 {
+        width: 15vw; /* Adjust width for smaller screens */
     }
 
-    .header-container {
-        flex-direction: column;
+    .logo {
+        width: 10vh;
+        height: auto;
     }
+
+    .title {
+        font-size: 0.5em;
+    }
+
+    .menu li a {
+        font-size: 0.5em;
+    }
+
+    .posts-title-container {
+        width: 90%;
+        height: auto;
+        margin-left: 12vw;
+    }
+
+    .chat-search-container, .user-log-container {
+        width: 50%;
+    }
+
+    .icons {
+        width: 2vh;
+        height: auto;
+    }
+
+    .user-icon {
+        width: 3vh;
+        height: auto;
+    }
+
+    .login-text {
+        font-size: 0.5em;
+    }
+
 }

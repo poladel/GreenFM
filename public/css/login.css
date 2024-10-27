@@ -183,22 +183,3 @@ body, html {
 .footer-links a:hover {
     text-decoration: underline;
 }
-
-/* Footer styling */
-footer {
-    text-align: center;
-    padding: 1vh 0;
-    font-size: 2vh;
-    color: #333;
-    background-color: #EFEFEF;
-}
-
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 1.5vh;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}

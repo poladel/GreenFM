@@ -5,7 +5,7 @@ const router = express.Router();
 // Define the routes for each 'user' section with dynamic titles
 const userRoutes = [
     { path: '/Live', view: '2-user/2-live', pageTitle: 'Live',  headerTitle: 'LIVE'},
-    { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM' },
+    { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM', cssFile: 'css/forum.css'},
     { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST' },
     { path: '/JoinBlocktimer-Step1', view: '2-user/6-blocktimer-1', pageTitle: 'Join Blocktimer - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/blocktimer.css' },
@@ -36,7 +36,7 @@ userRoutes.forEach(userRoute => {
         router.get(userRoute.path, (req, res) => {
             res.render(userRoute.view, {
                 pageTitle: userRoute.pageTitle,
-                cssFile: 'css/user.css',
+                cssFile: userRoute.cssFile,
                 user: res.locals.user,
                 headerTitle: userRoute.headerTitle,
                 currentPath: req.path,

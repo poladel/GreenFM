@@ -1,4 +1,4 @@
-<%- include('../partials/header.ejs') %>
+<%- include('../partials/header-logreg.ejs') %>
 
 <div class="register-container">
   <div class="register-box">
@@ -16,40 +16,22 @@
     <!-- Registration Form -->
     <form id="registerForm" class="register-form">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-        <div class="email-error"></div>
+        <label for="text">Full Name</label>
+        <input type="text" name="last-name" placeholder="Last Name" required>
+        <input type="text" name="first-name" placeholder="First Name" required>
+        <input type="text" name="mi" placeholder="M.I" required>
+        <div class="name-error"></div>
       </div>
 
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-        <div class="username-error"></div>
+      <div class="checkbox-group">
+        <p><input type="checkbox" name="dlsud"> DLSU-D</p>
+        <p><input type="checkbox" name="nondlsud"> NON-DLSU</p>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <label id="password-length" class="password-requirement">Must be at least 8 characters long.</label>
-        <label id="password-uppercase" class="password-requirement">Must contain at least one uppercase letter.</label>
-        <label id="password-lowercase" class="password-requirement">Must contain at least one lowercase letter.</label>
-        <label id="password-number" class="password-requirement">Must contain at least one number.</label>
-        <label id="password-special" class="password-requirement">Must contain at least one special character.</label>
-        <div class="password-error"></div>
-      </div>
-
-      <button type="submit" class="register-button">Register</button>
+      <button type="submit" class="register-button">Submit</button>
     </form>
-
-    <div class="footer-links">
-      <a href="/Log-In">Already have an account? Log in</a>
-    </div>
   </div>
 </div>
-
-<!-------------------- FOOTER -------------------->
-<%- include('../partials/footer.ejs') %>
 <script src="js/3-logreg/register.js"></script>
 </body>
 

@@ -1,0 +1,82 @@
+/* FORUM */
+/* Post Component Styles */
+.post-container {
+    background-color: white;
+    padding: 20px;
+    margin-top: 0.5vw;
+    margin-left: 5vw; /* Left margin */
+    margin-right: 5vw; /* Right margin */
+    width: calc(100% - 6vw); /* Full width minus left and right margins */
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-sizing: border-box; /* Include padding and border in element's width */
+}
+
+.post-textbox {
+    width: 97.5%;
+    height: 80px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #EFEFEF;
+    resize: none;
+    margin-bottom: 10px;
+}
+
+.post-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.post-option-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.option-icon {
+    width: 20px; /* Smaller width for icons */
+    height: 20px;
+}
+
+.post-button {
+    background-color: #00722A;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.post-button:hover {
+    background-color: #005A1E;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .post-container {
+        margin-left: 2vw; /* Reduce left margin */
+        margin-right: 2vw; /* Reduce right margin */
+        width: calc(100% - 4vw); /* Adjust width */
+    }
+
+    .post-textbox {
+        height: 60px; /* Adjust height for smaller screens */
+    }
+
+    .post-button {
+        font-size: 14px; /* Smaller font size for buttons */
+        padding: 5px 15px; /* Smaller padding */
+    }
+}

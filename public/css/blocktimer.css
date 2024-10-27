@@ -1,129 +1,3 @@
-/* Base styles */
-body {
-    background-color: #EFEFEF;
-    margin: 0;
-    font-family: Helvetica, Arial, sans-serif;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.page-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.content-wrap {
-    flex: 1;
-}
-
-/* Container adjustments for responsive margins */
-.container {
-    margin-left: 9vw; /* Adjusts based on viewport width */
-    display: block;
-}
-
-/* Sidebar container to keep sidebars together */
-.sidebars {
-    position: fixed; /* Keep sidebars in a fixed position */
-    top: 2vh; /* Initial top margin */
-    left: 1vw; /* Align to the left */
-    display: flex;
-    flex-direction: column; /* Stack sidebars vertically */
-    gap: 1vh; /* Space between sidebars */
-}
-
-/* Sidebar styling */
-.sidebar, .sidebar1, .sidebar2 {
-    width: 12vw; /* Scales with viewport width */
-    background-color: white;
-    border-radius: 15px;
-    padding: 1vw 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.logo {
-    display: block;
-    margin: 1vh auto;
-    width: 60%;
-    height: auto;
-    border-radius: 10px;
-}
-
-.title {
-    text-align: center;
-    color: #00722A;
-    font-size: 0.9em;
-    margin: 5px 0;
-    font-weight: 550;
-}
-
-.menu {
-    list-style-type: none;
-    padding: 0;
-    margin: 5px 0 0 0;
-    width: 100%;
-}
-
-.menu li {
-    text-align: center;
-    margin: 3px 0;
-}
-
-.menu li a {
-    text-decoration: none;
-    color: #272525;
-    font-weight: 550;
-    font-size: 0.9em;
-    padding: 10px 20px;
-    display: block;
-    transition: color 0.3s, background-color 0.3s;
-    box-sizing: border-box;
-}
-
-.menu li a:hover {
-    color: white;
-    background-color: #00722A;
-}
-
-.social-icons {
-    display: flex;
-    justify-content: center;
-    margin-top: 1vh;
-}
-
-.social-icon {
-    width: 22px;
-    height: auto;
-    margin: 0 8px;
-}
-
-/* Final adjustments */
-footer {
-    text-align: center;
-    padding: 10px 0;
-    font-size: 0.9em;
-    color: #333;
-    margin-top: 4vh;
-}
-
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 1vw;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}
-
 /* Form Container */
 .form-title-container {
     background-color: #ffffff;
@@ -209,16 +83,16 @@ label {
 }
 
 textarea {
-    width: 100%;              /* Stretch to fill the width of the container */
-    max-height: 200px;       /* Set a maximum height */
-    min-height: 80px;        /* Optional: set a minimum height for better usability */
-    height: auto;            /* Allow height to adjust based on content */
-    padding: 10px;           /* Add some padding for aesthetics */
-    font-size: 12px;         /* Set a font size */
-    box-sizing: border-box;  /* Include padding in width and height calculations */
-    resize: vertical;        /* Allow vertical resizing only */
-    border: 1px solid #ccc;  /* Optional: Add border styling */
-    border-radius: 5px;      /* Optional: Add rounded corners */
+    width: 100%; /* Stretch to fill the width of the container */
+    max-height: 200px; /* Set a maximum height */
+    min-height: 80px; /* Optional: set a minimum height for better usability */
+    height: auto; /* Allow height to adjust based on content */
+    padding: 10px; /* Add some padding for aesthetics */
+    font-size: 12px; /* Set a font size */
+    box-sizing: border-box; /* Include padding in width and height calculations */
+    resize: vertical; /* Allow vertical resizing only */
+    border: 1px solid #ccc; /* Optional: Add border styling */
+    border-radius: 5px; /* Optional: Add rounded corners */
 }
 
 input[type="text"] {
@@ -343,35 +217,6 @@ input[type="email"] {
     margin-right: 5px;/* Space between the radio button and the label text */
 }
 
-.email-section {
-    display: flex;/* Use flexbox for layout */
-    gap: 20px;/* Space between email items */
-    margin: 15px 0;/* Space above and below the email section */
-}
-
-.email-item {
-    display: flex;/* Flexbox for label and input alignment */
-    flex-direction: column;/* Stack label above input */
-    flex: 1;/* Allow items to grow equally */
-}
-
-.email-item label {
-    margin-bottom: 5px;/* Space below each label */
-}
-
-.email-section label {
-    display: block; /* Make labels block-level for proper spacing */
-    margin-bottom: 5px; /* Space below each label */
-}
-
-.crossposting, .agreement {
-    margin: 20px 0; /* Space above and below these sections */
-}
-
-.crossposting p, .agreement p {
-    margin: 5px 0; /* Space around the paragraphs */
-}
-
 /* Style for file upload button */
 .file-upload {
     display: none; /* Hide the default file input */
@@ -468,27 +313,21 @@ input[type="email"] {
     display: none;
 }
 
-/* Responsive Adjustments */
+
+/* Media Queries */
 @media (max-width: 768px) {
-    .sidebars {
-        width: 20vw;
-        gap: 2vh;
+    .form-title-container {
+        width: 80%;
+        margin-left: 12vw;
     }
-    
+
     .form-container1, .form-container2, .form-container3 {
-        flex-basis: 100%;
+        margin-left: 12vw; /* Reduce left margin */
+        margin-right: 2vw; /* Reduce right margin */
+        width: calc(100% - 4vw); /* Adjust width */
     }
 
     .forms-container {
-        flex-direction: column;
-    }
-
-    .chat-search-container,
-    .user-log-container {
-        width: 80vw;
-    }
-
-    .header-container {
         flex-direction: column;
     }
 
@@ -497,6 +336,7 @@ input[type="email"] {
     }
 
     .circle::after {
-        width: 95px;
+        width: 80%;
     }
+
 }
