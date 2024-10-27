@@ -14,14 +14,15 @@
         <input type="text" name="mi" placeholder="M.I">
       </div>
 
-      <label for="dlsuD">Are you from DLSU-D?</label>
-        <select id="dlsuD" name="dlsuD" required>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-        </select>
+      <div class="form-group">
+        <label for="dlsuD">Are you from DLSU-D?</label>
+        <label for="dlsuD"><input type="checkbox" id="dlsuD" name="dlsuD" value="true">Yes</label>
+      </div>
 
-        <label for="studentNumber">Student Number:</label>
-        <input type="text" id="studentNumber" name="studentNumber">
+      <div id="studentNumberContainer" style="display: none;"> <!-- Hide initially -->
+          <label for="studentNumber">Student Number:</label>
+          <input type="text" id="studentNumber" name="studentNumber">
+      </div>
 
       <button type="submit" class="register-button">Submit</button>
     </form>
@@ -29,5 +30,4 @@
 </div>
 <script src="/js/3-logreg/add-info.js"></script>
 </body>
-
 </html>
