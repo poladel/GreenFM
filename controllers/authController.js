@@ -148,30 +148,6 @@ module.exports.register_post = async (req, res) => {
     }
 };
 
-/*module.exports.login_post = async (req, res) => {
-    const { username, password } = req.body;
-    
-    try {
-        const user = await User.login(username, password);
-
-        const accessToken = createAccessToken(user._id);
-        const refreshToken = createRefreshToken(user._id);
-
-        // Store in the database
-        user.refreshToken = refreshToken;
-        await user.save();
-
-        // Set access token in cookie
-        res.cookie('jwt', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
-        // Set refresh token in cookie
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
-        res.status(201).json({ user: user._id, refreshToken });
-    } catch (err) {
-        const errors = handleErrors(err);
-        res.status(400).json({ errors });
-    }
-} */
-
 // Update the login_post function in authController.js
 module.exports.login_post = async (req, res) => {
     const { username, password, redirect } = req.body;
