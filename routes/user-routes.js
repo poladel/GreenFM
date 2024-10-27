@@ -24,8 +24,8 @@ userRoutes.forEach(userRoute => {
         // Apply requireAuth middleware for specific routes
         router.get(userRoute.path, requireAuth, (req, res) => {
             res.render(userRoute.view, {
-                pageTitle: userRoute.pageTitle, // Pass the page title to the view
-                cssFile: userRoutes.cssFile,
+                pageTitle: userRoute.pageTitle,
+                cssFile: userRoute.cssFile,
                 user: res.locals.user,
                 headerTitle: userRoute.headerTitle,
                 redirectUrl: req.query.redirect || '/'

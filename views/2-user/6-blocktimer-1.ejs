@@ -76,28 +76,28 @@
                             <div class="form-group checkbox-group">
                                 <label>Type of Show</label>
                                 <div class="checkbox-row">
-                                    <label><input type="checkbox" name="type" value="News"> News</label>
-                                    <label><input type="checkbox" name="type" value="Interview"> Interview</label>
-                                    <label><input type="checkbox" name="type" value="Comedy"> Comedy</label>
+                                    <label><input type="checkbox" name="show" value="News"> News</label>
+                                    <label><input type="checkbox" name="show" value="Interview"> Interview</label>
+                                    <label><input type="checkbox" name="show" value="Comedy"> Comedy</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <label><input type="checkbox" name="type" value="Sports"> Sports</label>
-                                    <label><input type="checkbox" name="type" value="Music"> Music</label>
-                                    <label><input type="checkbox" name="type" value="Entertainment"> Entertainment</label>
+                                    <label><input type="checkbox" name="show" value="Sports"> Sports</label>
+                                    <label><input type="checkbox" name="show" value="Music"> Music</label>
+                                    <label><input type="checkbox" name="show" value="Entertainment"> Entertainment</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <label><input type="checkbox" name="type" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                    <label><input type="checkbox" name="type" value="Performance"> Performance</label>
-                                    <label><input type="checkbox" name="type" value="Drama"> Drama</label>
+                                    <label><input type="checkbox" name="show" value="Discussion or Podcast"> Discussion or Podcast</label>
+                                    <label><input type="checkbox" name="show" value="Performance"> Performance</label>
+                                    <label><input type="checkbox" name="show" value="Drama"> Drama</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <label><input type="checkbox" name="type" value="Commentary"> Commentary</label>
-                                    <label><input type="checkbox" name="type" value="Game"> Game</label>
-                                    <label><input type="checkbox" name="type" value="Public or Current Affairs"> Public or Current Affairs</label>
+                                    <label><input type="checkbox" name="show" value="Commentary"> Commentary</label>
+                                    <label><input type="checkbox" name="show" value="Game"> Game</label>
+                                    <label><input type="checkbox" name="show" value="Public or Current Affairs"> Public or Current Affairs</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" name="type" value="Other">
-                                    <input type="text" class="other-textbox" placeholder="Other" />
+                                    <input type="checkbox" name="show" value="Other">
+                                    <input type="text" id="other-input" placeholder="Other" />
                                 </div>                                               
                             </div>
                         
@@ -138,24 +138,34 @@
                             <label>Name of Host/s</label>
                             <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
                                 This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
-                            <div class="name-section">
-                                <input type="text" name="host-last-name" placeholder="Last Name">
-                                <input type="text" name="host-first-name" placeholder="First Name">
-                                <input type="text" name="host-mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="producer-cys"placeholder="CYS">
+
+                            <!-- Container for hosts, necessary for dynamic addition -->
+                            <div id="hosts-container">
+                                <div class="name-section host-input">
+                                    <input type="text" name="host-last-name" placeholder="Last Name" required>
+                                    <input type="text" name="host-first-name" placeholder="First Name" required>
+                                    <input type="text" name="host-mi" class="middleinitial" placeholder="M.I.">
+                                    <input type="text" name="host-cys" placeholder="CYS" required>
+                                </div>
                             </div>
-                            <button type="button" id="add-host" class="addbutton">+ Add Host</button><br><br>                           
+                            <button type="button" id="add-host" class="addbutton">+ Add Host</button><br><br>
+
 
                             <label>Name of Technical Staff/s</label>
-                            <p class="formnote">Each airing of episode is to be organized by a maximum of two (2) 
+                            <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
                                 technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
-                            <div class="name-section">
-                                <input type="text" name="technical-last-name" placeholder="Last Name">
-                                <input type="text" name="technical-first-name" placeholder="First Name">
-                                <input type="text" name="technical-mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="producer-cys"placeholder="CYS">
+
+                            <!-- Container for technical staff, necessary for dynamic addition -->
+                            <div id="technical-container">
+                                <div class="name-section technical-input">
+                                    <input type="text" name="technical-last-name" placeholder="Last Name" required>
+                                    <input type="text" name="technical-first-name" placeholder="First Name" required>
+                                    <input type="text" name="technical-mi" class="middleinitial" placeholder="M.I.">
+                                    <input type="text" name="technical-cys" placeholder="CYS" required>
+                                </div>
                             </div>
                             <button type="button" id="add-technical" class="addbutton">+ Add Technical Staff</button><br><br>
+
 
                             <label>Name of Creative Staff</label>
                             <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
@@ -178,7 +188,8 @@
                     <!-------------------- 5 - Contact Information -------------------->
                     <label>DLSU-D Email of Office/Organization</label>
                     <p class="formnote">If not applicable, you may enter the DLSU-D email of the contact person</p>
-                    <input type="text" name="dlsud-email" placeholder="@dlsud.edu.ph" required><br>
+                    <input type="text" id="dlsud-email-office" name="dlsud-email-office" placeholder="@dlsud.edu.ph" required>
+                    <br>
 
                     <label>Facebook Link and/or Microsoft Teams/DLSU-D Email of Contact Person</label>
                     <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat and MS Teams Channel for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
@@ -199,7 +210,7 @@
 
                     <label>Contact Person's DLSU-D Email</label>
                     <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' MS Teams Channel for communication.</p>
-                    <input type="email" name="dlsud-email" placeholder="@dlsud.edu.ph" class="" required>
+                    <input type="text" id="dlsud-email-contact" name="dlsud-email-contact" placeholder="@dlsud.edu.ph" required>
 
                     <br><label>Contact Person's Facebook Link</label>
                     <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat for communication.</p>
@@ -228,6 +239,6 @@
 
     <script src="js/2-user/blocktimer.js"></script>
     <script src="js/3-logreg/auth.js" defer></script>
-    <link rel="stylesheet" href="/css/blocktimer.css">
+    
 </body>
 </html>
