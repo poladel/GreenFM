@@ -112,6 +112,10 @@ body, html {
     position: relative;
 }
 
+.form-group {
+    position: relative; /* Ensure child elements are positioned relative to this */
+}
+
 .form-group label {
     font-size: 1.8vh;
     color: #333;
@@ -155,18 +159,17 @@ body, html {
 
 /* Password Validation Box Styles */
 .password-validation {
-    display: none; /* Hidden by default */
-    position: absolute;
-    top: 61vh;
-    left: 100%;
-    margin-left: 1vh;
+    display: none;
+    position: absolute; /* Position it relative to the form-group */
+    top: 100%; /* Align it below the input */
+    left: 0; /* Align it with the left edge of the input */
     background-color: #ffffff;
     border: 1px solid #ffffff;
     border-radius: 1vh;
     box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.2);
     padding: 1.5vh;
-    width: 18vw;
-    z-index: 9999;
+    width: 100%; /* Match the width of the input */
+    z-index: 9999; /* Ensure it's on top of everything */
 }
 
 /* Update to smaller text in the validation box */
