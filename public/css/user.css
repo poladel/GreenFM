@@ -210,7 +210,7 @@ html, body {
 }
 
 .user-dropdown:hover .dropdown-content {
-    display: block; /* Show dropdown on hover */
+    display: none; /* Show dropdown on hover */
 }
 
 .dropdown-content a {
