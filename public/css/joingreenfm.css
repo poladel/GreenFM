@@ -250,6 +250,17 @@ footer a:hover {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
+.form-container3 {
+    width: 81vw;/* Ensure the forms container doesn't overlap with the sidebar */
+    margin-left: 5.3vw;/* Adjust margin to account for sidebar width */
+    margin-right: 2vh;
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 /* Common Form Styles */
 label {
     font-weight: bold; /* Bold text for labels */
@@ -297,12 +308,25 @@ ul {
     padding-left: 0; /* Remove padding on the left */
 }
 
+textarea {
+    width: 100%;              /* Stretch to fill the width of the container */
+    max-height: 200px;       /* Set a maximum height */
+    min-height: 80px;        /* Optional: set a minimum height for better usability */
+    height: auto;            /* Allow height to adjust based on content */
+    padding: 10px;           /* Add some padding for aesthetics */
+    font-size: 12px;         /* Set a font size */
+    box-sizing: border-box;  /* Include padding in width and height calculations */
+    resize: vertical;        /* Allow vertical resizing only */
+    border: 1px solid #ccc;  /* Optional: Add border styling */
+    border-radius: 5px;      /* Optional: Add rounded corners */
+}
+
 /* SUBMIT BUTTON */
 .submit-button {
     display: flex;/* Use flexbox for alignment */
     justify-content: flex-end;/* Align to the right */
     margin-top: 20px;/* Space above the button */
-    margin-right: 2vh;/* Right margin */
+    margin-right: 6vh;/* Right margin */
 }
 
 .submit {
