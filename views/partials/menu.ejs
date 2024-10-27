@@ -11,7 +11,7 @@
     <div class="user-log-container">
         <% if (user) { %>
             <!-- User is logged in -->
-            <div class="user-dropdown">
+            <div class="user-dropdown" id="userDropdown">
                 <div class="user-container">
                     <img src="img/user.png" alt="User Icon" class="user-icon-dropdown"> <!-- Add this line -->
                     <span class="login-text"><%= user.username %></span>
