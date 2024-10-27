@@ -14,6 +14,7 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 2vh;
 }
 
 .login-box {
@@ -21,11 +22,14 @@ body, html {
     background-color: white;
     padding: 4vh;
     padding-top: 2vh;
-    height: 36vw;
     width: 28vw;
+    min-height: 40vh; /* Sets a minimum height relative to viewport */
+    max-height: 80vh; /* Optional: set a max-height to prevent overflow on smaller screens */
+    height: auto; /* Allows auto-expansion based on content */
     border-radius: 1.5vh;
     box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
     text-align: center;
+    overflow: hidden; /* Ensures no content overflows */
 }
 
 /* Logo styling */

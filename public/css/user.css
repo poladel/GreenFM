@@ -183,12 +183,13 @@ html, body {
 .user-icon {
     width: 20px;
     height: auto;
-    margin-right: 5px;
+    margin-right: 2vh;
 }
 
 .login-text {
     font-size: 14px;
     color: #333;
+    margin-right: 2vh;
 }
 
 /* User Dropdown Styles */
@@ -232,6 +233,14 @@ html, body {
     margin-left: -2.5vh;
     margin-right: 5px;
     vertical-align: middle;
+}
+
+#login-link {
+    text-decoration: none;
+}
+
+#login-link .login-text {
+    text-decoration: none;
 }
 
 /* Adjust user-container to center align icon and text */
