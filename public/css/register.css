@@ -21,7 +21,7 @@ body, html {
     background-color: white;
     padding: 4vh;
     padding-top: 2vh;
-    height: 38.5vw; /* Match the login box height */
+    height: 41vw; /* Match the login box height */
     width: 28vw; /* Adjusted to match the login box width */
     border-radius: 1.5vh;
     box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
