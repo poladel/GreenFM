@@ -3,31 +3,34 @@ body, html {
     background-color: #EFEFEF;
     margin: 0;
     font-family: Helvetica, Arial, sans-serif;
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
 /* Container for the entire login box */
 .login-container {
-    flex: 1; /* Allows login-container to expand as needed */
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .login-box {
+    position: relative;
     background-color: white;
-    padding: 40px;
-    width: 360px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 4vh;
+    padding-top: 2vh;
+    height: 34vw;
+    width: 28vw;
+    border-radius: 1.5vh;
+    box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 /* Logo styling */
 .logo {
-    width: 70px;
+    width: 10vh;
     height: auto;
     cursor: pointer;
 }
@@ -36,26 +39,26 @@ body, html {
 .login-title {
     color: #00722A;
     font-weight: 700;
-    font-size: 1.4em;
-    margin-bottom: 20px;
+    font-size: 2.8vh;
+    margin-bottom: 3vh;
 }
 
 /* Google login button */
 .google-login-button {
     background-color: white;
     color: #333;
-    font-size: 1em;
+    font-size: 2vh;
     font-weight: bold;
-    padding: 10px;
+    padding: 1.5vh;
     width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 0.2vh solid #ddd;
+    border-radius: 1vh;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.3s ease;
-    margin-bottom: 15px;
+    margin-bottom: 2vh;
     text-decoration: none;
 }
 
@@ -64,17 +67,17 @@ body, html {
 }
 
 .google-icon {
-    width: 20px;
+    width: 3vh;
     height: auto;
-    margin-right: 10px;
+    margin-right: 1.5vh;
 }
 
 /* Divider line */
 .or-divider {
     text-align: center;
-    font-size: 0.9em;
+    font-size: 1.8vh;
     color: #666;
-    margin: 15px 0;
+    margin: 2vh 0;
     position: relative;
 }
 
@@ -82,8 +85,8 @@ body, html {
     content: "";
     position: absolute;
     top: 50%;
-    width: 45%;
-    height: 1px;
+    width: 40%;
+    height: 0.2vh;
     background-color: #ddd;
 }
 
@@ -99,24 +102,24 @@ body, html {
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 2.5vh;
     text-align: left;
 }
 
 .form-group label {
-    font-size: 0.9em;
+    font-size: 1.8vh;
     color: #333;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 0.8vh;
     display: block;
 }
 
 .form-group input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1em;
+    padding: 1.5vh;
+    border: 0.2vh solid #ccc;
+    border-radius: 1vh;
+    font-size: 2vh;
     color: #333;
     box-sizing: border-box;
 }
@@ -130,11 +133,11 @@ body, html {
 .login-button {
     background-color: #00722A;
     color: white;
-    padding: 10px;
-    font-size: 1em;
+    padding: 1.5vh;
+    font-size: 2vh;
     font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 1vh;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -143,16 +146,34 @@ body, html {
     background-color: #00591d;
 }
 
+/* Styling the Back to Home Image Link */
+.back-to-home {
+    display: block;
+    text-align: left;
+    margin-bottom: 0.5vh;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+/* Image styling for the back icon */
+.back-icon {
+    margin-top: 2vh;
+    width: 3vh;
+    height: auto;
+    cursor: pointer;
+}
+
 /* Footer links */
 .footer-links {
-    margin-top: 15px;
-    font-size: 0.9em;
+    margin-top: 2vh;
+    font-size: 2vh;
 }
 
 .footer-links a {
     color: #00722A;
     text-decoration: none;
-    margin: 0 10px;
+    margin: 0 1.5vh;
 }
 
 .footer-links a:hover {
@@ -162,8 +183,8 @@ body, html {
 /* Footer styling */
 footer {
     text-align: center;
-    padding: 10px 0;
-    font-size: 0.9em;
+    padding: 1vh 0;
+    font-size: 2vh;
     color: #333;
     background-color: #EFEFEF;
 }
@@ -171,7 +192,7 @@ footer {
 footer a {
     color: #00722A;
     text-decoration: none;
-    margin: 0 10px;
+    margin: 0 1.5vh;
 }
 
 footer a:hover {

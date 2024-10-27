@@ -2,6 +2,9 @@
 
 <div class="register-container">
   <div class="register-box">
+    <a href="/Log-In" class="back-to-home">
+      <img src="img/back.png" alt="Back to Home" class="back-icon">
+    </a>
     <a href="/Home"><img src="img/GFMLogo.png" alt="Green FM Logo" class="logo"></a>
     <h2 class="register-title">Create an Account</h2>
 
@@ -30,12 +33,15 @@
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required>
-        <br>
-        <label id="password-length" class="password-requirement">Must be at least 8 characters long.</label>
-        <label id="password-uppercase" class="password-requirement">Must contain at least one uppercase letter.</label>
-        <label id="password-lowercase" class="password-requirement">Must contain at least one lowercase letter.</label>
-        <label id="password-number" class="password-requirement">Must contain at least one number.</label>
-        <label id="password-special" class="password-requirement">Must contain at least one special character.</label>
+        <div class="password-validation" id="passwordValidation">
+          <ul>
+            <li id="password-length" class="password-requirement">Must be at least 8 characters long.</li>
+            <li id="password-uppercase" class="password-requirement">Must contain at least one uppercase letter.</li>
+            <li id="password-lowercase" class="password-requirement">Must contain at least one lowercase letter.</li>
+            <li id="password-number" class="password-requirement">Must contain at least one number.</li>
+            <li id="password-special" class="password-requirement">Must contain at least one special character.</li>
+          </ul>
+        </div>
         <div class="password-error"></div>
       </div>
 
@@ -52,5 +58,4 @@
 <%- include('../partials/footer.ejs') %>
 <script src="js/3-logreg/register.js"></script>
 </body>
-
 </html>

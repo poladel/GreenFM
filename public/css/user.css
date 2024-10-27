@@ -21,65 +21,37 @@ html, body {
     flex: 1;
 }
 
+/* Container adjustments for responsive margins */
 .container {
-    margin-left: 180px;
+    margin-left: 9vw; /* Adjusts based on viewport width */
     display: block;
 }
 
-/* Footer */
-footer {
-    text-align: center;
-    background-color: #ffffff9a;
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-size: 0.9em;
-    color: #333;
-    margin-top: 40px;
+/* Sidebar container to keep sidebars together */
+.sidebars {
+    position: fixed; /* Keep sidebars in a fixed position */
+    top: 2vh; /* Initial top margin */
+    left: 1vw; /* Align to the left */
+    display: flex;
+    flex-direction: column; /* Stack sidebars vertically */
+    gap: 1vh; /* Space between sidebars */
 }
 
-footer a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 10px;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Sidebar */
+/* Sidebar styling */
 .sidebar, .sidebar1, .sidebar2 {
-    position: fixed;
-    top: 10px;
-    margin-top: 0px;
-    width: 160px;
+    width: 12vw; /* Scales with viewport width */
     background-color: white;
     border-radius: 15px;
-    padding: 15px 0;
+    padding: 1vw 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.sidebar {
-    left: 15px;
-}
-
-.sidebar1 {
-    left: 15px;
-    top: 400px;
-}
-
-.sidebar2 {
-    left: 15px;
-    top: 548px;
-}
-
 .logo {
     display: block;
-    margin: 10px auto;
+    margin: 1vh auto;
     width: 60%;
     height: auto;
     border-radius: 10px;
@@ -124,7 +96,7 @@ footer a:hover {
 .social-icons {
     display: flex;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 1vh;
 }
 
 .social-icon {
@@ -133,17 +105,23 @@ footer a:hover {
     margin: 0 8px;
 }
 
-/* Page Titles */
+/* Header Containers */
+.header-container {
+    display: flex; /* Use flexbox to arrange items in a row */
+    align-items: center; /* Center items vertically */
+    margin-right: 2vh;
+}
+
 .posts-title-container {
     background-color: #ffffff;
     padding: 2px;
     text-align: left;
-    margin-top: 0px;
-    margin-bottom: 10px;
-    margin-left: 15px;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 74%;
+    width: 70vw; /* Relative width */
     height: 50px;
     display: flex; /* Use flexbox for layout */
     align-items: center; /* Center items vertically */
@@ -156,20 +134,14 @@ footer a:hover {
     margin-left: 20px;
 }
 
-/* Flex container for chat search and user containers */
-.header-container {
-    display: flex; /* Use flexbox to arrange items in a row */
-    align-items: center; /* Center items vertically */
-    margin-top: 10px; /* Space between title and header */
-}
-
 .chat-search-container {
     background-color: #ffffff;
     padding: 2px;
-    margin-left: 15px;
+    margin-top: 1vh;
+    margin-left: 1vw;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 10%; /* Set width for chat search container */
+    width: 10vw; /* Set width for chat search container */
     height: 50px;
     display: flex; /* Use flexbox for layout */
     justify-content: center; /* Center items */
@@ -190,10 +162,11 @@ footer a:hover {
 .user-log-container {
     background-color: #ffffff;
     padding: 2px;
-    margin-left: 15px; /* Add space between title and chat-search container */
+    margin-top: 1vh;
+    margin-left: 1vw; /* Add space between title and chat-search container */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 10%; /* Set width for chat search container */
+    width: 10vw; /* Set width for user log container */
     height: 50px;
     display: flex; /* Use flexbox for layout */
     justify-content: center; /* Center items */
@@ -203,8 +176,8 @@ footer a:hover {
 .user-container {
     display: flex; /* Flexbox for user icon and text */
     align-items: center; /* Center items vertically */
-    margin-left: 15px; /* Space between chat-search and user container */
-    width: 100px; /* Set a shorter width for user container */
+    margin-left: 1vw; /* Space between chat-search and user container */
+    width: 8vw; /* Set a shorter width for user container */
 }
 
 .user-icon {
@@ -218,138 +191,38 @@ footer a:hover {
     color: #333; /* Color for the text */
 }
 
-/* Form Container */
-.form-title-container {
-    background-color: #ffffff;
-    padding: 2px;
-    text-align: left;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    margin-left: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 15px;
-    width: 97%;
-    height: 50px;
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Center items vertically */
-}
-
-.form-title {
-    font-weight: 600;
-    font-size: 16px;
-    color: #333;
-    margin-left: 20px;
-}
-
-.form-questions-container {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-left: 15px;
-    margin-top: 20px; /* Add space between post title and form */
-    width: 760px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    font-weight: 600;
-    margin-top: 10px;
-}
-
-input[type="text"], input[type="email"], select {
-    width: 97%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.name-section {
-    display: flex;
-    gap: 10px;
-}
-
-.name-section input {
-    flex: 1;
-}
-
-.radio-group label {
-    display: block;
-    margin-top: 5px;
-}
-
-.radio-group input[type="radio"] {
-    margin-right: 10px;
-}
-
-.checkbox-group {
-    margin-top: 10px;
-}
-
-input[type="text"]::placeholder, 
-input[type="email"]::placeholder {
-    color: #999;
-}
-
-/* Footer */
+/* FOOTER */
 footer {
     text-align: center;
     padding: 10px 0;
     font-size: 0.9em;
     color: #333;
-    margin-top: 40px;
+    margin-top: auto; /* Automatically moves footer to the bottom */
 }
 
 footer a {
     color: #00722A;
     text-decoration: none;
-    margin: 0 10px;
+    margin: 0 1vw;
 }
 
 footer a:hover {
     text-decoration: underline;
 }
 
-/*-------------POP UP-----------------*/
-/* Styles for the modal */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .sidebars {
+        width: 20vw;
+        gap: 2vh;
+    }
 
-/* Modal Content */
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-}
+    .chat-search-container,
+    .user-log-container {
+        width: 80vw;
+    }
 
-/* The Close Button */
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+    .header-container {
+        flex-direction: column;
+    }
 }

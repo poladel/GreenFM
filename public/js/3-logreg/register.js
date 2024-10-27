@@ -75,3 +75,35 @@ form.addEventListener('submit', async (e) => {
         submitButton.disabled = false;
     }
 });
+
+// Password Validation Box
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('password');
+    const passwordValidation = document.getElementById('passwordValidation');
+
+    passwordInput.addEventListener('focus', function () {
+        passwordValidation.style.display = 'block'; // Show validation box when focusing on the password input
+    });
+
+    passwordInput.addEventListener('input', function () {
+        const password = passwordInput.value;
+        
+        // Check password requirements
+        const lengthValid = password.length >= 8;
+        const uppercaseValid = /[A-Z]/.test(password);
+        const lowercaseValid = /[a-z]/.test(password);
+        const numberValid = /[0-9]/.test(password);
+        const specialValid = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        // Update the requirement list
+        document.getElementById('password-length').className = lengthValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-uppercase').className = uppercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-lowercase').className = lowercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-number').className = numberValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-special').className = specialValid ? 'password-requirement valid' : 'password-requirement invalid';
+    });
+
+    passwordInput.addEventListener('blur', function () {
+        passwordValidation.style.display = 'none'; // Hide validation box when input loses focus
+    });
+});
