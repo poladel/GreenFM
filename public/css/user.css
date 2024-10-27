@@ -191,6 +191,57 @@ html, body {
     color: #333; /* Color for the text */
 }
 
+/* User Dropdown Styles */
+.user-dropdown {
+    position: relative; /* Position relative to allow absolute positioning of dropdown content */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.dropdown-content {
+    display: none; /* Hide dropdown content by default */
+    position: absolute; /* Position the dropdown content */
+    background-color: white; /* Background color for dropdown */
+    min-width: 9.5vw; /* Set a minimum width for dropdown */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for dropdown */
+    z-index: 1; /* Make sure dropdown appears above other elements */
+    border-radius: 10px; /* Rounded corners for dropdown */
+    top: 3vw; /* Position dropdown below the user log container */
+    left: -2.6vw; /* Align left edge of dropdown with left edge of the user log container */
+}
+
+.user-dropdown:hover .dropdown-content {
+    display: block; /* Show dropdown on hover */
+}
+
+.dropdown-content a {
+    color: #272525; /* Text color for links */
+    padding: 2vh; /* Padding for links */
+    text-decoration: none; /* Remove underline */
+    display: block; /* Make links block elements */
+    font-size: 14px; /* Font size for links */
+}
+
+.dropdown-content a:hover {
+    background-color: #00722A; /* Background color on hover */
+    color: white; /* Text color on hover */
+}
+
+.user-icon-dropdown {
+    width: 20px; /* Set a consistent width for user icon */
+    height: auto; /* Maintain aspect ratio */
+    margin-left: -2.5vh;
+    margin-right: 5px; /* Space between icon and text */
+    vertical-align: middle; /* Align icon vertically with text */
+}
+
+/* Adjust user-container to center align icon and text */
+.user-container {
+    display: flex; /* Flexbox for user icon and text */
+    align-items: center; /* Center items vertically */
+    margin-left: 1vw; /* Space between chat-search and user container */
+    width: auto; /* Let width adapt to content */
+}
+
 /* FOOTER */
 footer {
     text-align: center;
