@@ -18,7 +18,7 @@ body, html {
 }
 
 .register-box {
-    position: relative;
+    position: relative; /* This allows absolute positioning of children */
     background-color: white;
     padding: 4vh;
     padding-top: 2vh;
@@ -29,8 +29,7 @@ body, html {
     border-radius: 1.5vh;
     box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
     text-align: center;
-    overflow: hidden; /* Ensures no content overflows */
-    max-width: 90vw; /* Set a max width relative to viewport */
+    overflow: visible; /* Change this to visible */
 }
 
 /* Logo styling */
@@ -161,15 +160,17 @@ body, html {
 .password-validation {
     display: none;
     position: absolute; /* Position it relative to the form-group */
-    top: 100%; /* Align it below the input */
-    left: 0; /* Align it with the left edge of the input */
+    top: 50%; /* Center it vertically in relation to the input */
+    left: 100%; /* Position it directly to the right of the input */
+    transform: translateY(-50%); /* Adjust to center it vertically */
     background-color: #ffffff;
-    border: 1px solid #ffffff;
+    border: 1px solid #ddd; /* Change border color if needed */
     border-radius: 1vh;
     box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.2);
     padding: 1.5vh;
-    width: 100%; /* Match the width of the input */
+    width: 18vw;
     z-index: 9999; /* Ensure it's on top of everything */
+    margin-left: 1vh; /* Add some spacing from the input */
 }
 
 /* Update to smaller text in the validation box */
