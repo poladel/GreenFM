@@ -86,8 +86,17 @@ module.exports.register_get = (req, res) => {
     });
 }
 
+// Additional User Info Form
+module.exports.additional_info_get = (req, res) => {
+    res.render('3-logreg/2-register-2', {
+        pageTitle: 'Additional Information',
+        cssFile: '/css/add-info.css'
+    });
+};
+
+
 // Register User
-module.exports.register_post = async (req, res) => {
+/*module.exports.register_post = async (req, res) => {
     const { email, username, password } = req.body;
     let errors = {};
 
@@ -146,9 +155,104 @@ module.exports.register_post = async (req, res) => {
         const errors = handleErrors(err);
         res.status(400).json({ errors });
     }
+}; */
+
+// Register User
+module.exports.register_post = async (req, res) => {
+    const { email, username, password } = req.body;
+    let errors = {};
+
+    try {
+        const emailExists = await User.findOne({ email });
+        const usernameExists = await User.findOne({ username });
+
+        if (emailExists) {
+            errors.email = 'Email already registered';
+        }
+
+        if (usernameExists) {
+            errors.username = 'Username already exists';
+        }
+
+        // Password validation
+        if (password.length < 8) {
+            errors.password = 'Minimum of 8 characters';
+        } else {
+            // Proceed with further checks only if the password is at least 8 characters
+            if (!/[A-Z]/.test(password)) {
+                errors.password = 'At least one uppercase letter';
+            } else if (!/[a-z]/.test(password)) {
+                errors.password = 'At least one lowercase letter';
+            } else if (!/[0-9]/.test(password)) {
+                errors.password = 'At least one number';
+            } else if (!/[~`!@#$%^&*()_+=\[\]{}|\\:;"'<>,.?/]/.test(password)) {
+                errors.password = 'At least one special character';
+            }
+        }
+
+        // If errors exist, return them
+        if (Object.keys(errors).length > 0) {
+            return res.status(400).json({ errors });
+        }
+
+        // Store email, username, and password in session
+        req.session.registrationData = { email, username, password };
+
+        // Respond with a success message
+        return res.status(200).json({ success: true });
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json({ errors });
+    }
 };
 
-// Update the login_post function in authController.js
+// Additional User Info Submission
+module.exports.additional_info_post = async (req, res) => {
+    const { lastName, firstName, middleInitial, dlsuD, studentNumber } = req.body;
+
+    // Retrieve initial data from session
+    const { email, username, password } = req.session.registrationData;
+
+    try {
+        // Create the user with all data
+        const user = await User.create({
+            email,
+            username,
+            password, // Make sure to hash this before saving
+            lastName,
+            firstName,
+            middleInitial,
+            dlsuD: dlsuD === 'true', // Convert checkbox value to boolean
+            studentNumber
+        });
+
+        console.log('User Created:', user); // Log the user creation
+
+        // Optionally create tokens, set cookies, etc., similar to your current setup
+        const accessToken = createAccessToken(user._id);
+        const refreshToken = createRefreshToken(user._id);
+
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        // Set access and refresh tokens in cookies
+        res.cookie('jwt', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+
+        // Clear session data
+        req.session.registrationData = null;
+
+        // Respond with success
+        res.json({ success: true }); // Send success response
+    } catch (error) {
+        console.error('Error saving additional user information:', error);
+        res.status(500).json({ error: 'Failed to save user information' });
+    }
+};
+
+
+
+// User Log In
 module.exports.login_post = async (req, res) => {
     const { username, password, redirect } = req.body;
 
@@ -178,8 +282,6 @@ module.exports.login_post = async (req, res) => {
         res.status(400).json({ errors });
     }
 };
-
-
 
 // Refresh Access Token
 module.exports.refreshToken = async (req, res) => {

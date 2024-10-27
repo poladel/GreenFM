@@ -1,27 +1,44 @@
-const passwordInput = document.getElementById('password');
+/*--------------------------------- VALIDATION BOX ---------------------------------*/
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('password');
+    const passwordValidation = document.getElementById('passwordValidation');
 
-// Add event listener for password input
-passwordInput.addEventListener('input', function () {
-    const password = passwordInput.value;
+    // Show the password validation box when the password input is focused
+    passwordInput.addEventListener('focus', function () {
+        console.log("Password input focused");
+        passwordValidation.style.display = 'block'; // Show validation box when focusing on the password input
+    });
 
-    // Validate password requirements
-    const requirements = {
-        length: password.length >= 8,
-        uppercase: /[A-Z]/.test(password),
-        lowercase: /[a-z]/.test(password),
-        number: /[0-9]/.test(password),
-        special: /[~`!@#$%^&*()_+=\[\]{}|\\:;"'<>,.?/]/.test(password)
-    };
+    // Hide the password validation box when the password input loses focus
+    passwordInput.addEventListener('blur', function () {
+        console.log("Password input lost focus");
+        passwordValidation.style.display = 'none'; // Hide validation box when input loses focus
+    });
 
-    // Update label styles based on requirements
-    document.getElementById('password-length').style.color = requirements.length ? 'green' : 'red';
-    document.getElementById('password-uppercase').style.color = requirements.uppercase ? 'green' : 'red';
-    document.getElementById('password-lowercase').style.color = requirements.lowercase ? 'green' : 'red';
-    document.getElementById('password-number').style.color = requirements.number ? 'green' : 'red';
-    document.getElementById('password-special').style.color = requirements.special ? 'green' : 'red';
+    // Validate password requirements on input
+    passwordInput.addEventListener('input', function () {
+        const password = passwordInput.value;
+
+        // Check password requirements
+        const lengthValid = password.length >= 8;
+        const uppercaseValid = /[A-Z]/.test(password);
+        const lowercaseValid = /[a-z]/.test(password);
+        const numberValid = /[0-9]/.test(password);
+        const specialValid = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        console.log(`Password length: ${password.length}, Uppercase: ${uppercaseValid}, Lowercase: ${lowercaseValid}, Number: ${numberValid}, Special character: ${specialValid}`);
+
+        // Update the requirement list
+        document.getElementById('password-length').className = lengthValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-uppercase').className = uppercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-lowercase').className = lowercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-number').className = numberValid ? 'password-requirement valid' : 'password-requirement invalid';
+        document.getElementById('password-special').className = specialValid ? 'password-requirement valid' : 'password-requirement invalid';
+    });
 });
 
-const form = document.querySelector('.register-form');
+/*--------------------------------- REGISTER FORM 1 ---------------------------------*/
+const form = document.getElementById('registerForm');
 const emailError = document.querySelector('.email-error');
 const usernameError = document.querySelector('.username-error');
 const passwordError = document.querySelector('.password-error');
@@ -65,52 +82,10 @@ form.addEventListener('submit', async (e) => {
         }
 
         // If registration is successful
-        if (data.user) {
-            location.assign('/'); // Redirect to home or another page
+        if (data.success) {
+            location.assign('/Register/Additional-Info'); // Redirect to additional info page
         }
     } catch (err) {
         console.log(err);
-    } finally {
-        // Re-enable the submit button regardless of success or failure
-        submitButton.disabled = false;
     }
-});
-
-// Password Validation Box
-document.addEventListener('DOMContentLoaded', function () {
-    const passwordInput = document.getElementById('password');
-    const passwordValidation = document.getElementById('passwordValidation');
-
-    // Show the password validation box when the password input is focused
-    passwordInput.addEventListener('focus', function () {
-        console.log("Password input focused");
-        passwordValidation.style.display = 'block'; // Show validation box when focusing on the password input
-    });
-
-    // Hide the password validation box when the password input loses focus
-    passwordInput.addEventListener('blur', function () {
-        console.log("Password input lost focus");
-        passwordValidation.style.display = 'none'; // Hide validation box when input loses focus
-    });
-
-    // Validate password requirements on input
-    passwordInput.addEventListener('input', function () {
-        const password = passwordInput.value;
-
-        // Check password requirements
-        const lengthValid = password.length >= 8;
-        const uppercaseValid = /[A-Z]/.test(password);
-        const lowercaseValid = /[a-z]/.test(password);
-        const numberValid = /[0-9]/.test(password);
-        const specialValid = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-        console.log(`Password length: ${password.length}, Uppercase: ${uppercaseValid}, Lowercase: ${lowercaseValid}, Number: ${numberValid}, Special character: ${specialValid}`);
-
-        // Update the requirement list
-        document.getElementById('password-length').className = lengthValid ? 'password-requirement valid' : 'password-requirement invalid';
-        document.getElementById('password-uppercase').className = uppercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
-        document.getElementById('password-lowercase').className = lowercaseValid ? 'password-requirement valid' : 'password-requirement invalid';
-        document.getElementById('password-number').className = numberValid ? 'password-requirement valid' : 'password-requirement invalid';
-        document.getElementById('password-special').className = specialValid ? 'password-requirement valid' : 'password-requirement invalid';
-    });
 });

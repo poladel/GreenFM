@@ -2,29 +2,32 @@
 
 <div class="register-container">
   <div class="register-box">
-    <a href="/Home"><img src="img/GFMLogo.png" alt="Green FM Logo" class="logo"></a>
+    <a href="/Home"><img src="/img/GFMLogo.png" alt="Green FM Logo" class="logo"></a>
     <h2 class="register-title">Create an Account</h2>
 
     <!-- Registration Form -->
-    <form id="registerForm" class="register-form">
+    <form id="registerForm2" class="register-form">
       <div class="form-group">
         <label for="text">Full Name</label>
         <input type="text" name="last-name" placeholder="Last Name" required>
         <input type="text" name="first-name" placeholder="First Name" required>
-        <input type="text" name="mi" placeholder="M.I" required>
-        <div class="name-error"></div>
+        <input type="text" name="mi" placeholder="M.I">
       </div>
 
-      <div class="checkbox-group">
-        <p><input type="checkbox" name="dlsud"> DLSU-D</p>
-        <p><input type="checkbox" name="nondlsud"> NON-DLSU</p>
-      </div>
+      <label for="dlsuD">Are you from DLSU-D?</label>
+        <select id="dlsuD" name="dlsuD" required>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+
+        <label for="studentNumber">Student Number:</label>
+        <input type="text" id="studentNumber" name="studentNumber">
 
       <button type="submit" class="register-button">Submit</button>
     </form>
   </div>
 </div>
-<script src="js/3-logreg/register.js"></script>
+<script src="/js/3-logreg/add-info.js"></script>
 </body>
 
 </html>

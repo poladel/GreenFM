@@ -48,6 +48,26 @@ const userSchema = new Schema({
         type: String, // Store the refresh token here
         default: null,
         unique: true
+    },
+    lastName: {
+        type: String,
+        required: [true, 'Please enter your last name']
+    },
+    firstName: {
+        type: String,
+        required: [true, 'Please enter your first name']
+    },
+    middleInitial: {
+        type: String,
+        default: null // Optional field
+    },
+    dlsuD: {
+        type: Boolean,
+        required: [true, 'Please specify if you are from DLSU-D']
+    },
+    studentNumber: {
+        type: String,
+        default: null // Optional field
     }
 });
 
@@ -62,7 +82,6 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-
 // Static method to login user
 userSchema.statics.login = async function(username, password) {
     const user = await this.findOne({ username });
@@ -76,6 +95,5 @@ userSchema.statics.login = async function(username, password) {
     throw Error('Username does not exist');
 };
 
-
-const User = mongoose.model('user', userSchema);
+const User = mongoose.model('User', userSchema);
 module.exports = User;

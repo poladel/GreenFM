@@ -7,6 +7,7 @@ const credentials = require('./middleware/credentials');
 const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
 const cookieParser = require('cookie-parser');
+const sessionMiddleware = require('./middleware/session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,9 +15,10 @@ const PORT = process.env.PORT || 3000;
 app.use(credentials);
 app.use(cors(corsOptions));
 
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(sessionMiddleware);
 
 // Connecting to MongoDB Atlas
 mongoose.set('strictQuery', false);
@@ -52,7 +54,6 @@ app.all('*', (req, res) => {
         res.type('txt').send("404 Not Found");
     }
 });
-
 
 // Start the server
 mongoose.connection.once('open', () => {

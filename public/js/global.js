@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const userDropdown = document.getElementById("userDropdown");
-    const dropdownContent = userDropdown.querySelector(".dropdown-content");
+    const dropdownContent = document.getElementById("dropdown-menu");
 
     // Toggle dropdown on click
     userDropdown.addEventListener("click", function(event) {
@@ -15,12 +15,3 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
-
-function goBack() {
-    const referrer = document.referrer;
-    if (referrer && !referrer.includes('/Register')) {
-      window.history.back();
-    } else {
-      window.location.href = '/'; // Redirect to homepage or another specific page
-    }
-  }
