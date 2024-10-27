@@ -208,53 +208,61 @@ html, body {
 
 /* User Dropdown Styles */
 .user-dropdown {
-    position: relative;
+    position: relative; /* Allows dropdown to position itself based on this */
     cursor: pointer;
 }
 
 .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 9.5vw;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    border-radius: 10px;
-    top: 3vw;
-    left: -2.6vw;
+    display: none; /* Initially hidden */
+    position: absolute; /* Absolute positioning for dropdown */
+    background-color: white; /* Background color of dropdown */
+    width: 9.5vw; /* Match the width of the login container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for dropdown */
+    z-index: 9999; /* Ensure it appears above other elements */
+    border-radius: 10px; /* Rounded corners for dropdown */
+    top: 3.2vw; /* Position it directly below the user login container */
+    left: -2vw; /* Align to the left edge of the user-dropdown */
+    margin-top: 0; /* No additional margin needed */
 }
 
 .user-dropdown:hover .dropdown-content {
-    display: none; /* Show dropdown on hover */
+    display: block; /* Show dropdown on hover */
 }
 
 .dropdown-content a {
-    color: #272525;
-    padding: 2vh;
-    text-decoration: none;
-    display: block;
-    font-size: 14px;
+    color: #272525; /* Text color */
+    padding: 10px; /* Padding for each link */
+    text-decoration: none; /* Remove underline */
+    display: block; /* Block display for links */
+    font-size: 14px; /* Font size */
+    border-radius: 10px; /* Match the dropdown shape */
 }
 
 .dropdown-content a:hover {
-    background-color: #00722A;
-    color: white;
+    background-color: #00722A; /* Background color on hover */
+    color: white; /* Text color on hover */
 }
 
 .user-icon-dropdown {
-    width: 20px;
-    height: auto;
-    margin-left: -2.5vh;
-    margin-right: 5px;
-    vertical-align: middle;
+    width: 20px; /* Icon width */
+    height: auto; /* Auto height */
+    margin-left: -2.5vh; /* Adjust margin as needed */
+    margin-right: 5px; /* Space between icon and text */
+    vertical-align: middle; /* Align with text */
 }
 
 #login-link {
-    text-decoration: none;
+    text-decoration: none; /* Remove underline */
 }
 
 #login-link .login-text {
-    text-decoration: none;
+    text-decoration: none; /* Remove underline */
+}
+
+/* Ensure the parent container does not hide overflow */
+.user-log-container {
+    position: relative; /* Manage positioning context */
+    overflow: visible; /* Ensure that dropdown can be shown outside this container */
 }
 
 /* Adjust user-container to center align icon and text */
