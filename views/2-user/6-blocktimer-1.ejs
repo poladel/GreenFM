@@ -17,14 +17,14 @@
                     <div class="circle circle-3">3</div>
                 </div>                                            
 
-                <form id="blocktimerForm">
+                <form id="blocktimerForm1">
                     <!-- FORMS START -->
                     <div class="forms-container">
                         <div class="form-container1">
                             <label>Type of Office/Organization</label>
                             <div class="radio-group">
                                 <div class="radio-item">
-                                    <label><input type="radio" name="organization-type" value="Administration"> Administration</label>
+                                    <label><input type="radio" name="organization-type" value="Administration" required> Administration</label>
                                 </div>
                                 <div class="radio-item">
                                     <label><input type="radio" name="organization-type" value="Student Government"> Student Government</label>
@@ -44,14 +44,15 @@
                             </div>                                                       
                             <br>
                             <label>Name of Office/Organization</label>
-                            <input type="text" name="office-organization" placeholder="                                                       ">
+                            <p class="formnote">Note: Please include abbreviated name</p>
+                            <input type="text" name="office-organization" placeholder="Ex. Communication Program Council (CPC)" required>
                             <br>
                             <label>Proponent's Name</label>
                             <div class="name-section">
-                                <input type="text" name="proponent-last-name" placeholder="Last Name">
-                                <input type="text" name="proponent-first-name" placeholder="First Name">
+                                <input type="text" name="proponent-last-name" placeholder="Last Name" required>
+                                <input type="text" name="proponent-first-name" placeholder="First Name" required>
                                 <input type="text" name="proponent-mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="proponent-cys" placeholder="CYS">
+                                <input type="text" name="proponent-cys" placeholder="CYS" >
                             </div>
                             <br>
                             <label>Co-Proponent's Name</label>
@@ -71,7 +72,7 @@
                         <div class="form-container2">
                             <div class="form-group">
                                 <label for="showTitle">Title of Show</label>
-                                <input type="text" id="showTitle" name="showTitle" />
+                                <input type="text" id="showTitle" name="showTitle" required/>
                             </div>
                             
                             <div class="form-group checkbox-group">
@@ -97,7 +98,7 @@
                                     <label><input type="checkbox" name="show" value="Public or Current Affairs"> Public or Current Affairs</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" name="show" value="Other">
+                                    <input type="checkbox" name="show" id="other" value="Other">
                                     <input type="text" id="other-input" placeholder="Other" />
                                 </div>                                               
                             </div>
@@ -118,8 +119,8 @@
                 <div class="form-container3">
                     <label>Name of Executive Producer</label>
                             <div class="name-section">
-                                <input type="text" name="producer-last-name" placeholder="Last Name">
-                                <input type="text" name="producer-first-name" placeholder="First Name">
+                                <input type="text" name="producer-last-name" placeholder="Last Name" required>
+                                <input type="text" name="producer-first-name" placeholder="First Name" required>
                                 <input type="text" name="producer-mi" class="middleinitial" placeholder="M.I.">
                                 <input type="text" name="producer-cys"placeholder="CYS">
                             </div>
@@ -127,10 +128,10 @@
                             <label>Name of Faculty Staff or Staff Adviser</label>
                             <p class="formnote">For students only. If not applicable, check "N/A"</p>
                             <div class="name-section">
-                                <input type="text" name="faculty-last-name" placeholder="Last Name">
-                                <input type="text" name="faculty-first-name" placeholder="First Name">
+                                <input type="text" name="faculty-last-name" placeholder="Last Name" required>
+                                <input type="text" name="faculty-first-name" placeholder="First Name" required>
                                 <input type="text" name="faculty-mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="producer-department"placeholder="Department">
+                                <input type="text" name="producer-department"placeholder="Department" required>
                             </div>
                             <div class="checkbox-group">
                                 <p><input type="checkbox" name="co-proponent-not-applicable"> Not Applicable</p>
@@ -146,7 +147,7 @@
                                     <input type="text" name="host-last-name" placeholder="Last Name" required>
                                     <input type="text" name="host-first-name" placeholder="First Name" required>
                                     <input type="text" name="host-mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="host-cys" placeholder="CYS" required>
+                                    <input type="text" name="host-cys" placeholder="CYS">
                                 </div>
                             </div>
                             <button type="button" id="add-host" class="addbutton">+ Add Host</button><br><br>
@@ -162,7 +163,7 @@
                                     <input type="text" name="technical-last-name" placeholder="Last Name" required>
                                     <input type="text" name="technical-first-name" placeholder="First Name" required>
                                     <input type="text" name="technical-mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="technical-cys" placeholder="CYS" required>
+                                    <input type="text" name="technical-cys" placeholder="CYS">
                                 </div>
                             </div>
                             <button type="button" id="add-technical" class="addbutton">+ Add Technical Staff</button><br><br>
@@ -172,8 +173,8 @@
                             <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
                                 creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
                             <div class="name-section">
-                                <input type="text" name="creative-last-name" placeholder="Last Name">
-                                <input type="text" name="creative-first-name" placeholder="First Name">
+                                <input type="text" name="creative-last-name" placeholder="Last Name" required>
+                                <input type="text" name="creative-first-name" placeholder="First Name" required>
                                 <input type="text" name="creative-mi" class="middleinitial" placeholder="M.I.">
                                 <input type="text" name="producer-cys"placeholder="CYS">
                             </div>
