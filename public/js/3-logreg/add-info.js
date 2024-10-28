@@ -7,14 +7,14 @@ form2.addEventListener('submit', async (e) => {
     
     const lastName = form2.lastName.value;
     const firstName = form2.firstName.value;
-    const mi = form2.mi.value;
-    const dlsuD = form2.dlsuD.value === 'true'; // Convert to boolean
+    const middleInitial = form2.middleInitial.value || '';
+    const dlsuD = form2.dlsuD.checked;
     const dlsudEmail = form2.dlsudEmail.value;
 
     try {
         const res = await fetch('/Register/Additional-Info', {
             method: 'POST',
-            body: JSON.stringify({ lastName, firstName, mi, dlsuD, dlsudEmail }),
+            body: JSON.stringify({ lastName, firstName, middleInitial, dlsuD, dlsudEmail }),
             headers: { 'Content-Type': 'application/json' }
         });
         

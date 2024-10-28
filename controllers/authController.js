@@ -27,6 +27,9 @@ const handleErrors = (err) => {
     if (err.message === 'Username already exists') {
         errors.username = 'Username already exists';
     }
+    if (err.message === 'Minimum of 5 Characters') {
+        errors.username = 'Minimum of 5 characters';
+    }
 
     // Password Requirements
     if (err.message === 'Minimum of 8 Characters') {
@@ -110,6 +113,11 @@ module.exports.register_post = async (req, res) => {
         if (usernameExists) {
             errors.username = 'Username already exists';
         }
+        
+        // Username validation
+        if (username.length < 5) {
+            errors.username = 'Minimum of 5 characters';
+        }
 
         // Password validation
         if (password.length < 8) {
@@ -166,8 +174,8 @@ module.exports.additional_info_post = async (req, res) => {
             password, // Make sure to hash this before saving
             lastName,
             firstName,
-            middleInitial,
-            dlsuD: dlsuD === 'true', // Convert checkbox value to boolean
+            middleInitial: middleInitial || '',
+            dlsuD: dlsuD === 'true' || dlsuD === true,
             dlsudEmail
         });
 

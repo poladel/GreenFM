@@ -59,15 +59,17 @@ const userSchema = new Schema({
     },
     middleInitial: {
         type: String,
-        default: null // Optional field
+        default: '' // Optional field
     },
     dlsuD: {
         type: Boolean,
-        required: [true, 'Please specify if you are from DLSU-D']
+        required: [true, 'Please specify if you are from DLSU-D'],
+        default: false,
+        set: (value) => Boolean(value)
     },
     dlsudEmail: {
         type: String,
-        validate: [isEmail, 'Please enter a valid email']
+        default: '' // Optional field
     }
 });
 

@@ -79,6 +79,7 @@ form.addEventListener('submit', async (e) => {
             emailError.textContent = data.errors.email || '';  // Use fallback to avoid undefined
             usernameError.textContent = data.errors.username || '';
             passwordError.textContent = data.errors.password || '';
+            submitButton.disabled = false;
         }
 
         // If registration is successful
@@ -87,5 +88,6 @@ form.addEventListener('submit', async (e) => {
         }
     } catch (err) {
         console.log(err);
+        submitButton.disabled = false;
     }
 });
