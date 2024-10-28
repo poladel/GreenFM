@@ -15,8 +15,8 @@ const PORT = process.env.PORT || 3000;
 app.use(credentials);
 app.use(cors(corsOptions));
 
-app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
 

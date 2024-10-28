@@ -16,7 +16,7 @@
                     <img src="img/user.png" alt="User Icon" class="user-icon-dropdown"> <!-- Add this line -->
                     <span class="login-text"><%= user.username %></span>
                 </div>
-                <div id="dropdown-menu" class="dropdown-content">
+                <div id="dropdownContent" class="dropdown-content">
                     <a href="/manage-account">Manage Account</a>
                     <a href="/LogOut">Log Out</a>
                 </div>
@@ -33,4 +33,26 @@
         <% } %>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    const userDropdown = document.getElementById("userDropdown");
+    const dropdownContent = document.getElementById("dropdownContent");
+
+    // Only add event listeners if userDropdown exists
+    if (userDropdown && dropdownContent) {
+        // Toggle dropdown on click
+        userDropdown.addEventListener("click", function(event) {
+            event.stopPropagation(); // Prevent click from closing the dropdown
+            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+        });
+
+        // Close dropdown if clicking outside of it
+        document.addEventListener("click", function(event) {
+            if (!userDropdown.contains(event.target)) {
+                dropdownContent.style.display = "none";
+            }
+        });
+    }
+});
+</script>
 

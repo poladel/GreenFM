@@ -17,17 +17,47 @@ form2.addEventListener('submit', async (e) => {
             body: JSON.stringify({ lastName, firstName, mi, dlsuD, dlsudEmail }),
             headers: { 'Content-Type': 'application/json' }
         });
-        const data = await res.json();
         
+        const data = await res.json();
+
         // Handle success or error responses
-        if (data.success) {
-            // Redirect or show a success message
-            location.assign('/'); // Redirect to home page
+        if (res.ok) {
+            // Handle successful response
+            if (data.success) {
+                location.assign('/'); // Redirect to home page
+            }
+        } else {
+            // Handle error response
+            alert(data.error); // Show alert with the error message
+            window.location.href = '/Register'; // Redirect back to the Register page
         }
     } catch (err) {
-        console.error(err);
+        console.error('Error:', err);
+        alert('An unexpected error occurred. Please try again.'); // General error alert
+        window.location.href = '/Register'; // Redirect back to the Register page
     }
 });
+
+/*--------------------------------- CHECKBOX ---------------------------------*/
+const dlsuDCheckbox = document.getElementById('dlsuD');
+const dlsudEmailContainer = document.getElementById('dlsudEmailContainer');
+
+// Function to toggle the visibility of the student number input
+function toggleStudentNumberVisibility() {
+    if (dlsuDCheckbox.checked) {
+        dlsudEmailContainer.style.display = 'block'; // Show input if checkbox is checked
+    } else {
+        dlsudEmailContainer.style.display = 'none'; // Hide input if checkbox is not checked
+    }
+}
+
+// Initial check to set visibility on page load
+toggleStudentNumberVisibility();
+
+// Add change event listener to the checkbox
+if (dlsuDCheckbox) {
+    dlsuDCheckbox.addEventListener('change', toggleStudentNumberVisibility);
+}
 
 /*--------------------------------- DLSU-D EMAIL ---------------------------------*/
     const emailInput = document.getElementById('dlsudEmail');
@@ -73,3 +103,5 @@ form2.addEventListener('submit', async (e) => {
     emailInput.addEventListener("blur", function () {
         appendDomain();
     });
+
+

@@ -82,7 +82,7 @@ module.exports.login_get = (req, res) => {
 module.exports.register_get = (req, res) => {
     res.render('3-logreg/2-register-1', {
         pageTitle: 'Register',
-        cssFile: 'css/register.css'
+        cssFile: 'css/register.css',
     });
 }
 
@@ -146,6 +146,14 @@ module.exports.register_post = async (req, res) => {
 // Additional User Info Submission
 module.exports.additional_info_post = async (req, res) => {
     const { lastName, firstName, middleInitial, dlsuD, dlsudEmail } = req.body;
+
+    // Check if registrationData exists in session
+    if (!req.session.registrationData) {
+        // Respond with a custom status for handling on the client side
+        return res.status(400).json({ 
+            error: 'Please return and provide your email, username, and password to complete registration.' 
+        });
+    }
 
     // Retrieve initial data from session
     const { email, username, password } = req.session.registrationData;
