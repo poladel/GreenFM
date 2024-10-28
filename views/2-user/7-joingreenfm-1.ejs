@@ -17,9 +17,10 @@
                     <div class="circle circle-3">3</div>
                 </div>                                            
 
+                <form id="joingreenfmForm">
                 <!-- FORMS START -->
                     <div class="forms-container">
-                        <form id="joingreenfmForm1" class="form-container1">
+                        <div class="form-container1">
                             <label>Full Name</label>
                             <div class="name-section">
                                 <input type="text" name="last-name" placeholder="Last Name" required>
@@ -60,10 +61,10 @@
                                     <label><input type="radio" name="college" value="CTHM"> CTHM - College of Tourism and Hospitality Management</label>
                                 </div>
                             </div>
-                        </form>
+                        </div>
 
                         <!-- Form 2 -->
-                        <form id="joingreenfmForm2" class="form-container2">
+                        <div class="form-container2">
                             <label>Program</label>
                             <select name="program" required>
                                 <option value="" disabled selected>Select your program</option>
@@ -166,7 +167,7 @@
 
                             <label>Affiliated Organizations</label>
                         <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)." required></textarea>
-                        </form>
+                        </div>
                         </div>
 
                         <!-- Form 3 -->
@@ -193,6 +194,7 @@
                 <div class="submit-button">
                     <button type="submit" class="submit">NEXT</button> <!-- Add this line --> 
                 </div>
+            </form>
         
         <!-------------------- FOOTER -------------------->
   <%- include('../partials/footer.ejs') %>
