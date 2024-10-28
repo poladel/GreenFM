@@ -3,7 +3,7 @@ body, html {
     background-color: #EFEFEF;
     margin: 0;
     font-family: Helvetica, Arial, sans-serif;
-    height: 100vh; /* Set height to 100vh for full viewport */
+    height: 100vh; /* Full viewport height */
     display: flex;
     flex-direction: column;
 }
@@ -14,18 +14,16 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2vh;
 }
 
 .register-box {
-    position: relative; /* This allows absolute positioning of children */
+    position: relative; /* Allows absolute positioning of children */
     background-color: white;
-    padding: 4vh;
-    padding-top: 2vh;
-    width: 28vw; /* Matches the login box width */
-    min-height: 40vh; /* Sets a minimum height relative to viewport */
-    max-height: 80vh; /* Ensures the box doesn't grow too large */
-    height: auto; /* Allows auto-expansion based on content */
+    padding: 4vh 2vh; /* Adjusted padding for better spacing */
+    width: auto; /* Width for the register box */
+    min-height: 40vh; /* Minimum height */
+    max-height: 120vh; /* Maximum height */
+    height: auto; /* Auto-expansion based on content */
     border-radius: 1.5vh;
     box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -42,96 +40,131 @@ body, html {
 .register-title {
     color: #00722A;
     font-weight: 700;
-    font-size: 2.8vh; /* Match font size with login title */
-    margin-bottom: 3vh;
+    font-size: 2.8vh; /* Font size */
+    margin-bottom: 3vh; /* Margin below title */
 }
 
 /* Form styling */
 .register-form {
     display: flex;
     flex-direction: column;
-    gap: 2.5vh;
+    gap: 2.5vh; /* Space between form groups */
     text-align: left;
-    position: relative;
 }
 
 /* Form group styling */
 .form-group {
-    position: relative; /* Ensure child elements are positioned relative to this */
+    display: flex; /* Use flexbox for arrangement */
+    flex-direction: column; /* Stack elements vertically */
+}
+
+/* Label styling */
+.register-form label {
+    font-size: 1.8vh; /* Consistent font size */
+    color: #333; /* Text color */
+    font-weight: bold; /* Bold text */
+    margin: 0; /* Ensure no margin around the label */
+}
+
+/* Full Name Group styling */
+.full-name-group {
+    display: flex; /* Use flexbox to align items in a row */
+    margin-top: 0; /* Ensure there's no margin above the full name group */
+    gap: 0.5vw; /* Space between input fields */
+}
+
+/* Input field styling */
+.full-name-group input {
+    flex: 1; /* Make inputs flexible to fill available space */
+    padding: 1.5vh; /* Add padding for a better appearance */
+    border: 0.2vh solid #ccc; /* Light gray border */
+    border-radius: 1vh; /* Rounded corners */
+    font-size: 2vh; /* Font size for input text */
+    color: #333; /* Dark text color */
+    box-sizing: border-box; /* Include padding and border in width */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition on focus */
+    margin-top: 0; /* Ensure no top margin for inputs */
+}
+
+/* Input focus styling */
+.full-name-group input:focus {
+    border-color: #00722A; /* Change border color on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Middle initial input styling */
+.middle-initial {
+    width: 10%; /* Set a fixed width for the middle initial input */
+    max-width: 50px; /* Optional: max width for middle initial to keep it manageable */
+}
+
+.full-name-group input:not(.middle-initial) {
+    flex-grow: 1; /* Allow other inputs to grow and fill available space */
+}
+
+/* Checkbox styling */
+.checkbox-group {
+    align-items: center; /* Align label and checkbox */
+    display: flex; /* Use flexbox to align label and checkbox */
+    gap: 0.5vw; /* Space between label and checkbox */
+}
+
+/* Checkbox input styling */
+.checkbox-label {
+    font-size: 1.8vh; /* Match font size with other labels */
+    color: #333;
+    font-weight: bold;
+    display: flex; /* Align checkbox and label text */
+    align-items: center; /* Center the checkbox with text */
+    margin: 0; /* Ensure no margin */
 }
 
 /* Label styling */
 .form-group label {
-    font-size: 1.8vh;
-    color: #333;
-    font-weight: bold;
-    margin-bottom: 0.8vh;
-    display: block;
-}
-
-/* Input field styling */
-.form-group input, 
-#studentNumber, 
-select {
-    width: 100%; /* Full width for inputs to match the login form */
-    padding: 1.5vh;
-    border: 0.2vh solid #ccc;
-    border-radius: 1vh;
-    font-size: 2vh;
-    color: #333;
-    box-sizing: border-box;
-}
-
-/* Input focus styling */
-.register-form input:focus, 
-.register-form select:focus {
-    border-color: #00722A;
-    outline: none;
+    font-size: 1.8vh; /* Label font size */
+    color: #333; /* Label text color */
+    font-weight: bold; /* Bold label text */
+    margin-bottom: 0.5vh; /* Reduced margin for smaller gap */
 }
 
 /* Submit button styling */
 .register-button {
-    background-color: #00722A;
-    color: white;
-    padding: 1.5vh;
-    font-size: 2vh;
-    font-weight: bold;
-    border: none;
-    border-radius: 1vh;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    background-color: #00722A; /* Button background color */
+    color: white; /* Button text color */
+    padding: 1.5vh; /* Button padding */
+    font-size: 2vh; /* Button font size */
+    font-weight: bold; /* Bold button text */
+    border: none; /* Remove default border */
+    border-radius: 1vh; /* Rounded corners for the button */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition on hover */
 }
 
 .register-button:hover {
-    background-color: #00591d;
+    background-color: #00591d; /* Darker background on hover */
 }
 
 /* Error message styling */
 .name-error {
-    color: red;
-    font-size: 1.6vh;
-    margin-top: 1vh;
+    color: red; /* Red color for error messages */
+    font-size: 1.6vh; /* Font size for error messages */
+    margin-top: 1vh; /* Margin above error messages */
 }
 
 /* Footer links */
 .footer-links {
-    margin-top: 2vh;
-    font-size: 2vh;
+    margin-top: 2vh; /* Margin above footer links */
+    font-size: 2vh; /* Font size for footer links */
 }
 
 .footer-links a {
-    color: #00722A;
-    text-decoration: none;
-    margin: 0 1.5vh;
+    color: #00722A; /* Footer link color */
+    text-decoration: none; /* Remove underline from links */
+    margin: 0 1.5vh; /* Margin between footer links */
 }
 
 .footer-links a:hover {
-    text-decoration: underline;
-}
-
-/* Styling for the dropdown */
-select {
-    cursor: pointer; /* Change cursor to pointer for dropdown */
+    text-decoration: underline; /* Underline on hover */
 }
 
 /* Responsive styling */

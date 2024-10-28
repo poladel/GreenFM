@@ -24,12 +24,12 @@ body, html {
     padding-top: 2vh;
     width: 28vw; /* Matches the login box width */
     min-height: 40vh; /* Sets a minimum height relative to viewport */
-    max-height: 80vh; /* Ensures the box doesn't grow too large */
+    max-height: 120vh; /* Ensures the box doesn't grow too large */
     height: auto; /* Allows auto-expansion based on content */
     border-radius: 1.5vh;
     box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
     text-align: center;
-    overflow: visible; /* Change this to visible */
+    overflow: visible; /* Ensure overflow is visible to accommodate growing content */
 }
 
 /* Logo styling */
