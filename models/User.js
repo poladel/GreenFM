@@ -65,9 +65,9 @@ const userSchema = new Schema({
         type: Boolean,
         required: [true, 'Please specify if you are from DLSU-D']
     },
-    studentNumber: {
+    dlsudEmail: {
         type: String,
-        default: null // Optional field
+        validate: [isEmail, 'Please enter a valid email']
     }
 });
 
