@@ -17,9 +17,10 @@
                     <div class="circle circle-3">3</div>
                 </div>                                            
 
-                <!-- FORMS START -->
+                <form id="blocktimerForm">
+                    <!-- FORMS START -->
                     <div class="forms-container">
-                        <form id="blocktimerForm1" class="form-container1"><br>
+                        <div class="form-container1">
                             <label>Type of Office/Organization</label>
                             <div class="radio-group">
                                 <div class="radio-item">
@@ -64,10 +65,11 @@
                             <div class="checkbox-group">
                                 <p><input type="checkbox" name="co-proponent-not-applicable"> Not Applicable</p>
                             </div>
-                        </form>
+                        </div>
 
-                        <!-- Form 2 -->
-                        <form id="blocktimerForm2" class="form-container2">
+                    <!-- Form 2 -->
+                    <div class="forms-container">
+                        <div class="form-container2">
                             <div class="form-group">
                                 <label for="showTitle">Title of Show</label>
                                 <input type="text" id="showTitle" name="showTitle" />
@@ -110,7 +112,8 @@
                                 <label for="show-objectives">Objective of Show</label>
                                 <textarea id="show-objectives" name="showObjectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
                             </div>
-                        </form>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Form 3 -->
@@ -231,6 +234,7 @@
         <div class="submit-button">
             <button type="submit" class="submit">NEXT</button> <!-- Add this line --> 
         </div>
+        </form>
         
         <!-------------------- FOOTER -------------------->
         <%- include('../partials/footer.ejs') %>
