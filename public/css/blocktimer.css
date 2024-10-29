@@ -313,6 +313,33 @@ input[type="email"] {
     display: none;
 }
 
+/* Style for Remove Button */
+.remove-host, .remove-technical {
+    background-color: #ffffff; /* White background */
+    color: rgb(216, 21, 21); /* Red text */
+    padding: 8px 12px; /* Padding for better size */
+    border: 1px solid rgb(216, 21, 21); /* Red border */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    height: fit-content; /* Adjust height to content */
+    align-self: center; /* Center within the section */
+    margin-top: 0; /* Adjust vertical position */
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s; /* Smooth hover effect */
+}
+
+.remove-host:hover, .remove-technical:hover {
+    background-color: rgb(216, 21, 21); /* Dark red background on hover */
+    border-color: rgb(176, 17, 17); /* Slightly darker red border on hover */
+    color: #ffffff; /* White text on hover */
+}
+
+/* Center the Remove button and inputs in the name section */
+.name-section {
+    display: flex;
+    align-items: center; /* Center elements vertically */
+    gap: 10px; /* Space between inputs and button */
+}
 
 /* Media Queries */
 @media (max-width: 768px) {

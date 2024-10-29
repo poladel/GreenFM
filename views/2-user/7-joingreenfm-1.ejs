@@ -17,21 +17,22 @@
                     <div class="circle circle-3">3</div>
                 </div>                                            
 
+                <form id="joingreenfmForm">
                 <!-- FORMS START -->
                     <div class="forms-container">
-                        <form id="joingreenfmForm1" class="form-container1">
+                        <div class="form-container1">
                             <label>Full Name</label>
                             <div class="name-section">
-                                <input type="text" name="last-name" placeholder="Last Name" required>
-                                <input type="text" name="first-name" placeholder="First Name" required>
-                                <input type="text" name="mi" placeholder="M.I" required>
+                                <input type="text" name="lastName" placeholder="Last Name" value="<%= user.lastName %>" required>
+                                <input type="text" name="firstName" placeholder="First Name" value="<%= user.firstName %>" required>
+                                <input type="text" name="middleInitial" placeholder="M.I" value="<%= user.middleInitial ? user.middleInitial : '' %>">
                             </div>
 
                             <label>Student Number</label>
-                            <input type="text" name="student-number" required>
+                            <input type="text" id="studentNumber" name="studentNumber" value="<%= user.studentNumber ? user.studentNumber : '' %>" required>
 
                             <label>DLSU-D Email</label>
-                            <input type="text" name="dlsud-email" placeholder="@dlsud.edu.ph" required>
+                            <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" value="<%= user.dlsudEmail ? user.dlsudEmail : '' %>" required>
 
                             <label>College</label>
                             <div class="radio-group">
@@ -60,10 +61,10 @@
                                     <label><input type="radio" name="college" value="CTHM"> CTHM - College of Tourism and Hospitality Management</label>
                                 </div>
                             </div>
-                        </form>
+                        </div>
 
                         <!-- Form 2 -->
-                        <form id="joingreenfmForm2" class="form-container2">
+                        <div class="form-container2">
                             <label>Program</label>
                             <select name="program" required>
                                 <option value="" disabled selected>Select your program</option>
@@ -142,19 +143,19 @@
                             <label>College Year</label>
                             <ul class="radio-group">
                                 <li class="radio-item">
-                                    <label><input type="radio" name="college-year" value="1st Year" required> 1st Year</label>
+                                    <label><input type="radio" name="collegeYear" value="1st Year" required> 1st Year</label>
                                 </li>
                                 <li class="radio-item">
-                                    <label><input type="radio" name="college-year" value="2nd Year"> 2nd Year</label>
+                                    <label><input type="radio" name="collegeYear" value="2nd Year"> 2nd Year</label>
                                 </li>
                                 <li class="radio-item">
-                                    <label><input type="radio" name="college-year" value="3rd Year"> 3rd Year</label>
+                                    <label><input type="radio" name="collegeYear" value="3rd Year"> 3rd Year</label>
                                 </li>
                                 <li class="radio-item">
-                                    <label><input type="radio" name="college-year" value="4th Year"> 4th Year</label>
+                                    <label><input type="radio" name="collegeYear" value="4th Year"> 4th Year</label>
                                 </li>
                                 <li class="radio-item">
-                                    <label><input type="radio" name="college-year" value="5th Year"> 5th Year</label>
+                                    <label><input type="radio" name="collegeYear" value="5th Year"> 5th Year</label>
                                 </li>
                             </ul>
 
@@ -162,11 +163,11 @@
                             <input type="text" name="section" required>
 
                             <label>Facebook Profile URL</label>
-                            <input type="text" name="facebook-url" placeholder="http://www.facebook.com/">
+                            <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required>
 
                             <label>Affiliated Organizations</label>
-                        <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)." required></textarea>
-                        </form>
+                        <textarea name="affiliatedOrgsList" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)." required></textarea>
+                        </div>
                         </div>
 
                         <!-- Form 3 -->
@@ -174,25 +175,26 @@
                             <!-------------------- 2 - DEPARTMENT PREFERENCE -------------------->
                             <label>Preferred Department</label>
                             <div class="radio-group">
-                                <label><input type="radio" name="college-year" value="News and Public Affairs" required> News and Public Affairs</label>
-                                <label><input type="radio" name="college-year" value="Music and Entertainment"> Music and Entertainment</label>
-                                <label><input type="radio" name="college-year" value="Operations and Logistics"> Operations and Logistics</label>
-                                <label><input type="radio" name="college-year" value="Creatives and Promotions"> Creatives and Promotions</label>
+                                <label><input type="radio" name="preferredDepartment" value="News and Public Affairs" required> News and Public Affairs</label>
+                                <label><input type="radio" name="preferredDepartment" value="Music and Entertainment"> Music and Entertainment</label>
+                                <label><input type="radio" name="preferredDepartment" value="Operations and Logistics"> Operations and Logistics</label>
+                                <label><input type="radio" name="preferredDepartment" value="Creatives and Promotions"> Creatives and Promotions</label>
                             </div>
                             <label>Reasons for Staff Application</label>
-                            <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
+                            <textarea name="staffApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
     
                             <label>Reasons for Department Application</label>
-                            <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
+                            <textarea name="departmentApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
     
                             <label>Green FM Contribution</label>
-                            <textarea name="affiliated-orgs" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
+                            <textarea name="greenFmContribution" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="submit-button">
                     <button type="submit" class="submit">NEXT</button> <!-- Add this line --> 
                 </div>
+            </form>
         
         <!-------------------- FOOTER -------------------->
   <%- include('../partials/footer.ejs') %>

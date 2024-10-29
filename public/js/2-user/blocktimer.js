@@ -1,94 +1,160 @@
-document.addEventListener("DOMContentLoaded", function () {
-    /*----------------------TYPE OF SHOW---------------------*/
-    document.getElementById("blocktimerForm1").addEventListener("submit", function (event) {
-        const checkboxes = document.querySelectorAll('input[name="show"]');
-        const otherCheckbox = document.getElementById("other");
-        const otherInput = document.getElementById("other-input");
+document.getElementById('blocktimerForm1').addEventListener('submit', function(event) {
+    const checkboxes = document.querySelectorAll("input[name^='showDetails']");
+    const otherCheckbox = document.getElementById("other");
+    const otherInput = document.getElementById("other-input");
+    let isChecked = false;
 
-        const isChecked = Array.from(checkboxes).some(
-            (checkbox) => checkbox.checked
-        );
-
-        // Check if "Other" is checked and input is empty
-        if (otherCheckbox.checked && !otherInput.value.trim()) {
-            event.preventDefault();
-            alert('Please specify what you mean by "Other".');
-            return;
-        }
-
-        if (!isChecked) {
-            event.preventDefault();
-            alert("Please select at least one type of show.");
+    // Check if at least one checkbox is selected
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            isChecked = true;
         }
     });
+
+    if (!isChecked) {
+        alert("Please choose at least one type of show.");
+        event.preventDefault(); // Prevent form submission
+        return;
+    }
+
+    // If "Other" is checked, ensure other-input has a value
+    if (otherCheckbox.checked && otherInput.value.trim() === "") {
+        alert("Please specify other type of show.");
+        event.preventDefault(); // Prevent form submission
+        return;
+    }
+});
+
+    /*----------------------NOT APPLICABLE---------------------*/
+// Define all checkboxes and their associated input fields
+const toggles = [
+    {
+        checkboxId: 'coProponentNotApplicable',
+        inputIds: ['coProponentLastName', 'coProponentFirstName', 'coProponentMi', 'coProponentCYS']
+    },
+    {
+        checkboxId: 'facultyStaffNotApplicable',
+        inputIds: ['facultyStaffLastName', 'facultyStaffFirstName', 'facultyStaffMi', 'facultyStaffDepartment']
+    }
+    // Add more sets as needed
+];
+
+// Function to toggle input fields based on checkbox state
+function setupToggleInputs({ checkboxId, inputIds }) {
+    const checkbox = document.getElementById(checkboxId);
+    const inputs = inputIds.map(id => document.getElementById(id));
+
+    function toggleInputs() {
+        const isChecked = checkbox.checked;
+        inputs.forEach(input => {
+            input.disabled = isChecked;
+        });
+    }
+
+    // Initial setup: disable inputs if checkbox is checked on page load
+    toggleInputs();
+    
+    // Event listener to toggle inputs when checkbox state changes
+    checkbox.addEventListener('change', toggleInputs);
+}
+
+// Apply the toggle function to each checkbox-input group
+toggles.forEach(setupToggleInputs);
 
     /*----------------------ADDING HOST---------------------*/
-    document.getElementById("add-host").addEventListener("click", function () {
-        const hostsContainer = document.getElementById("hosts-container");
-        const currentHosts = hostsContainer.getElementsByClassName("host-input").length;
+    let hostIndex = document.querySelectorAll("input[name^='hosts']").length; // Start with the existing hosts
+    let technicalIndex = document.querySelectorAll("input[name^='technicalStaff']").length; // Start with the existing technical staff
 
-        if (currentHosts < 4) {
-            const newHostDiv = document.createElement("div");
-            newHostDiv.className = "name-section host-input";
+function addHost() {
+    const hostsContainer = document.getElementById("hosts-container");
+    const currentHosts = hostsContainer.getElementsByClassName("host-input").length;
 
-            newHostDiv.innerHTML = `
-                <input type="text" name="host-last-name" placeholder="Last Name" required>
-                <input type="text" name="host-first-name" placeholder="First Name" required>
-                <input type="text" name="host-mi" placeholder="M.I">
-                <br>
-                <input type="text" name="host-cys" placeholder="CYS" required>
-                <button type="button" class="remove-host">Remove</button>
-            `;
+    if (currentHosts < 4) {
+        const newHostDiv = document.createElement("div");
+        newHostDiv.className = "name-section host-input";
 
-            hostsContainer.appendChild(newHostDiv);
+        newHostDiv.innerHTML = `
+            <input type="text" name="hosts[${hostIndex}].lastName" placeholder="Last Name" required>
+            <input type="text" name="hosts[${hostIndex}].firstName" placeholder="First Name" required>
+            <input type="text" name="hosts[${hostIndex}].mi" placeholder="M.I">
+            <input type="text" name="hosts[${hostIndex}].cys" placeholder="CYS">
+            <button type="button" class="remove-host">Remove</button>
+        `;
 
-            // Add event listener for the remove button
-            newHostDiv.querySelector(".remove-host").addEventListener("click", function () {
-                hostsContainer.removeChild(newHostDiv);
-            });
-        } else {
-            alert("Maximum of 4 Hosts allowed.");
-        }
-    });
+        hostsContainer.appendChild(newHostDiv);
 
-    /*----------------------ADDING TECHNICAL STAFF---------------------*/
-    document.getElementById("add-technical").addEventListener("click", function () {
-        const technicalContainer = document.getElementById("technical-container");
-        const currentTechnical = technicalContainer.getElementsByClassName("technical-input").length;
+        // Add event listener for the remove button
+        newHostDiv.querySelector(".remove-host").addEventListener("click", function () {
+            hostsContainer.removeChild(newHostDiv);
+        });
 
-        if (currentTechnical < 2) {
-            const newTechnicalDiv = document.createElement("div");
-            newTechnicalDiv.className = "name-section technical-input";
+        hostIndex++; // Increment the host index after adding a new host
+    } else {
+        alert("Maximum of 4 Hosts allowed.");
+    }
+}
 
-            newTechnicalDiv.innerHTML = `
-                <input type="text" name="technical-last-name" placeholder="Last Name" required>
-                <input type="text" name="technical-first-name" placeholder="First Name" required>
-                <input type="text" name="technical-mi" placeholder="M.I">
-                <br>
-                <input type="text" name="technical-cys" placeholder="CYS" required>
-                <button type="button" class="remove-technical">Remove</button>
-            `;
+/*----------------------ADDING TECHNICAL STAFF---------------------*/
+function addTechnical() {
+    const technicalContainer = document.getElementById("technical-container");
+    const currentTechnical = technicalContainer.getElementsByClassName("technical-input").length;
 
-            technicalContainer.appendChild(newTechnicalDiv);
+    if (currentTechnical < 2) {
+        const newTechnicalDiv = document.createElement("div");
+        newTechnicalDiv.className = "name-section technical-input";
 
-            // Add event listener for the remove button
-            newTechnicalDiv.querySelector(".remove-technical").addEventListener("click", function () {
-                technicalContainer.removeChild(newTechnicalDiv);
-            });
-        } else {
-            alert("Maximum of 2 Technical Staffs allowed.");
-        }
-    });
+        newTechnicalDiv.innerHTML = `
+            <input type="text" name="technicalStaff[${technicalIndex}].lastName" placeholder="Last Name" required>
+            <input type="text" name="technicalStaff[${technicalIndex}].firstName" placeholder="First Name" required>
+            <input type="text" name="technicalStaff[${technicalIndex}].mi" placeholder="M.I">
+            <input type="text" name="technicalStaff[${technicalIndex}].cys" placeholder="CYS">
+            <button type="button" class="remove-technical">Remove</button>
+        `;
+
+        technicalContainer.appendChild(newTechnicalDiv);
+
+        // Add event listener for the remove button
+        newTechnicalDiv.querySelector(".remove-technical").addEventListener("click", function () {
+            technicalContainer.removeChild(newTechnicalDiv);
+        });
+
+        technicalIndex++; // Increment the technical index after adding a new staff
+    } else {
+        alert("Maximum of 2 Technical Staffs allowed.");
+    }
+}
+
+// Adding event listeners for buttons to add hosts and technical staff
+document.getElementById("add-host").addEventListener("click", addHost);
+document.getElementById("add-technical").addEventListener("click", addTechnical);
+
 
     /*----------------------ALLOW CROSSPOSTING---------------------*/
-    const crosspostingRadios = document.querySelectorAll('input[name="crossposting"]');
+    // Existing crossposting logic
+    const crosspostingRadios = document.querySelectorAll('input[name="contactInfo.crossposting"]');
     const fbLinkContainer = document.getElementById("fb-link-container");
-
+    const fbLinkInput = document.querySelector('input[name="contactInfo.fbLink"]');
+    
     crosspostingRadios.forEach((radio) => {
         radio.addEventListener("change", function () {
             fbLinkContainer.style.display = this.value === "Yes" ? "block" : "none";
+            if (this.value !== "Yes") {
+                fbLinkInput.value = ""; // Clear the input if 'No' is selected
+            }
         });
     });
+
+    // Validation on form submission
+    document.getElementById("blocktimerForm1").addEventListener("submit", function(event) {
+        // Check if crossposting is "Yes" and fbLinkContainer is visible
+        const crosspostingYesSelected = document.querySelector('input[name="contactInfo.crossposting"]:checked').value === "Yes";
+        if (crosspostingYesSelected && fbLinkInput.value.trim() === "") {
+            event.preventDefault(); // Stop form submission
+            alert("Please enter the Facebook Crossposting Link.");
+            fbLinkInput.focus(); // Focus the input for user convenience
+        }
+    });
+
 
     /*----------------------DLSUD EMAIL---------------------*/
     const domain = "@dlsud.edu.ph";
@@ -135,18 +201,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const file = event.target.files[0];
         const previewContainer = document.getElementById("signature-preview");
         const signatureImage = document.getElementById("signature-image");
-
+    
         if (file) {
             const reader = new FileReader();
-
+    
             reader.onload = function (e) {
                 signatureImage.src = e.target.result; // Set the src to the file data
                 previewContainer.style.display = "block"; // Show the preview
             };
-
+    
             reader.readAsDataURL(file); // Convert the file to a Data URL
         } else {
             previewContainer.style.display = "none"; // Hide the preview if no file is selected
+            signatureImage.src = ""; // Clear the src
         }
     });
-});

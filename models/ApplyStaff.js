@@ -11,16 +11,15 @@ const ApplyStaffSchema = new mongoose.Schema({
   },
   middleInitial: {
     type: String,
+    default: ''
   },
   studentNumber: {
     type: String,
-    required: true,
-    unique: true, // Assuming student numbers are unique identifiers
+    required: true
   },
   dlsudEmail: {
     type: String,
     required: true,
-    unique: true, // Ensures each email is unique
     match: [/^[\w.%+-]+@dlsud.edu.ph$/, 'Please enter a valid DLSU-D email address'],
   },
   college: {
