@@ -70,6 +70,10 @@ const userSchema = new Schema({
     dlsudEmail: {
         type: String,
         default: '' // Optional field
+    },
+    studentNumber: {
+        type: Number,
+        default: '' // Optional field
     }
 });
 

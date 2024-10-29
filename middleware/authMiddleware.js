@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { createAccessToken } = require('../controllers/authController'); // Add this line at the top of authMiddleware.js
+const { createAccessToken } = require('../controllers/authController');
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
@@ -136,8 +136,6 @@ const checkUser = async (req, res, next) => {
         }
     }
 };
-
-
 
 
 module.exports = { requireAuth, checkUser };
