@@ -1,21 +1,30 @@
 <%- include('../partials/header.ejs') %>
-
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
-
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
-
-                <!-------------------- CONTENTS START --------------------> 
-            </div>
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+            <%- include('../partials/menu.ejs') %>
         </div>
-
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
     </div>
+    <div class="center-wrapper">
+        <div class="contact-container">
+            <h2>Contact Us</h2>
+            <p>Any tips, inquiries, comments or suggestions that you have in mind? Email us at <a href="mailto:dlsudgreenfm@dlsu.edu.ph">dlsudgreenfm@dlsu.edu.ph</a>, or fill out the necessary information below.</p>
+            
+            <form class="contact-form">
+                <label for="name">Name <span class="required">(required)</span></label>
+                <input type="text" id="name" name="name" required>
 
-</body>
-</html>
+                <label for="email">Email <span class="required">(required)</span></label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="website">Website</label>
+                <input type="url" id="website" name="website">
+
+                <label for="comment">Comment <span class="required">(required)</span></label>
+                <textarea id="comment" name="comment" rows="6" required></textarea>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
