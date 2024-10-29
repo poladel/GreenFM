@@ -61,9 +61,6 @@ function setupToggleInputs({ checkboxId, inputIds }) {
 // Apply the toggle function to each checkbox-input group
 toggles.forEach(setupToggleInputs);
 
-
-
-
     /*----------------------ADDING HOST---------------------*/
     let hostIndex = document.querySelectorAll("input[name^='hosts']").length; // Start with the existing hosts
     let technicalIndex = document.querySelectorAll("input[name^='technicalStaff']").length; // Start with the existing technical staff

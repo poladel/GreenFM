@@ -23,16 +23,16 @@
                         <div class="form-container1">
                             <label>Full Name</label>
                             <div class="name-section">
-                                <input type="text" name="lastName" placeholder="Last Name" required>
-                                <input type="text" name="firstName" placeholder="First Name" required>
-                                <input type="text" name="middleInitial" placeholder="M.I">
+                                <input type="text" name="lastName" placeholder="Last Name" value="<%= user.lastName %>" required>
+                                <input type="text" name="firstName" placeholder="First Name" value="<%= user.firstName %>" required>
+                                <input type="text" name="middleInitial" placeholder="M.I" value="<%= user.middleInitial ? user.middleInitial : '' %>">
                             </div>
 
                             <label>Student Number</label>
-                            <input type="text" id="studentNumber" name="studentNumber" required>
+                            <input type="text" id="studentNumber" name="studentNumber" value="<%= user.studentNumber ? user.studentNumber : '' %>" required>
 
                             <label>DLSU-D Email</label>
-                            <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" required>
+                            <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" value="<%= user.dlsudEmail ? user.dlsudEmail : '' %>" required>
 
                             <label>College</label>
                             <div class="radio-group">

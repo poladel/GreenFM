@@ -10,11 +10,12 @@ form2.addEventListener('submit', async (e) => {
     const middleInitial = form2.middleInitial.value || '';
     const dlsuD = form2.dlsuD.checked;
     const dlsudEmail = form2.dlsudEmail.value;
+    const studentNumber = form2.studentNumber.value;
 
     try {
         const res = await fetch('/Register/Additional-Info', {
             method: 'POST',
-            body: JSON.stringify({ lastName, firstName, middleInitial, dlsuD, dlsudEmail }),
+            body: JSON.stringify({ lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber }),
             headers: { 'Content-Type': 'application/json' }
         });
         
@@ -38,29 +39,30 @@ form2.addEventListener('submit', async (e) => {
     }
 });
 
-/*--------------------------------- CHECKBOX ---------------------------------*/
-const dlsuDCheckbox = document.getElementById('dlsuD');
-const dlsudEmailContainer = document.getElementById('dlsudEmailContainer');
+document.addEventListener("DOMContentLoaded", function () {
+    /*--------------------------------- FROM DLSUD? ---------------------------------*/
+    const dlsuDCheckbox = document.getElementById('dlsuD');
+    const dlsudEmailContainer = document.getElementById('dlsudEmailContainer');
 
-// Function to toggle the visibility of the student number input
-function toggleStudentNumberVisibility() {
-    if (dlsuDCheckbox.checked) {
-        dlsudEmailContainer.style.display = 'block'; // Show input if checkbox is checked
-    } else {
-        dlsudEmailContainer.style.display = 'none'; // Hide input if checkbox is not checked
+    // Function to toggle the visibility of the student number input
+    function toggleStudentNumberVisibility() {
+        if (dlsuDCheckbox.checked) {
+            dlsudEmailContainer.style.display = 'block'; // Show input if checkbox is checked
+        } else {
+            dlsudEmailContainer.style.display = 'none'; // Hide input if checkbox is not checked
+        }
     }
-}
 
-// Initial check to set visibility on page load
-toggleStudentNumberVisibility();
+    // Initial check to set visibility on page load
+    toggleStudentNumberVisibility();
 
-// Add change event listener to the checkbox
-if (dlsuDCheckbox) {
-    dlsuDCheckbox.addEventListener('change', toggleStudentNumberVisibility);
-}
+    // Add change event listener to the checkbox
+    if (dlsuDCheckbox) {
+        dlsuDCheckbox.addEventListener('change', toggleStudentNumberVisibility);
+    }
 
-/*--------------------------------- DLSU-D EMAIL ---------------------------------*/
-    const emailInput = document.getElementById('dlsudEmail');
+    /*----------------------DLSUD EMAIL---------------------*/
+    const emailInput = document.getElementById("dlsudEmail");
     const domain = "@dlsud.edu.ph";
     
     // Flag to indicate if we should append the domain
@@ -103,5 +105,33 @@ if (dlsuDCheckbox) {
     emailInput.addEventListener("blur", function () {
         appendDomain();
     });
+
+	/*----------------------STUDENT NUMBER---------------------*/
+	const studentNumberInput = document.getElementById("studentNumber");
+
+	// Allow only numeric input and enforce maxlength
+	studentNumberInput.addEventListener("input", function (e) {
+		// Remove any non-numeric characters
+		this.value = this.value.replace(/\D/g, "").slice(0, 9);
+	});
+
+	// Optional: Prevent pasting non-numeric values
+	studentNumberInput.addEventListener("paste", function (e) {
+		e.preventDefault(); // Prevent pasting
+	});
+    /*----------------------STUDENT?---------------------*/
+    const notApplicableCheckbox = document.getElementById('studentNumberNotApplicable');
+
+    // Disable/enable the student number input based on the checkbox state
+    notApplicableCheckbox.addEventListener('change', function() {
+        if (notApplicableCheckbox.checked) {
+            studentNumberInput.disabled = true; // Disable input
+            studentNumberInput.value = ''; // Clear the value
+        } else {
+            studentNumberInput.disabled = false; // Enable input
+        }
+    });
+});
+
 
 
