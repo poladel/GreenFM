@@ -57,4 +57,50 @@ document.addEventListener("DOMContentLoaded", function () {
     emailInput.addEventListener("blur", function () {
         appendDomain();
     });
+
+
+    /*----------------------FORM 1 SUBMISSION---------------------*/
+        const form1 = document.getElementById('joingreenfmForm1');
+    
+        // Handle form submission
+        form1.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the default form submission
+    
+            // Gather form data
+            const formData = new FormData(form1);
+            const data = Object.fromEntries(formData.entries());
+    
+            // Perform validation if necessary
+            if (validateForm(data)) {
+                try {
+                    const response = await fetch('/JoinGFM-Step1', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+    
+                    if (response.ok) {
+                        // Redirect to Step 2 upon successful submission
+                        window.location.href = '/JoinGFM-Step2';
+                    } else {
+                        // Handle errors (e.g., show error message)
+                        const errorMessage = await response.text();
+                        alert(`Error: ${errorMessage}`);
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('There was an error submitting the form. Please try again later.');
+                }
+            } else {
+                alert('Please fill in all required fields.');
+            }
+        });
+    
+        // Example validation function
+        function validateForm(data) {
+            // Simple validation to check if required fields are filled
+            return data.lastName && data.firstName && data.studentNumber && data.dlsudEmail && data.college && data.program && data.collegeYear && data.section && data.facebookUrl && data.affiliatedOrgsList && data.preferredDepartment && data.staffApplicationReasons && data.departmentApplicationReasons && data.greenFmContribution;
+        }
 });

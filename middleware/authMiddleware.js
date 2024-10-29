@@ -30,6 +30,7 @@ const requireAuth = async (req, res, next) => {
                         const newAccessToken = createAccessToken(decoded.id);
                         res.cookie('jwt', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
 
+                        req.user = user; // Set authenticated user to req.user
                         res.locals.user = user; // Set user information from the database
                         next(); // Proceed to the restricted page
                     });
@@ -39,6 +40,7 @@ const requireAuth = async (req, res, next) => {
             } else {
                 console.log(decodedToken);
                 let user = await User.findById(decodedToken.id);
+                req.user = user; // Set authenticated user to req.user
                 res.locals.user = user; // Set user information if access token is valid
                 next(); // Token is valid, proceed to the restricted page
             }
@@ -59,6 +61,7 @@ const requireAuth = async (req, res, next) => {
                     const newAccessToken = createAccessToken(decoded.id);
                     res.cookie('jwt', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
 
+                    req.user = user; // Set authenticated user to req.user
                     res.locals.user = user; // Set user information from the database
                     next(); // Proceed to the restricted page
                 });
@@ -82,6 +85,7 @@ const checkUser = async (req, res, next) => {
         try {
             const decodedToken = jwt.verify(token, ACCESS_TOKEN_SECRET);
             const user = await User.findById(decodedToken.id);
+            req.user = user; // Set authenticated user to req.user
             res.locals.user = user; // Access token is valid, set user
             return next();
         } catch (err) {
@@ -98,6 +102,7 @@ const checkUser = async (req, res, next) => {
                     // Create a new access token
                     const newAccessToken = createAccessToken(decodedRefreshToken.id);
                     res.cookie('jwt', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
+                    req.user = user; // Set authenticated user to req.user
                     res.locals.user = user; // Set the user from refresh token
                     return next();
                 } catch (refreshErr) {
@@ -123,6 +128,7 @@ const checkUser = async (req, res, next) => {
                 // Create a new access token
                 const newAccessToken = createAccessToken(decodedRefreshToken.id);
                 res.cookie('jwt', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 }); // 15 minutes
+                req.user = user; // Set authenticated user to req.user
                 res.locals.user = user; // Set the user from refresh token
                 return next();
             } catch (err) {
