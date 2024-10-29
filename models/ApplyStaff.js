@@ -43,7 +43,6 @@ const ApplyStaffSchema = new mongoose.Schema({
   facebookUrl: {
     type: String,
     required: true,
-    match: [/^https:\/\/(www\.)?facebook\.com\/.*/, 'Please enter a valid Facebook profile URL'],
   },
   affiliatedOrgsList: {
     type: String,

@@ -35,11 +35,13 @@ const root = require('./routes/root');
 const userRoutes = require('./routes/user-routes');
 const authRoutes = require('./routes/authRoutes');
 const { checkUser } = require('./middleware/authMiddleware');
+const joinGFMRoutes = require('./routes/joinGFMRoutes');
 
 app.get('*', checkUser);
 app.use(root);
 app.use(userRoutes);
 app.use(authRoutes);
+app.use(joinGFMRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {

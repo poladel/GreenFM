@@ -44,11 +44,6 @@ const userSchema = new Schema({
         required: [true, 'Please enter a password'],
         minlength: [8, 'Minimum of 8 Characters']
     },
-    refreshToken: {
-        type: String, // Store the refresh token here
-        default: null,
-        unique: true
-    },
     lastName: {
         type: String,
         required: [true, 'Please enter your last name']
@@ -74,7 +69,16 @@ const userSchema = new Schema({
     studentNumber: {
         type: Number,
         default: '' // Optional field
-    }
+    },
+    refreshToken: {
+        type: String, // Store the refresh token here
+        default: null,
+        unique: true
+    },
+    completedJoinGFMStep1: { type: Boolean, default: false }, // Track progress GFM
+    completedJoinGFMStep2: { type: Boolean, default: false },
+    completedBlocktimerStep1: { type: Boolean, default: false }, // Track progress Blocktimer
+    completedBlocktimerStep2: { type: Boolean, default: false }
 });
 
 // Function before doc saved to DB
