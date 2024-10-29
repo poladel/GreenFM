@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 	/*----------------------STUDENT NUMBER---------------------*/
-	const studentNumberInput = document.querySelector('input[name="student-number"]');
+	const studentNumberInput = document.getElementById("studentNumber");
 
 	// Allow only numeric input and enforce maxlength
 	studentNumberInput.addEventListener("input", function (e) {
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	});
 
     /*----------------------DLSUD EMAIL---------------------*/
-    const emailInput = document.querySelector('input[name="dlsud-email"]');
+    const emailInput = document.getElementById("dlsudEmail");
     const domain = "@dlsud.edu.ph";
     
     // Flag to indicate if we should append the domain

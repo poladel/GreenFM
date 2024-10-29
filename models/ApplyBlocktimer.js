@@ -13,7 +13,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     ],
     required: true,
   },
-  officeOrganizationName: {
+  organizationName: {
     type: String,
     required: true,
   },
@@ -21,24 +21,24 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
   },
   coProponent: {
-    lastName: { type: String, required: true },
-    firstName: { type: String, required: true },
+    lastName: String,
+    firstName: String,
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
     notApplicable: { type: Boolean, default: false },
   },
   showDetails: {
-    title: String,
-    type: [String],
+    title: { type: String, required: true },
+    type: { type: [String], required: true },
     description: { type: String, required: true },
     objectives: { type: String, required: true },
   },
   executiveProducer: {
-    lastName: String,
-    firstName: String,
+    lastName: { type: String, required: true },
+    firstName: { type: String, required: true },
     mi: String,
     cys: { type: String, required: true },
   },
@@ -53,19 +53,19 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
   }],
   technicalStaff: [{
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
   }],
   creativeStaff: {
     lastName: String,
     firstName: String,
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
   },
   agreement: {
     type: String,
@@ -74,15 +74,14 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   },
   contactInfo: {
     dlsudEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-    contactPerson: { type: String, required: true },
+    contactEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
+    contactFbLink: { type: String, required: true },
     crossposting: {
       type: String,
       enum: ["Yes", "No"],
       required: true,
     },
     fbLink: String,
-    contactEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-    contactFbLink: { type: String, required: true },
   },
   proponentSignature: {
     type: String, // URL or path to the signature file
