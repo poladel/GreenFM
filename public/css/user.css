@@ -96,6 +96,7 @@ html, body {
 .menu li a:hover {
     color: white;
     background-color: #00722A;
+    transform: scale(1.05);
 }
 
 .social-icons {
@@ -197,7 +198,8 @@ html, body {
 .user-icon {
     width: 20px;
     height: auto;
-    margin-right: 2vh;
+    margin-right: 1vh;
+    margin-left: 1vh;
 }
 
 .login-text {
@@ -216,13 +218,15 @@ html, body {
     display: none; /* Initially hidden */
     position: absolute; /* Absolute positioning for dropdown */
     background-color: white; /* Background color of dropdown */
-    width: 9.5vw; /* Match the width of the login container */
+    width: auto; /* Match the width of the login container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for dropdown */
     z-index: 9999; /* Ensure it appears above other elements */
     border-radius: 10px; /* Rounded corners for dropdown */
     top: 3.2vw; /* Position it directly below the user login container */
     left: -2vw; /* Align to the left edge of the user-dropdown */
     margin-top: 0; /* No additional margin needed */
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .user-dropdown:hover .dropdown-content {
@@ -292,51 +296,243 @@ footer a:hover {
     text-decoration: underline;
 }
 
-/* Media Queries */
-@media (max-width: 768px) {
-    .container {
-        margin-left: 5vw; /* Reduce left margin */
+/* Base styles for sidebar toggling */
+.sidebar-toggle {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 1vh;
+    left: 1vw;
+    margin-right: 5vw;
+    padding: 8px;
+    background-color: white;
+    color: #00722A;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* ---MEDIA QUERIES--- */
+/* smallest screens */
+@media screen and (min-width: 1px) and (max-width: 249px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 5vw;
+        margin-left: 5vw;
     }
 
-    .sidebar, .sidebar1, .sidebar2 {
-        width: 15vw; /* Adjust width for smaller screens */
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 5vw;
+        margin-left: 10vw;
     }
 
     .logo {
-        width: 10vh;
+        width: auto;
+        max-width: 15vw;
+        min-width: 10vw;
         height: auto;
     }
 
     .title {
-        font-size: 0.5em;
+        font-size: 8px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 80vw;
+        min-width: 20vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 200vw;
+        min-height: 80vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 80vw;
+        min-height: 30vw;
     }
 
     .menu li a {
-        font-size: 0.5em;
+        font-size: 7px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 5vw;
+        min-width: 3vw;
+        height: auto;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container, .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+/* smaller screens */
+@media screen and (min-width: 250px) and (max-width: 343px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 2.5vw;
+        margin-right: 5vw;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-left: 5vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 15vw;
+        min-width: 10vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 10px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 60vw;
+        min-width: 20vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 8px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 5vw;
+        min-width: 3vw;
+        height: auto;
+    }
+
+    .container {
+        margin-left: 0;
     }
 
     .posts-title-container {
-        width: 90%;
-        height: auto;
-        margin-left: 12vw;
+        width: 50vw;
+        margin-left: 15vw;
     }
-
+    
     .chat-search-container, .user-log-container {
-        width: 50%;
+        width: 30vw;
+        margin-left: 2vw;
+        padding: 1vw;
     }
 
-    .icons {
-        width: 2vh;
+    .posts-title-container, .chat-search-container, .user-log-container {
+        height: auto;
+        min-height: 10vw;
+        border-radius: 10px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 4vw;
+        min-width: 2vw;
         height: auto;
     }
 
-    .user-icon {
-        width: 3vh;
+    .posts-title, .login-text {
+        font-size: 10px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 344px) and (max-width: 768px) {
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 35vw;
+        min-width: 12vw;
         height: auto;
     }
 
-    .login-text {
-        font-size: 0.5em;
+    .menu li a {
+        font-size: 10px;
     }
 
+    /* Adjust the layout for smaller screens */
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container, .chat-search-container, .user-log-container {
+        width: 90vw; /* Adjust main containers to full width */
+        margin-left: 0;
+    }
+
+    .posts-title, .login-text {
+        font-size: 1em; /* Adjust font size */
+    }
+}
+
+/* medium screens */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+
+}
+
+/* large screens */
+@media screen and (min-width: 1025px) {
+    
+}
+
+/* KEY FRAMES */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
