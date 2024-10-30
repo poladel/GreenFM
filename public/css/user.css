@@ -601,7 +601,7 @@ footer a:hover {
 
     .posts-title-container {
         width: 50vw;
-        margin-left: 12vw;
+        margin-left: 12.5vw;
         height: auto;
         min-height: 9.8vw;
         max-height: 9.8vw;
@@ -610,7 +610,7 @@ footer a:hover {
     
     .chat-search-container, .user-log-container {
         width: 30vw;
-        margin-left: 2vw;
+        margin-left: 1vw;
         padding: 1vw;
         height: auto;
         min-height: 8.8vw;
@@ -807,11 +807,206 @@ footer a:hover {
 }
 
 /* medium screens */
-@media screen and (min-width: 700px) and (max-width: 1000px) {
+@media screen and (min-width: 701px) and (max-width: 800px) {
+    .logo {
+        width: auto;
+        max-width: 8vw;
+        min-width: 6vw;
+        height: auto;
+    }
 
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 20vw;
+        min-width: 15vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 80vw;
+        margin-left: 18.5vw;
+        height: auto;
+        min-height: 6.8vw;
+        max-height: 7.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 5.8vw;
+        max-height: 6.8vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 13px;
+    }
+}
+
+/* medium screens */
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .logo {
+        width: auto;
+        max-width: 8vw;
+        min-width: 6vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 17vw;
+        min-width: 12vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90vw;
+        margin-left: 16.3vw;
+        height: auto;
+        min-height: 5.8vw;
+        max-height: 6.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 4.2vw;
+        max-height: 5.2vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 15px;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .logo {
+        width: auto;
+        max-width: 7vw;
+        min-width: 5vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 15vw;
+        min-width: 10vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90vw;
+        margin-left: 14.8vw;
+        height: auto;
+        min-height: 5vw;
+        max-height: 6vw;
+        border-radius: 13px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 20vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 3.3vw;
+        max-height: 4.3vw;
+        border-radius: 13px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 15px;
+    }
 }
 
 /* large screens */
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 1001px) {
     
 }
