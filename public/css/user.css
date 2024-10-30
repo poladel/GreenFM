@@ -315,8 +315,8 @@ footer a:hover {
 }
 
 /* ---MEDIA QUERIES--- */
-/* smallest screens */
-@media screen and (min-width: 1px) and (max-width: 249px) {
+/* small screens */
+@media screen and (min-width: 1px) and (max-width: 200px) {
     .sidebar-toggle {
         display: block;
         margin-top: 5vw;
@@ -333,19 +333,95 @@ footer a:hover {
         position: absolute;
         z-index: 100;
         padding: 10px;
-        margin-top: 5vw;
-        margin-left: 10vw;
+        margin-left: 3vw;
+        margin-top: 18vw;
     }
 
     .logo {
         width: auto;
-        max-width: 15vw;
-        min-width: 10vw;
+        max-width: 20vw;
+        min-width: 12vw;
         height: auto;
     }
 
     .title {
         font-size: 8px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 80vw;
+        min-width: 20vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 280vw;
+        min-height: 80vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 180vw;
+        min-height: 30vw;
+    }
+
+    .menu li a {
+        font-size: 7px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 6vw;
+        min-width: 5vw;
+        height: auto;
+        margin-bottom: 5vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container, .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 201px) and (max-width: 300px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 5vw;
+        margin-left: 5vw;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-left: 3vw;
+        margin-top: 13vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 18vw;
+        min-width: 13vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 10px;
     }
 
     .sidebar, .sidebar1, .sidebar2 {
@@ -367,7 +443,7 @@ footer a:hover {
     }
 
     .menu li a {
-        font-size: 7px;
+        font-size: 8.5px;
     }
 
     .social-icon {
@@ -375,6 +451,7 @@ footer a:hover {
         max-width: 5vw;
         min-width: 3vw;
         height: auto;
+        margin-bottom: 3vw;
     }
 
     .container {
@@ -390,12 +467,12 @@ footer a:hover {
     }
 }
 
-/* smaller screens */
-@media screen and (min-width: 250px) and (max-width: 343px) {
+/* small screens*/
+@media screen and (min-width: 301px) and (max-width: 400px) {
     .sidebar-toggle {
         display: block;
-        margin-top: 2.5vw;
-        margin-right: 5vw;
+        margin-top: 5vw;
+        margin-left: 5vw;
     }
 
     .sidebars {
@@ -408,7 +485,8 @@ footer a:hover {
         position: absolute;
         z-index: 100;
         padding: 10px;
-        margin-left: 5vw;
+        margin-left: 3vw;
+        margin-top: 12vw;
     }
 
     .logo {
@@ -424,20 +502,97 @@ footer a:hover {
 
     .sidebar, .sidebar1, .sidebar2 {
         width: auto;
-        max-width: 60vw;
+        max-width: 80vw;
+        min-width: 20vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 85vw;
+        min-height: 50vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 60vw;
+        min-height: 25vw;
+    }
+
+    .menu li a {
+        font-size: 8.8px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 2vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container, .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 2.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 10px;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 10vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 11px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 65vw;
         min-width: 20vw;
         height: auto;
     }
 
     .menu li a {
-        font-size: 8px;
+        font-size: 9.8px;
     }
 
     .social-icon {
         width: auto;
-        max-width: 5vw;
-        min-width: 3vw;
+        max-width: 3.7vw;
+        min-width: 2vw;
         height: auto;
+        margin-bottom: 3vw;
     }
 
     .container {
@@ -446,19 +601,21 @@ footer a:hover {
 
     .posts-title-container {
         width: 50vw;
-        margin-left: 15vw;
+        margin-left: 12vw;
+        height: auto;
+        min-height: 9.8vw;
+        max-height: 9.8vw;
+        border-radius: 13px;
     }
     
     .chat-search-container, .user-log-container {
         width: 30vw;
         margin-left: 2vw;
         padding: 1vw;
-    }
-
-    .posts-title-container, .chat-search-container, .user-log-container {
         height: auto;
-        min-height: 10vw;
-        border-radius: 10px;
+        min-height: 8.8vw;
+        max-height: 8.8vw;
+        border-radius: 13px;
     }
 
     .icon, .user-icon {
@@ -474,9 +631,13 @@ footer a:hover {
 }
 
 /* small screens */
-@media screen and (min-width: 344px) and (max-width: 768px) {
+@media screen and (min-width: 501px) and (max-width: 600px) {
     .sidebar-toggle {
         display: block;
+        margin-top: 1.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 11px;
     }
 
     .sidebars {
@@ -489,12 +650,24 @@ footer a:hover {
         position: absolute;
         z-index: 100;
         padding: 10px;
+        margin-top: 8.5vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 12px;
     }
 
     .sidebar, .sidebar1, .sidebar2 {
         width: auto;
-        max-width: 35vw;
-        min-width: 12vw;
+        max-width: 65vw;
+        min-width: 20vw;
         height: auto;
     }
 
@@ -502,37 +675,143 @@ footer a:hover {
         font-size: 10px;
     }
 
-    /* Adjust the layout for smaller screens */
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
     .container {
         margin-left: 0;
     }
 
-    .posts-title-container, .chat-search-container, .user-log-container {
-        width: 90vw; /* Adjust main containers to full width */
-        margin-left: 0;
+    .posts-title-container {
+        width: 60vw;
+        margin-left: 11vw;
+        height: auto;
+        min-height: 7.8vw;
+        max-height: 8.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 2vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 6.8vw;
+        max-height: 7.8vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
     }
 
     .posts-title, .login-text {
-        font-size: 1em; /* Adjust font size */
+        font-size: 12.5px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 1.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 12px;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 8.5vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13.5px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 70vw;
+        min-width: 20vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 60vw;
+        margin-left: 11vw;
+        height: auto;
+        min-height: 7.8vw;
+        max-height: 8.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 2vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 6.8vw;
+        max-height: 7.8vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 14px;
     }
 }
 
 /* medium screens */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
+@media screen and (min-width: 700px) and (max-width: 1000px) {
 
 }
 
 /* large screens */
-@media screen and (min-width: 1025px) {
+@media screen and (min-width: 1000px) {
     
-}
-
-/* KEY FRAMES */
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
 }
