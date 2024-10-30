@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/authMiddleware');
+const User = require('../models/User'); // Adjust the path to your User model
 const router = express.Router();    
 
 // Define the routes for each 'user' section with dynamic titles
@@ -14,15 +15,35 @@ const userRoutes = [
     { path: '/JoinGFM-Step1', view: '2-user/7-joingreenfm-1', pageTitle: 'Join GFM - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/joingreenfm.css' },
     { path: '/JoinGFM-Step2', view: '2-user/7-joingreenfm-2', pageTitle: 'Join GFM - Step 2', headerTitle: 'STEP 2', auth: true, cssFile: 'css/joingreenfm.css' },
     { path: '/JoinGFM-Step3', view: '2-user/7-joingreenfm-3', pageTitle: 'Join GFM - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/joingreenfm.css' },
-    { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' },
-    { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US' }
+    { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' , cssFile: 'css/about.css'},
+    { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US', cssFile: 'css/contact.css' }
 ];
 
 // Define the routes and render views with dynamic titles
 userRoutes.forEach(userRoute => {
     if (userRoute.auth) {
         // Apply requireAuth middleware for specific routes
-        router.get(userRoute.path, requireAuth, (req, res) => {
+        router.get(userRoute.path, requireAuth, async (req, res) => {
+            // Check if the current route is JoinGFM-Step3
+            if (userRoute.path === '/JoinGFM-Step3') {
+                try {
+                    // Retrieve the user's completion data from MongoDB
+                    const user = await User.findById(req.user._id); // Adjust to match your authentication method
+
+                    // Check completion status
+                    const { completedJoinGFMStep1, completedJoinGFMStep2 } = user;
+
+                    // Redirect to JoinGFM-Step1 if the user hasn't completed both steps
+                    if (!completedJoinGFMStep1 || !completedJoinGFMStep2) {
+                        return res.redirect('/JoinGFM-Step1');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return res.status(500).send('Internal Server Error');
+                }
+            }
+
+            // Render the view if all conditions are met
             res.render(userRoute.view, {
                 pageTitle: userRoute.pageTitle,
                 cssFile: userRoute.cssFile,

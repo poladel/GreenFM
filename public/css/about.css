@@ -1,0 +1,65 @@
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: #f8f9fa;
+}
+h1, h2, h3 {
+    text-align: center;
+    color: #004080;
+    margin-top: 20px;
+}
+p {
+    text-align: center;
+    line-height: 1.6;
+    color: #333;
+    font-size: 1rem;
+}
+.page-container {
+
+    margin: 0 auto;
+    padding: 20px;
+}
+.content-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.modal {
+    width: 80%;
+    margin: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+hr {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 20px 0;
+}
+.accordion-item {
+    margin-top: 10px;
+    border: none;
+}
+.accordion-item h3 {
+    cursor: pointer;
+    padding: 10px;
+    font-size: 1.1rem;
+}
+
+    .content-section {
+        text-align: center;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .adviser-section, .department-heads-section {
+        margin-top: 20px;
+    }
+
+    .adviser-section p, .department-heads-section p {
+        font-size: 16px;
+        color: #333;
+    }

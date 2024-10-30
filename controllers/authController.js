@@ -153,7 +153,7 @@ module.exports.register_post = async (req, res) => {
 
 // Additional User Info Submission
 module.exports.additional_info_post = async (req, res) => {
-    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail } = req.body;
+    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber } = req.body;
 
     // Check if registrationData exists in session
     if (!req.session.registrationData) {
@@ -176,7 +176,8 @@ module.exports.additional_info_post = async (req, res) => {
             firstName,
             middleInitial: middleInitial || '',
             dlsuD: dlsuD === 'true' || dlsuD === true,
-            dlsudEmail
+            dlsudEmail,
+            studentNumber
         });
 
         console.log('User Created:', user); // Log the user creation
@@ -224,17 +225,26 @@ module.exports.login_post = async (req, res) => {
         // Set refresh token in cookie
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
-        console.log('Redirect parameter after login:', redirect);
-        // Check for redirect parameter
-        const redirectUrl = redirect || '/'; // Default to homepage if not provided
-        
-        // Return the user and redirect URL in the response
+        // Check if user has completed both steps
+        const completedStep1 = user.completedJoinGFMStep1; // Adjust according to your user schema
+        const completedStep2 = user.completedJoinGFMStep2; // Adjust according to your user schema
+        let redirectUrl;
+
+        if (completedStep1 && completedStep2) {
+            // If the user has completed both steps, check if there is a redirect URL from the login request
+            redirectUrl = redirect || '/JoinGFM-Step3'; // Default to JoinGFM-Step3 if no redirect provided
+        } else {
+            // Fallback to query parameter if exists
+            redirectUrl = redirect || '/';
+        }
+
         return res.status(200).json({ user: user._id, redirect: redirectUrl });
     } catch (err) {
         const errors = handleErrors(err);
         res.status(400).json({ errors });
     }
 };
+
 
 // Refresh Access Token
 module.exports.refreshToken = async (req, res) => {
@@ -286,8 +296,6 @@ module.exports.logout_get = async (req, res) => {
 
     res.redirect('/');
 }
-
-
 
 // Add this line to the end of authController.js
 module.exports.createAccessToken = createAccessToken;

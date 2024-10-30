@@ -16,7 +16,18 @@
     <div class="sidebar1">
         <ul class="menu">
             <li><a href="/JoinBlocktimer-Step1" id="blocktimer-link">BE A<br>BLOCKTIMER</a></li>
+<<<<<<< HEAD
             <li><a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a></li>
+=======
+            <li>
+                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN GREEN FM</a>
+                <% } else { %>
+                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN GREEN FM</a>
+                <% } %>
+            </li>
+            
+>>>>>>> c0b640e12e34fb5fff2193c9f5abea2318b99eeb
         </ul>
     </div>
     <div class="sidebar2">
