@@ -1,0 +1,205 @@
+/* Form Container */
+.form-title-container {
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    margin-right: 2vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 84vw;
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.form-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;/* Align circles in a row */
+    justify-content: center;/* Center circles horizontally */
+    margin: 20px 0;/* Space above and below */
+    margin-left: 4.5vw;/* Margin from the left */
+    margin-bottom: 0px;
+    position: relative;/* Make it relative for absolute positioning of lines */
+}
+
+/* Circle styles */
+.circle {
+    display: flex;/* Use flexbox to center text */
+    justify-content: center;/* Center text horizontally */
+    align-items: center;/* Center text vertically */
+    width: 8vh;/* Set a fixed width for the circles */
+    height: 8vh;/* Set a fixed height for the circles */
+    border-radius: 50%;/* Make it circular */
+    background-color: #00722A;/* Default circle background color */
+    color: white;/* Text color */
+    font-weight: bold;/* Bold text */
+    margin: 0 50px;/* Adjusted space between circles */
+    font-size: 25px;/* Font size for the number */
+    position: relative;/* Make it relative for lines */
+}
+
+/* Specific circle colors */
+.circle-1, .circle-3 {
+    background-color: #74B88D;
+}
+
+/* Lines connecting circles */
+.circle::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background-color: #00722A;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}
+
+.circle-2::after {
+    background-color: #00722A; /* Change line color for the second circle */
+}
+
+.circle-3::after {
+    display: none;
+}
+
+/* Schedule Table */
+.schedule-container {
+    background-color: #ffffff;
+    width: 81.9vw;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+    margin-top: 1vw;
+    margin-left: 5vw;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-table {
+    width: 100%;
+    max-width: 80vw; /* Adjusted to make the table smaller */
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.schedule-table thead th {
+    background-color: #fff;
+    color: #333;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.schedule-table .time {
+    background-color: #fff;
+    color: #333;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    width: 10%; /* Reduced width for the time column */
+}
+
+.schedule-table tbody td {
+    width: 18%; /* Adjusted width to balance with the reduced time column */
+    padding: 5px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.schedule-table .permasched {
+    background-color: #e7e7e7;
+    color: #797979;
+    cursor: not-allowed;
+    font-size: 11px;
+    max-height: 3vw;
+    pointer-events: none; /* disables hover effects */
+}
+
+.schedule-table .schedulebtn {
+    background-color: #e7e7e7;
+    color: #797979;
+    font-size: 11px;
+    max-height: 3vw;
+}
+
+.schedule-table .schedulebtn:hover {
+    background-color: #d1d1d1;
+}
+
+.schedule-table button {
+    background-color: #1E8449;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+}
+
+.schedule-table button:hover {
+    background-color: #145A32;
+}
+
+/* Style for Station Sign On/Off and Angelus rows */
+.station-sign-on, .station-sign-off, .angelus {
+    position: relative;
+    text-align: center;
+    color: #9e9e9e;
+    padding: 10px 0;
+}
+
+/* Add lines on each side */
+.station-sign-on::before,
+.station-sign-on::after,
+.station-sign-off::before,
+.station-sign-off::after,
+.angelus::before,
+.angelus::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%; /* Adjust length of line */
+    height: 1px;
+    background-color: #bebebe; /* Line color */
+}
+
+/* Positioning for left and right lines */
+.station-sign-on::before, .station-sign-off::before, .angelus::before {
+    left: 0;
+}
+
+.station-sign-on::after, .station-sign-off::after, .angelus::after {
+    right: 0;
+}
+
+/* SUBMIT BUTTON */
+.submit-button {
+    display: flex;/* Use flexbox for alignment */
+    justify-content: flex-end;/* Align to the right */
+    margin-top: 20px;/* Space above the button */
+    margin-right: 6vh;/* Right margin */
+}
+
+.submit {
+    background-color: #00722A;/* Green background */
+    color: white;/* White text */
+    padding: 10px 20px;/* Padding */
+    border: none;/* No border */
+    border-radius: 10px;/* Rounded corners */
+    cursor: pointer;/* Pointer cursor on hover */
+    font-size: 16px;/* Adjust font size as needed */
+}
