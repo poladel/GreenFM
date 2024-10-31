@@ -1,0 +1,287 @@
+/* Base styles */
+body {
+    background-color: #EFEFEF;
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-wrap {
+    flex: 1;
+}
+
+/* Container adjustments for responsive margins */
+.container {
+    margin-left: 9vw; /* Adjusts based on viewport width */
+    display: block;
+}
+
+/* Sidebar container to keep sidebars together */
+.sidebars {
+    position: fixed; /* Keep sidebars in a fixed position */
+    top: 2vh; /* Initial top margin */
+    left: 1vw; /* Align to the left */
+    display: flex;
+    flex-direction: column; /* Stack sidebars vertically */
+    gap: 1vh; /* Space between sidebars */
+}
+
+/* Sidebar styling */
+.sidebar, .sidebar1, .sidebar2 {
+    width: 12vw; /* Scales with viewport width */
+    background-color: white;
+    border-radius: 15px;
+    padding: 1vw 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo {
+    display: block;
+    margin: 1vh auto;
+    width: 60%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.title {
+    text-align: center;
+    color: #00722A;
+    font-size: 0.9em;
+    margin: 5px 0;
+    font-weight: 550;
+}
+
+.menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    width: 100%;
+}
+
+.menu li {
+    text-align: center;
+    margin: 3px 0;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: #272525;
+    font-weight: 550;
+    font-size: 0.9em;
+    padding: 10px 20px;
+    display: block;
+    transition: color 0.3s, background-color 0.3s;
+    box-sizing: border-box;
+}
+
+.menu li a:hover {
+    color: white;
+    background-color: #00722A;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    margin-top: 1vh;
+}
+
+.social-icon {
+    width: 22px;
+    height: auto;
+    margin: 0 8px;
+}
+
+/* Header Containers */
+.header-container {
+    display: flex; /* Use flexbox to arrange items in a row */
+    align-items: center; /* Center items vertically */
+    margin-right: 2vh;
+}
+
+.posts-title-container {
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 70vw; /* Relative width */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.posts-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
+.chat-search-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-top: 1vh;
+    margin-left: 1vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10vw; /* Set width for chat search container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.icons-container {
+    display: flex; /* Flexbox for icon alignment */
+    align-items: center; /* Center icons vertically */
+}
+
+.icon {
+    width: 20px; /* Set a consistent width for icons */
+    height: auto; /* Maintain aspect ratio */
+    margin: 0 5px; /* Space between icons */
+}
+
+.user-log-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-top: 1vh;
+    margin-left: 1vw; /* Add space between title and chat-search container */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10vw; /* Set width for user log container */
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items vertically */
+}
+
+.user-container {
+    display: flex; /* Flexbox for user icon and text */
+    align-items: center; /* Center items vertically */
+    margin-left: 1vw; /* Space between chat-search and user container */
+    width: 8vw; /* Set a shorter width for user container */
+}
+
+.user-icon {
+    width: 20px; /* Set a consistent width for user icon */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 5px; /* Space between icon and text */
+}
+
+.login-text {
+    font-size: 14px; /* Adjust font size for the login text */
+    color: #333; /* Color for the text */
+}
+
+/* Final adjustments */
+footer {
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9em;
+    color: #333;
+    margin-top: 4vh;
+}
+
+footer a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 1vw;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Form Container */
+.form-title-container {
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    margin-right: 2vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 84vw;
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.form-title {
+    font-weight: 600;
+    font-size: 14px; /* Decreased font size */
+    color: #333;
+    margin-left: 20px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;/* Align circles in a row */
+    justify-content: center;/* Center circles horizontally */
+    margin: 20px 0;/* Space above and below */
+    margin-left: 4.5vw;/* Margin from the left */
+    margin-bottom: 0px;
+    position: relative;/* Make it relative for absolute positioning of lines */
+}
+
+/* Circle styles */
+.circle {
+    display: flex;/* Use flexbox to center text */
+    justify-content: center;/* Center text horizontally */
+    align-items: center;/* Center text vertically */
+    width: 8vh;/* Set a fixed width for the circles */
+    height: 8vh;/* Set a fixed height for the circles */
+    border-radius: 50%;/* Make it circular */
+    background-color: #00722A;/* Default circle background color */
+    color: white;/* Text color */
+    font-weight: bold;/* Bold text */
+    margin: 0 50px;/* Adjusted space between circles */
+    font-size: 25px;/* Font size for the number */
+    position: relative;/* Make it relative for lines */
+}
+
+/* Specific circle colors */
+.circle-2, .circle-3 {
+    background-color: #74B88D;
+}
+
+/* Lines connecting circles */
+.circle::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background-color: #00722A;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}
+
+.circle-2::after {
+    background-color: #74B88D; /* Change line color for the second circle */
+}
+
+.circle-3::after {
+    display: none;
+}
+
