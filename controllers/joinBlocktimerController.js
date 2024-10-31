@@ -119,6 +119,9 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
         proponentSignature
     };
 
+     // Log the data being saved to the session
+     console.log('Data saved to session:', req.session.joinBlocktimer1Data);
+
     // Check if user is authenticated via middleware
     if (!req.user) {
         return res.status(401).json({ error: 'User is not authenticated' });
@@ -138,6 +141,8 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
 };
 
 module.exports.joinBlocktimer2_post = async (req, res) => {
+    console.log('Entering joinBlocktimer2_post');
+    console.log('Session Data:', req.session.joinBlocktimer1Data);
     // Check if registrationData exists in session
     if (!req.session.joinBlocktimer1Data) {
         if (req.user) {
@@ -280,6 +285,11 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
         // Respond with success
         res.json({ success: true }); // Send success response
     } catch (error) {
+        // Handle validation errors and other errors
+        if (error.name === 'ValidationError') {
+            console.error('Mongoose Validation Error:', error.errors);
+            return res.status(400).json({ error: 'Validation Error', details: error.errors });
+        }
         console.error('Error saving additional user information:', error);
         res.status(500).json({ error: 'Failed to save user information' });
     }

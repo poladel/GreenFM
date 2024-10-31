@@ -1,16 +1,33 @@
+/*----------------------FORM 2 SUBMISSION---------------------*/
 document.addEventListener('DOMContentLoaded', () => {
     const form2 = document.getElementById('blocktimerForm2');
 
     form2.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent default form submission
 
-        // Gather form data
-        const formData = new FormData(form2);
-        const data = Object.fromEntries(formData.entries());
+        const formData = new FormData(form2); // Gather form data
+        const data = Object.fromEntries(formData.entries()); // Convert to a plain object
+
+        // Convert 'notApplicable' fields from string to boolean
+        data.coProponent = {
+            lastName: data.coProponentLastName || undefined,
+            firstName: data.coProponentFirstName || undefined,
+            mi: data.coProponentMi || undefined,
+            cys: data.coProponentCys || undefined,
+            notApplicable: !!data.coProponentNotApplicable, // Convert to boolean
+        };
+
+        data.facultyStaff = {
+            lastName: data.facultyStaffLastName || undefined,
+            firstName: data.facultyStaffFirstName || undefined,
+            mi: data.facultyStaffMi || undefined,
+            department: data.facultyStaffDepartment || undefined,
+            notApplicable: !!data.facultyStaffNotApplicable, // Convert to boolean
+        };
 
         try {
             // Send POST request to the backend
-            const response = await fetch('/JoinBlocktimer-Step1', { // Replace with your actual endpoint
+            const response = await fetch('/JoinBlocktimer-Step2', { // Replace with your actual endpoint
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,3 +56,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+

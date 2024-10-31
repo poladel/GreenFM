@@ -225,59 +225,47 @@ toggles.forEach(setupToggleInputs);
     setupEmailInput(emailInputOffice);
     setupEmailInput(emailInputContact);
 
-    /*----------------------SIGNATURE UPLOAD---------------------*/
-    document.getElementById("signature-upload").addEventListener("change", async function (event) {
-        const file = event.target.files[0];
-        const previewContainer = document.getElementById("signature-preview");
-        const signatureImage = document.getElementById("signature-image");
-    
-        if (file) {
-            const reader = new FileReader();
-    
-            reader.onload = function (e) {
-                signatureImage.src = e.target.result; // Set the src to the file data
-                previewContainer.style.display = "block"; // Show the preview
-            };
-    
-            reader.readAsDataURL(file); // Convert the file to a Data URL
-    
-            // Upload the file to the server and get the URL
-            try {
-                const uploadResponse = await uploadFileToServer(file); // Function to upload the file
-                const proponentSignatureUrl = uploadResponse.url; // Get the URL from the response
-    
-                // Now you can save this URL in your data object or schema
-                data.proponentSignature = proponentSignatureUrl; // Update your data object as needed
-            } catch (error) {
-                console.error('Error uploading file:', error);
-                alert('There was an error uploading the signature. Please try again.');
-            }
-        } else {
-            previewContainer.style.display = "none"; // Hide the preview if no file is selected
-            signatureImage.src = ""; // Clear the src
-        }
-    });
-    
-    // Function to handle file upload
-    async function uploadFileToServer(file) {
-        const formData = new FormData();
-        formData.append('file', file); // Add the file to FormData
-    
-        // Adjust the URL and headers based on your server configuration
-        const response = await fetch('/upload-endpoint', {
+/*----------------------SIGNATURE UPLOAD PREVIEW---------------------*/
+document.getElementById("signature-upload").addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById("signature-preview");
+    const signatureImage = document.getElementById("signature-image");
+
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            signatureImage.src = e.target.result; // Set the src to the file data
+            previewContainer.style.display = "block"; // Show the preview
+        };
+
+        reader.readAsDataURL(file); // Convert the file to a Data URL
+    } else {
+        previewContainer.style.display = "none"; // Hide the preview if no file is selected
+        signatureImage.src = ""; // Clear the src
+    }
+});
+
+async function uploadFileToServer(file) {
+    const formData = new FormData();
+    formData.append('file', file); // Append the file to the FormData
+
+    try {
+        const response = await fetch('/upload-signature', {
             method: 'POST',
             body: formData,
         });
-    
+
         if (!response.ok) {
-            throw new Error('File upload failed');
+            throw new Error('File upload failed: ' + response.statusText);
         }
-    
-        // Assuming the server responds with a JSON object containing the URL
-        const result = await response.json();
-        return result; // Ensure the response contains the URL
+
+        const uploadResponse = await response.json();
+        return { url: uploadResponse.url }; // Return the URL from the server response
+    } catch (error) {
+        throw new Error('File upload failed: ' + error.message);
     }
-    
+}
 
 /*----------------------FORM 1 SUBMISSION---------------------*/
 document.addEventListener("DOMContentLoaded", function () {
@@ -302,33 +290,41 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Clear previous show types from FormData and append the array
-formData.delete('showDetails.type[]'); // Remove duplicates
-showTypeArray.forEach(type => formData.append('showDetails.type[]', type));
+        formData.delete('showDetails.type[]'); // Remove duplicates
+        showTypeArray.forEach(type => formData.append('showDetails.type[]', type));
 
-// Convert formData to an object for further processing
-const data = { showDetails: {}, hosts: [], technicalStaff: [] };
+        // Convert formData to an object for further processing
+        const data = { showDetails: {}, hosts: [], technicalStaff: [] };
 
-// Fill the data object from formData
-formData.forEach((value, key) => {
-    if (key.endsWith('[]')) {
-        const cleanKey = key.slice(0, -2); // Remove the '[]'
-        if (!data.showDetails[cleanKey]) {
-            data.showDetails[cleanKey] = [];
-        }
-        data.showDetails[cleanKey].push(value);
-    } else {
-        const keys = key.split('.');
-        let temp = data;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!temp[keys[i]]) temp[keys[i]] = {};
-            temp = temp[keys[i]];
-        }
-        temp[keys[keys.length - 1]] = value;
-    }
-});
+        // Fill the data object from formData
+        formData.forEach((value, key) => {
+            if (key.endsWith('[]')) {
+                const cleanKey = key.slice(0, -2); // Remove the '[]'
+                if (!data.showDetails[cleanKey]) {
+                    data.showDetails[cleanKey] = [];
+                }
+                data.showDetails[cleanKey].push(value);
+            } else {
+                const keys = key.split('.');
+                let temp = data;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!temp[keys[i]]) temp[keys[i]] = {};
+                    temp = temp[keys[i]];
+                }
 
-// Assign the showTypeArray directly to showDetails.type
-data.showDetails.type = showTypeArray;
+                // Check if the field is a checkbox and convert to Boolean
+                if (key === 'coProponent.notApplicable' || key === 'facultyStaff.notApplicable') {
+                    temp[keys[keys.length - 1]] = value === 'on'; // Convert to Boolean
+                } else {
+                    temp[keys[keys.length - 1]] = value; // Assign value directly for other fields
+                }
+            }
+        });
+
+
+        // Assign the showTypeArray directly to showDetails.type
+        data.showDetails.type = showTypeArray;
+
         // Collect hosts
         document.querySelectorAll('.host-input').forEach((host) => {
             const lastName = host.querySelector('[name^="hosts["][name$=".lastName"]').value.trim();
@@ -393,8 +389,17 @@ data.showDetails.type = showTypeArray;
             return;
         }
 
-        // Submission logic
+        // Attempting to upload the signature
         try {
+            const signatureFileInput = document.getElementById('signature-upload');
+            const signatureFile = signatureFileInput.files[0];
+
+            if (signatureFile) {
+                const { url: proponentSignatureUrl } = await uploadFileToServer(signatureFile);
+                data.proponentSignature = proponentSignatureUrl;
+            }
+
+            // Submission logic
             const response = await fetch('/JoinBlocktimer-Step1', {
                 method: 'POST',
                 headers: {
@@ -404,22 +409,14 @@ data.showDetails.type = showTypeArray;
             });
 
             if (response.ok) {
-                window.location.href = '';
+                window.location.href = '/JoinBlocktimer-Step2';
             } else {
                 const errorMessage = await response.text();
                 alert(`Error: ${errorMessage}`);
             }
         } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('There was an error submitting the form. Please try again later.');
+            console.error('Error uploading file:', error);
+            alert('There was an error uploading the signature. Please try again.');
         }
     });
 });
-
-
-
-
-
-
-
-
