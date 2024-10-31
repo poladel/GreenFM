@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const form2 = document.getElementById('joingreenfmForm2');
+    const form2 = document.getElementById('blocktimerForm2');
 
     form2.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent default form submission
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Send POST request to the backend
-            const response = await fetch('/JoinGFM-Step2', { // Replace with your actual endpoint
+            const response = await fetch('/JoinBlocktimer-Step1', { // Replace with your actual endpoint
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle success
                 alert('Successfully submitted your application!');
                 // Redirect or perform any other action as needed
-                window.location.href = '/JoinGFM-Step3'; // Replace with your success page
+                window.location.href = '/JoinBlocktimer-Step3'; // Replace with your success page
             } else if (result.redirect) {
                 alert(`Error: ${result.error}`);
                 // Redirect to Step 1 if specified in response

@@ -5,30 +5,32 @@
     <div class="container">
       <%- include('../partials/nav.ejs') %>
 
-      <!-------------------- CONTENTS START -------------------->
+      <!-- HEADER -->
       <div class="form-title-container">
         <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
       </div>
 
-      <div class="form-questions-container">
-        <form id="blocktimerForm">
-
-          <br>
-          <a href="/JoinBlocktimer-Step3">
-            <button type="button">Next</button>
-          </a>
-
-        </form>
+      <!-- PROGRESS BAR -->
+      <div class="progress-bar">
+        <div class="circle circle-1">1</div>
+        <div class="circle circle-2">2</div>
+        <div class="circle circle-3">3</div>
       </div>
+
+      <form id="blocktimerForm2">
+        <!-- FORMS START -->
+        <div class="submit-button">
+          <button type="submit" class="submit">SUMBIT</button> 
+        </div>
+      </form>
+
+      <!-------------------- FOOTER -------------------->
+      <%- include('../partials/footer.ejs') %>
     </div>
   </div>
-
-  <!-------------------- FOOTER -------------------->
-  <%- include('../partials/footer.ejs') %>
-
 </div>
 
-<script src="js/2-user/blocktimer.js"></script>
+<script src="js/2-user/blocktimer2.js"></script>
 <script src="js/3-logreg/auth.js" defer></script>
 </body>
 

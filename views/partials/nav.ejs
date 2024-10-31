@@ -19,6 +19,8 @@
             <li>
                 <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
                     <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } else if (user && user.completedJoinGFMStep1) { %>
+                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } else { %>
                     <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>

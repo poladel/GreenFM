@@ -34,8 +34,10 @@ userRoutes.forEach(userRoute => {
                     const { completedJoinGFMStep1, completedJoinGFMStep2 } = user;
 
                     // Redirect to JoinGFM-Step1 if the user hasn't completed both steps
-                    if (!completedJoinGFMStep1 || !completedJoinGFMStep2) {
+                    if (!completedJoinGFMStep1) {
                         return res.redirect('/JoinGFM-Step1');
+                    } else if (!completedJoinGFMStep2) {
+                        return res.redirect('/JoinGFM-Step2');
                     }
                 } catch (error) {
                     console.error(error);

@@ -233,9 +233,11 @@ module.exports.login_post = async (req, res) => {
         if (completedStep1 && completedStep2) {
             // If the user has completed both steps, check if there is a redirect URL from the login request
             redirectUrl = redirect || '/JoinGFM-Step3'; // Default to JoinGFM-Step3 if no redirect provided
-        } else {
+        } else if (completedStep1) {
             // Fallback to query parameter if exists
-            redirectUrl = redirect || '/';
+            redirectUrl = redirect || '/JoinGFM-Step2';
+        } else {
+            redirectUrl = redirect;
         }
 
         return res.status(200).json({ user: user._id, redirect: redirectUrl });

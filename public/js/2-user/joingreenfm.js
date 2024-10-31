@@ -1,4 +1,3 @@
-document.addEventListener("DOMContentLoaded", function () {
 	/*----------------------STUDENT NUMBER---------------------*/
 	const studentNumberInput = document.getElementById("studentNumber");
 
@@ -60,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /*----------------------FORM 1 SUBMISSION---------------------*/
+    document.addEventListener("DOMContentLoaded", function () {
         const form1 = document.getElementById('joingreenfmForm1');
     
         // Handle form submission
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     
-        // Example validation function
+        // Validation function
         function validateForm(data) {
             // Simple validation to check if required fields are filled
             return data.lastName && data.firstName && data.studentNumber && data.dlsudEmail && data.college && data.program && data.collegeYear && data.section && data.facebookUrl && data.affiliatedOrgsList && data.preferredDepartment && data.staffApplicationReasons && data.departmentApplicationReasons && data.greenFmContribution;

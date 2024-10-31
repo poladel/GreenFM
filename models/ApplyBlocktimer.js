@@ -40,7 +40,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
-    cys: { type: String, required: true },
+    cys: String,
   },
   facultyStaff: {
     lastName: String,
@@ -62,8 +62,8 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     cys: String,
   }],
   creativeStaff: {
-    lastName: String,
-    firstName: String,
+    lastName: { type: String, required: true },
+    firstName: { type: String, required: true },
     mi: String,
     cys: String,
   },
@@ -74,7 +74,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   },
   contactInfo: {
     dlsudEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-    contactEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
+    contactEmail: { type: String, required: true},
     contactFbLink: { type: String, required: true },
     crossposting: {
       type: String,
