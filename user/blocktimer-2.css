@@ -357,12 +357,36 @@ footer a:hover {
     background-color: #145A32;
 }
 
+/* Style for Station Sign On/Off and Angelus rows */
 .station-sign-on, .station-sign-off, .angelus {
-    color: #9e9e9e;
-    background-color: #ffffff;
+    position: relative;
     text-align: center;
-    padding: 10px;
+    color: #9e9e9e;
+    padding: 10px 0;
 }
 
+/* Add lines on each side */
+.station-sign-on::before,
+.station-sign-on::after,
+.station-sign-off::before,
+.station-sign-off::after,
+.angelus::before,
+.angelus::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%; /* Adjust length of line */
+    height: 1px;
+    background-color: #9e9e9e; /* Line color */
+}
+
+/* Positioning for left and right lines */
+.station-sign-on::before, .station-sign-off::before, .angelus::before {
+    left: 0;
+}
+
+.station-sign-on::after, .station-sign-off::after, .angelus::after {
+    right: 0;
+}
 
   
