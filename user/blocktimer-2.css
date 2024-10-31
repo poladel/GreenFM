@@ -331,6 +331,15 @@ footer a:hover {
     border-radius: 10px;
 }
 
+.schedule-table .permasched {
+    background-color: #e7e7e7;
+    color: #797979;
+    cursor: not-allowed;
+    font-size: 11px;
+    max-height: 3vw;
+    pointer-events: none; /* disables hover effects */
+}
+
 .schedule-table .schedulebtn {
     background-color: #e7e7e7;
     color: #797979;
@@ -377,7 +386,7 @@ footer a:hover {
     top: 50%;
     width: 40%; /* Adjust length of line */
     height: 1px;
-    background-color: #9e9e9e; /* Line color */
+    background-color: #bebebe; /* Line color */
 }
 
 /* Positioning for left and right lines */
