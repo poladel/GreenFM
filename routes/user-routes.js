@@ -10,10 +10,10 @@ const userRoutes = [
     { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST' },
     { path: '/JoinBlocktimer-Step1', view: '2-user/6-blocktimer-1', pageTitle: 'Join Blocktimer - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/blocktimer.css' },
-    { path: '/JoinBlocktimer-Step2', view: '2-user/6-blocktimer-2', pageTitle: 'Join Blocktimer - Step 2', headerTitle: 'STEP 2', auth: true, cssFile: 'css/blocktimer.css' },
+    { path: '/JoinBlocktimer-Step2', view: '2-user/6-blocktimer-2', pageTitle: 'Join Blocktimer - Step 2', headerTitle: 'STEP 2', auth: true, cssFile: 'css/blocktimer2.css' },
     { path: '/JoinBlocktimer-Step3', view: '2-user/6-blocktimer-3', pageTitle: 'Join Blocktimer - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/blocktimer.css' },
     { path: '/JoinGFM-Step1', view: '2-user/7-joingreenfm-1', pageTitle: 'Join GFM - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/joingreenfm.css' },
-    { path: '/JoinGFM-Step2', view: '2-user/7-joingreenfm-2', pageTitle: 'Join GFM - Step 2', headerTitle: 'STEP 2', auth: true, cssFile: 'css/joingreenfm.css' },
+    { path: '/JoinGFM-Step2', view: '2-user/7-joingreenfm-2', pageTitle: 'Join GFM - Step 2', headerTitle: 'STEP 2', auth: true, cssFile: 'css/joingreenfm2.css' },
     { path: '/JoinGFM-Step3', view: '2-user/7-joingreenfm-3', pageTitle: 'Join GFM - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/joingreenfm.css' },
     { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' , cssFile: 'css/about.css'},
     { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US', cssFile: 'css/contact.css' }
@@ -34,8 +34,35 @@ userRoutes.forEach(userRoute => {
                     const { completedJoinGFMStep1, completedJoinGFMStep2 } = user;
 
                     // Redirect to JoinGFM-Step1 if the user hasn't completed both steps
+<<<<<<< HEAD
                     if (!completedJoinGFMStep1 || !completedJoinGFMStep2) {
                         return res.redirect('/JoinGFM-Step1');
+=======
+                    if (!completedJoinGFMStep1) {
+                        return res.redirect('/JoinGFM-Step1');
+                    } else if (!completedJoinGFMStep2) {
+                        return res.redirect('/JoinGFM-Step2');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return res.status(500).send('Internal Server Error');
+                }
+            }
+
+            if (userRoute.path === '/JoinBlocktimer-Step3') {
+                try {
+                    // Retrieve the user's completion data from MongoDB
+                    const user = await User.findById(req.user._id); // Adjust to match your authentication method
+
+                    // Check completion status
+                    const { completedBlocktimerStep1, completedBlocktimerStep2 } = user;
+
+                    // Redirect to JoinBlocktimer-Step1 if the user hasn't completed both steps
+                    if (!completedBlocktimerStep1) {
+                        return res.redirect('/JoinBlocktimer-Step1');
+                    } else if (!completedBlocktimerStep2) {
+                        return res.redirect('/JoinBlocktimer-Step2');
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
                     }
                 } catch (error) {
                     console.error(error);

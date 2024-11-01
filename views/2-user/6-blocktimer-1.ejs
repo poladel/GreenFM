@@ -79,6 +79,7 @@
                             <div class="form-group checkbox-group">
                                 <label>Type of Show</label>
                                 <div class="checkbox-row">
+<<<<<<< HEAD
                                     <label><input type="checkbox" name="showDetails.type" value="News"> News</label>
                                     <label><input type="checkbox" name="showDetails.type" value="Interview"> Interview</label>
                                     <label><input type="checkbox" name="showDetails.type" value="Comedy"> Comedy</label>
@@ -100,6 +101,29 @@
                                 </div>
                                 <div class="checkbox-row">
                                     <input type="checkbox" name="showDetails.type" id="other" value="Other">
+=======
+                                    <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
                                     <input type="text" id="other-input" placeholder="Other" />
                                 </div>                                               
                             </div>                          
@@ -228,7 +252,7 @@
             </div>     
         </div>
         <div class="submit-button">
-            <button type="submit" class="submit">NEXT</button> <!-- Add this line --> 
+            <button type="submit" class="submit">NEXT</button> 
         </div>
     </form>
 
@@ -238,7 +262,6 @@
     </div>
 
     <script src="js/2-user/blocktimer.js"></script>
-    <script src="js/3-logreg/auth.js" defer></script>
-    
+    <script src="js/3-logreg/auth.js" defer></script>   
 </body>
 </html>

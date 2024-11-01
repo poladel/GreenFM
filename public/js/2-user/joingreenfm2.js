@@ -25,6 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Successfully submitted your application!');
                 // Redirect or perform any other action as needed
                 window.location.href = '/JoinGFM-Step3'; // Replace with your success page
+<<<<<<< HEAD
+=======
+            } else if (result.redirect) {
+                alert(`Error: ${result.error}`);
+                // Redirect to Step 1 if specified in response
+                window.location.href = result.redirect;
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
             } else {
                 // Handle errors
                 alert(`Error: ${result.error || 'Something went wrong'}`);

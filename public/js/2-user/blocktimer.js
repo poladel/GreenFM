@@ -48,6 +48,10 @@ function setupToggleInputs({ checkboxId, inputIds }) {
         const isChecked = checkbox.checked;
         inputs.forEach(input => {
             input.disabled = isChecked;
+<<<<<<< HEAD
+=======
+            input.value = '';
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         });
     }
 
@@ -61,6 +65,7 @@ function setupToggleInputs({ checkboxId, inputIds }) {
 // Apply the toggle function to each checkbox-input group
 toggles.forEach(setupToggleInputs);
 
+<<<<<<< HEAD
     /*----------------------ADDING HOST---------------------*/
     let hostIndex = document.querySelectorAll("input[name^='hosts']").length; // Start with the existing hosts
     let technicalIndex = document.querySelectorAll("input[name^='technicalStaff']").length; // Start with the existing technical staff
@@ -127,6 +132,102 @@ function addTechnical() {
 // Adding event listeners for buttons to add hosts and technical staff
 document.getElementById("add-host").addEventListener("click", addHost);
 document.getElementById("add-technical").addEventListener("click", addTechnical);
+=======
+    /*----------------------ADDING HOST AND TECHNICAL STAFF---------------------*/
+    let hostIndex = 1; // Start from 1 since 0 is already in the HTML
+    let technicalIndex = 1; // Start from 1 since 0 is already in the HTML
+    
+    function addHost() {
+        const hostsContainer = document.getElementById("hosts-container");
+        const currentHosts = hostsContainer.getElementsByClassName("host-input").length;
+    
+        if (currentHosts < 4) {
+            const newHostDiv = document.createElement("div");
+            newHostDiv.className = "name-section host-input";
+    
+            newHostDiv.innerHTML = `
+                <input type="text" name="hosts[${hostIndex}].lastName" placeholder="Last Name" required>
+                <input type="text" name="hosts[${hostIndex}].firstName" placeholder="First Name" required>
+                <input type="text" name="hosts[${hostIndex}].mi" placeholder="M.I.">
+                <input type="text" name="hosts[${hostIndex}].cys" placeholder="CYS">
+                <button type="button" class="remove-host">Remove</button>
+            `;
+    
+            hostsContainer.appendChild(newHostDiv);
+    
+            // Add event listener for the remove button
+            newHostDiv.querySelector(".remove-host").addEventListener("click", function () {
+                hostsContainer.removeChild(newHostDiv);
+                updateHostIndices(); // Update indices after removal
+            });
+    
+            hostIndex++; // Increment the host index after adding a new host
+        } else {
+            alert("Maximum of 4 Hosts allowed.");
+        }
+    }
+    
+    function updateHostIndices() {
+        const hostsContainer = document.getElementById("hosts-container");
+        const hostInputs = hostsContainer.getElementsByClassName("host-input");
+    
+        for (let i = 0; i < hostInputs.length; i++) {
+            const inputs = hostInputs[i].getElementsByTagName("input");
+            inputs[0].name = `hosts[${i}].lastName`;
+            inputs[1].name = `hosts[${i}].firstName`;
+            inputs[2].name = `hosts[${i}].mi`;
+            inputs[3].name = `hosts[${i}].cys`;
+        }
+    }
+    
+    function addTechnical() {
+        const technicalContainer = document.getElementById("technical-container");
+        const currentTechnical = technicalContainer.getElementsByClassName("technical-input").length;
+    
+        if (currentTechnical < 2) {
+            const newTechnicalDiv = document.createElement("div");
+            newTechnicalDiv.className = "name-section technical-input";
+    
+            newTechnicalDiv.innerHTML = `
+                <input type="text" name="technicalStaff[${technicalIndex}].lastName" placeholder="Last Name" required>
+                <input type="text" name="technicalStaff[${technicalIndex}].firstName" placeholder="First Name" required>
+                <input type="text" name="technicalStaff[${technicalIndex}].mi" placeholder="M.I.">
+                <input type="text" name="technicalStaff[${technicalIndex}].cys" placeholder="CYS">
+                <button type="button" class="remove-technical">Remove</button>
+            `;
+    
+            technicalContainer.appendChild(newTechnicalDiv);
+    
+            // Add event listener for the remove button
+            newTechnicalDiv.querySelector(".remove-technical").addEventListener("click", function () {
+                technicalContainer.removeChild(newTechnicalDiv);
+                updateTechnicalIndices(); // Update indices after removal
+            });
+    
+            technicalIndex++; // Increment the technical index after adding a new technical staff member
+        } else {
+            alert("Maximum of 2 Technical Staff allowed.");
+        }
+    }
+    
+    function updateTechnicalIndices() {
+        const technicalContainer = document.getElementById("technical-container");
+        const technicalInputs = technicalContainer.getElementsByClassName("technical-input");
+    
+        for (let i = 0; i < technicalInputs.length; i++) {
+            const inputs = technicalInputs[i].getElementsByTagName("input");
+            inputs[0].name = `technicalStaff[${i}].lastName`;
+            inputs[1].name = `technicalStaff[${i}].firstName`;
+            inputs[2].name = `technicalStaff[${i}].mi`;
+            inputs[3].name = `technicalStaff[${i}].cys`;
+        }
+    }
+    
+    // Event listeners for add buttons
+    document.getElementById("add-host").addEventListener("click", addHost);
+    document.getElementById("add-technical").addEventListener("click", addTechnical);
+    
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
 
 
     /*----------------------ALLOW CROSSPOSTING---------------------*/
@@ -196,6 +297,7 @@ document.getElementById("add-technical").addEventListener("click", addTechnical)
     setupEmailInput(emailInputOffice);
     setupEmailInput(emailInputContact);
 
+<<<<<<< HEAD
     /*----------------------SIGNATURE UPLOAD---------------------*/
     document.getElementById("signature-upload").addEventListener("change", function (event) {
         const file = event.target.files[0];
@@ -214,5 +316,199 @@ document.getElementById("add-technical").addEventListener("click", addTechnical)
         } else {
             previewContainer.style.display = "none"; // Hide the preview if no file is selected
             signatureImage.src = ""; // Clear the src
+=======
+/*----------------------SIGNATURE UPLOAD PREVIEW---------------------*/
+document.getElementById("signature-upload").addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById("signature-preview");
+    const signatureImage = document.getElementById("signature-image");
+
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            signatureImage.src = e.target.result; // Set the src to the file data
+            previewContainer.style.display = "block"; // Show the preview
+        };
+
+        reader.readAsDataURL(file); // Convert the file to a Data URL
+    } else {
+        previewContainer.style.display = "none"; // Hide the preview if no file is selected
+        signatureImage.src = ""; // Clear the src
+    }
+});
+
+async function uploadFileToServer(file) {
+    const formData = new FormData();
+    formData.append('file', file); // Append the file to the FormData
+
+    try {
+        const response = await fetch('/upload-signature', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('File upload failed: ' + response.statusText);
+        }
+
+        const uploadResponse = await response.json();
+        return { url: uploadResponse.url }; // Return the URL from the server response
+    } catch (error) {
+        throw new Error('File upload failed: ' + error.message);
+    }
+}
+
+/*----------------------FORM 1 SUBMISSION---------------------*/
+document.addEventListener("DOMContentLoaded", function () {
+    const form1 = document.getElementById('blocktimerForm1');
+
+    form1.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(form1);
+
+        // Collect all selected show types
+        const showTypeArray = Array.from(document.querySelectorAll('input[name="showDetails.type[]"]:checked')).map(el => el.value);
+
+        // Handle 'Other' input
+        const otherInput = document.getElementById('other-input');
+        if (otherInput.value.trim() !== '') {
+            const otherValue = otherInput.value.trim();
+            // Check if "Other" input is already included to prevent duplicates
+            if (!showTypeArray.includes(otherValue)) {
+                showTypeArray.push(otherValue);
+            }
+        }
+
+        // Clear previous show types from FormData and append the array
+        formData.delete('showDetails.type[]'); // Remove duplicates
+        showTypeArray.forEach(type => formData.append('showDetails.type[]', type));
+
+        // Convert formData to an object for further processing
+        const data = { showDetails: {}, hosts: [], technicalStaff: [] };
+
+        // Fill the data object from formData
+        formData.forEach((value, key) => {
+            if (key.endsWith('[]')) {
+                const cleanKey = key.slice(0, -2); // Remove the '[]'
+                if (!data.showDetails[cleanKey]) {
+                    data.showDetails[cleanKey] = [];
+                }
+                data.showDetails[cleanKey].push(value);
+            } else {
+                const keys = key.split('.');
+                let temp = data;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!temp[keys[i]]) temp[keys[i]] = {};
+                    temp = temp[keys[i]];
+                }
+
+                // Check if the field is a checkbox and convert to Boolean
+                if (key === 'coProponent.notApplicable' || key === 'facultyStaff.notApplicable') {
+                    temp[keys[keys.length - 1]] = value === 'on'; // Convert to Boolean
+                } else {
+                    temp[keys[keys.length - 1]] = value; // Assign value directly for other fields
+                }
+            }
+        });
+
+
+        // Assign the showTypeArray directly to showDetails.type
+        data.showDetails.type = showTypeArray;
+
+        // Collect hosts
+        document.querySelectorAll('.host-input').forEach((host) => {
+            const lastName = host.querySelector('[name^="hosts["][name$=".lastName"]').value.trim();
+            const firstName = host.querySelector('[name^="hosts["][name$=".firstName"]').value.trim();
+            const mi = host.querySelector('[name^="hosts["][name$=".mi"]').value.trim();
+            const cys = host.querySelector('[name^="hosts["][name$=".cys"]').value.trim();
+
+            if (lastName && firstName) {
+                data.hosts.push({ lastName, firstName, mi, cys });
+            }
+        });
+
+        // Collect technical staff
+        document.querySelectorAll('.technical-input').forEach((staff) => {
+            const lastName = staff.querySelector('[name^="technicalStaff["][name$=".lastName"]').value.trim();
+            const firstName = staff.querySelector('[name^="technicalStaff["][name$=".firstName"]').value.trim();
+            const mi = staff.querySelector('[name^="technicalStaff["][name$=".mi"]').value.trim();
+            const cys = staff.querySelector('[name^="technicalStaff["][name$=".cys"]').value.trim();
+
+            if (lastName && firstName) {
+                data.technicalStaff.push({ lastName, firstName, mi, cys });
+            }
+        });
+
+        // Debugging logs for initial data collection
+        console.log('Show Types:', showTypeArray);
+        console.log('Hosts:', data.hosts);
+        console.log('Technical Staff:', data.technicalStaff);
+
+        // Validation logic
+        const requiredFields = [
+            { name: 'organizationType', condition: data.organizationType },
+            { name: 'organizationName', condition: data.organizationName },
+            { name: 'proponent.lastName', condition: data.proponent?.lastName },
+            { name: 'proponent.firstName', condition: data.proponent?.firstName },
+            { name: 'showDetails.title', condition: data.showDetails?.title },
+            { name: 'showDetails.type', condition: Array.isArray(data.showDetails?.type) && data.showDetails.type.length > 0 },
+            { name: 'showDetails.description', condition: data.showDetails?.description },
+            { name: 'showDetails.objectives', condition: data.showDetails?.objectives },
+            { name: 'executiveProducer.lastName', condition: data.executiveProducer?.lastName },
+            { name: 'executiveProducer.firstName', condition: data.executiveProducer?.firstName },
+            { name: 'hosts', condition: Array.isArray(data.hosts) && data.hosts.length > 0 },
+            { name: 'technicalStaff', condition: Array.isArray(data.technicalStaff) && data.technicalStaff.length > 0 },
+            { name: 'creativeStaff.firstName', condition: data.creativeStaff?.firstName },
+            { name: 'creativeStaff.lastName', condition: data.creativeStaff?.lastName },
+            { name: 'agreement', condition: data.agreement },
+            { name: 'contactInfo.dlsudEmail', condition: data.contactInfo?.dlsudEmail },
+            { name: 'contactInfo.contactEmail', condition: data.contactInfo?.contactEmail },
+            { name: 'contactInfo.contactFbLink', condition: data.contactInfo?.contactFbLink },
+            { 
+                name: 'contactInfo.fbLink', 
+                condition: data.contactInfo?.crossposting === 'Yes' ? !!data.contactInfo?.fbLink : true 
+            },
+            { name: 'proponentSignature', condition: data.proponentSignature },
+        ];
+
+        const validationErrors = requiredFields.filter(field => !field.condition).map(field => field.name);
+
+        if (validationErrors.length > 0) {
+            alert(`Please fill in all required fields: ${validationErrors.join(', ')}`);
+            console.log('User input data:', data); // Console log user input for debugging
+            return;
+        }
+
+        // Attempting to upload the signature
+        try {
+            const signatureFileInput = document.getElementById('signature-upload');
+            const signatureFile = signatureFileInput.files[0];
+
+            if (signatureFile) {
+                const { url: proponentSignatureUrl } = await uploadFileToServer(signatureFile);
+                data.proponentSignature = proponentSignatureUrl;
+            }
+
+            // Submission logic
+            const response = await fetch('/JoinBlocktimer-Step1', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                window.location.href = '/JoinBlocktimer-Step2';
+            } else {
+                const errorMessage = await response.text();
+                alert(`Error: ${errorMessage}`);
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('There was an error uploading the signature. Please try again.');
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         }
     });

@@ -1,3 +1,6 @@
+<!-- Sidebar Toggle Button -->
+<div class="sidebar-toggle">☰</div>
+
 <div class="sidebars">
     <div class="sidebar">
         <img src="img/GFMLogo.png" alt="GFM Logo" class="logo">
@@ -12,6 +15,7 @@
     </div>
     <div class="sidebar1">
         <ul class="menu">
+<<<<<<< HEAD
             <li><a href="/JoinBlocktimer-Step1" id="blocktimer-link">BE A<br>BLOCKTIMER</a></li>
             <li>
                 <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
@@ -21,6 +25,26 @@
                 <% } %>
             </li>
             
+=======
+            <li>
+                <% if (user && user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
+                    <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } else if (user && user.completedBlocktimerStep1) { %>
+                    <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } else { %>
+                    <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } %>
+            </li>
+            <li>
+                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } else if (user && user.completedJoinGFMStep1) { %>
+                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } else { %>
+                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } %>
+            </li>
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         </ul>
     </div>
     <div class="sidebar2">
@@ -34,3 +58,10 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript to toggle the sidebar -->
+<script>
+    document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+        document.querySelector('.sidebars').classList.toggle('active');
+    });
+</script>

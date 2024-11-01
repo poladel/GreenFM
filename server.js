@@ -36,12 +36,22 @@ const userRoutes = require('./routes/user-routes');
 const authRoutes = require('./routes/authRoutes');
 const { checkUser } = require('./middleware/authMiddleware');
 const joinGFMRoutes = require('./routes/joinGFMRoutes');
+<<<<<<< HEAD
+=======
+const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
 
 app.get('*', checkUser);
 app.use(root);
 app.use(userRoutes);
 app.use(authRoutes);
 app.use(joinGFMRoutes);
+<<<<<<< HEAD
+=======
+app.use(joinBlocktimerRoutes);
+app.use(uploadRoutes);
+>>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
 
 // 404 Handling
 app.all('*', (req, res) => {
