@@ -45,8 +45,8 @@ const ApplyStaffSchema = new mongoose.Schema({
     required: true,
   },
   affiliatedOrgsList: {
-    type: String,
-    required: true,
+    listInput: String,
+    notApplicable: { type: Boolean, default: false },
   },
   preferredDepartment: {
     type: String,
