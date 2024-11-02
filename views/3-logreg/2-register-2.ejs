@@ -13,7 +13,7 @@
       <div class="full-name-group">
         <input type="text" name="lastName" placeholder="Last Name" required>
         <input type="text" name="firstName" placeholder="First Name" required>
-        <input type="text" name="middleInitial" class="middle-initial" placeholder="M.I">
+        <input type="text" name="middleInitial" class="middleinitial" placeholder="M.I">
       </div>
 
       <div class="form-group checkbox-group">
@@ -24,18 +24,22 @@
       </div>    
 
       <div id="dlsudEmailContainer" style="display: none;"> <!-- Hide initially -->
+        <hr><br>
         <label for="dlsudEmail">DLSU-D Email:</label>
         <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph">
-        <br>
-        <label>Student Number</label>
+
+        <label>Student Number:</label>
         <p class="formnote">For students only. If not applicable, check "N/A"</p>
+
         <div class="studentNumber">
-          <input type="text" id="studentNumber" name="studentNumber">
+            <input type="text" id="studentNumber" name="studentNumber">
         </div>
-        <div class="checkbox-group">
-          <p><input type="checkbox" id="studentNumberNotApplicable" name="studentNumberNotApplicable"> Not Applicable</p>
+        <div class="checkbox-group-dlsud">
+            <label class="checkbox-label-dlsud">
+                <input type="checkbox" id="studentNumberNotApplicable" name="studentNumberNotApplicable"> Not Applicable
+            </label>
         </div>
-      </div>
+      </div>     
 
       <button type="submit" class="register-button">Submit</button>
     </form>
