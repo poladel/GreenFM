@@ -147,6 +147,7 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
     if (!req.session.joinBlocktimer1Data) {
         if (req.user) {
             req.user.completedBlocktimerStep1 = false; // Set the field to false
+            req.user.completedBlocktimerStep2 = false; // Set the field to false
             await req.user.save(); // Save changes to the database
         }
         

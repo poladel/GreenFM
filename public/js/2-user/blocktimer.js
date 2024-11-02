@@ -36,7 +36,6 @@ const toggles = [
         checkboxId: 'facultyStaffNotApplicable',
         inputIds: ['facultyStaffLastName', 'facultyStaffFirstName', 'facultyStaffMi', 'facultyStaffDepartment']
     }
-    // Add more sets as needed
 ];
 
 // Function to toggle input fields based on checkbox state
@@ -61,6 +60,22 @@ function setupToggleInputs({ checkboxId, inputIds }) {
 
 // Apply the toggle function to each checkbox-input group
 toggles.forEach(setupToggleInputs);
+
+    /*----------------------OTHER INPUT---------------------*/
+// Function to toggle other input field based on checkbox state
+    const checkbox = document.getElementById('other');
+    const input = document.getElementById('other-input');
+
+    function toggleOtherInputs() {
+        const isChecked = checkbox.checked;
+        input.disabled = (!isChecked);
+    }
+
+    // Initial setup: enable other input if checkbox is checked
+    toggleOtherInputs();
+    
+    // Event listener to toggle inputs when checkbox state changes
+    checkbox.addEventListener('change', toggleOtherInputs);
 
     /*----------------------ADDING HOST AND TECHNICAL STAFF---------------------*/
     let hostIndex = 1; // Start from 1 since 0 is already in the HTML

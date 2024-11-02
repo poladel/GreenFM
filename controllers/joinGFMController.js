@@ -39,6 +39,7 @@ module.exports.joinGFM2_post = async (req, res) => {
     if (!req.session.joinGFM1Data) {
         if (req.user) {
             req.user.completedJoinGFMStep1 = false; // Set the field to false
+            req.user.completedJoinGFMStep2 = false; // Set the field to false
             await req.user.save(); // Save changes to the database
         }
         
