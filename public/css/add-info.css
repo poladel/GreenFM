@@ -123,13 +123,15 @@ body, html {
     display: flex;
     flex-direction: column; /* Arrange items in a column */
     align-items: flex-start; /* Align items to the start (left) */
-    margin-bottom: 1vh;
+    margin-bottom: 1vw;
+    margin-top: 1vw;
 }
 
 .formnote {
     font-size: 1.6vh; /* Consistent note font size */
     color: #777; /* Color for notes */
-    margin: 0;
+    margin-top: 0.2vw;
+    margin-bottom: 0.2vw;
 }
 
 .checkbox-group-dlsud {
@@ -137,6 +139,10 @@ body, html {
     align-items: center; /* Center items vertically */
     margin-top: 1vh; /* Add some spacing above the checkbox */
     width: 100%; /* Ensures it uses full width */
+}
+
+.studnumlabel {
+    margin-top: 1vw;
 }
 
 .checkbox-label-dlsud {
