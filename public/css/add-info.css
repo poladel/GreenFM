@@ -130,7 +130,7 @@ body, html {
 .formnote {
     font-size: 1.6vh; /* Consistent note font size */
     color: #777; /* Color for notes */
-    margin-top: 0.2vw;
+    margin-top: 0;
     margin-bottom: 0.2vw;
 }
 
