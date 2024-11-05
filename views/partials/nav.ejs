@@ -45,6 +45,27 @@
             <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="img/IGLogo.png" alt="Instagram" class="social-icon"></a>
         </div>
     </div>
+    <div class="user-sidebar">
+        <ul class="menu">
+            <% if (user) { %>
+                <li>
+                    <ul class="user-menu">
+                        <li><a href="/manage-account">MANAGE<br>ACCOUNT</a></li>
+                        <li><a href="/LogOut">LOG OUT</a></li>
+                    </ul>
+                </li>
+            <% } else { %>
+                <li>
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+                        <div class="user-container">
+                            <img src="img/user.png" alt="User Icon" class="user-icon">
+                            <span class="sidelogin-text">LOG-IN</span>
+                        </div>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </div>
 </div>
 
 <!-- JavaScript to toggle the sidebar -->

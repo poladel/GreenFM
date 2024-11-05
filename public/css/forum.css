@@ -1,5 +1,4 @@
 /* FORUM */
-/* Post Component Styles */
 .post-container {
     background-color: white;
     padding: 20px;
@@ -64,19 +63,34 @@
 }
 
 /* Media Queries */
-@media (max-width: 768px) {
+@media screen and (min-width: 700px) and (max-width: 800px) {
     .post-container {
-        margin-left: 2vw; /* Reduce left margin */
-        margin-right: 2vw; /* Reduce right margin */
-        width: calc(100% - 4vw); /* Adjust width */
+        margin-left: 20vw;
     }
+}
 
-    .post-textbox {
-        height: 60px; /* Adjust height for smaller screens */
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .post-container {
+        margin-left: 17vw;
     }
+}
 
-    .post-button {
-        font-size: 14px; /* Smaller font size for buttons */
-        padding: 5px 15px; /* Smaller padding */
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .post-container {
+        margin-left: 15vw;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .post-container {
+        margin-left: 4vw;
+        width: 94.5%;
+    }
+}
+
+@media screen and (min-width: 1401px) {
+    .post-container {
+        margin-left: 3.6vw;
+        width: 95%
     }
 }

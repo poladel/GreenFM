@@ -1,9 +1,10 @@
 /* Form Container */
 .form-title-container {
+    position: fixed;
     background-color: #ffffff;
     padding: 2px;
     text-align: left;
-    margin-top: 2vh;
+    margin-top: 0.2vw;
     margin-bottom: 1vh;
     margin-left: 5vw;
     margin-right: 2vw;
@@ -342,28 +343,503 @@ input[type="email"] {
 }
 
 /* Media Queries */
-@media (max-width: 768px) {
+@media screen and (min-width: 1px) and (max-width: 200px) {
     .form-title-container {
-        width: 80%;
-        margin-left: 12vw;
-    }
-
-    .form-container1, .form-container2, .form-container3 {
-        margin-left: 12vw; /* Reduce left margin */
-        margin-right: 2vw; /* Reduce right margin */
-        width: calc(100% - 4vw); /* Adjust width */
-    }
-
-    .forms-container {
-        flex-direction: column;
+        margin-left: 26vw;
+        margin-top: -3vw;
+        width: 120vw;
+        border-radius: 8vw;
     }
 
     .circle {
-        margin: 0 15px;
+        width: 4vh;
+        height: 4vh;
+        margin-top: 40vw;
+        margin-left: -10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
     }
 
     .circle::after {
-        width: 80%;
+        display: none;
     }
 
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 8vw;
+        margin-left: 15vw;
+        width: 120vw;
+    }
+
+    .submit-button {
+        margin-left: 140vw;
+    }
+
+}
+
+@media screen and (min-width: 201px) and (max-width: 300px) {
+    .form-title-container {
+        margin-left: 19vw;
+        margin-top: -1vw;
+        width: 115vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 25vw;
+        margin-left: -35vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 5vw;
+        width: 100vw;
+    }
+
+    .submit-button {
+        margin-left: 110vw;
+    }
+}
+
+@media screen and (min-width: 301px) and (max-width: 400px) {
+    .form-title-container {
+        margin-left: 16vw;
+        margin-top: 2vw;
+        width: 95vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 95vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 85vw;
+        height: 8vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 15vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 501px) and (max-width: 600px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 701px) and (max-width: 800px) {
+    .form-title-container {
+        margin-left: 20vw;
+        margin-top: 0.5vw;
+        width: 76vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 20vw;
+        width: 71vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .form-title-container {
+        margin-left: 17vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 17vw;
+        width: 75.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .form-title-container {
+        margin-left: 15vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 5vw;
+    }
+
+    .form-title {
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        margin-left: 13vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 15vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 79.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        height: 4vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 7.5vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 180%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 82.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 1401px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 180%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 83.6vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
 }
