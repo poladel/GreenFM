@@ -612,7 +612,7 @@ textarea {
     }
 
     .circle::after, .circle-2::after, .circle-3::after {
-        width: 180%;
+        width: 170%;
     }
 
     .forms-container, .form-container3, .form-container4 {

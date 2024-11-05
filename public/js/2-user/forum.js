@@ -5,7 +5,7 @@ document.getElementById('postButton').addEventListener('click', function() {
         console.log('Post Submitted');
         // Additional logic for submitting the post can be added here
     } else {
-        document.getElementById('loginPopup').style.display = 'block';
+        document.getElementById('loginPopup').style.display = 'flex';
     }
 });
 
