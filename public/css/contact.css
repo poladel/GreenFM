@@ -1,78 +1,20 @@
-  /* Global Styles */
-body {
-    font-family: 'Lato', sans-serif;
-    background-color: #fdfdfd;
-    margin: 0;
-    padding: 0;
-}
-
-h1, h2, h3 {
-    text-align: center;
-    color: darkgreen;
-    margin-top: 10px;
-}
-
-p {
-    text-align: left;
-    line-height: 1.8;
-    color: #333;
-    font-size: 1.15rem;
-    margin-bottom: 20px;
-    padding-left: 20px;
-}
-
-/* Page Container */
-.page-container {
-    display: flex;
-    justify-content: flex-start; /* Align content to the left */
-    gap: 20px;
-    padding: 50px;
-    max-width: 75%; /* Use a bit more screen space */
-    margin: 0 auto;
-    box-sizing: border-box;
-}
-
-/* Sidebar Styling */
-.sidebar {
-    width: 20%;
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-}
-
-/* Main Content Styling */
-.main-content {
-    width: 75%;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-}
-
 /* Contact Container Styling */
 .contact-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    width: 100%;
-    justify-content: center;
-    background-color: #ffffff; 
-    border-radius: 12px;
-    padding: 20px;
+    display: flex;/* Enables flexbox for the forms container */
+    gap: 20px;/* Space between the forms */
+    width: 83.9vw;/* Ensure the forms container doesn't overlap with the sidebar */
+    margin-left: 4.2vw;/* Adjust margin to account for sidebar width */
+    margin-right: 2vh;
+    padding: 20px 0;/* Optional: Add some vertical padding */
 }
 
 /* Contact Info and Form Styling */
 .contact-info, .contact-form {
-    flex: 1;
-    min-width: 300px;
-    padding: 30px; /* Increased padding for more balanced spacing */
-    border-radius: 12px;
+    flex: 1;/* Each form takes equal space */
     background-color: #ffffff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    max-width: 45%;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Headings */
@@ -172,30 +114,4 @@ p {
     padding-top: 10px;
     border-top: 1px solid #ddd;
     width: 100%;
-}
-
-/* Adjusting the Contact Container */
-.contact-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    width: 100%;
-    justify-content: center;
-    background-color: #ffffff; 
-    border-radius: 12px;
-    padding: 20px;
-    max-width: 1000px; /* Set a maximum width to control the overall size */
-    margin: 0 auto; /* Center the container */
-}
-
-/* Contact Info and Form Styling */
-.contact-info, .contact-form {
-    flex: 1;
-    min-width: 300px;
-    padding: 30px; /* Increased padding for more balanced spacing */
-    border-radius: 12px;
-    background-color: #ffffff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 45%; /* Ensuring both sections take up equal space */
-    max-width: 45%; /* Setting a consistent max-width */
 }
