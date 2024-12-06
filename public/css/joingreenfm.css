@@ -4,6 +4,7 @@
     background-color: #ffffff;
     padding: 2px;
     text-align: left;
+    margin-top: -0.8vh;
     margin-bottom: 1vh;
     margin-left: 5vw;
     margin-right: 2vw;
@@ -22,26 +23,33 @@
     margin-left: 20px;
 }
 
-.forms-container {
-    display: flex; /* Enables flexbox for the forms container */
-    gap: 20px; /* Space between the forms */
-    padding: 20px; /* Add some padding */
-    margin-left: 3.8vw;
-    width: 93.2%;
+.form-container1 {
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 1.5vw;
+    margin-bottom: 1vw;
+    margin-right: 0.5vh;
+    margin-left: 8vh;
 }
 
-.form-container1, .form-container2 {
-    flex: 1; /* Each form takes equal space */
-    background-color: #ffffff; /* White background */
-    padding: 20px; /* Padding inside the forms */
-    border-radius: 15px; /* Rounded corners */
+.form-container2 {
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1vw;
+    margin-right: 0.5vh;
+    margin-left: 8vh;
 }
 
 .form-container3 {
     width: 81vw;/* Ensure the forms container doesn't overlap with the sidebar */
     margin-left: 5.3vw;/* Adjust margin to account for sidebar width */
-    margin-right: 2vh;
+    margin-right: 3vh;
     flex: 1;/* Each form takes equal space */
     background-color: #ffffff;
     padding: 20px;
