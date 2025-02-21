@@ -1,6 +1,9 @@
 <!-- Sidebar Toggle Button -->
 <div class="sidebar-toggle">☰</div>
 
+<!-- Sidebar Toggle Button -->
+<div class="sidebar-toggle">☰</div>
+
 <div class="sidebars">
     <div class="sidebar">
         <img src="img/GFMLogo.png" alt="GFM Logo" class="logo">
@@ -16,12 +19,28 @@
     <div class="sidebar1">
         <ul class="menu">
 <<<<<<< HEAD
-            <li><a href="/JoinBlocktimer-Step1" id="blocktimer-link">BE A<br>BLOCKTIMER</a></li>
+            <li>
+                <% if (user && user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
+                    <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } else if (user && user.completedBlocktimerStep1) { %>
+                    <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } else { %>
+                    <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } %>
+            </li>
             <li>
                 <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
                     <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN GREEN FM</a>
                 <% } else { %>
-                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN GREEN FM</a>
+                    
+                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } else if (user && user.completedJoinGFMStep1) { %>
+                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } else { %>
+                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } %>
+            
                 <% } %>
             </li>
             
@@ -57,7 +76,35 @@
             <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="img/IGLogo.png" alt="Instagram" class="social-icon"></a>
         </div>
     </div>
+    <div class="user-sidebar">
+        <ul class="menu">
+            <% if (user) { %>
+                <li>
+                    <ul class="user-menu">
+                        <li><a href="/manage-account">MANAGE<br>ACCOUNT</a></li>
+                        <li><a href="/LogOut">LOG OUT</a></li>
+                    </ul>
+                </li>
+            <% } else { %>
+                <li>
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+                        <div class="user-container">
+                            <img src="img/user.png" alt="User Icon" class="user-icon">
+                            <span class="sidelogin-text">LOG-IN</span>
+                        </div>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </div>
 </div>
+
+<!-- JavaScript to toggle the sidebar -->
+<script>
+    document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+        document.querySelector('.sidebars').classList.toggle('active');
+    });
+</script>
 
 <!-- JavaScript to toggle the sidebar -->
 <script>

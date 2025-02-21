@@ -5,36 +5,36 @@
     <a href="/Home" class="back-to-home">
       <img src="/img/GFMLogo.png" alt="Green FM Logo" class="logo">
     </a>
+    <a href="/Home" class="back-to-home">
+      <img src="/img/GFMLogo.png" alt="Green FM Logo" class="logo">
+    </a>
     <h2 class="register-title">Create an Account</h2>
 
     <!-- Registration Form -->
     <form id="registerForm2" class="register-form">
       <label for="lastName">Full Name:</label>
       <div class="full-name-group">
+      <label for="lastName">Full Name:</label>
+      <div class="full-name-group">
         <input type="text" name="lastName" placeholder="Last Name" required>
         <input type="text" name="firstName" placeholder="First Name" required>
         <input type="text" name="middleInitial" class="middle-initial" placeholder="M.I">
+        <input type="text" name="middleInitial" class="middleinitial" placeholder="M.I">
       </div>
 
-      <div class="form-group checkbox-group">
+      <div class="form-group checkbox-group checkbox-group">
         <label for="dlsuD">Are you from DLSU-D?</label>
         <label class="checkbox-label">
-            <input type="checkbox" id="dlsuD" name="dlsuD" value="true"> Yes
+            <label class="checkbox-label">
+            <input type="checkbox" id="dlsuD" name="dlsuD" value="true">  Yes
         </label>
-      </div>    
+        </label>
+      </div>        
 
       <div id="dlsudEmailContainer" style="display: none;"> <!-- Hide initially -->
-        <label for="dlsudEmail">DLSU-D Email:</label>
+        <hr><br>
+        <label for="dlsudEmail" for="dlsudEmail">DLSU-D Email::</label>
         <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph">
-        <br>
-        <label>Student Number</label>
-        <p class="formnote">For students only. If not applicable, check "N/A"</p>
-        <div class="studentNumber">
-          <input type="text" id="studentNumber" name="studentNumber">
-        </div>
-        <div class="checkbox-group">
-          <p><input type="checkbox" id="studentNumberNotApplicable" name="studentNumberNotApplicable"> Not Applicable</p>
-        </div>
       </div>
 
       <button type="submit" class="register-button">Submit</button>

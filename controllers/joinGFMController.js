@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 const User = require('../models/User');
-=======
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
 const ApplyStaff = require('../models/ApplyStaff');
 
 module.exports.joinGFM1_post = async (req, res) => {
@@ -9,11 +6,6 @@ module.exports.joinGFM1_post = async (req, res) => {
         lastName, firstName, middleInitial, studentNumber, dlsudEmail,
         college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
         preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
-<<<<<<< HEAD
-        greenFmContribution, username, password // Extracted from req.body
-=======
-        greenFmContribution
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
     } = req.body;
 
     // Store data in session
@@ -30,10 +22,7 @@ module.exports.joinGFM1_post = async (req, res) => {
     }
 
     try {
-<<<<<<< HEAD
         // Assuming req.user is populated by checkUser middleware
-=======
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         const user = req.user; // Access the authenticated user
         user.completedJoinGFMStep1 = true;
         await user.save();
@@ -49,12 +38,16 @@ module.exports.joinGFM1_post = async (req, res) => {
 module.exports.joinGFM2_post = async (req, res) => {
     // Check if registrationData exists in session
     if (!req.session.joinGFM1Data) {
-<<<<<<< HEAD
         return res.status(400).json({ 
-            error: 'Please return and complete Step 1.' 
-=======
+            error: 'Please return and complete Step 1.',
+
+        if (req,user) {
+            req.user.completedJoinGFMStep1 = false; // Set the field to false
+
         if (req.user) {
             req.user.completedJoinGFMStep1 = false; // Set the field to false
+            req.user.completedJoinGFMStep2 = false; // Set the field to false
+     remotes/origin/polabranch
             await req.user.save(); // Save changes to the database
         }
         
@@ -62,7 +55,6 @@ module.exports.joinGFM2_post = async (req, res) => {
         return res.status(400).json({ 
             error: 'Please return and complete Step 1.',
             redirect: '/JoinGFM-Step1'
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         });
     }
 
@@ -91,10 +83,7 @@ module.exports.joinGFM2_post = async (req, res) => {
         // Clear session data
         req.session.joinGFM1Data = null;
 
-<<<<<<< HEAD
         // Assuming req.user is populated by checkUser middleware
-=======
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         const user = req.user; // Access the authenticated user
         user.completedJoinGFMStep2 = true;
         await user.save();
@@ -106,3 +95,4 @@ module.exports.joinGFM2_post = async (req, res) => {
         res.status(500).json({ error: 'Failed to save user information' });
     }
 };
+    }

@@ -1,5 +1,6 @@
 	/*----------------------STUDENT NUMBER---------------------*/
 	const studentNumberInput = document.getElementById("studentNumber");
+	const studentNumberInput = document.getElementById("studentNumber");
 
 	// Allow only numeric input and enforce maxlength
 	studentNumberInput.addEventListener("input", function (e) {
@@ -13,6 +14,7 @@
 	});
 
     /*----------------------DLSUD EMAIL---------------------*/
+    const emailInput = document.getElementById("dlsudEmail");
     const emailInput = document.getElementById("dlsudEmail");
     const domain = "@dlsud.edu.ph";
     
@@ -56,6 +58,75 @@
     emailInput.addEventListener("blur", function () {
         appendDomain();
     });
+
+    /*----------------------NOT APPLICABLE---------------------*/
+// Function to toggle other input field based on checkbox state
+const checkbox = document.getElementById('affiliatedOrgsListNotApplicable');
+const input = document.getElementById('affiliatedOrgsListListInput');
+
+function toggleAffiliatedOrgsInputs() {
+    const isChecked = checkbox.checked;
+    input.disabled = (isChecked);
+}
+
+// Initial setup: enable other input if checkbox is checked
+toggleAffiliatedOrgsInputs();
+
+// Event listener to toggle inputs when checkbox state changes
+checkbox.addEventListener('change', toggleAffiliatedOrgsInputs);
+
+
+    /*----------------------FORM 1 SUBMISSION---------------------*/
+    document.addEventListener("DOMContentLoaded", function () {
+        const form1 = document.getElementById('joingreenfmForm1');
+    
+        // Handle form submission
+        form1.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the default form submission
+    
+            // Gather form data
+            const formData = new FormData(form1);
+            const data = Object.fromEntries(formData.entries());
+
+            // Manually handle checkbox for affiliatedOrgsList.notApplicable
+            data.affiliatedOrgsList = {
+                listInput: formData.get('affiliatedOrgsList.listInput') || '', // Set listInput to an empty string if unchecked
+                notApplicable: form1.querySelector('#affiliatedOrgsListNotApplicable').checked, // true if checked, false otherwise
+            };
+    
+            // Perform validation if necessary
+            if (validateForm(data)) {
+                try {
+                    const response = await fetch('/JoinGFM-Step1', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+    
+                    if (response.ok) {
+                        // Redirect to Step 2 upon successful submission
+                        window.location.href = '/JoinGFM-Step2';
+                    } else {
+                        // Handle errors (e.g., show error message)
+                        const errorMessage = await response.text();
+                        alert(`Error: ${errorMessage}`);
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('There was an error submitting the form. Please try again later.');
+                }
+            } else {
+                alert('Please fill in all required fields.');
+            }
+        });
+    
+        // Validation function
+        function validateForm(data) {
+            // Simple validation to check if required fields are filled
+            return data.lastName && data.firstName && data.studentNumber && data.dlsudEmail && data.college && data.program && data.collegeYear && data.section && data.facebookUrl && (data.affiliatedOrgsList.listInput || data.affiliatedOrgsList.notApplicable) && data.preferredDepartment && data.staffApplicationReasons && data.departmentApplicationReasons && data.greenFmContribution;
+        }
 
 
     /*----------------------FORM 1 SUBMISSION---------------------*/

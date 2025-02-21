@@ -57,3 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Full Schedule Modal
+document.addEventListener("DOMContentLoaded", function () {
+    const scheduleBtn = document.querySelector(".see-schedule-btn");
+    const modal = document.getElementById("scheduleModal");
+    const closeBtn = document.querySelector(".close-btn");
+  
+    // Show modal when button is clicked
+    scheduleBtn.addEventListener("click", () => {
+      modal.style.display = "block";
+    });
+  
+    // Hide modal when close button is clicked
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  
+    // Hide modal when clicking outside the modal content
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+  

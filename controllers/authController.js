@@ -153,7 +153,7 @@ module.exports.register_post = async (req, res) => {
 
 // Additional User Info Submission
 module.exports.additional_info_post = async (req, res) => {
-    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber } = req.body;
+    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber, studentNumber } = req.body;
 
     // Check if registrationData exists in session
     if (!req.session.registrationData) {
@@ -177,6 +177,7 @@ module.exports.additional_info_post = async (req, res) => {
             middleInitial: middleInitial || '',
             dlsuD: dlsuD === 'true' || dlsuD === true,
             dlsudEmail,
+            studentNumber,
             studentNumber
         });
 
@@ -233,17 +234,11 @@ module.exports.login_post = async (req, res) => {
         if (completedStep1 && completedStep2) {
             // If the user has completed both steps, check if there is a redirect URL from the login request
             redirectUrl = redirect || '/JoinGFM-Step3'; // Default to JoinGFM-Step3 if no redirect provided
-<<<<<<< HEAD
-        } else {
-            // Fallback to query parameter if exists
-            redirectUrl = redirect || '/';
-=======
         } else if (completedStep1) {
             // Fallback to query parameter if exists
             redirectUrl = redirect || '/JoinGFM-Step2';
         } else {
             redirectUrl = redirect;
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         }
 
         return res.status(200).json({ user: user._id, redirect: redirectUrl });

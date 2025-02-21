@@ -47,61 +47,6 @@ body, html {
     margin-bottom: 3vh;
 }
 
-/* Google login button */
-.google-login-button {
-    background-color: white;
-    color: #333;
-    font-size: 2vh;
-    font-weight: bold;
-    padding: 1.5vh;
-    width: 100%;
-    border: 0.2vh solid #ddd;
-    border-radius: 1vh;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease;
-    margin-bottom: 2vh;
-    text-decoration: none;
-}
-
-.google-login-button:hover {
-    background-color: #f0f0f0;
-}
-
-.google-icon {
-    width: 3vh;
-    height: auto;
-    margin-right: 1.5vh;
-}
-
-/* Divider line */
-.or-divider {
-    text-align: center;
-    font-size: 1.8vh;
-    color: #666;
-    margin: 2vh 0;
-    position: relative;
-}
-
-.or-divider::before, .or-divider::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 0.2vh;
-    background-color: #ddd;
-}
-
-.or-divider::before {
-    left: 0;
-}
-
-.or-divider::after {
-    right: 0;
-}
-
 /* Form styling */
 .login-form {
     display: flex;

@@ -1,5 +1,4 @@
 /* FORUM */
-/* Post Component Styles */
 .post-container {
     background-color: white;
     padding: 20px;
@@ -63,20 +62,98 @@
     background-color: #005A1E;
 }
 
+/* Modal styling */
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+    position: relative; /* Ensure it’s centered within the modal container */
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-button:hover {
+    color: #00722A;
+}
+
+.modal-content p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.modal-content button {
+    background-color: #00722A;
+    color: white;
+    padding: 8px 20px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-content button:hover {
+    background-color: #005A1E;
+}
+
 /* Media Queries */
-@media (max-width: 768px) {
+@media screen and (min-width: 700px) and (max-width: 800px) {
     .post-container {
-        margin-left: 2vw; /* Reduce left margin */
-        margin-right: 2vw; /* Reduce right margin */
-        width: calc(100% - 4vw); /* Adjust width */
+        margin-left: 20vw;
     }
+}
 
-    .post-textbox {
-        height: 60px; /* Adjust height for smaller screens */
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .post-container {
+        margin-left: 17vw;
     }
+}
 
-    .post-button {
-        font-size: 14px; /* Smaller font size for buttons */
-        padding: 5px 15px; /* Smaller padding */
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .post-container {
+        margin-left: 15vw;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .post-container {
+        margin-left: 4vw;
+        width: 94.5%;
+    }
+}
+
+@media screen and (min-width: 1401px) {
+    .post-container {
+        margin-left: 3.6vw;
+        width: 95%
     }
 }

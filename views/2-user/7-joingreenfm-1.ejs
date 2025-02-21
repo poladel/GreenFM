@@ -18,8 +18,10 @@
                 </div>                                            
 
                 <form id="joingreenfmForm1">
+                <form id="joingreenfmForm1">
                 <!-- FORMS START -->
                     <div class="forms-container">
+                        <div class="form-container1">
                         <div class="form-container1">
                             <label>Full Name</label>
                             <div class="name-section">
@@ -62,8 +64,10 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
 
                         <!-- Form 2 -->
+                        <div class="form-container2">
                         <div class="form-container2">
                             <label>Program</label>
                             <select name="program" required>
@@ -144,17 +148,22 @@
                             <ul class="radio-group">
                                 <li class="radio-item">
                                     <label><input type="radio" name="collegeYear" value="1st Year" required> 1st Year</label>
+                                    <label><input type="radio" name="collegeYear" value="1st Year" required> 1st Year</label>
                                 </li>
                                 <li class="radio-item">
+                                    <label><input type="radio" name="collegeYear" value="2nd Year"> 2nd Year</label>
                                     <label><input type="radio" name="collegeYear" value="2nd Year"> 2nd Year</label>
                                 </li>
                                 <li class="radio-item">
                                     <label><input type="radio" name="collegeYear" value="3rd Year"> 3rd Year</label>
+                                    <label><input type="radio" name="collegeYear" value="3rd Year"> 3rd Year</label>
                                 </li>
                                 <li class="radio-item">
                                     <label><input type="radio" name="collegeYear" value="4th Year"> 4th Year</label>
+                                    <label><input type="radio" name="collegeYear" value="4th Year"> 4th Year</label>
                                 </li>
                                 <li class="radio-item">
+                                    <label><input type="radio" name="collegeYear" value="5th Year"> 5th Year</label>
                                     <label><input type="radio" name="collegeYear" value="5th Year"> 5th Year</label>
                                 </li>
                             </ul>
@@ -164,12 +173,15 @@
 
                             <label>Facebook Profile URL</label>
                             <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required>
+                            <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required>
 
                             <label>Affiliated Organizations</label>
                         <textarea name="affiliatedOrgsList" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)." required></textarea>
                         </div>
+                            <textarea name="affiliatedOrgsList.listInput" id="affiliatedOrgsListListInput" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)."></textarea>
+                            <p><input type="checkbox" id="affiliatedOrgsListNotApplicable" name="affiliatedOrgsList.notApplicable"> Not Applicable</p>
                         </div>
-
+                        
                         <!-- Form 3 -->
                         <div class="form-container3">
                             <!-------------------- 2 - DEPARTMENT PREFERENCE -------------------->
@@ -179,21 +191,30 @@
                                 <label><input type="radio" name="preferredDepartment" value="Music and Entertainment"> Music and Entertainment</label>
                                 <label><input type="radio" name="preferredDepartment" value="Operations and Logistics"> Operations and Logistics</label>
                                 <label><input type="radio" name="preferredDepartment" value="Creatives and Promotions"> Creatives and Promotions</label>
+                                <label><input type="radio" name="preferredDepartment" value="News and Public Affairs" required> News and Public Affairs</label>
+                                <label><input type="radio" name="preferredDepartment" value="Music and Entertainment"> Music and Entertainment</label>
+                                <label><input type="radio" name="preferredDepartment" value="Operations and Logistics"> Operations and Logistics</label>
+                                <label><input type="radio" name="preferredDepartment" value="Creatives and Promotions"> Creatives and Promotions</label>
                             </div>
                             <label>Reasons for Staff Application</label>
+                            <textarea name="staffApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
                             <textarea name="staffApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
     
                             <label>Reasons for Department Application</label>
                             <textarea name="departmentApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
+                            <textarea name="departmentApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
     
                             <label>Green FM Contribution</label>
+                            <textarea name="greenFmContribution" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
                             <textarea name="greenFmContribution" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="submit-button">
                     <button type="submit" class="submit">NEXT</button> 
+                    <button type="submit" class="submit">NEXT</button> 
                 </div>
+            </form>
             </form>
         
         <!-------------------- FOOTER -------------------->

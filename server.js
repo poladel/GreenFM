@@ -36,6 +36,9 @@ const userRoutes = require('./routes/user-routes');
 const authRoutes = require('./routes/authRoutes');
 const { checkUser } = require('./middleware/authMiddleware');
 const joinGFMRoutes = require('./routes/joinGFMRoutes');
+const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const joinGFMRoutes = require('./routes/joinGFMRoutes');
 <<<<<<< HEAD
 =======
 const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
@@ -46,6 +49,9 @@ app.get('*', checkUser);
 app.use(root);
 app.use(userRoutes);
 app.use(authRoutes);
+app.use(joinGFMRoutes);
+app.use(joinBlocktimerRoutes);
+app.use(uploadRoutes);
 app.use(joinGFMRoutes);
 <<<<<<< HEAD
 =======
