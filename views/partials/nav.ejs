@@ -1,9 +1,6 @@
 <!-- Sidebar Toggle Button -->
 <div class="sidebar-toggle">☰</div>
 
-<!-- Sidebar Toggle Button -->
-<div class="sidebar-toggle">☰</div>
-
 <div class="sidebars">
     <div class="sidebar">
         <img src="img/GFMLogo.png" alt="GFM Logo" class="logo">
@@ -16,66 +13,53 @@
             <li><a href="/Playlist">PLAYLIST</a></li>
         </ul>
     </div>
+
     <div class="sidebar1">
         <ul class="menu">
-<<<<<<< HEAD
             <li>
-                <% if (user && user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
-                    <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } else if (user && user.completedBlocktimerStep1) { %>
-                    <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% if (user) { %>
+                    <% if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
+                        <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else if (user.completedBlocktimerStep1) { %>
+                        <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else { %>
+                        <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } %>
                 <% } else { %>
                     <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
                 <% } %>
             </li>
             <li>
-                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN GREEN FM</a>
-                <% } else { %>
-                    
-                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } else if (user && user.completedJoinGFMStep1) { %>
-                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } else { %>
-                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } %>
-            
-                <% } %>
-            </li>
-            
-=======
-            <li>
-                <% if (user && user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
-                    <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } else if (user && user.completedBlocktimerStep1) { %>
-                    <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } else { %>
-                    <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } %>
-            </li>
-            <li>
-                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } else if (user && user.completedJoinGFMStep1) { %>
-                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% if (user) { %>
+                    <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                        <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } else if (user.completedJoinGFMStep1) { %>
+                        <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } else { %>
+                        <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } %>
                 <% } else { %>
                     <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>
             </li>
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
         </ul>
     </div>
+
     <div class="sidebar2">
         <ul class="menu">
             <li><a href="/About">ABOUT US</a></li>
             <li><a href="/Contact">CONTACT US</a></li>
         </ul>
         <div class="social-icons">
-            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="img/FBLogo.png" alt="Facebook" class="social-icon"></a>
-            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="img/IGLogo.png" alt="Instagram" class="social-icon"></a>
+            <a href="https://www.facebook.com/959GreenFm" target="_blank">
+                <img src="img/FBLogo.png" alt="Facebook" class="social-icon">
+            </a>
+            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank">
+                <img src="img/IGLogo.png" alt="Instagram" class="social-icon">
+            </a>
         </div>
     </div>
+
     <div class="user-sidebar">
         <ul class="menu">
             <% if (user) { %>
@@ -98,13 +82,6 @@
         </ul>
     </div>
 </div>
-
-<!-- JavaScript to toggle the sidebar -->
-<script>
-    document.querySelector('.sidebar-toggle').addEventListener('click', () => {
-        document.querySelector('.sidebars').classList.toggle('active');
-    });
-</script>
 
 <!-- JavaScript to toggle the sidebar -->
 <script>

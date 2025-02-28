@@ -23,7 +23,7 @@ const userRoutes = [
 userRoutes.forEach(userRoute => {
     if (userRoute.auth) {
         // Apply requireAuth middleware for specific routes
-        router.get(userRoute.path, requireAuth, async async (req, res) => {
+        router.get(userRoute.path, requireAuth, async (req, res) => {
             // Check if the current route is JoinGFM-Step3
             if (userRoute.path === '/JoinGFM-Step3') {
                 try {

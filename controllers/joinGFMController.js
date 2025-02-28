@@ -6,6 +6,7 @@ module.exports.joinGFM1_post = async (req, res) => {
         lastName, firstName, middleInitial, studentNumber, dlsudEmail,
         college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
         preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
+        greenFmContribution // Included in both destructuring and session storage
     } = req.body;
 
     // Store data in session
@@ -38,21 +39,7 @@ module.exports.joinGFM1_post = async (req, res) => {
 module.exports.joinGFM2_post = async (req, res) => {
     // Check if registrationData exists in session
     if (!req.session.joinGFM1Data) {
-        return res.status(400).json({ 
-            error: 'Please return and complete Step 1.',
-
-        if (req,user) {
-            req.user.completedJoinGFMStep1 = false; // Set the field to false
-
-        if (req.user) {
-            req.user.completedJoinGFMStep1 = false; // Set the field to false
-            req.user.completedJoinGFMStep2 = false; // Set the field to false
-     remotes/origin/polabranch
-            await req.user.save(); // Save changes to the database
-        }
-        
-        // Display error and redirect
-        return res.status(400).json({ 
+        return res.status(400).json({
             error: 'Please return and complete Step 1.',
             redirect: '/JoinGFM-Step1'
         });
@@ -89,10 +76,9 @@ module.exports.joinGFM2_post = async (req, res) => {
         await user.save();
 
         // Respond with success
-        res.json({ success: true }); // Send success response
+        return res.json({ success: true });
     } catch (error) {
         console.error('Error saving additional user information:', error);
-        res.status(500).json({ error: 'Failed to save user information' });
+        return res.status(500).json({ error: 'Failed to save user information' });
     }
 };
-    }

@@ -1,314 +1,104 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
 
-                <!-- HEADER -->
-                <div class="form-title-container">
-                    <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
-                </div>
-                
-                <!-- PROGRESS BAR -->
-                <div class="progress-bar">
-                    <div class="circle circle-1">1</div>
-                    <div class="circle circle-2">2</div>
-                    <div class="circle circle-3">3</div>
-                </div>                                            
+            <!-- HEADER -->
+            <div class="form-title-container">
+                <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
+            </div>
+            
+            <!-- PROGRESS BAR -->
+            <div class="progress-bar">
+                <div class="circle circle-1">1</div>
+                <div class="circle circle-2">2</div>
+                <div class="circle circle-3">3</div>
+            </div>                                            
 
-                <form id="blocktimerForm1">
-                    <!-- FORMS START -->
-                    <div class="forms-container">
-                        <div class="form-container1">
-                            <label>Type of Office/Organization</label>
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Administration" required> Administration</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
-                                    <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Department"> Department</label>
-                                    <label><input type="radio" name="organizationType" value="Department"> Department</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
-                                    <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
-                                    <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
-                                    <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
-                                </div>
-                            </div>                                                       
-                            <br>
-                            <label>Name of Office/Organization</label>
-                            <p class="formnote">Note: Please include abbreviated name</p>
-                            <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
-                            <p class="formnote">Note: Please include abbreviated name</p>
-                            <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
-                            <br>
-                            <label>Proponent's Name</label>
-                            <div class="name-section">
-                                <input type="text" name="proponent.lastName" placeholder="Last Name" required>
-                                <input type="text" name="proponent.firstName" placeholder="First Name" required>
-                                <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="proponent.cys" placeholder="CYS" >
-                                <input type="text" name="proponent.lastName" placeholder="Last Name" required>
-                                <input type="text" name="proponent.firstName" placeholder="First Name" required>
-                                <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="proponent.cys" placeholder="CYS" >
+            <form id="blocktimerForm1">
+                <!-- FORMS START -->
+                <div class="forms-container">
+                    <div class="form-container1">
+                        <label>Type of Office/Organization</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Administration" required> Administration</label>
                             </div>
-                            <br>
-                            <label>Co-Proponent's Name</label>
-                            <p class="formnote">If no co-proponent, check "N/A"</p>
-                            <div class="name-section">
-                                <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
-                                <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
-                                <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
-                                <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
-                                <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
-                                <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
                             </div>
-                            <div class="checkbox-group">
-                                <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
-                                <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Department"> Department</label>
                             </div>
-                        </div>
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
+                            </div>
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
+                            </div>
+                            <div class="radio-item">
+                                <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
+                            </div>
+                        </div>                                                       
+                        
+                        <br>
+                        <label>Name of Office/Organization</label>
+                        <p class="formnote">Note: Please include abbreviated name</p>
+                        <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
+                        
+                        <br>
+                        <label>Proponent's Name</label>
+                        <div class="name-section">
+                            <input type="text" name="proponent.lastName" placeholder="Last Name" required>
+                            <input type="text" name="proponent.firstName" placeholder="First Name" required>
+                            <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
+                            <input type="text" name="proponent.cys" placeholder="CYS">
                         </div>
 
-                    <!-- Form 2 -->
-                        <div class="form-container2">
-                    <!-- Form 2 -->
-                        <div class="form-container2">
-                            <div class="form-group">
-                                <label for="showTitle">Title of Show</label>
-                                <input type="text" id="showTitle" name="showDetails.title" required/>
-                                <input type="text" id="showTitle" name="showDetails.title" required/>
-                            </div>
-
-                            <!-- Checkboxes -->
-
-                            <!-- Checkboxes -->
-                            <div class="form-group checkbox-group">
-                                <label>Type of Show</label>
-                                <div class="checkbox-row">
-<<<<<<< HEAD
-                                    <label><input type="checkbox" name="showDetails.type" value="News"> News</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Interview"> Interview</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Comedy"> Comedy</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type" value="Sports"> Sports</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Music"> Music</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Entertainment"> Entertainment</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Performance"> Performance</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Drama"> Drama</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type" value="Commentary"> Commentary</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Game"> Game</label>
-                                    <label><input type="checkbox" name="showDetails.type" value="Public or Current Affairs"> Public or Current Affairs</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <input type="checkbox" name="showDetails.type" id="other" value="Other">
-=======
-                                    <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
-                                    <input type="text" id="other-input" placeholder="Other" />
-                                    <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
-                                    <input type="text" id="other-input" placeholder="Other" disabled="true" />
-                                </div>                                               
-                            </div>                                                    
-                        
-                            <div class="form-group">
-                                <label for="show-description">Brief Description of Show</label><br>
-                                <textarea id="show-description" name="showDetails.details.description" rows="4" cols="130" placeholder="Enter your answer" required></textarea>
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="show-objectives">Objective of Show</label>
-                                <textarea id="show-objectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
-                                <textarea id="show-objectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
-                            </div>
+                        <br>
+                        <label>Co-Proponent's Name</label>
+                        <p class="formnote">If no co-proponent, check "N/A"</p>
+                        <div class="name-section">
+                            <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
+                            <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
+                            <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
+                            <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
+                        </div>
+                        <div class="checkbox-group">
+                            <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
                         </div>
                     </div>
-
-                <!-- Form 3 -->
-                <div class="form-container3">
-                    <label>Name of Executive Producer</label>
-                            <div class="name-section">
-                                <input type="text" name="executiveProducer.lastName" placeholder="Last Name" required>
-                                <input type="text" name="executiveProducer.firstName" placeholder="First Name" required>
-                                <input type="text" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="executiveProducer.cys"placeholder="CYS">
-                                <input type="text" name="executiveProducer.lastName" placeholder="Last Name" required>
-                                <input type="text" name="executiveProducer.firstName" placeholder="First Name" required>
-                                <input type="text" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="executiveProducer.cys"placeholder="CYS">
-                            </div>
-
-                            <label>Name of Faculty Staff or Staff Adviser</label>
-                            <p class="formnote">For students only. If not applicable, check "N/A"</p>
-                            <div class="name-section">
-                                <input type="text" id="facultyStaffLastName" name="facultyStaff.lastName" placeholder="Last Name">
-                                <input type="text" id="facultyStaffFirstName" name="facultyStaff.firstName" placeholder="First Name">
-                                <input type="text" id="facultyStaffMi" name="facultyStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="facultyStaffDepartment" name="facultyStaff.department"placeholder="Department">
-                                <input type="text" id="facultyStaffLastName" name="facultyStaff.lastName" placeholder="Last Name">
-                                <input type="text" id="facultyStaffFirstName" name="facultyStaff.firstName" placeholder="First Name">
-                                <input type="text" id="facultyStaffMi" name="facultyStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="facultyStaffDepartment" name="facultyStaff.department"placeholder="Department">
-                            </div>
-                            <div class="checkbox-group">
-                                <p><input type="checkbox" id="facultyStaffNotApplicable" name="facultyStaff.notApplicable"> Not Applicable</p>
-                                <p><input type="checkbox" id="facultyStaffNotApplicable" name="facultyStaff.notApplicable"> Not Applicable</p>
-                            </div>
-
-                            <label>Name of Host/s</label>
-                            <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
-                                This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
-
-                            <!-- Container for hosts, necessary for dynamic addition -->
-                            <div id="hosts-container">
-                                <div class="name-section host-input">
-                                    <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="hosts[0].cys" placeholder="CYS">
-                                    <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="hosts[0].cys" placeholder="CYS">
-                                </div>
-                            </div>
-                            <button type="button" id="add-host" class="addbutton">+ Add Host</button><br><br>
-
-
-                            <label>Name of Technical Staff/s</label>
-                            <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
-                                technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
-
-                            <!-- Container for technical staff, necessary for dynamic addition -->
-                            <div id="technical-container">
-                                <div class="name-section technical-input">
-                                    <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
-                                    <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
-                                </div>
-                            </div>
-                            <button type="button" id="add-technical" class="addbutton">+ Add Technical Staff</button><br><br>
-
-
-                            <label>Name of Creative Staff</label>
-                            <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
-                                creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
-                            <div class="name-section">
-                                <input type="text" name="creativeStaff.lastName" placeholder="Last Name" required>
-                                <input type="text" name="creativeStaff.firstName" placeholder="First Name" required>
-                                <input type="text" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="creativeStaff.cys"placeholder="CYS">
-                                <input type="text" name="creativeStaff.lastName" placeholder="Last Name" required>
-                                <input type="text" name="creativeStaff.firstName" placeholder="First Name" required>
-                                <input type="text" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="creativeStaff.cys"placeholder="CYS">
-                            </div>
                 </div>
-                                
-                <!-- Form 4 -->
+
+                <!-- Contact Information -->
                 <div class="form-container4">
-                    <!-------------------- 4 - Blocktimer Agreement -------------------->
-                    <label>Agreement</label>
-                    <p class="agreement">We have read, understood, and will responsibly comply with the guidelines for blocktimers that have been set forth by the 95.9 Green FM Management Board.</p>
-                    <label class="radio-item"><input type="radio" name="agreement" value="Agree" required> Yes, we agree.</label><br>
-
-                    <!-------------------- 5 - Contact Information -------------------->
                     <label>DLSU-D Email of Office/Organization</label>
-                    <p class="formnote">If not applicable, you may enter the DLSU-D email of the contact person</p>
                     <input type="text" id="dlsud-email-office" name="contactInfo.dlsudEmail" placeholder="@dlsud.edu.ph" required>
-                    <input type="text" id="dlsud-email-office" name="contactInfo.dlsudEmail" placeholder="@dlsud.edu.ph" required>
+
                     <br>
-
                     <label>Contact Person's DLSU-D Email</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' MS Teams Channel for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
                     <input type="text" id="dlsud-email-contact" name="contactInfo.contactEmail" placeholder="@dlsud.edu.ph" required>
 
-                    <br><label>Contact Person's Facebook Link</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
-                    <input type="text" name="contactInfo.contactFbLink" placeholder="https://www.facebook.com/959GreenFm" required>
-                    <label>Contact Person's DLSU-D Email</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' MS Teams Channel for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
-                    <input type="text" id="dlsud-email-contact" name="contactInfo.contactEmail" placeholder="@dlsud.edu.ph" required>
-
-                    <br><label>Contact Person's Facebook Link</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
+                    <br>
+                    <label>Contact Person's Facebook Link</label>
                     <input type="text" name="contactInfo.contactFbLink" placeholder="https://www.facebook.com/959GreenFm" required>
 
                     <label>Allow automatic crossposting to your office/organization's Facebook page?</label>
-                    <p class="formnote">Note: Automatic crossposting on Facebook refers to its feature where it will allow every episode of your show which will be published on 95.9 Green FM's Facebook page, to be automatically posted to your office/organization's Facebook page. For direction on how to set up our crossposting relationship, read this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a></p>
                     <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="contactInfo.contactInfo.crossposting" value="Yes" required> Yes</label>
-                        <label class="radio-item"><input type="radio" name="contactInfo.contactInfo.crossposting" value="No"> No</label>
+                        <label class="radio-item"><input type="radio" name="contactInfo.crossposting" value="Yes" required> Yes</label>
+                        <label class="radio-item"><input type="radio" name="contactInfo.crossposting" value="No"> No</label>
                     </div>
 
                     <div id="fb-link-container" style="display: none;">
                         <label>Facebook Crossposting Link</label>
-                        <p class="formnote">Note: Please take note that "Crossposting" link is different from your office/organization's official Facebook link. For directions in getting this specific link, refer to this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a>.</p>
-                        <input type="text" name="contactInfo.fbLink">
                         <input type="text" name="contactInfo.fbLink">
                     </div>
 
                     <label>Signature of Proponent</label><br>
                     <div id="signature-upload-container">
-                        <input type="file" id="signature-upload" name="proponentSignature" name="proponentSignature" accept=".jpg, .jpeg, .png" required>
+                        <input type="file" id="signature-upload" name="proponentSignature" accept=".jpg, .jpeg, .png" required>
                         <p class="formnote">Upload your signature in JPG or PNG format.</p>
                     </div>
                     <div id="signature-preview" style="display: none;">
@@ -316,22 +106,18 @@
                         <img id="signature-image" src="" alt="Signature Preview" style="max-width: 200px; max-height: 100px;">
                     </div>
                 </div>
-            </div>     
-        </div>
-        <div class="submit-button">
-            <button type="submit" class="submit">NEXT</button> 
-            <button type="submit" class="submit">NEXT</button> 
-        </div>
-    </form>
 
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
+                <!-- Submit Button -->
+                <div class="submit-button">
+                    <button type="submit" class="submit">NEXT</button>
+                </div>
+            </form>
+
+            <!-- FOOTER -->
+            <%- include('../partials/footer.ejs') %>
+        </div>
     </div>
-    </form>      
 </div>
 
-    <script src="js/2-user/blocktimer.js"></script>
-    <script src="js/3-logreg/auth.js" defer></script>   
-</body>
-</html>
+<script src="js/2-user/blocktimer.js"></script>
+<script src="js/3-logreg/auth.js" defer></script>   

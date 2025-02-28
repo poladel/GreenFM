@@ -14,7 +14,6 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     required: true,
   },
   organizationName: {
-  organizationName: {
     type: String,
     required: true,
   },
@@ -23,29 +22,24 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     mi: String,
     cys: String,
-    cys: String,
   },
   coProponent: {
     lastName: String,
     firstName: String,
-    lastName: String,
-    firstName: String,
     mi: String,
-    cys: String,
     cys: String,
     notApplicable: { type: Boolean, default: false },
   },
   showDetails: {
-    title: { type: { type: String, required: true }, required: true },
-    type: { type: { type: [String], required: true }, required: true },
+    title: { type: String, required: true },
+    type: { type: [String], required: true },
     description: { type: String, required: true },
     objectives: { type: String, required: true },
   },
   executiveProducer: {
-    lastName: { type: { type: String, required: true }, required: true },
-    firstName: { type: { type: String, required: true }, required: true },
+    lastName: { type: String, required: true },
+    firstName: { type: String, required: true },
     mi: String,
-    cys: String,
     cys: String,
   },
   facultyStaff: {
@@ -60,22 +54,17 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     mi: String,
     cys: String,
-    cys: String,
   }],
   technicalStaff: [{
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
     cys: String,
-    cys: String,
   }],
   creativeStaff: {
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    firstName: { type: String, required: true },
     mi: String,
-    cys: String,
     cys: String,
   },
   agreement: {
@@ -85,13 +74,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   },
   contactInfo: {
     dlsudEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-    contactEmail: { type: String, required: true},
-    contactFbLink: { type: String, required: true },
-<<<<<<< HEAD
-    contactEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-=======
-    contactEmail: { type: String, required: true},
->>>>>>> 80eba51d7ac3ee255d8536f92a19d99e89c0bb79
+    contactEmail: { type: String, required: true },
     contactFbLink: { type: String, required: true },
     crossposting: {
       type: String,
@@ -104,9 +87,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     type: String, // URL or path to the signature file
     required: true,
   },
-}, {
-  timestamps: true,
-});
+}, { timestamps: true }); // ✅ Fixed placement of timestamps
 
 // Compile the schema into a model and export
 const ApplyBlocktimer = mongoose.model('ApplyBlocktimer', ApplyBlocktimerSchema);
