@@ -38,6 +38,7 @@ const { checkUser } = require('./middleware/authMiddleware');
 const joinGFMRoutes = require('./routes/joinGFMRoutes');
 const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -46,6 +47,7 @@ app.use(authRoutes);
 app.use(joinGFMRoutes);
 app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
+app.use(playlistRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {

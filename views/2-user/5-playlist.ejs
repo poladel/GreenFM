@@ -9,8 +9,29 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
-            </div>
-        </div>
+                <div class="container">
+                    <h2>My Playlist</h2>
+                    <form id="playlistForm">
+                        <input type="text" id="title" name="title" placeholder="Song Title" required>
+                        <input type="text" id="artist" name="artist" placeholder="Singer" required>
+                        <button type="submit">Recommend</button>
+                    </form>
+                
+                    <h3>Recommended Songs</h3>
+                    <ul id="playlist">
+                        <% if (playlist && playlist.songs.length > 0) { %>
+                            <% playlist.songs.forEach(song => { %>
+                                <li>
+                                    <a href="<%= song.youtubeUrl %>" target="_blank">
+                                        <%= song.title %> by <%= song.artist %>
+                                    </a>
+                                </li>
+                            <% }) %>
+                        <% } else { %>
+                            <p>No songs in the playlist yet.</p>
+                        <% } %>
+                    </ul>
+                </div>
 
         <!-------------------- FOOTER -------------------->
         <%- include('../partials/footer.ejs') %>
