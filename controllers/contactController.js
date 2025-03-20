@@ -47,9 +47,9 @@ exports.sendFeedback = async (req, res) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log('Email sent:', info.response);
-    res.send('Feedback sent successfully!');
+    res.send('Message sent successfully!');
   } catch (error) {
     console.error('Error sending email:', error);
-    res.status(500).send(`Error sending feedback: ${error.message}`);
+    res.status(500).send(`Error sending message: ${error.message}`);
   }
 };
