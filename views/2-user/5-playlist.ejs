@@ -10,26 +10,21 @@
 
                 <!-------------------- CONTENTS START --------------------> 
                 <div class="container">
-                    <h2>My Playlist</h2>
+                    <h2>Create a Playlist</h2>
                     <form id="playlistForm">
-                        <input type="text" id="title" name="title" placeholder="Song Title" required>
-                        <input type="text" id="artist" name="artist" placeholder="Singer" required>
+                        <input type="text" id="songTitle" placeholder="Enter song title" required>
+                        <input type="text" id="singer" placeholder="Enter singer" required>
                         <button type="submit">Recommend</button>
                     </form>
                 
                     <h3>Recommended Songs</h3>
                     <ul id="playlist">
-                        <% if (playlist && playlist.songs.length > 0) { %>
-                            <% playlist.songs.forEach(song => { %>
-                                <li>
-                                    <a href="<%= song.youtubeUrl %>" target="_blank">
-                                        <%= song.title %> by <%= song.artist %>
-                                    </a>
-                                </li>
-                            <% }) %>
-                        <% } else { %>
-                            <p>No songs in the playlist yet.</p>
-                        <% } %>
+                        <% playlist.forEach(song => { %>
+                            <li>
+                                <a href="<%= song.link %>" target="_blank"><%= song.title %> by <%= song.singer %></a>
+                                <p>Recommended by: <%= song.user.name %> (<%= song.user.email %>)</p>
+                            </li>
+                        <% }) %>
                     </ul>
                 </div>
 
@@ -37,6 +32,8 @@
         <%- include('../partials/footer.ejs') %>
         
     </div>
+
+    <script src="js/2-user/playlist.js"></script>
 
 </body>
 </html>

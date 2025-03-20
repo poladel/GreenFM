@@ -1,6 +1,7 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/authMiddleware');
 const User = require('../models/User'); // Adjust the path to your User model
+const Playlist = require("../models/Playlist");
 const router = express.Router();    
 
 // Define the routes for each 'user' section with dynamic titles
@@ -21,72 +22,58 @@ const userRoutes = [
 
 // Define the routes and render views with dynamic titles
 userRoutes.forEach(userRoute => {
-    if (userRoute.auth) {
-        // Apply requireAuth middleware for specific routes
-        router.get(userRoute.path, requireAuth, async (req, res) => {
-            // Check if the current route is JoinGFM-Step3
-            if (userRoute.path === '/JoinGFM-Step3') {
-                try {
-                    // Retrieve the user's completion data from MongoDB
-                    const user = await User.findById(req.user._id); // Adjust to match your authentication method
+    router.get(userRoute.path, async (req, res) => {
+        try {
+            let playlist = [];
 
-                    // Check completion status
-                    const { completedJoinGFMStep1, completedJoinGFMStep2 } = user;
-
-                    // Redirect to JoinGFM-Step1 if the user hasn't completed both steps
-                    if (!completedJoinGFMStep1) {
-                        return res.redirect('/JoinGFM-Step1');
-                    } else if (!completedJoinGFMStep2) {
-                        return res.redirect('/JoinGFM-Step2');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    return res.status(500).send('Internal Server Error');
-                }
+            // Fetch playlist only if the route is '/Playlist'
+            if (userRoute.path === '/Playlist') {
+                playlist = await Playlist.find().sort({ createdAt: -1 }); // Retrieve playlist items sorted by latest
             }
 
-            if (userRoute.path === '/JoinBlocktimer-Step3') {
-                try {
-                    // Retrieve the user's completion data from MongoDB
-                    const user = await User.findById(req.user._id); // Adjust to match your authentication method
-
-                    // Check completion status
-                    const { completedBlocktimerStep1, completedBlocktimerStep2 } = user;
-
-                    // Redirect to JoinBlocktimer-Step1 if the user hasn't completed both steps
-                    if (!completedBlocktimerStep1) {
-                        return res.redirect('/JoinBlocktimer-Step1');
-                    } else if (!completedBlocktimerStep2) {
-                        return res.redirect('/JoinBlocktimer-Step2');
+            // Handle authentication-required routes
+            if (userRoute.auth) {
+                return requireAuth(req, res, async () => {
+                    // Special validation for JoinGFM-Step3
+                    if (userRoute.path === '/JoinGFM-Step3') {
+                        const user = await User.findById(req.user._id);
+                        if (!user.completedJoinGFMStep1) return res.redirect('/JoinGFM-Step1');
+                        if (!user.completedJoinGFMStep2) return res.redirect('/JoinGFM-Step2');
                     }
-                } catch (error) {
-                    console.error(error);
-                    return res.status(500).send('Internal Server Error');
-                }
+
+                    // Special validation for JoinBlocktimer-Step3
+                    if (userRoute.path === '/JoinBlocktimer-Step3') {
+                        const user = await User.findById(req.user._id);
+                        if (!user.completedBlocktimerStep1) return res.redirect('/JoinBlocktimer-Step1');
+                        if (!user.completedBlocktimerStep2) return res.redirect('/JoinBlocktimer-Step2');
+                    }
+
+                    return res.render(userRoute.view, {
+                        pageTitle: userRoute.pageTitle,
+                        cssFile: userRoute.cssFile,
+                        user: res.locals.user,
+                        headerTitle: userRoute.headerTitle,
+                        redirectUrl: req.query.redirect || '/',
+                        playlist // Pass playlist if applicable
+                    });
+                });
             }
 
-            // Render the view if all conditions are met
-            res.render(userRoute.view, {
-                pageTitle: userRoute.pageTitle,
-                cssFile: userRoute.cssFile,
-                user: res.locals.user,
-                headerTitle: userRoute.headerTitle,
-                redirectUrl: req.query.redirect || '/'
-            });
-        });
-    } else {
-        // No authentication required for these routes
-        router.get(userRoute.path, (req, res) => {
+            // Render public routes
             res.render(userRoute.view, {
                 pageTitle: userRoute.pageTitle,
                 cssFile: userRoute.cssFile,
                 user: res.locals.user,
                 headerTitle: userRoute.headerTitle,
                 currentPath: req.path,
-                isAuthenticated: !!res.locals.user
+                isAuthenticated: !!res.locals.user,
+                playlist // Pass playlist if applicable
             });
-        });
-    }
+        } catch (error) {
+            console.error("Error handling route:", userRoute.path, error);
+            return res.status(500).send('Internal Server Error');
+        }
+    });
 });
 
 module.exports = router;

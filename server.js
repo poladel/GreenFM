@@ -47,7 +47,7 @@ app.use(authRoutes);
 app.use(joinGFMRoutes);
 app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
-app.use(playlistRoutes);
+app.use('/playlist', playlistRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {

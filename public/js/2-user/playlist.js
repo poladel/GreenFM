@@ -1,19 +1,19 @@
-document.getElementById('playlistForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+document.getElementById("playlistForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    
+    const songTitle = document.getElementById("songTitle").value;
+    const singer = document.getElementById("singer").value;
 
-    const title = document.getElementById('title').value;
-    const artist = document.getElementById('artist').value;
-
-    const response = await fetch('/playlist/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, artist })
+    const response = await fetch("/playlist/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ songTitle, singer })
     });
 
-    const data = await response.json();
-    if (data.success) {
+    const result = await response.json();
+    if (result.success) {
         location.reload();
     } else {
-        alert('Error adding song');
+        alert(result.message);
     }
 });
