@@ -1,4 +1,3 @@
-// controllers/contactController.js
 const nodemailer = require('nodemailer');
 
 exports.sendFeedback = async (req, res) => {
@@ -16,13 +15,13 @@ exports.sendFeedback = async (req, res) => {
   // Email options
   const mailOptions = {
     from: process.env.GMAIL_USER,
-    to: `${process.env.ADMIN_EMAIL}, ${process.env.DLSUD_EMAIL}`,
+    to: `${process.env.ADMIN_EMAIL}`,
     replyTo: email,
     subject: `New Message from ${name}`,
     html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <h2 style="color: #0b730d;">New Message from ${name}</h2>
-        <p>You have received a new message from a user. Here are the details:</p>
+        <p>You have received a new message. Here are the details:</p>
         
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr>
@@ -45,7 +44,6 @@ exports.sendFeedback = async (req, res) => {
     `,
   };
 
-  // Send the email
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log('Email sent:', info.response);
