@@ -39,6 +39,7 @@ const joinGFMRoutes = require('./routes/joinGFMRoutes');
 const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -48,6 +49,7 @@ app.use(joinGFMRoutes);
 app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
+app.use(contactRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
