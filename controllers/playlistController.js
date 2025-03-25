@@ -2,7 +2,7 @@ const axios = require("axios");
 const Playlist = require("../models/Playlist");
 
 // Function to fetch YouTube Music link
-async function fetchYouTubeMusicLink(songTitle, singer) {
+/*async function fetchYouTubeMusicLink(songTitle, singer) {
     try {
         const searchQuery = encodeURIComponent(`${songTitle} ${singer} site:music.youtube.com`);
         const searchURL = `https://www.googleapis.com/customsearch/v1?q=${searchQuery}&key=${process.env.YOUTUBE_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}`;
@@ -14,7 +14,17 @@ async function fetchYouTubeMusicLink(songTitle, singer) {
         console.error("Error fetching YouTube Music link:", error);
         return "#";
     }
+}*/
+async function fetchYouTubeMusicLink(songTitle, singer) {
+    try {
+        const searchQuery = encodeURIComponent(`${songTitle} ${singer}`);
+        return `https://music.youtube.com/search?q=${searchQuery}`;
+    } catch (error) {
+        console.error("Error constructing YouTube Music link:", error);
+        return "#";
+    }
 }
+
 
 // Fetch the playlist (for API or internal use)
 module.exports.getPlaylist = async (req, res) => {
