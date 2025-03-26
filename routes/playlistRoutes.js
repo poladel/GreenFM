@@ -6,8 +6,6 @@ const router = Router();
 
 // Route to handle song recommendations
 router.post("/recommend", requireAuth, playlistController.recommendSong);
-
-// Route to fetch all songs in the playlist (if needed for an API)
-router.get("/songs", playlistController.getPlaylist);
+router.delete("/delete/:id", requireAuth, playlistController.deleteSong);
 
 module.exports = router;
