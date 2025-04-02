@@ -1,20 +1,8 @@
 const axios = require("axios");
 const Playlist = require("../models/Playlist");
 
-// Function to fetch YouTube Music link
-/*async function fetchYouTubeMusicLink(songTitle, singer) {
-    try {
-        const searchQuery = encodeURIComponent(`${songTitle} ${singer} site:music.youtube.com`);
-        const searchURL = `https://www.googleapis.com/customsearch/v1?q=${searchQuery}&key=${process.env.YOUTUBE_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}`;
-        
-        const response = await axios.get(searchURL);
-        const firstResult = response.data.items?.[0]?.link || "#";
-        return firstResult;
-    } catch (error) {
-        console.error("Error fetching YouTube Music link:", error);
-        return "#";
-    }
-}*/
+
+
 async function fetchYouTubeMusicLink(songTitle, singer) {
     try {
         const searchQuery = encodeURIComponent(`${songTitle} ${singer}`);

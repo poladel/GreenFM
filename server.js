@@ -10,7 +10,7 @@ const cookieParser = require('cookie-parser');
 const sessionMiddleware = require('./middleware/session');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.use(credentials);
 app.use(cors(corsOptions));
