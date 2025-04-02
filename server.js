@@ -9,6 +9,7 @@ const connectDB = require('./config/dbConn');
 const cookieParser = require('cookie-parser');
 const sessionMiddleware = require('./middleware/session');
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -40,6 +41,7 @@ const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const postRoutes = require('./routes/postRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -50,6 +52,7 @@ app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
 app.use(contactRoutes);
+app.use(postRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
