@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("playlistForm");
     const playlist = document.getElementById("playlist");
+    const genreSelect = document.getElementById("genre-select");
+    const songTable = document.getElementById("song-table");
 
     if (form) {
         form.addEventListener("submit", async (event) => {
@@ -12,11 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const songTitle = document.getElementById("songTitle").value;
             const singer = document.getElementById("singer").value;
+            const genre = document.getElementById("genre").value; // Ensure genre is included
 
             const response = await fetch("/playlist/recommend", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ songTitle, singer })
+                body: JSON.stringify({ songTitle, singer, genre }) // Include genre in the request body
             });
 
             const result = await response.json();
@@ -53,6 +56,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     alert("Failed to delete the song.");
                 }
+            }
+        });
+    }
+
+    // Fetch and display songs by genre
+    if (genreSelect) {
+        genreSelect.addEventListener("change", async () => {
+            const genre = genreSelect.value;
+            try {
+                const response = await fetch(`/songs/${genre}`);
+                const songs = await response.json();
+
+                // Clear existing rows
+                songTable.innerHTML = `
+                    <tr>
+                        <th>Title</th>
+                        <th>Artist</th>
+                        <th>Genre</th>
+                    </tr>
+                `;
+
+                // Populate table with songs
+                songs.forEach((song) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${song.title}</td>
+                        <td>${song.artist}</td>
+                        <td>${song.genre}</td>
+                    `;
+                    songTable.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Failed to fetch songs:", err);
             }
         });
     }

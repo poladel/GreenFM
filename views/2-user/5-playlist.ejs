@@ -1,49 +1,74 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+
+            <!-------------------- HEADER MENUS -------------------->   
+            <%- include('../partials/menu.ejs') %>
+
+            <!-------------------- CONTENTS START --------------------> 
             <div class="container">
-                <%- include('../partials/nav.ejs') %>
+                <h2>Create a Playlist</h2>
+                <% if (user) { %>
+                <!-- Show form if user is logged in -->
+                    <form id="playlistForm">
+                        <input type="text" id="songTitle" placeholder="Enter song title" required>
+                        <input type="text" id="singer" placeholder="Enter singer" required>
+                        <select id="genre" required>
+                            <option value="" disabled selected>Select Genre</option>
+                            <option value="OPM">OPM</option>
+                            <option value="Pop">Pop</option>
+                            <option value="K-pop">K-pop</option>
+                            <option value="Rock">Rock</option>
+                            <option value="Hip-hop">Hip-hop</option>
+                            <option value="Ballad">Ballad</option>
+                            <option value="Classical">Classical</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <button type="submit">Recommend</button>
+                    </form>
+                <% } else { %>
+                <!-- Show login message if user is not logged in -->
+                    <p style="color: red;">You must be logged in to recommend a song.</p>
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>"><button>Log In</button></a>
+                <% } %>
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
-
-                <!-------------------- CONTENTS START --------------------> 
-                <div class="container">
-                    <h2>Create a Playlist</h2>
-                    <% if (user) { %>
-                    <!-- Show form if user is logged in -->
-                        <form id="playlistForm">
-                            <input type="text" id="songTitle" placeholder="Enter song title" required>
-                            <input type="text" id="singer" placeholder="Enter singer" required>
-                            <button type="submit">Recommend</button>
-                        </form>
-                    <% } else { %>
-                    <!-- Show login message if user is not logged in -->
-                        <p style="color: red;">You must be logged in to recommend a song.</p>
-                        <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>"><button>Log In</button></a>
-                    <% } %>
-
-                    <h3>Recommended Songs</h3>
-                    <ul id="playlist">
+                <h3>Recommended Songs</h3>
+                <table id="song-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Genre</th>
+                            <% if (user) { %>
+                                <th>Actions</th>
+                            <% } %>
+                        </tr>
+                    </thead>
+                    <tbody>
                         <% playlist.forEach(song => { %>
-                            <li>
-                                <a href="<%= song.link %>" target="_blank"><%= song.title %> by <%= song.singer %></a>
-                                <p>Recommended by: <%= song.user.name %> (<%= song.user.email %>)</p>
-                                <% if (user && user.email === song.user.email) { %>
+                        <tr>
+                            <td><a href="<%= song.link %>" target="_blank"><%= song.title %></a></td>
+                            <td><%= song.singer %></td>
+                            <td><%= song.genre %></td>
+                            <% if (user && user.email === song.user.email) { %>
+                                <td>
                                     <button class="delete-btn" data-id="<%= song._id %>">Delete</button>
-                                <% } %>
-                            </li>
+                                </td>
+                            <% } %>
+                        </tr>
                         <% }) %>
-                    </ul>
-                </div>
+                    </tbody>
+                </table>
+            </div>
 
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
+            <!-------------------- FOOTER -------------------->
+            <%- include('../partials/footer.ejs') %>
+        </div>
     </div>
 
     <script src="js/2-user/playlist.js"></script>
-
 </body>
 </html>

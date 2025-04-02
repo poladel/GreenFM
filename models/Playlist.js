@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const PlaylistSchema = new mongoose.Schema({
     title: String,
     singer: String,
+    genre: String,
     link: String,
     user: {
         name: String,
