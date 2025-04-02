@@ -4,21 +4,23 @@ document.querySelector('.reset-password-form').addEventListener('submit', async 
     const email = document.querySelector('#email').value;
     const newPassword = document.querySelector('#new-password').value;
     const confirmNewPassword = document.querySelector('#confirm-new-pass').value;
-    const errorDiv = document.querySelector('.new-password-error'); // Error div for password errors
+    const newPasswordErrorDiv = document.querySelector('.new-password-error'); // Error div for new password
+    const confirmNewPasswordErrorDiv = document.querySelector('.confirm-new-pass-error'); // Error div for confirm password
 
     // Clear any previous error messages
-    errorDiv.textContent = '';
+    newPasswordErrorDiv.textContent = '';
+    confirmNewPasswordErrorDiv.textContent = '';
 
     // Client-side validation
     let hasError = false;
 
     if (newPassword !== confirmNewPassword) {
-        errorDiv.textContent = 'Passwords do not match.';
-        errorDiv.style.color = 'red'; // Optional: Style the error message
+        confirmNewPasswordErrorDiv.textContent = 'Passwords do not match.';
+        confirmNewPasswordErrorDiv.style.color = 'red'; // Optional: Style the error message
         hasError = true; // Mark that there is an error
     } else if (newPassword.length < 8) {
-        errorDiv.textContent = 'Password must be at least 8 characters long.';
-        errorDiv.style.color = 'red'; // Optional: Style the error message
+        newPasswordErrorDiv.textContent = 'Password must be at least 8 characters long.';
+        newPasswordErrorDiv.style.color = 'red'; // Optional: Style the error message
         hasError = true; // Mark that there is an error
     }
 
@@ -45,14 +47,14 @@ document.querySelector('.reset-password-form').addEventListener('submit', async 
             const username = data.username; // Use the username from the server response
             window.location.href = `/LogIn?username=${encodeURIComponent(username)}`;
         } else {
-            // Display the error message in the errorDiv
-            errorDiv.textContent = data.error || 'An error occurred.';
-            errorDiv.style.color = 'red'; // Optional: Style the error message
+            // Display the error message in the newPasswordErrorDiv
+            newPasswordErrorDiv.textContent = data.error || 'An error occurred.';
+            newPasswordErrorDiv.style.color = 'red'; // Optional: Style the error message
         }
     } catch (err) {
         console.error('Error occurred in frontend:', err); // Debugging log
-        // Display a generic error message in the errorDiv
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.style.color = 'red'; // Optional: Style the error message
+        // Display a generic error message in the newPasswordErrorDiv
+        confirmNewPasswordErrorDiv.textContent = 'An error occurred. Please try again.';
+        confirmNewPasswordErrorDiv.style.color = 'red'; // Optional: Style the error message
     }
 });

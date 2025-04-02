@@ -351,7 +351,7 @@ module.exports.reset_password_get = async (req, res) => {
         res.render('3-logreg/4-reset-password', {
             user,
             pageTitle: 'Reset Password', // Pass the page title
-            cssFile: '/css/login.css' // Optional: Pass a CSS file if needed
+            cssFile: '/css/register.css' // Optional: Pass a CSS file if needed
         });
     } catch (err) {
         console.error('Error in reset_password_get:', err);
