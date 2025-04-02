@@ -11,18 +11,28 @@
                 <!-------------------- CONTENTS START --------------------> 
                 <div class="container">
                     <h2>Create a Playlist</h2>
-                    <form id="playlistForm">
-                        <input type="text" id="songTitle" placeholder="Enter song title" required>
-                        <input type="text" id="singer" placeholder="Enter singer" required>
-                        <button type="submit">Recommend</button>
-                    </form>
-                
+                    <% if (user) { %>
+                    <!-- Show form if user is logged in -->
+                        <form id="playlistForm">
+                            <input type="text" id="songTitle" placeholder="Enter song title" required>
+                            <input type="text" id="singer" placeholder="Enter singer" required>
+                            <button type="submit">Recommend</button>
+                        </form>
+                    <% } else { %>
+                    <!-- Show login message if user is not logged in -->
+                        <p style="color: red;">You must be logged in to recommend a song.</p>
+                        <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>"><button>Log In</button></a>
+                    <% } %>
+
                     <h3>Recommended Songs</h3>
                     <ul id="playlist">
                         <% playlist.forEach(song => { %>
                             <li>
                                 <a href="<%= song.link %>" target="_blank"><%= song.title %> by <%= song.singer %></a>
                                 <p>Recommended by: <%= song.user.name %> (<%= song.user.email %>)</p>
+                                <% if (user && user.email === song.user.email) { %>
+                                    <button class="delete-btn" data-id="<%= song._id %>">Delete</button>
+                                <% } %>
                             </li>
                         <% }) %>
                     </ul>

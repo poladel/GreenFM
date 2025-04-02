@@ -1,4 +1,4 @@
-const axios = require("axios");
+// playlistController.js (Updated)
 const Playlist = require("../models/Playlist");
 
 
@@ -13,19 +13,6 @@ async function fetchYouTubeMusicLink(songTitle, singer) {
     }
 }
 
-
-// Fetch the playlist (for API or internal use)
-module.exports.getPlaylist = async (req, res) => {
-    try {
-        const playlist = await Playlist.find().sort({ createdAt: -1 });
-        res.json({ success: true, playlist });
-    } catch (error) {
-        console.error("Error fetching playlist:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
-};
-
-// Recommend a song
 module.exports.recommendSong = async (req, res) => {
     try {
         const { songTitle, singer } = req.body;
@@ -49,5 +36,27 @@ module.exports.recommendSong = async (req, res) => {
     } catch (error) {
         console.error("Error recommending song:", error);
         res.json({ success: false, message: "Error recommending song" });
+    }
+};
+
+module.exports.deleteSong = async (req, res) => {
+    try {
+        const songId = req.params.id;
+        const user = req.user;
+
+        const song = await Playlist.findById(songId);
+        if (!song) {
+            return res.json({ success: false, message: "Song not found" });
+        }
+
+        if (song.user.email !== user.email) {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+
+        await Playlist.findByIdAndDelete(songId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting song:", error);
+        res.json({ success: false, message: "Error deleting song" });
     }
 };
