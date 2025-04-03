@@ -1,25 +1,31 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("playlistForm");
-    const songTable = document.getElementById("song-table");
-    const genreFilter = document.getElementById("genre-filter");
-    const songTableRows = document.querySelectorAll("#song-table tbody tr");
+    const genreButtons = document.querySelectorAll(".genre-btn");
+    const songItems = document.querySelectorAll(".song-item");
+    const songList = document.querySelector(".song-list");
 
+    // Handle Song Recommendation Form Submission
     if (form) {
         form.addEventListener("submit", async (event) => {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
-            // Disable the button to prevent double clicks
             const submitButton = form.querySelector("button[type='submit']");
-            submitButton.disabled = true;
+            submitButton.disabled = true; // Prevent multiple clicks
 
-            const songTitle = document.getElementById("songTitle").value;
-            const singer = document.getElementById("singer").value;
-            const genre = document.getElementById("genre").value; // Ensure genre is included
+            const songTitle = document.getElementById("songTitle").value.trim();
+            const singer = document.getElementById("singer").value.trim();
+            const genre = document.getElementById("genre").value.trim();
+
+            if (!songTitle || !singer || !genre) {
+                alert("Please fill in all fields.");
+                submitButton.disabled = false;
+                return;
+            }
 
             const response = await fetch("/playlist/recommend", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ songTitle, singer, genre }) // Include genre in the request body
+                body: JSON.stringify({ songTitle, singer, genre })
             });
 
             const result = await response.json();
@@ -28,37 +34,35 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 alert(result.message);
                 if (result.message.includes("logged in")) {
-                    window.location.href = "/LogIn"; // Redirect to login
+                    window.location.href = "/LogIn";
                 }
             }
 
-            // Re-enable the button after the request is completed
             submitButton.disabled = false;
-        }, { once: true }); // Ensures the event listener is added only once
+        });
     }
 
-    // Handle song table actions
-    if (songTable) {
-        songTable.addEventListener("click", async (event) => {
-            // Handle "Delete" button click
+    // Handle Delete Song Click (Fix for Dynamic Elements)
+    if (songList) {
+        songList.addEventListener("click", async (event) => {
             if (event.target.classList.contains("delete-btn")) {
-                console.log("Delete button clicked");
-                console.log("Song ID:", event.target.dataset.id);
-                event.preventDefault(); // Prevent default button behavior
+                event.preventDefault();
 
                 const songId = event.target.dataset.id;
+                if (!songId) {
+                    console.error("Error: No song ID found.");
+                    return;
+                }
 
                 const confirmDelete = confirm("Are you sure you want to delete this song?");
                 if (!confirmDelete) return;
 
                 try {
-                    const response = await fetch(`/playlist/delete/${songId}`, {
-                        method: "DELETE"
-                    });
+                    const response = await fetch(`/playlist/delete/${songId}`, { method: "DELETE" });
 
                     const result = await response.json();
                     if (result.success) {
-                        location.reload(); // Refresh page after deletion
+                        event.target.closest(".song-item").remove(); // Remove song from UI without reload
                     } else {
                         alert("Failed to delete the song.");
                     }
@@ -70,19 +74,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (genreFilter) {
-        genreFilter.addEventListener("change", (event) => {
-            const selectedGenre = event.target.value;
+    // Handle Genre Filter
+    genreButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const selectedGenre = button.dataset.genre;
 
-            songTableRows.forEach((row) => {
-                const rowGenre = row.getAttribute("data-genre");
+            // Update Active Button
+            genreButtons.forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
 
-                if (selectedGenre === "All" || rowGenre === selectedGenre) {
-                    row.style.display = ""; // Show the row
+            // Filter Songs
+            songItems.forEach(song => {
+                if (selectedGenre === "All" || song.dataset.genre === selectedGenre) {
+                    song.style.display = "flex";
                 } else {
-                    row.style.display = "none"; // Hide the row
+                    song.style.display = "none";
                 }
             });
         });
-    }
+    });
 });

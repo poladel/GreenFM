@@ -1,5 +1,8 @@
-const express = require('express');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
+require('dotenv').config(); // Load environment variables
+const express = require('express');
 const path = require('path');
 const Post = require('../models/Post');
 const { requireAuth } = require('../middleware/authMiddleware');
@@ -7,22 +10,16 @@ const { requireAuth } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Configure multer storage for images, videos, and documents
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, 'public/uploads/images/');
-        } else if (file.mimetype.startsWith('video/')) {
-            cb(null, 'public/uploads/videos/');
-        } else if (file.mimetype.startsWith('application/') || file.mimetype === 'application/pdf') {
-            cb(null, 'public/uploads/docs/');
-        } else {
-            cb(new Error('Invalid file type'), false);
-        }
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'uploads', // Cloudinary folder where files will be stored
+        allowed_formats: ['jpg', 'png', 'jpeg', 'mp4', 'pdf', 'doc', 'docx'],
+        resource_type: 'auto' // Automatically detect the file type (image, video, etc.)
     }
 });
+
+const upload = multer({ storage });
 
 // File filter to allow only images, videos, and documents
 const fileFilter = (req, file, cb) => {
@@ -37,34 +34,19 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ storage, fileFilter });
-
 // API to handle posts with images/videos/documents
 router.post('/post', requireAuth, upload.fields([{ name: 'media' }, { name: 'document' }]), async (req, res) => {
     try {
         const { text } = req.body;
-        const mediaFile = req.files['media'] ? req.files['media'][0] : null;
-        const docFile = req.files['document'] ? req.files['document'][0] : null;
+        const media = req.files['media'] ? req.files['media'][0].path : null; // Cloudinary URL
+        const document = req.files['document'] ? req.files['document'][0].path : null; // Cloudinary URL
 
-        const media = mediaFile ? 
-            (mediaFile.mimetype.startsWith('video/') ? `/uploads/videos/${mediaFile.filename}` : `/uploads/images/${mediaFile.filename}`) 
-            : null;
-        const document = docFile ? `/uploads/docs/${docFile.filename}` : null;
-
-        console.log("Uploaded Media:", media);  // Debug log
-        console.log("Uploaded Document:", document);  // Debug log
-
-        const post = new Post({ 
-            userId: req.user._id, 
-            text, 
-            media, 
-            document 
-        });
+        const post = new Post({ userId: req.user._id, text, media, document });
 
         await post.save();
         res.json({ success: true, post });
     } catch (err) {
-        console.error('Error saving post:', err); // More detailed error log
+        console.error('Error saving post:', err);
         res.status(500).json({ error: `Failed to create post: ${err.message}` });
     }
 });
