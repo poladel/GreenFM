@@ -24,7 +24,7 @@ module.exports.recommendSong = async (req, res) => {
             return res.json({ success: false, message: "Please provide song title, singer, and genre" });
         }
 
-        // Normalize input: trim spaces and convert to lowercase
+        // Normalize input for searching: trim spaces and convert to lowercase
         const normalizedTitle = songTitle.trim().toLowerCase();
         const normalizedSinger = singer.trim().toLowerCase();
 
@@ -32,7 +32,7 @@ module.exports.recommendSong = async (req, res) => {
         const existingSong = await Playlist.findOne({
             title: normalizedTitle,
             singer: normalizedSinger
-        });
+        }).collation({ locale: 'en', strength: 2 }); // Case-insensitive collation
 
         if (existingSong) {
             return res.json({ success: false, message: "This song by the artist already exists in the playlist." });
@@ -41,10 +41,10 @@ module.exports.recommendSong = async (req, res) => {
         // Generate the YouTube Music link
         const link = await fetchYouTubeMusicLink(songTitle, singer);
 
-        // Create a new song entry
+        // Save the song exactly as the user inputs it
         const newSong = new Playlist({
-            title: songTitle.trim(),
-            singer: singer.trim(),
+            title: songTitle.trim(), // Save the original input
+            singer: singer.trim(),  // Save the original input
             genre: genre.trim(),
             link,
             user: { username: user.username, email: user.email }
