@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("playlistForm");
-    const playlist = document.getElementById("playlist");
-    const genreSelect = document.getElementById("genre-select");
     const songTable = document.getElementById("song-table");
+    const genreFilter = document.getElementById("genre-filter");
+    const songTableRows = document.querySelectorAll("#song-table tbody tr");
 
     if (form) {
         form.addEventListener("submit", async (event) => {
@@ -37,59 +37,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }, { once: true }); // Ensures the event listener is added only once
     }
 
-    // Delete song from playlist
-    if (playlist) {
-        playlist.addEventListener("click", async (event) => {
+    // Handle song table actions
+    if (songTable) {
+        songTable.addEventListener("click", async (event) => {
+            // Handle "Delete" button click
             if (event.target.classList.contains("delete-btn")) {
+                console.log("Delete button clicked");
+                console.log("Song ID:", event.target.dataset.id);
+                event.preventDefault(); // Prevent default button behavior
+
                 const songId = event.target.dataset.id;
 
                 const confirmDelete = confirm("Are you sure you want to delete this song?");
                 if (!confirmDelete) return;
 
-                const response = await fetch(`/playlist/delete/${songId}`, {
-                    method: "DELETE"
-                });
+                try {
+                    const response = await fetch(`/playlist/delete/${songId}`, {
+                        method: "DELETE"
+                    });
 
-                const result = await response.json();
-                if (result.success) {
-                    location.reload(); // Refresh page after deletion
-                } else {
-                    alert("Failed to delete the song.");
+                    const result = await response.json();
+                    if (result.success) {
+                        location.reload(); // Refresh page after deletion
+                    } else {
+                        alert("Failed to delete the song.");
+                    }
+                } catch (error) {
+                    console.error("Error deleting song:", error);
+                    alert("An error occurred while deleting the song.");
                 }
             }
         });
     }
 
-    // Fetch and display songs by genre
-    if (genreSelect) {
-        genreSelect.addEventListener("change", async () => {
-            const genre = genreSelect.value;
-            try {
-                const response = await fetch(`/songs/${genre}`);
-                const songs = await response.json();
+    if (genreFilter) {
+        genreFilter.addEventListener("change", (event) => {
+            const selectedGenre = event.target.value;
 
-                // Clear existing rows
-                songTable.innerHTML = `
-                    <tr>
-                        <th>Title</th>
-                        <th>Artist</th>
-                        <th>Genre</th>
-                    </tr>
-                `;
+            songTableRows.forEach((row) => {
+                const rowGenre = row.getAttribute("data-genre");
 
-                // Populate table with songs
-                songs.forEach((song) => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${song.title}</td>
-                        <td>${song.artist}</td>
-                        <td>${song.genre}</td>
-                    `;
-                    songTable.appendChild(row);
-                });
-            } catch (err) {
-                console.error("Failed to fetch songs:", err);
-            }
+                if (selectedGenre === "All" || rowGenre === selectedGenre) {
+                    row.style.display = ""; // Show the row
+                } else {
+                    row.style.display = "none"; // Hide the row
+                }
+            });
         });
     }
 });

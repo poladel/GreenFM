@@ -36,26 +36,41 @@
                 <% } %>
 
                 <h3>Recommended Songs</h3>
+
+                <!-- Genre Filter -->
+                <div>
+                    <label for="genre-filter">Filter by Genre:</label>
+                    <select id="genre-filter">
+                        <option value="All" selected>All</option>
+                        <option value="OPM">OPM</option>
+                        <option value="Pop">Pop</option>
+                        <option value="K-pop">K-pop</option>
+                        <option value="Rock">Rock</option>
+                        <option value="Hip-hop">Hip-hop</option>
+                        <option value="Ballad">Ballad</option>
+                        <option value="Classical">Classical</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+
                 <table id="song-table">
                     <thead>
                         <tr>
                             <th>Title</th>
                             <th>Artist</th>
                             <th>Genre</th>
-                            <% if (user) { %>
-                                <th>Actions</th>
-                            <% } %>
+                            <!--Actions-->
                         </tr>
                     </thead>
                     <tbody>
                         <% playlist.forEach(song => { %>
-                        <tr>
+                        <tr data-genre="<%= song.genre %>">
                             <td><a href="<%= song.link %>" target="_blank"><%= song.title %></a></td>
                             <td><%= song.singer %></td>
                             <td><%= song.genre %></td>
                             <% if (user && user.email === song.user.email) { %>
                                 <td>
-                                    <button class="delete-btn" data-id="<%= song._id %>">Delete</button>
+                                    <button type="button" class="delete-btn" data-id="<%= song._id %>">Delete</button>
                                 </td>
                             <% } %>
                         </tr>
@@ -69,6 +84,6 @@
         </div>
     </div>
 
-    <script src="js/2-user/playlist.js"></script>
+    <script src="/js/2-user/playlist.js"></script>
 </body>
 </html>
