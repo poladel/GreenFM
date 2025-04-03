@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const genreButtons = document.querySelectorAll(".genre-btn");
     const songItems = document.querySelectorAll(".song-item");
     const songList = document.querySelector(".song-list");
+    const mostRequestedContainer = document.querySelector(".most-requested-container ol");
 
     // Handle Song Recommendation Form Submission
     if (form) {
@@ -62,13 +63,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const result = await response.json();
                     if (result.success) {
-                        event.target.closest(".song-item").remove(); // Remove song from UI without reload
+                        // Remove song from the UI without reload
+                        event.target.closest(".song-item").remove();
+
+                        // Fetch and update the top songs list
+                        fetchTopSongs();
                     } else {
                         alert("Failed to delete the song.");
                     }
                 } catch (error) {
                     console.error("Error deleting song:", error);
                     alert("An error occurred while deleting the song.");
+                }
+            }
+        });
+    }
+
+    // Handle Like Song Click
+    if (songList) {
+        songList.addEventListener("click", async (event) => {
+            if (event.target.classList.contains("fav-btn")) {
+                event.preventDefault();
+
+                // Retrieve the song ID from the data-id attribute
+                const songId = event.target.getAttribute("data-id");
+
+                if (!songId) {
+                    console.error("Error: Song ID is undefined.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/playlist/like/${songId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // Update the like count on the button
+                        const likesCount = result.likesCount;
+                        event.target.textContent = `❤️ ${likesCount}`;
+
+                        // Fetch and update the top songs list
+                        fetchTopSongs();
+                    } else {
+                        alert("Failed to like the song.");
+                    }
+                } catch (error) {
+                    console.error("Error toggling like:", error);
+                    alert("An error occurred while toggling the like.");
                 }
             }
         });
@@ -93,4 +137,34 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    async function fetchTopSongs() {
+        try {
+            const response = await fetch("/playlist/top-songs"); // Fetch top songs from the backend
+            const result = await response.json();
+
+            if (result.success) {
+                mostRequestedContainer.innerHTML = ""; // Clear the list
+                result.topSongs.forEach((song) => {
+                    const listItem = document.createElement("li");
+
+                    // Create a clickable link for the song
+                    const songLink = document.createElement("a");
+                    songLink.href = song.link; // Use the link from the database
+                    songLink.target = "_blank"; // Open in a new tab
+                    songLink.textContent = `${song.title} by ${song.singer} (${song.likesCount} likes)`;
+
+                    listItem.appendChild(songLink);
+                    mostRequestedContainer.appendChild(listItem);
+                });
+            } else {
+                console.error("Failed to fetch top songs.");
+            }
+        } catch (error) {
+            console.error("Error fetching top songs:", error);
+        }
+    }
+
+    // Fetch top songs on page load
+    fetchTopSongs();
 });

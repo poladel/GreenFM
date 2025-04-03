@@ -37,13 +37,15 @@
                                         <a href="<%= song.link %>" target="_blank"><%= song.title %></a>
                                     </p>
                                     <p class="song-artist">by: <%= song.singer %></p>
-                                    <p class="song-requester">Requested by <%= user.name %></p>
+                                    <p class="song-requester">Requested by <%= song.user.username %></p>
                                 </div>                                
                             </div>
                             <div class="song-actions">
-                                <button class="fav-btn">❤️</button>
                                 <% if (user && user.email === song.user.email) { %>
                                     <button class="delete-btn" data-id="<%= song._id %>">❌</button>
+                                <% } %>
+                                <% if (user) { %>
+                                    <button class="fav-btn" data-id="<%= song._id %>">❤️ <%= song.likes.length %></button>
                                 <% } %>
                             </div>
                         </div>
