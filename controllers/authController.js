@@ -85,6 +85,15 @@ module.exports.login_get = (req, res) => {
     });
 }
 
+module.exports.manage_account_get = (req, res) => {
+    const redirectUrl = req.query.redirect || '/';
+    res.render('3-logreg/5-manage-account', {
+        pageTitle: 'Log In',
+        cssFile: 'css/login.css',
+        redirectUrl // Pass redirectUrl to the login view
+    });
+}
+
 module.exports.register_get = (req, res) => {
     res.render('3-logreg/2-register-1', {
         pageTitle: 'Register',
