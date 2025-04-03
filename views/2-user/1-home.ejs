@@ -12,15 +12,19 @@
                 <!-------------------- CONTENTS START --------------------> 
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
-                        <textarea name="text" class="post-textbox" placeholder="Write something..."></textarea>
-                
+                        <!-- New title input -->
+                        <input type="text" id="post-title" name="title" placeholder="Enter post title..." required>
+
+                        <!-- Content textarea -->
+                        <textarea name="text" class="post-textbox" placeholder="Write something..." required></textarea>
+    
                         <!-- Hidden file inputs -->
                         <input type="file" id="image-input" name="media" accept="image/*,video/*" style="display: none;">
                         <input type="file" id="document-input" name="document" accept=".pdf,.doc,.docx,.txt" style="display: none;">
-                
+    
                         <!-- Preview area -->
                         <div id="preview-container"></div>
-                
+    
                         <div class="post-options">
                             <button type="button" class="post-option-button" id="add-image-button">
                                 <img src="../img/image.png" alt="Add Image" class="option-icon">
@@ -32,22 +36,11 @@
                         </div>
                     </form>
                 </div>
-
-                <!-- Modal for post confirmation -->
-                <div id="loginPopup" class="modal" style="display:none;">
-                    <div class="modal-content">
-                        <span class="close-button">&times;</span>
-                        <p>Please sign in to continue.</p>
-                        <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
-                            <button type="submit">Log In</button>
-                        </a>
-                    </div>
-                </div>
-
+    
                 <div id="posts-container">
                     <!-- Posts will be displayed here -->
                 </div>
-
+    
             </div>
         </div>
 

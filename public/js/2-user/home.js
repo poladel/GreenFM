@@ -55,13 +55,19 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    const textValue = document.querySelector('.post-textbox').value;
+
+    // ✅ Use `id` instead of `class` to get the title
+    const titleValue = document.getElementById('post-title').value.trim();  
+    const textValue = document.querySelector('.post-textbox').value.trim();
+
+    console.log("🟢 Title before sending:", titleValue);  // Debugging log
+
+    formData.append('title', titleValue);  
     formData.append('text', textValue);
 
     const mediaInput = document.getElementById('image-input');
     if (mediaInput.files.length > 0) {
-        const file = mediaInput.files[0];
-        formData.append('media', file);
+        formData.append('media', mediaInput.files[0]);
     }
 
     const docInput = document.getElementById('document-input');
@@ -76,19 +82,19 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         });
 
         const result = await response.json();
+        console.log("🟢 Server Response:", result); // Debugging log
 
         if (response.ok) {
             alert('Post uploaded successfully!');
-            console.log("Server Response:", result);
-            loadPosts(); // Refresh timeline
+            loadPosts();  
             document.getElementById('post-form').reset();
-            document.getElementById('preview-container').innerHTML = ''; // Clear preview
+            document.getElementById('preview-container').innerHTML = ''; 
         } else {
-            console.error("Failed to post:", result);
-            alert('Failed to post');
+            console.error("🔴 Failed to post:", result);
+            alert(result.error || 'Failed to post');
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("🔴 Error:", error);
         alert("Something went wrong!");
     }
 });
@@ -97,32 +103,31 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
 async function loadPosts() {
     try {
         const response = await fetch('/posts');
-
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const posts = await response.json();
-
-        console.log("Fetched Posts:", posts); // Debugging log
+        console.log("🟢 Fetched Posts:", posts); // Debugging
 
         const container = document.getElementById('posts-container');
 
         if (!Array.isArray(posts)) {
-            console.error("Invalid posts data:", posts);
+            console.error("🔴 Invalid posts data:", posts);
             return;
         }
 
         container.innerHTML = posts.map(post => `
             <div class="post">
-                <p><strong>${post.userId?.username || 'Unknown User'}</strong></p>
+                <p><strong>${post.title ? post.title : 'Untitled Post'}</strong></p>
                 <p>${post.text || ''}</p>
                 ${post.media ? `<img src="${post.media}" class="post-media">` : ''}
-                ${post.document ? `<a href="${post.document}" target="_blank">📄 Download Document</a>` : ''}
+                ${post.document ? `<a href="${post.document}" target="_blank"> Download Document</a>` : ''}
             </div>
         `).join('');
+
     } catch (error) {
-        console.error("Failed to load posts:", error);
+        console.error("🔴 Failed to load posts:", error);
     }
 }
 
