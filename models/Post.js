@@ -4,7 +4,7 @@ const postSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true },
     text: { type: String, required: true },
-    media: { type: String },
+    media: [{ type: String }],
     video: { type: String }
 }, { timestamps: true });
 
