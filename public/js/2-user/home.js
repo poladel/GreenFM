@@ -8,9 +8,14 @@ document.getElementById('add-video-button').addEventListener('click', () => {
 
 // Show file previews, handle image & video file selection
 document.getElementById('image-input').addEventListener('change', function () {
-    const file = this.files[0];
-    if (file.type.startsWith('image/')) {
-        previewFile(file, 'image');
+    const files = this.files;
+    
+    if (!files.length) return;
+
+    for (let file of files) {
+        if (file.type.startsWith('image/')) {
+            previewFile(file, 'image');
+        }
     }
 });
 
@@ -20,7 +25,6 @@ document.getElementById('video-input').addEventListener('change', function () {
 
 function previewFile(file, type) {
     const previewContainer = document.getElementById('preview-container');
-    previewContainer.innerHTML = ''; // Clear previous preview
 
     if (type === 'image' && file) {
         const reader = new FileReader();
@@ -28,7 +32,9 @@ function previewFile(file, type) {
             const img = document.createElement('img');
             img.src = e.target.result;
             img.style.maxWidth = '100px';
-            previewContainer.appendChild(img);
+            img.style.margin = '5px';
+            img.style.borderRadius = '8px';
+            previewContainer.appendChild(img);  // Append instead of replacing
         };
         reader.readAsDataURL(file);
     } else if (type === 'video' && file) {
@@ -38,7 +44,7 @@ function previewFile(file, type) {
             video.src = e.target.result;
             video.controls = true;
             video.style.maxWidth = '200px';
-            previewContainer.appendChild(video);
+            previewContainer.appendChild(video);  // Append instead of replacing
         };
         reader.readAsDataURL(file);
     }
@@ -49,15 +55,15 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    const titleValue = document.getElementById('post-title').value.trim();  
+    const titleValue = document.getElementById('post-title').value.trim();
     const textValue = document.querySelector('.post-textbox').value.trim();
 
-    formData.append('title', titleValue);  
+    formData.append('title', titleValue);
     formData.append('text', textValue);
 
     const mediaInput = document.getElementById('image-input');
-    if (mediaInput.files.length > 0) {
-        formData.append('media', mediaInput.files[0]);
+    for (let file of mediaInput.files) {
+        formData.append('media', file);
     }
 
     const videoInput = document.getElementById('video-input');
@@ -74,7 +80,7 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         const result = await response.json();
         if (response.ok) {
             alert('Post uploaded successfully!');
-            loadPosts();  
+            loadPosts();
             document.getElementById('post-form').reset();
             document.getElementById('preview-container').innerHTML = ''; 
         } else {
@@ -94,7 +100,7 @@ async function loadPosts() {
         }
 
         const posts = await response.json();
-        console.log("🟢 Fetched Posts:", posts); // Debugging
+        console.log("🟢 Fetched Posts:", posts);
 
         const container = document.getElementById('posts-container');
 
@@ -106,14 +112,12 @@ async function loadPosts() {
         container.innerHTML = posts.map(post => {
             let mediaContent = '';
 
-            if (post.media) {
-                if (post.media.endsWith('.mp4') || post.media.endsWith('.webm') || post.media.endsWith('.ogg')) {
-                    // If the media is a video
-                    mediaContent = `<video src="${post.media}" controls class="post-media"></video>`;
-                } else {
-                    // If the media is an image
-                    mediaContent = `<img src="${post.media}" class="post-media">`;
-                }
+            if (post.media && post.media.length > 0) {
+                mediaContent = post.media.map(image => `<img src="${image}" class="post-media">`).join('');
+            }
+
+            if (post.video) {
+                mediaContent += `<video src="${post.video}" controls class="post-media"></video>`;
             }
 
             return `

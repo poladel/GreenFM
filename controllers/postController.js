@@ -20,7 +20,7 @@ const upload = multer({ storage });
 // Handle post creation
 const createPost = async (req, res) => {
     try {
-        console.log('🟢 Received POST request:', req.body); // Debugging
+        console.log('🟢 Received POST request:', req.body); 
         console.log('🟢 Uploaded files:', req.files);
 
         const { title, text } = req.body;
@@ -29,14 +29,18 @@ const createPost = async (req, res) => {
             return res.status(400).json({ error: "Title and content are required." });
         }
 
-        const media = req.files && req.files['media'] ? req.files['media'][0].path : null;
-        const video = req.files && req.files['video'] ? req.files['video'][0].path : null;
+        // Extract multiple images
+        const images = req.files['media'] ? req.files['media'].map(file => file.path) : [];
+
+        // Extract video (if available)
+        const video = req.files['video'] ? req.files['video'][0].path : null;
 
         const post = new Post({
             userId: req.user._id,
             title: title.trim(),
             text: text.trim(),
-            media: media || video
+            media: images,  // Store as an array
+            video: video
         });
 
         await post.save();
