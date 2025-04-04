@@ -2,8 +2,8 @@ document.getElementById('add-image-button').addEventListener('click', () => {
     document.getElementById('image-input').click();
 });
 
-document.getElementById('add-document-button').addEventListener('click', () => {
-    document.getElementById('document-input').click();
+document.getElementById('add-video-button').addEventListener('click', () => {
+    document.getElementById('video-input').click();
 });
 
 // Show file previews, handle image & video file selection
@@ -11,13 +11,11 @@ document.getElementById('image-input').addEventListener('change', function () {
     const file = this.files[0];
     if (file.type.startsWith('image/')) {
         previewFile(file, 'image');
-    } else if (file.type.startsWith('video/')) {
-        previewFile(file, 'video');
     }
 });
 
-document.getElementById('document-input').addEventListener('change', function () {
-    previewFile(this.files[0], 'document');
+document.getElementById('video-input').addEventListener('change', function () {
+    previewFile(this.files[0], 'video');
 });
 
 function previewFile(file, type) {
@@ -43,10 +41,6 @@ function previewFile(file, type) {
             previewContainer.appendChild(video);
         };
         reader.readAsDataURL(file);
-    } else if (type === 'document' && file) {
-        const docPreview = document.createElement('p');
-        docPreview.textContent = `Selected file: ${file.name}`;
-        previewContainer.appendChild(docPreview);
     }
 }
 
@@ -55,12 +49,8 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-
-    // ✅ Use `id` instead of `class` to get the title
     const titleValue = document.getElementById('post-title').value.trim();  
     const textValue = document.querySelector('.post-textbox').value.trim();
-
-    console.log("🟢 Title before sending:", titleValue);  // Debugging log
 
     formData.append('title', titleValue);  
     formData.append('text', textValue);
@@ -70,9 +60,9 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         formData.append('media', mediaInput.files[0]);
     }
 
-    const docInput = document.getElementById('document-input');
-    if (docInput.files.length > 0) {
-        formData.append('document', docInput.files[0]);
+    const videoInput = document.getElementById('video-input');
+    if (videoInput.files.length > 0) {
+        formData.append('video', videoInput.files[0]);
     }
 
     try {
@@ -82,19 +72,15 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         });
 
         const result = await response.json();
-        console.log("🟢 Server Response:", result); // Debugging log
-
         if (response.ok) {
             alert('Post uploaded successfully!');
             loadPosts();  
             document.getElementById('post-form').reset();
             document.getElementById('preview-container').innerHTML = ''; 
         } else {
-            console.error("🔴 Failed to post:", result);
             alert(result.error || 'Failed to post');
         }
     } catch (error) {
-        console.error("🔴 Error:", error);
         alert("Something went wrong!");
     }
 });
@@ -117,14 +103,27 @@ async function loadPosts() {
             return;
         }
 
-        container.innerHTML = posts.map(post => `
-            <div class="post">
-                <p><strong>${post.title ? post.title : 'Untitled Post'}</strong></p>
-                <p>${post.text || ''}</p>
-                ${post.media ? `<img src="${post.media}" class="post-media">` : ''}
-                ${post.document ? `<a href="${post.document}" target="_blank"> Download Document</a>` : ''}
-            </div>
-        `).join('');
+        container.innerHTML = posts.map(post => {
+            let mediaContent = '';
+
+            if (post.media) {
+                if (post.media.endsWith('.mp4') || post.media.endsWith('.webm') || post.media.endsWith('.ogg')) {
+                    // If the media is a video
+                    mediaContent = `<video src="${post.media}" controls class="post-media"></video>`;
+                } else {
+                    // If the media is an image
+                    mediaContent = `<img src="${post.media}" class="post-media">`;
+                }
+            }
+
+            return `
+                <div class="post">
+                    <p><strong>${post.title ? post.title : 'Untitled Post'}</strong></p>
+                    <p>${post.text || ''}</p>
+                    ${mediaContent}
+                </div>
+            `;
+        }).join('');
 
     } catch (error) {
         console.error("🔴 Failed to load posts:", error);

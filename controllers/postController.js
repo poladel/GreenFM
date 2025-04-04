@@ -20,9 +20,8 @@ const upload = multer({ storage });
 // Handle post creation
 const createPost = async (req, res) => {
     try {
-        console.log('🟢 Received POST request:', req.body); // Log the request body
+        console.log('🟢 Received POST request:', req.body); // Debugging
         console.log('🟢 Uploaded files:', req.files);
-        console.log('🟢 Title received:', req.body.title); // Debugging
 
         const { title, text } = req.body;
         if (!title || !text) {
@@ -31,14 +30,13 @@ const createPost = async (req, res) => {
         }
 
         const media = req.files && req.files['media'] ? req.files['media'][0].path : null;
-        const document = req.files && req.files['document'] ? req.files['document'][0].path : null;
+        const video = req.files && req.files['video'] ? req.files['video'][0].path : null;
 
         const post = new Post({
             userId: req.user._id,
             title: title.trim(),
             text: text.trim(),
-            media,
-            document
+            media: media || video
         });
 
         await post.save();

@@ -5,7 +5,7 @@ const postSchema = new mongoose.Schema({
     title: { type: String, required: true },
     text: { type: String, required: true },
     media: { type: String },
-    document: { type: String }
+    video: { type: String }
 }, { timestamps: true });
 
 const Post = mongoose.model('Post', postSchema);
