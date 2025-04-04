@@ -180,3 +180,18 @@
     object-fit: cover; /* Ensure images are cropped properly if needed */
     border-radius: 8px; /* Optional, for rounded corners */
 }
+
+.preview-wrapper {
+    display: inline-block;
+    margin: 5px;
+}
+
+.delete-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 12px;
+    margin-top: 5px;
+}

@@ -9,7 +9,7 @@ document.getElementById('add-video-button').addEventListener('click', () => {
 // Show file previews, handle image & video file selection
 document.getElementById('image-input').addEventListener('change', function () {
     const files = this.files;
-    
+
     if (!files.length) return;
 
     for (let file of files) {
@@ -23,6 +23,9 @@ document.getElementById('video-input').addEventListener('change', function () {
     previewFile(this.files[0], 'video');
 });
 
+let imageFiles = []; // Store selected image files
+let videoFile = null; // Store selected video file
+
 function previewFile(file, type) {
     const previewContainer = document.getElementById('preview-container');
 
@@ -34,7 +37,22 @@ function previewFile(file, type) {
             img.style.maxWidth = '100px';
             img.style.margin = '5px';
             img.style.borderRadius = '8px';
-            previewContainer.appendChild(img);  // Append instead of replacing
+
+            // Create a delete button for the image preview
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.classList.add('delete-btn');
+            deleteButton.onclick = () => removeFile(file, 'image', img);
+
+            const previewWrapper = document.createElement('div');
+            previewWrapper.classList.add('preview-wrapper');
+            previewWrapper.appendChild(img);
+            previewWrapper.appendChild(deleteButton);
+
+            previewContainer.appendChild(previewWrapper);
+
+            // Store the file for later submission
+            imageFiles.push(file);
         };
         reader.readAsDataURL(file);
     } else if (type === 'video' && file) {
@@ -44,9 +62,38 @@ function previewFile(file, type) {
             video.src = e.target.result;
             video.controls = true;
             video.style.maxWidth = '200px';
-            previewContainer.appendChild(video);  // Append instead of replacing
+
+            // Create a delete button for the video preview
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.classList.add('delete-btn');
+            deleteButton.onclick = () => removeFile(file, 'video', video);
+
+            const previewWrapper = document.createElement('div');
+            previewWrapper.classList.add('preview-wrapper');
+            previewWrapper.appendChild(video);
+            previewWrapper.appendChild(deleteButton);
+
+            previewContainer.appendChild(previewWrapper);
+
+            // Store the file for later submission
+            videoFile = file;
         };
         reader.readAsDataURL(file);
+    }
+}
+
+function removeFile(file, type, previewElement) {
+    const previewContainer = document.getElementById('preview-container');
+
+    // Remove the file from the preview
+    previewContainer.removeChild(previewElement.parentElement);
+
+    // Remove the file from the stored files array
+    if (type === 'image') {
+        imageFiles = imageFiles.filter(f => f !== file);
+    } else if (type === 'video') {
+        videoFile = null;
     }
 }
 
