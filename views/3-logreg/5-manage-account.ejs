@@ -1,0 +1,38 @@
+<%- include('../partials/header.ejs') %>
+
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
+
+                <!-------------------- HEADER MENUS -------------------->   
+                <%- include('../partials/menu.ejs') %>
+
+                <!-------------------- CONTENTS START --------------------> 
+                <form class="manage-account-form">
+
+                    <div class="form-group">
+                      <label for="username">Username</label>
+                      <input type="text" id="username" name="username" required>
+                      <div class="username-error"></div>
+                    </div>
+              
+                    <div class="form-group">
+                      <label for="password">Password</label>
+                      <input type="password" id="password" name="password" required>
+                      <div class="password-error"></div>
+                    </div>
+              
+                    <input type="hidden" name="redirect" value="<%= redirectUrl %>">
+                    <button type="submit" class="login-button">Log in</button>
+                  </form>
+                
+            </div>
+        </div>
+
+        <!-------------------- FOOTER -------------------->
+        <%- include('../partials/footer.ejs') %>
+        
+    </div>
+</body>
+</html>

@@ -4,7 +4,35 @@
     <div class="container">
       <%- include('../partials/nav.ejs') %>   
       <%- include('../partials/menu.ejs') %>
+  <div class="content-wrap">
+    <div class="container">
+      <%- include('../partials/nav.ejs') %>   
+      <%- include('../partials/menu.ejs') %>
 
+      <!-- Contact Info Section -->
+      <div class="contact-container">
+        <div class="contact-info">
+          <h2>Get in Touch</h2>
+          <p>Any tips, inquiries, comments or suggestions that you have in mind? Email us at <strong>dlsudgreenfm@dlsud.edu.ph</strong>, or fill out the necessary information below.</p>
+          <div class="info-item">
+            <div class="icon">
+              <img src="img/location.png" alt="Location Icon" width="24" height="24">
+            </div>
+            <p>Address<br>De La Salle University, JFH Building, Dasmariñas, Cavite</p>
+          </div>
+          <div class="info-item">
+            <div class="icon">
+              <img src="img/phone-call.png" alt="Phone Icon" width="24" height="24">
+            </div>
+            <p>Phone Number<br>09123456789</p>
+          </div>
+          <div class="info-item">
+            <div class="icon">
+              <img src="img/paper-plane.png" alt="Email Icon" width="24" height="24">
+            </div>
+            <p>E-Mail<br>dlsudgreenfm@dlsud.edu.ph</p>
+          </div>
+        </div>
       <!-- Contact Info Section -->
       <div class="contact-container">
         <div class="contact-info">
@@ -108,3 +136,13 @@
     }
   });
 </script>
+<!-------------------- FOOTER -------------------->
+<%- include('../partials/footer.ejs') %>
+
+<!-- Add SweetAlert and custom script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="js/2-user/contact.js"></script>
+</body>
+
+</html>

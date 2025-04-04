@@ -1,3 +1,4 @@
+
 <%- include('../partials/header.ejs') %>
 
     <div class="page-container">
@@ -9,13 +10,45 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
-                
+                <div class="post-container">
+                    <form id="post-form" enctype="multipart/form-data">
+                        <!-- New title input -->
+                        <input type="text" id="post-title" name="title" placeholder="Enter post title..." required>
+
+                        <!-- Content textarea -->
+                        <textarea name="text" class="post-textbox" placeholder="Write something..." required></textarea>
+    
+                        <!-- Hidden file inputs -->
+                        <input type="file" id="image-input" name="media" accept="image/*,video/*" style="display: none;">
+                        <input type="file" id="video-input" name="video" accept="video/*" style="display: none;">
+    
+                        <!-- Preview area -->
+                        <div id="preview-container"></div>
+    
+                        <div class="post-options">
+                            <button type="button" class="post-option-button" id="add-image-button">
+                                <img src="../img/image.png" alt="Add Image" class="option-icon">
+                            </button>
+                            <button type="button" class="post-option-button" id="add-video-button">
+                                <img src="../img/video.png" alt="Add Video" class="option-icon">
+                            </button>
+                            <button type="submit" class="post-button">Post</button>
+                        </div>
+                    </form>
+                </div>
+    
+                <div id="posts-container">
+                    <!-- Posts will be displayed here -->
+                </div>
+    
             </div>
         </div>
 
         <!-------------------- FOOTER -------------------->
         <%- include('../partials/footer.ejs') %>
         
+        <script src="js/2-user/home.js"></script>
+
     </div>
 </body>
 </html>

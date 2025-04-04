@@ -1,0 +1,173 @@
+/* Post Component Styles */
+.post-container {
+    background-color: white;
+    padding: 20px;
+    margin-top: 0.5vw;
+    margin-left: 4vw;
+    width: 61vw;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Title Input Styling */
+#post-title {
+    width: 59.5vw;
+    height: 2vw;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #EFEFEF;
+    color: #333;
+    margin-bottom: 8px;
+    font-family: Arial, sans-serif;
+}
+
+#post-title::placeholder {
+    color: #888;
+}
+
+/* Content Textarea Styling */
+.post-textbox {
+    width: 59.2vw;
+    height: 80px;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #EFEFEF;
+    color: #333;
+    resize: none;
+    font-family: Arial, sans-serif;
+}
+
+.post-textbox::placeholder {
+    color: #888;
+}
+
+/* Post Options */
+.post-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.post-option-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.option-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Submit Button */
+.post-button {
+    background-color: #00722A;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: absolute;
+    bottom: 20px;
+    right: 25px;
+}
+
+.post-button:hover {
+    background-color: #00591F;
+}
+
+/* Post Timeline Styling */
+#posts-container {
+    margin-top: 1vw;
+    width: 68vw;
+}
+
+/* Individual Post Styling */
+.post {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 15px;
+    margin-left: 4vw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Post Title Styling */
+.post h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 5px;
+}
+
+/* Post Content */
+.post p {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Media Styling */
+.post-media {
+    max-width: 60%;
+    max-height: 400px;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.post-media video {
+    max-width: 60%;
+    max-height: 400px;
+    border-radius: 8px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Document Links */
+.post a {
+    color: #00722A;
+    font-size: 14px;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+.post a:hover {
+    text-decoration: underline;
+}
+
+/* Post Header */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-header p {
+    font-weight: bold;
+}
+
+/* Post Date */
+.post-date {
+    font-size: 12px;
+    color: #888;
+}

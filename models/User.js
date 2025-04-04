@@ -78,7 +78,15 @@ const userSchema = new Schema({
     completedJoinGFMStep1: { type: Boolean, default: false }, // Track progress GFM
     completedJoinGFMStep2: { type: Boolean, default: false },
     completedBlocktimerStep1: { type: Boolean, default: false }, // Track progress Blocktimer
-    completedBlocktimerStep2: { type: Boolean, default: false }
+    completedBlocktimerStep2: { type: Boolean, default: false },
+    resetToken: {
+        type: String,
+        default: null
+    },
+    resetTokenExpiry: {
+        type: Date,
+        default: null
+    }
 });
 
 // Function before doc saved to DB

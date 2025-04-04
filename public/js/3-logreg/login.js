@@ -1,6 +1,7 @@
 const form = document.querySelector('.login-form');
 const usernameError = document.querySelector('.username-error');
 const passwordError = document.querySelector('.password-error');
+const usernameInput = form.querySelector('input[name="username"]');
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -12,6 +13,18 @@ form.addEventListener('submit', async (e) => {
     const username = form.username.value;
     const password = form.password.value;
     const redirectUrl = form.querySelector('input[name="redirect"]').value; // This captures the redirect URL
+
+    // Function to get query parameters from the URL
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Pre-populate the username field if the "username" query parameter exists
+    const prePopulatedUsername = getQueryParam('username');
+    if (prePopulatedUsername) {
+        usernameInput.value = prePopulatedUsername;
+    }
 
     // Log the redirect URL to see what is being sent
     console.log('Redirect URL to be sent:', redirectUrl); 
