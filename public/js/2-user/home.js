@@ -94,44 +94,124 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
 // Fetch posts and display them
 async function loadPosts() {
     try {
-        const response = await fetch('/posts');
+        const response = await fetch('/posts'); // Assuming this route fetches all posts
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const posts = await response.json();
-        console.log("🟢 Fetched Posts:", posts);
-
         const container = document.getElementById('posts-container');
+        
+        if (Array.isArray(posts)) {
+            container.innerHTML = posts.map(post => {
+                let mediaContent = '';
 
-        if (!Array.isArray(posts)) {
-            console.error("🔴 Invalid posts data:", posts);
-            return;
+                if (post.media && post.media.length > 0) {
+                    mediaContent = post.media.map(image => `<img src="${image}" class="post-media-img" />`).join('');
+                }
+
+                if (post.video) {
+                    mediaContent += `<video src="${post.video}" controls class="post-media"></video>`;
+                }
+
+                return `
+                    <div class="post" id="post-${post._id}">
+                        <p><strong>${post.title}</strong></p>
+                        <p>${post.text}</p>
+                        <div class="post-media">
+                            ${mediaContent}
+                        </div>
+                        <div class="post-actions">
+                            <button class="edit-btn" onclick="editPost('${post._id}', '${post.title}', '${post.text}')">Edit</button>
+                            <button class="delete-btn" onclick="deletePost('${post._id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            console.error("Invalid posts data:", posts);
         }
-
-        container.innerHTML = posts.map(post => {
-            let mediaContent = '';
-
-            if (post.media && post.media.length > 0) {
-                mediaContent = post.media.map(image => `<img src="${image}" class="post-media">`).join('');
-            }
-
-            if (post.video) {
-                mediaContent += `<video src="${post.video}" controls class="post-media"></video>`;
-            }
-
-            return `
-                <div class="post">
-                    <p><strong>${post.title ? post.title : 'Untitled Post'}</strong></p>
-                    <p>${post.text || ''}</p>
-                    ${mediaContent}
-                </div>
-            `;
-        }).join('');
-
     } catch (error) {
-        console.error("🔴 Failed to load posts:", error);
+        console.error('Failed to load posts:', error);
     }
 }
 
+// Call the loadPosts function when the page is loaded
+window.addEventListener('DOMContentLoaded', loadPosts);
+
+// Example of editPost and deletePost functions (to be implemented)
+function editPost(postId, title, text) {
+    console.log('Editing post', postId, title, text);
+    // Add your logic for editing a post
+}
+
+function deletePost(postId) {
+    console.log('Deleting post', postId);
+    // Add your logic for deleting a post
+}
+
 loadPosts();
+
+// Function to edit a post
+async function editPost(postId, currentTitle, currentText) {
+    console.log('Editing post', postId, currentTitle, currentText);
+    
+    const newTitle = prompt('Edit Title:', currentTitle);
+    const newText = prompt('Edit Text:', currentText);
+
+    if (newTitle !== null && newText !== null && newTitle.trim() && newText.trim()) {
+        updatePost(postId, newTitle, newText);
+    } else {
+        alert('Both title and text are required.');
+    }
+}
+
+// Function to update a post
+async function updatePost(postId, newTitle, newText) {
+    const formData = new FormData();
+    formData.append('title', newTitle);
+    formData.append('text', newText);
+
+    console.log('Updating post:', postId);
+    console.log('Title:', newTitle);
+    console.log('Text:', newText);
+
+    try {
+        const response = await fetch(`/post/${postId}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Post updated successfully!');
+            loadPosts(); // Reload the posts
+        } else {
+            alert(result.error || 'Failed to update post');
+        }
+    } catch (error) {
+        alert('Failed to update post');
+    }
+}
+
+// Function to delete a post
+async function deletePost(postId) {
+    if (confirm('Are you sure you want to delete this post?')) {
+        try {
+            const response = await fetch(`/post/${postId}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Post deleted successfully!');
+                loadPosts(); // Reload the posts
+            } else {
+                alert(result.error || 'Failed to delete post');
+            }
+        } catch (error) {
+            alert('Failed to delete post');
+        }
+    }
+}

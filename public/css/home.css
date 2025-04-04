@@ -171,3 +171,12 @@
     font-size: 12px;
     color: #888;
 }
+
+.post-media-img {
+    max-width: 100%;  /* Allow the image to scale within its container */
+    width: 100%;      /* Make the image responsive */
+    height: auto;     /* Maintain aspect ratio */
+    max-height: 200px; /* Set a maximum height */
+    object-fit: cover; /* Ensure images are cropped properly if needed */
+    border-radius: 8px; /* Optional, for rounded corners */
+}

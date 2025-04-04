@@ -10,4 +10,10 @@ router.post('/post', requireAuth, postController.upload.fields([{ name: 'media',
 // Route to fetch all posts
 router.get('/posts', postController.getAllPosts);
 
+// Route to update a post
+router.put('/post/:id', requireAuth, postController.updatePost);
+
+// Route to delete a post
+router.delete('/post/:id', requireAuth, postController.deletePost);
+
 module.exports = router;
