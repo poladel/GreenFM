@@ -262,3 +262,54 @@ async function deletePost(postId) {
         }
     }
 }
+
+//----------Media Modal----------//
+
+let currentMediaIndex = 0;
+let currentMediaList = [];
+
+// Open modal when clicking on an image/video in a post
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('post-media-img')) {
+        currentMediaList = Array.from(event.target.parentElement.getElementsByClassName('post-media-img'))
+            .map(img => img.src);
+        openMediaModal(event.target.src, 'image');
+    } else if (event.target.classList.contains('post-media')) {
+        openMediaModal(event.target.src, 'video');
+    }
+});
+
+function openMediaModal(src, type) {
+    const modal = document.getElementById('media-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalVideo = document.getElementById('modal-video');
+
+    if (type === 'image') {
+        modalImage.src = src;
+        modalImage.style.display = 'block';
+        modalVideo.style.display = 'none';
+    } else if (type === 'video') {
+        modalVideo.src = src;
+        modalVideo.style.display = 'block';
+        modalImage.style.display = 'none';
+    }
+
+    currentMediaIndex = currentMediaList.indexOf(src);
+    modal.style.display = 'flex';
+}
+
+// Close modal
+document.querySelector('.close-modal').addEventListener('click', () => {
+    document.getElementById('media-modal').style.display = 'none';
+});
+
+// Navigate left and right in modal
+document.querySelector('.left-arrow').addEventListener('click', () => navigateMedia(-1));
+document.querySelector('.right-arrow').addEventListener('click', () => navigateMedia(1));
+
+function navigateMedia(direction) {
+    if (currentMediaList.length > 1) {
+        currentMediaIndex = (currentMediaIndex + direction + currentMediaList.length) % currentMediaList.length;
+        document.getElementById('modal-image').src = currentMediaList[currentMediaIndex];
+    }
+}
