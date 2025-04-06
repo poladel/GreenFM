@@ -56,6 +56,10 @@ const userSchema = new Schema({
         type: String,
         default: '' // Optional field
     },
+    suffix: {
+        type: String,
+        default: '' // Optional field
+    },
     dlsuD: {
         type: Boolean,
         required: [true, 'Please specify if you are from DLSU-D'],

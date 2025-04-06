@@ -42,6 +42,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const postRoutes = require('./routes/postRoutes');
+const manageRoutes = require('./routes/manageRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -53,6 +54,7 @@ app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
 app.use(contactRoutes);
 app.use(postRoutes);
+app.use(manageRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
