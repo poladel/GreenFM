@@ -11,15 +11,19 @@
     <form id="registerForm2" class="register-form">
       <label for="lastName">Full Name:</label>
       <div class="full-name-group">
-        <input type="text" name="lastName" placeholder="Last Name" required>
-        <input type="text" name="firstName" placeholder="First Name" required>
+        <input type="text" name="lastName" placeholder="Last Name*" required>
+        <input type="text" name="firstName" placeholder="First Name*" required>
         <input type="text" name="middleInitial" class="middleinitial" placeholder="M.I">
+        <input type="text" name="suffix" class="middleinitial" placeholder="Suffix">
       </div>
 
       <div class="form-group checkbox-group">
         <label for="dlsuD">Are you from DLSU-D?</label>
         <label class="checkbox-label">
-            <input type="checkbox" id="dlsuD" name="dlsuD" value="true"> Yes
+          <input type="radio" id="dlsuD" name="dlsuD" value="true" required> Yes
+        </label>
+        <label class="checkbox-label">
+          <input type="radio" id="dlsuDNo" name="dlsuD" value="false"> No
         </label>
       </div>    
 

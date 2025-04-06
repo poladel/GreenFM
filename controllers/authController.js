@@ -173,7 +173,7 @@ module.exports.register_post = async (req, res) => {
 
 // Additional User Info Submission
 module.exports.additional_info_post = async (req, res) => {
-    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber } = req.body;
+    const { lastName, firstName, middleInitial, suffix, dlsuD, dlsudEmail, studentNumber } = req.body;
 
     // Check if registrationData exists in session
     if (!req.session.registrationData) {
@@ -195,6 +195,7 @@ module.exports.additional_info_post = async (req, res) => {
             lastName,
             firstName,
             middleInitial: middleInitial || '',
+            suffix: suffix || '',
             dlsuD: dlsuD === 'true' || dlsuD === true,
             dlsudEmail,
             studentNumber
