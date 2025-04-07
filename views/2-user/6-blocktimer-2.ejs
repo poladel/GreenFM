@@ -1,202 +1,221 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="page-container">
-  <div class="content-wrap">
-    <div class="container">
-      <%- include('../partials/nav.ejs') %>
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
 
-      <!-- HEADER -->
-      <div class="form-title-container">
-        <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
-      </div>
+            <!-- HEADER -->
+            <div class="blocktimerForm2-title-container">
+                <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
+            </div>
 
-      <!-- PROGRESS BAR -->
-      <div class="progress-bar">
-        <div class="circle circle-1">1</div>
-        <div class="circle circle-2">2</div>
-        <div class="circle circle-3">3</div>
-      </div>
+            <!-- PROGRESS BAR -->
+            <div class="progress-bar">
+                <div class="circle circle-1">1</div>
+                <div class="circle circle-2">2</div>
+                <div class="circle circle-3">3</div>
+            </div>
 
-      <div class="form-content">
-        <!-- Summary Container -->
-        <div class="summary-container">
-            <h4 class="summary-title">Summary</h4>
-            <div class="summary-details">
-                <label class="summary-label">Type of Office/Organization:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Name of Office/Organization:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Proponent's Name:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Title of Show:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Type of Show:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Brief Description of Show:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Objective of Show:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-details">
-                <label class="summary-label">Name of Executive Producer:</label>
-                <span class="summary-value"></span>
-            </div>
-            <div class="summary-space"></div>
-        </div>
-    
-        <!-- Date and Time Container -->
-        <div class="date-time-container">
-            <h4 class="date-time-title">Select Date & Time</h4>
-            <div class="date-time-fields">
-                <label for="date">Preferred Date:</label>
-                <input type="date" id="date" name="preferred-date" class="date-input">
-            </div>
-            <div class="date-time-fields">
-                <label for="time">Preferred Time:</label>
-                <input type="time" id="time" name="preferred-time" class="time-input">
-            </div>
-            <button type="button" class="see-schedule-btn">See Full Schedule</button>
-        </div>
-    </div>
-
-    <div class="submit-button">
-        <button type="submit" class="submit">NEXT</button> 
-    </div>
-
-    <!-- Full Schedule Modal -->
-    <div id="scheduleModal" class="modal">
-        <div class="modal-content">
-        <span class="close-btn">&times;</span>
-              <!-- Table Content Here -->
-                    <div class="schedule-container">
-                        <table class="schedule-table">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Monday</th>
-                                    <th>Tuesday</th>
-                                    <th>Wednesday</th>
-                                    <th>Thursday</th>
-                                    <th>Friday</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="time">9:00-9:10</td>
-                                    <td colspan="5" class="station-sign-on">Station Sign On</td>
-                                </tr>
-                                <tr>
-                                    <td class="time">9:10-9:55</td>
-                                    <td><button type="button" class="permasched" disabled>Tutok Lasalyano</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button" class="permasched" disabled>Tutok Lasalyano</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">10:00-10:55</td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">11:00-11:55</td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button" class="schedulebtn">Fast-Cast | Showbits</button></td>
-                                    <td><button type="button" class="schedulebtn">LEV</button></td>
-                                    <td><button type="button" class="schedulebtn">Communicare</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="angelus">Angelus</td>
-                                </tr>
-                                <tr>
-                                    <td class="time">12:01-12:55</td>
-                                    <td colspan="4"><button class="permasched" disabled>FM MIX</button></td>
-                                    <td><button type="button" class="schedulebtn">Dear John</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">1:00-1:55</td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button" class="schedulebtn">Balitaktakan</button></td>
-                                    <td><button type="button" class="schedulebtn">Call Me Crush</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button" class="schedulebtn">La Salle Leap</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">2:00-2:55</td>
-                                    <td><button type="button" class="schedulebtn">CPC</button></td>
-                                    <td><button type="button" class="schedulebtn">Ramben Reads</button></td>
-                                    <td><button type="button" class="schedulebtn">Communicode</button></td>
-                                    <td><button type="button" class="schedulebtn">Worth the Hype</button></td>
-                                    <td><button type="button" class="schedulebtn">UnliCavite</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">3:00-3:55</td>
-                                    <td><button type="button" class="schedulebtn">DPS</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time"> </td>
-                                    <td colspan="6" class="centered-row"> </td>
-                                </tr>
-                                <tr>
-                                    <td class="time">4:00-4:50</td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                    <td><button type="button">Select Time Slot</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">4:30-4:50</td>
-                                    <td colspan="5" class="station-sign-off">Station Sign Off</td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <form id="blocktimerForm2">
+                <div class="form-content">
+                    <!-- Summary Container -->
+                    <div class="summary-container">
+                        <h4 class="summary-title">Summary</h4>
+                        <div class="summary-details">
+                            <label class="summary-label">Type of Office/Organization:</label>
+                            <span class="summary-value"><%= applicationData?.organizationType || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Name of Office/Organization:</label>
+                            <span class="summary-value"><%= applicationData?.organizationName || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Proponent's Name:</label>
+                            <span class="summary-value">
+                                <%= applicationData?.proponent?.firstName || '' %> 
+                                <%= applicationData?.proponent?.mi || '' %> 
+                                <%= applicationData?.proponent?.lastName || '' %> 
+                                <%= applicationData?.proponent?.suffix || '' %>
+                            </span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Title of Show:</label>
+                            <span class="summary-value"><%= applicationData?.showDetails?.title || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Type of Show:</label>
+                            <span class="summary-value"><%= applicationData?.showDetails?.type?.join(', ') || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Brief Description of Show:</label>
+                            <br><span class="summary-value"><%= applicationData?.showDetails?.description || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Objective of Show:</label>
+                            <br><span class="summary-value"><%= applicationData?.showDetails?.objectives || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Name of Executive Producer:</label>
+                            <span class="summary-value">
+                                <%= applicationData?.executiveProducer?.firstName || '' %> 
+                                <%= applicationData?.executiveProducer?.mi || '' %> 
+                                <%= applicationData?.executiveProducer?.lastName || '' %> 
+                                <%= applicationData?.executiveProducer?.suffix || '' %>
+                            </span>
+                        </div>
                     </div>
-            </div>
+
+                    <!-- Date and Time Container -->
+                    <div class="date-time-container">
+                        <h4 class="date-time-title">Select Date & Time</h4>
+                        <div class="date-time-fields">
+                            <label for="date">Preferred Date:</label>
+                            <input type="date" id="date" name="preferred-date" class="date-input">
+                        </div>
+                        <div class="date-time-fields">
+                            <label for="time">Preferred Time:</label>
+                            <input type="time" id="time" name="preferred-time" class="time-input">
+                        </div>
+                        <button type="button" class="see-schedule-btn">See Full Schedule</button>
+                    </div>
+                </div>
+
+                <!-- Full Schedule Modal -->
+                <div id="scheduleModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <!-- Table Content Here -->
+                        <div class="schedule-container">
+                            <table class="schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Monday</th>
+                                        <th>Tuesday</th>
+                                        <th>Wednesday</th>
+                                        <th>Thursday</th>
+                                        <th>Friday</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="time">9:00-9:10</td>
+                                        <td colspan="5" class="station-sign-on">Station Sign On</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">9:10-9:55</td>
+                                        <td><button type="button" class="permasched" disabled>Tutok
+                                                Lasalyano</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button" class="permasched" disabled>Tutok
+                                                Lasalyano</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">10:00-10:55</td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">11:00-11:55</td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button" class="schedulebtn">Fast-Cast |
+                                                Showbits</button>
+                                        </td>
+                                        <td><button type="button" class="schedulebtn">LEV</button></td>
+                                        <td><button type="button" class="schedulebtn">Communicare</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="angelus">Angelus</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">12:01-12:55</td>
+                                        <td colspan="4"><button class="permasched" disabled>FM MIX</button></td>
+                                        <td><button type="button" class="schedulebtn">Dear John</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">1:00-1:55</td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button" class="schedulebtn">Balitaktakan</button></td>
+                                        <td><button type="button" class="schedulebtn">Call Me Crush</button>
+                                        </td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button" class="schedulebtn">La Salle Leap</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">2:00-2:55</td>
+                                        <td><button type="button" class="schedulebtn">CPC</button></td>
+                                        <td><button type="button" class="schedulebtn">Ramben Reads</button></td>
+                                        <td><button type="button" class="schedulebtn">Communicode</button></td>
+                                        <td><button type="button" class="schedulebtn">Worth the Hype</button>
+                                        </td>
+                                        <td><button type="button" class="schedulebtn">UnliCavite</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">3:00-3:55</td>
+                                        <td><button type="button" class="schedulebtn">DPS</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">4:00-4:50</td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                        <td><button type="button">Select Time Slot</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">4:30-4:50</td>
+                                        <td colspan="5" class="station-sign-off">Station Sign Off</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-button">
+                    <button type="submit" class="submit">NEXT</button>
+                </div>
+
+            </form>
         </div>
     </div>
-  </div>
 </div>
 
 <script src="js/2-user/blocktimer2.js"></script>

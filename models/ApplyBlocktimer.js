@@ -21,12 +21,14 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
+    suffix: String,
     cys: String,
   },
   coProponent: {
     lastName: String,
     firstName: String,
     mi: String,
+    suffix: String,
     cys: String,
     notApplicable: { type: Boolean, default: false },
   },
@@ -40,12 +42,14 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
+    suffix: String,
     cys: String,
   },
   facultyStaff: {
     lastName: String,
     firstName: String,
     mi: String,
+    suffix: String,
     department: String,
     notApplicable: { type: Boolean, default: false },
   },
@@ -53,18 +57,21 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
+    suffix: String,
     cys: String,
   }],
   technicalStaff: [{
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
+    suffix: String,
     cys: String,
   }],
   creativeStaff: {
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     mi: String,
+    suffix: String,
     cys: String,
   },
   agreement: {
@@ -74,7 +81,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   },
   contactInfo: {
     dlsudEmail: { type: String, required: true, match: /@dlsud.edu.ph$/ },
-    contactEmail: { type: String, required: true},
+    contactEmail: { type: String, required: true },
     contactFbLink: { type: String, required: true },
     crossposting: {
       type: String,
@@ -86,6 +93,14 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   proponentSignature: {
     type: String, // URL or path to the signature file
     required: true,
+  },
+  submittedBy: {
+    type: String, // User's email
+    required: true,
+  },
+  submittedOn: {
+    type: Date, // Date and time of submission
+    default: Date.now, // Automatically set to the current date/time
   },
 }, {
   timestamps: true,

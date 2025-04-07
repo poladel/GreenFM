@@ -1,4 +1,5 @@
 const ApplyBlocktimer = require('../models/ApplyBlocktimer');
+const User = require('../models/User'); // Import the User model
 
 module.exports.joinBlocktimer1_post = async (req, res) => {
     const {
@@ -8,12 +9,14 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
             lastName: proponentLastName,
             firstName: proponentFirstName,
             mi: proponentMI,
+            suffix: proponentSuffix,
             cys: proponentCYS
         },
         coProponent: {
             lastName: coProponentLastName,
             firstName: coProponentFirstName,
             mi: coProponentMI,
+            suffix: coProponentSuffix,
             cys: coProponentCYS,
             notApplicable: coProponentNotApplicable
         },
@@ -27,12 +30,14 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
             lastName: execProducerLastName,
             firstName: execProducerFirstName,
             mi: execProducerMI,
+            suffix: execProducerSuffix,
             cys: execProducerCYS
         },
         facultyStaff: {
             lastName: facultyStaffLastName,
             firstName: facultyStaffFirstName,
             mi: facultyStaffMI,
+            suffix: facultyStaffSuffix,
             department: facultyStaffDepartment,
             notApplicable: facultyStaffNotApplicable
         },
@@ -42,6 +47,7 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
             lastName: creativeStaffLastName,
             firstName: creativeStaffFirstName,
             mi: creativeStaffMI,
+            suffix: creativeStaffSuffix,
             cys: creativeStaffCYS
         },
         agreement,
@@ -60,89 +66,136 @@ module.exports.joinBlocktimer1_post = async (req, res) => {
         return res.status(400).json({ error: 'showDetails.type must be an array' });
     }
 
-    // Log hosts and technicalStaff for debugging
-    console.log('Hosts:', hosts);
-    console.log('Technical Staff:', technicalStaff);
-
-    // Store data in session
-    req.session.joinBlocktimer1Data = {
-        organizationType,
-        organizationName,
-        proponent: {
-            lastName: proponentLastName,
-            firstName: proponentFirstName,
-            mi: proponentMI,
-            cys: proponentCYS
-        },
-        coProponent: {
-            lastName: coProponentLastName,
-            firstName: coProponentFirstName,
-            mi: coProponentMI,
-            cys: coProponentCYS,
-            notApplicable: coProponentNotApplicable
-        },
-        showDetails: {
-            title: showTitle,
-            type: showType,
-            description: showDescription,
-            objectives: showObjectives
-        },
-        executiveProducer: {
-            lastName: execProducerLastName,
-            firstName: execProducerFirstName,
-            mi: execProducerMI,
-            cys: execProducerCYS
-        },
-        facultyStaff: {
-            lastName: facultyStaffLastName,
-            firstName: facultyStaffFirstName,
-            mi: facultyStaffMI,
-            department: facultyStaffDepartment,
-            notApplicable: facultyStaffNotApplicable
-        },
-        hosts, // array of hosts
-        technicalStaff, // array of technical staff
-        creativeStaff: {
-            lastName: creativeStaffLastName,
-            firstName: creativeStaffFirstName,
-            mi: creativeStaffMI,
-            cys: creativeStaffCYS
-        },
-        agreement,
-        contactInfo: {
-            dlsudEmail,
-            contactEmail,
-            contactFbLink,
-            crossposting,
-            fbLink
-        },
-        proponentSignature
-    };
-
-     // Log the data being saved to the session
-     console.log('Data saved to session:', req.session.joinBlocktimer1Data);
-
-    // Check if user is authenticated via middleware
-    if (!req.user) {
-        return res.status(401).json({ error: 'User is not authenticated' });
-    }
-
     try {
-        const user = req.user; // Access the authenticated user
-        user.completedBlocktimerStep1 = true;
-        await user.save();
+        // Store data in the session
+        req.session.joinBlocktimer1Data = {
+            organizationType,
+            organizationName,
+            proponent: {
+                lastName: proponentLastName,
+                firstName: proponentFirstName,
+                mi: proponentMI,
+                suffix: proponentSuffix,
+                cys: proponentCYS
+            },
+            coProponent: {
+                lastName: coProponentLastName,
+                firstName: coProponentFirstName,
+                mi: coProponentMI,
+                suffix: coProponentSuffix,
+                cys: coProponentCYS,
+                notApplicable: coProponentNotApplicable
+            },
+            showDetails: {
+                title: showTitle,
+                type: showType,
+                description: showDescription,
+                objectives: showObjectives
+            },
+            executiveProducer: {
+                lastName: execProducerLastName,
+                firstName: execProducerFirstName,
+                mi: execProducerMI,
+                suffix: execProducerSuffix,
+                cys: execProducerCYS
+            },
+            facultyStaff: {
+                lastName: facultyStaffLastName,
+                firstName: facultyStaffFirstName,
+                mi: facultyStaffMI,
+                suffix: facultyStaffSuffix,
+                department: facultyStaffDepartment,
+                notApplicable: facultyStaffNotApplicable
+            },
+            hosts, // array of hosts
+            technicalStaff, // array of technical staff
+            creativeStaff: {
+                lastName: creativeStaffLastName,
+                firstName: creativeStaffFirstName,
+                mi: creativeStaffMI,
+                suffix: creativeStaffSuffix,
+                cys: creativeStaffCYS
+            },
+            agreement,
+            contactInfo: {
+                dlsudEmail,
+                contactEmail,
+                contactFbLink,
+                crossposting,
+                fbLink
+            },
+            proponentSignature
+        };
 
-        // Respond with a success message
+        // Log the session data for debugging
+        console.log('Session Data Saved:', req.session.joinBlocktimer1Data);
+
+        // Mark Step 1 as completed
+        if (req.user) {
+            const user = await User.findById(req.user._id); // Fetch the user from the database
+            if (user) {
+                user.completedBlocktimerStep1 = true; // Update the field
+                await user.save(); // Save the changes
+                console.log('Step 1 marked as completed for user:', user._id);
+            } else {
+                console.error('User not found in the database.');
+            }
+        }
+
+        // Respond with success
         return res.status(200).json({ success: true });
     } catch (error) {
-        // Handle any errors that may occur
-        return res.status(400).json({ error: error.message });
+        console.error('Error saving form data to session:', error);
+        return res.status(500).json({ error: 'Failed to save form data' });
+    }
+};
+
+module.exports.joinBlocktimer2_get = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            return res.status(401).json({ error: 'User is not authenticated' });
+        }
+
+        // Fetch the user from the database to check progress
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            console.error('User not found in the database.');
+            return res.status(404).send('User not found');
+        }
+
+        // Redirect to Step 1 if Step 1 is not completed
+        if (!user.completedBlocktimerStep1) {
+            console.log('Step 1 not completed. Redirecting to Step 1.');
+            return res.redirect('/JoinBlocktimer-Step1');
+        }
+
+        // Redirect to Step 3 if Step 2 is already completed
+        if (user.completedBlocktimerStep2) {
+            console.log('Step 2 already completed. Redirecting to Step 3.');
+            return res.redirect('/JoinBlocktimer-Step3');
+        }
+
+        // Retrieve data from session
+        const applicationData = req.session.joinBlocktimer1Data;
+
+        // Debugging: Log session data
+        console.log('Session Data in joinBlocktimer2_get:', applicationData);
+
+        // Render the EJS view and pass the data
+        res.render('2-user/6-blocktimer-2', {
+            pageTitle: 'Blocktimer Application - Step 2',
+            cssFile: '/css/blocktimer2.css',
+            applicationData
+        });
+    } catch (err) {
+        console.error('Error in joinBlocktimer2_get:', err);
+        res.status(500).send('Server Error');
     }
 };
 
 module.exports.joinBlocktimer2_post = async (req, res) => {
-    console.log('Entering joinBlocktimer2_post');
-    console.log('Session Data:', req.session.joinBlocktimer1Data);
     // Check if registrationData exists in session
     if (!req.session.joinBlocktimer1Data) {
         if (req.user) {
@@ -166,12 +219,14 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             lastName: proponentLastName,
             firstName: proponentFirstName,
             mi: proponentMI,
+            suffix: proponentSuffix,
             cys: proponentCYS
         },
         coProponent: {
             lastName: coProponentLastName,
             firstName: coProponentFirstName,
             mi: coProponentMI,
+            suffix: coProponentSuffix,
             cys: coProponentCYS,
             notApplicable: coProponentNotApplicable
         },
@@ -185,12 +240,14 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             lastName: execProducerLastName,
             firstName: execProducerFirstName,
             mi: execProducerMI,
+            suffix: execProducerSuffix,
             cys: execProducerCYS
         },
         facultyStaff: {
             lastName: facultyStaffLastName,
             firstName: facultyStaffFirstName,
             mi: facultyStaffMI,
+            suffix: facultyStaffSuffix,
             department: facultyStaffDepartment,
             notApplicable: facultyStaffNotApplicable
         },
@@ -200,6 +257,7 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             lastName: creativeStaffLastName,
             firstName: creativeStaffFirstName,
             mi: creativeStaffMI,
+            suffix: creativeStaffSuffix,
             cys: creativeStaffCYS
         },
         agreement,
@@ -219,62 +277,69 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
     }
 
     try {
-        // Create the user with all data
+        // Create the ApplyBlocktimer document
         const applyBlocktimer = await ApplyBlocktimer.create({
-        organizationType,
-        organizationName,
-        proponent: {
-            lastName: proponentLastName,
-            firstName: proponentFirstName,
-            mi: proponentMI,
-            cys: proponentCYS
-        },
-        coProponent: {
-            lastName: coProponentLastName,
-            firstName: coProponentFirstName,
-            mi: coProponentMI,
-            cys: coProponentCYS,
-            notApplicable: coProponentNotApplicable
-        },
-        showDetails: {
-            title: showTitle,
-            type: showType,
-            description: showDescription,
-            objectives: showObjectives
-        },
-        executiveProducer: {
-            lastName: execProducerLastName,
-            firstName: execProducerFirstName,
-            mi: execProducerMI,
-            cys: execProducerCYS
-        },
-        facultyStaff: {
-            lastName: facultyStaffLastName,
-            firstName: facultyStaffFirstName,
-            mi: facultyStaffMI,
-            department: facultyStaffDepartment,
-            notApplicable: facultyStaffNotApplicable
-        },
-        hosts, // array of hosts
-        technicalStaff, // array of technical staff
-        creativeStaff: {
-            lastName: creativeStaffLastName,
-            firstName: creativeStaffFirstName,
-            mi: creativeStaffMI,
-            cys: creativeStaffCYS
-        },
-        agreement,
-        contactInfo: {
-            dlsudEmail,
-            contactEmail,
-            contactFbLink,
-            crossposting,
-            fbLink
-        },
-        proponentSignature
+            organizationType,
+            organizationName,
+            proponent: {
+                lastName: proponentLastName,
+                firstName: proponentFirstName,
+                mi: proponentMI,
+                suffix: proponentSuffix,
+                cys: proponentCYS
+            },
+            coProponent: {
+                lastName: coProponentLastName,
+                firstName: coProponentFirstName,
+                mi: coProponentMI,
+                suffix: coProponentSuffix,
+                cys: coProponentCYS,
+                notApplicable: coProponentNotApplicable
+            },
+            showDetails: {
+                title: showTitle,
+                type: showType,
+                description: showDescription,
+                objectives: showObjectives
+            },
+            executiveProducer: {
+                lastName: execProducerLastName,
+                firstName: execProducerFirstName,
+                mi: execProducerMI,
+                suffix: execProducerSuffix,
+                cys: execProducerCYS
+            },
+            facultyStaff: {
+                lastName: facultyStaffLastName,
+                firstName: facultyStaffFirstName,
+                mi: facultyStaffMI,
+                suffix: facultyStaffSuffix,
+                department: facultyStaffDepartment,
+                notApplicable: facultyStaffNotApplicable
+            },
+            hosts, // array of hosts
+            technicalStaff, // array of technical staff
+            creativeStaff: {
+                lastName: creativeStaffLastName,
+                firstName: creativeStaffFirstName,
+                mi: creativeStaffMI,
+                suffix: creativeStaffSuffix,
+                cys: creativeStaffCYS
+            },
+            agreement,
+            contactInfo: {
+                dlsudEmail,
+                contactEmail,
+                contactFbLink,
+                crossposting,
+                fbLink
+            },
+            proponentSignature,
+            submittedBy: req.user.email, // Get the user's email from the session
+            submittedOn: new Date(), // Set the current date and time
         });
 
-        console.log('Blocktimer Application Created:', applyBlocktimer.showTitle);
+        console.log('Blocktimer Application Created:', applyBlocktimer.showDetails.title);
 
         // Clear session data
         req.session.joinBlocktimer1Data = null;
@@ -295,3 +360,5 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
         res.status(500).json({ error: 'Failed to save user information' });
     }
 };
+
+

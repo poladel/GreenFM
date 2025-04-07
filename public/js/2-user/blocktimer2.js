@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lastName: data.coProponentLastName || undefined,
             firstName: data.coProponentFirstName || undefined,
             mi: data.coProponentMi || undefined,
+            suffix: data.coProponentSuffix || undefined, // Correct field name
             cys: data.coProponentCys || undefined,
             notApplicable: !!data.coProponentNotApplicable, // Convert to boolean
         };
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lastName: data.facultyStaffLastName || undefined,
             firstName: data.facultyStaffFirstName || undefined,
             mi: data.facultyStaffMi || undefined,
+            suffix: data.facultyStaffSuffix || undefined, // Correct field name
             department: data.facultyStaffDepartment || undefined,
             notApplicable: !!data.facultyStaffNotApplicable, // Convert to boolean
         };
@@ -80,4 +82,3 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
-  

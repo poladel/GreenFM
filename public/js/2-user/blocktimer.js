@@ -30,11 +30,11 @@ document.getElementById('blocktimerForm1').addEventListener('submit', function(e
 const toggles = [
     {
         checkboxId: 'coProponentNotApplicable',
-        inputIds: ['coProponentLastName', 'coProponentFirstName', 'coProponentMi', 'coProponentCYS']
+        inputIds: ['coProponentLastName', 'coProponentFirstName', 'coProponentMi', 'coProponentSuffix', 'coProponentCYS']
     },
     {
         checkboxId: 'facultyStaffNotApplicable',
-        inputIds: ['facultyStaffLastName', 'facultyStaffFirstName', 'facultyStaffMi', 'facultyStaffDepartment']
+        inputIds: ['facultyStaffLastName', 'facultyStaffFirstName', 'facultyStaffMi', 'facultyStaffSuffix', 'facultyStaffDepartment']
     }
 ];
 
@@ -93,6 +93,7 @@ toggles.forEach(setupToggleInputs);
                 <input type="text" name="hosts[${hostIndex}].lastName" placeholder="Last Name" required>
                 <input type="text" name="hosts[${hostIndex}].firstName" placeholder="First Name" required>
                 <input type="text" name="hosts[${hostIndex}].mi" placeholder="M.I.">
+                <input type="text" name="hosts[${hostIndex}].suffix" placeholder="Suffix">
                 <input type="text" name="hosts[${hostIndex}].cys" placeholder="CYS">
                 <button type="button" class="remove-host">Remove</button>
             `;
@@ -120,7 +121,8 @@ toggles.forEach(setupToggleInputs);
             inputs[0].name = `hosts[${i}].lastName`;
             inputs[1].name = `hosts[${i}].firstName`;
             inputs[2].name = `hosts[${i}].mi`;
-            inputs[3].name = `hosts[${i}].cys`;
+            inputs[3].name = `hosts[${i}].suffix`;
+            inputs[4].name = `hosts[${i}].cys`;
         }
     }
     
@@ -136,6 +138,7 @@ toggles.forEach(setupToggleInputs);
                 <input type="text" name="technicalStaff[${technicalIndex}].lastName" placeholder="Last Name" required>
                 <input type="text" name="technicalStaff[${technicalIndex}].firstName" placeholder="First Name" required>
                 <input type="text" name="technicalStaff[${technicalIndex}].mi" placeholder="M.I.">
+                <input type="text" name="technicalStaff[${technicalIndex}].suffix" placeholder="Suffix">
                 <input type="text" name="technicalStaff[${technicalIndex}].cys" placeholder="CYS">
                 <button type="button" class="remove-technical">Remove</button>
             `;
@@ -163,7 +166,8 @@ toggles.forEach(setupToggleInputs);
             inputs[0].name = `technicalStaff[${i}].lastName`;
             inputs[1].name = `technicalStaff[${i}].firstName`;
             inputs[2].name = `technicalStaff[${i}].mi`;
-            inputs[3].name = `technicalStaff[${i}].cys`;
+            inputs[3].name = `technicalStaff[${i}].suffix`;
+            inputs[4].name = `technicalStaff[${i}].cys`;
         }
     }
     
@@ -345,10 +349,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const lastName = host.querySelector('[name^="hosts["][name$=".lastName"]').value.trim();
             const firstName = host.querySelector('[name^="hosts["][name$=".firstName"]').value.trim();
             const mi = host.querySelector('[name^="hosts["][name$=".mi"]').value.trim();
+            const suffix = host.querySelector('[name^="hosts["][name$=".suffix"]').value.trim();
             const cys = host.querySelector('[name^="hosts["][name$=".cys"]').value.trim();
 
             if (lastName && firstName) {
-                data.hosts.push({ lastName, firstName, mi, cys });
+                data.hosts.push({ lastName, firstName, mi, suffix, cys });
             }
         });
 
@@ -357,10 +362,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const lastName = staff.querySelector('[name^="technicalStaff["][name$=".lastName"]').value.trim();
             const firstName = staff.querySelector('[name^="technicalStaff["][name$=".firstName"]').value.trim();
             const mi = staff.querySelector('[name^="technicalStaff["][name$=".mi"]').value.trim();
+            const suffix = staff.querySelector('[name^="technicalStaff["][name$=".suffix"]').value.trim();
             const cys = staff.querySelector('[name^="technicalStaff["][name$=".cys"]').value.trim();
 
             if (lastName && firstName) {
-                data.technicalStaff.push({ lastName, firstName, mi, cys });
+                data.technicalStaff.push({ lastName, firstName, mi, suffix, cys });
             }
         });
 
