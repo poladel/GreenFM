@@ -50,7 +50,6 @@ function setupToggleInputs({ checkboxId, inputIds }) {
             input.value = '';
         });
     }
-
     // Initial setup: disable inputs if checkbox is checked on page load
     toggleInputs();
     
@@ -104,12 +103,12 @@ toggles.forEach(setupToggleInputs);
             newHostDiv.querySelector(".remove-host").addEventListener("click", function () {
                 hostsContainer.removeChild(newHostDiv);
                 updateHostIndices(); // Update indices after removal
+                toggleAddHostButton();
             });
     
             hostIndex++; // Increment the host index after adding a new host
-        } else {
-            alert("Maximum of 4 Hosts allowed.");
-        }
+        } 
+        toggleAddHostButton();
     }
     
     function updateHostIndices() {
@@ -124,6 +123,18 @@ toggles.forEach(setupToggleInputs);
             inputs[3].name = `hosts[${i}].suffix`;
             inputs[4].name = `hosts[${i}].cys`;
         }
+    }
+
+    function toggleAddHostButton() {
+        const hostsContainer = document.getElementById("hosts-container");
+        const addHostButton = document.getElementById("add-host");
+        const currentHosts = hostsContainer.getElementsByClassName("host-input").length;
+
+        console.log("Current hosts:", currentHosts); // Debugging log
+        console.log("Add Host button:", addHostButton); // Debugging log
+
+        addHostButton.disabled = currentHosts >= 4;
+        console.log("Button disabled:", addHostButton.disabled); // Debugging log
     }
     
     function addTechnical() {
@@ -149,12 +160,12 @@ toggles.forEach(setupToggleInputs);
             newTechnicalDiv.querySelector(".remove-technical").addEventListener("click", function () {
                 technicalContainer.removeChild(newTechnicalDiv);
                 updateTechnicalIndices(); // Update indices after removal
+                toggleAddTechnicalButton();
             });
     
             technicalIndex++; // Increment the technical index after adding a new technical staff member
-        } else {
-            alert("Maximum of 2 Technical Staff allowed.");
         }
+        toggleAddTechnicalButton();
     }
     
     function updateTechnicalIndices() {
@@ -169,6 +180,18 @@ toggles.forEach(setupToggleInputs);
             inputs[3].name = `technicalStaff[${i}].suffix`;
             inputs[4].name = `technicalStaff[${i}].cys`;
         }
+    }
+
+    function toggleAddTechnicalButton() {
+        const technicalContainer = document.getElementById("technical-container");
+        const addTechnicalButton = document.getElementById("add-technical");
+        const currentTechnical = technicalContainer.getElementsByClassName("technical-input").length;
+
+        console.log("Current technical:", currentTechnical); // Debugging log
+        console.log("Add Technical button:", addTechnicalButton); // Debugging log
+
+        addTechnicalButton.disabled = currentTechnical >= 2;
+        console.log("Button disabled:", addTechnicalButton.disabled); // Debugging log
     }
     
     // Event listeners for add buttons
@@ -288,7 +311,10 @@ async function uploadFileToServer(file) {
 
 /*----------------------FORM 1 SUBMISSION---------------------*/
 document.addEventListener("DOMContentLoaded", function () {
+    toggleAddHostButton();
+    toggleAddTechnicalButton();
     const form1 = document.getElementById('blocktimerForm1');
+    
 
     form1.addEventListener('submit', async (event) => {
         event.preventDefault();

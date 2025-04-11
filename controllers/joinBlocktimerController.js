@@ -271,6 +271,9 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
         proponentSignature
     } = req.session.joinBlocktimer1Data;
 
+    // Retrieve selected day and time from the form
+    const { 'preferred-days': preferredDay, 'preferred-time': preferredTime } = req.body;
+
     // Check if user is authenticated via middleware
     if (!req.user) {
         return res.status(401).json({ error: 'User is not authenticated' });
@@ -336,7 +339,11 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             },
             proponentSignature,
             submittedBy: req.user.email, // Get the user's email from the session
-            submittedOn: new Date(), // Set the current date and time
+            submittedOn: new Date(),
+            preferredSchedule: {
+                day: preferredDay,
+                time: preferredTime
+            } // Set the current date and time
         });
 
         console.log('Blocktimer Application Created:', applyBlocktimer.showDetails.title);

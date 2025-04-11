@@ -102,6 +102,14 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
     type: Date, // Date and time of submission
     default: Date.now, // Automatically set to the current date/time
   },
+  preferredSchedule: {
+    day: { type: String, required: true },
+    time: { type: [String], required: true },
+  },
+  result: {
+    type: String,
+    required: false,
+  },
 }, {
   timestamps: true,
 });
