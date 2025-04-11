@@ -74,7 +74,7 @@ userRoutes.forEach(userRoute => {
                     cssFile: userRoute.cssFile,
                     user: res.locals.user,
                     headerTitle: userRoute.headerTitle,
-                    redirectUrl: req.query.redirect || '/',
+                    currentPath: req.path,
                     playlist // Pass playlist if applicable
                 });
             }
