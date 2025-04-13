@@ -43,6 +43,7 @@ const playlistRoutes = require('./routes/playlistRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const postRoutes = require('./routes/postRoutes');
 const manageRoutes = require('./routes/manageRoutes');
+const liveRoutes = require('./routes/liveRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -55,6 +56,7 @@ app.use('/playlist', playlistRoutes);
 app.use(contactRoutes);
 app.use(postRoutes);
 app.use(manageRoutes);
+app.use('/live', liveRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
