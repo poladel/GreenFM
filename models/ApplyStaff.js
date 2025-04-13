@@ -13,6 +13,10 @@ const ApplyStaffSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  suffix: {
+    type: String,
+    default: ''
+  },
   studentNumber: {
     type: String,
     required: true
@@ -64,6 +68,10 @@ const ApplyStaffSchema = new mongoose.Schema({
   greenFmContribution: {
     type: String,
     required: true,
+  },
+  result: {
+    type: String,
+    default: ''
   },
 }, { timestamps: true });
 
