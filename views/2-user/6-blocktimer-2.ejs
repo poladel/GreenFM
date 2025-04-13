@@ -33,9 +33,9 @@
                         <div class="summary-details">
                             <label class="summary-label">Proponent's Name:</label>
                             <span class="summary-value">
+                                <%= applicationData?.proponent?.lastName || '' %>, 
                                 <%= applicationData?.proponent?.firstName || '' %> 
                                 <%= applicationData?.proponent?.mi || '' %> 
-                                <%= applicationData?.proponent?.lastName || '' %> 
                                 <%= applicationData?.proponent?.suffix || '' %>
                             </span>
                         </div>
@@ -58,9 +58,9 @@
                         <div class="summary-details">
                             <label class="summary-label">Name of Executive Producer:</label>
                             <span class="summary-value">
+                                <%= applicationData?.executiveProducer?.lastName || '' %>,
                                 <%= applicationData?.executiveProducer?.firstName || '' %> 
                                 <%= applicationData?.executiveProducer?.mi || '' %> 
-                                <%= applicationData?.executiveProducer?.lastName || '' %> 
                                 <%= applicationData?.executiveProducer?.suffix || '' %>
                             </span>
                         </div>

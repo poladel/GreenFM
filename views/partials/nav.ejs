@@ -16,21 +16,31 @@
     <div class="sidebar1">
         <ul class="menu">
             <li>
-                <% if (user && user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
-                    <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } else if (user && user.completedBlocktimerStep1) { %>
-                    <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } else { %>
-                    <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% if (user) { %>
+                    <% if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
+                        <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else if (user.completedBlocktimerStep1) { %>
+                        <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else { %>
+                        <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } %>
+                <% } else { %>  
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>
             </li>
             <li>
-                <% if (user && user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                    <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } else if (user && user.completedJoinGFMStep1) { %>
-                    <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% if (user) { %>
+                    <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                        <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } else if (user.completedJoinGFMStep1) { %>
+                        <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } else { %>
+                        <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <% } %>
                 <% } else { %>
-                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinGFM" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>
             </li>
         </ul>

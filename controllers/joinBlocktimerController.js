@@ -187,7 +187,8 @@ module.exports.joinBlocktimer2_get = async (req, res) => {
         res.render('2-user/6-blocktimer-2', {
             pageTitle: 'Blocktimer Application - Step 2',
             cssFile: '/css/blocktimer2.css',
-            applicationData
+            applicationData,
+            redirectUrl: req.query.redirect || '/' // Add redirectUrl
         });
     } catch (err) {
         console.error('Error in joinBlocktimer2_get:', err);
@@ -355,8 +356,11 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
         user.completedBlocktimerStep2 = true;
         await user.save();
 
-        // Respond with success
-        res.json({ success: true }); // Send success response
+        // Respond with success and redirectUrl
+        res.json({ 
+            success: true, 
+            redirectUrl: '/JoinBlocktimer-Step3' // Add redirectUrl
+        });
     } catch (error) {
         // Handle validation errors and other errors
         if (error.name === 'ValidationError') {

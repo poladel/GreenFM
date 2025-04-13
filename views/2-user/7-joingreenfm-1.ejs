@@ -25,6 +25,7 @@
                                 <input type="text" name="lastName" placeholder="Last Name" value="<%= user.lastName %>" required>
                                 <input type="text" name="firstName" placeholder="First Name" value="<%= user.firstName %>" required>
                                 <input type="text" name="middleInitial" placeholder="M.I" value="<%= user.middleInitial ? user.middleInitial : '' %>">
+                                <input type="text" name="suffix" placeholder="Suffix" value="<%= user.suffix ? user.suffix : '' %>">
                             </div>
 
                             <label>Student Number</label>
@@ -159,7 +160,7 @@
                             </ul>
 
                             <label>Section</label>
-                            <input type="text" name="section" required>
+                            <input type="text" name="section" placeholder="CYS" required>
 
                             <label>Facebook Profile URL</label>
                             <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required>
