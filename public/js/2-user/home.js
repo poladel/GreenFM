@@ -409,15 +409,20 @@ function navigateMedia(direction) {
         const list = document.getElementById("schedule-list");
         list.innerHTML = "";
     
-        const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const today = days[new Date().getDay()];
     
-        validDays.forEach(day => {
-            if (weekSchedule[day]) {
-                const li = document.createElement("li");
-                li.textContent = `${day}: ${weekSchedule[day]}`;
-                list.appendChild(li);
-            }
-        });
+        if (weekSchedule[today]) {
+            weekSchedule[today]
+                .sort((a, b) => parseTime(a.time) - parseTime(b.time))
+                .forEach(slot => {
+                    const li = document.createElement("li");
+                    li.textContent = `${slot.time} - ${slot.title}`;
+                    list.appendChild(li);
+                });
+        } else {
+            list.innerHTML = "<li>No shows scheduled today.</li>";
+        }
     }    
 
     // Toggle edit form
@@ -435,20 +440,56 @@ function navigateMedia(direction) {
     // Save form data to weekSchedule + DB
     document.getElementById("schedule-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
-            const value = e.target[day].value || ""; // ← always set something
-            weekSchedule[capitalize(day)] = value;
-        });
-        
+        weekSchedule = gatherFormData();
         renderScheduleList();
-        saveSchedule(); // 🟢 Save to DB
-        document.getElementById("schedule-form").style.display = "none";
-    });
+        saveSchedule();
+        e.target.style.display = "none";
+    });    
 
     // Capitalize string (e.g., "monday" → "Monday")
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
+
+    function gatherFormData() {
+        const form = document.getElementById("schedule-form");
+        const data = {};
+    
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+            const daySection = form.querySelector(`[data-day="${day}"]`);
+            const slots = [];
+    
+            daySection.querySelectorAll('.slot').forEach(slotEl => {
+                const time = slotEl.querySelector('.slot-time').value;
+                const title = slotEl.querySelector('.slot-title').value;
+                if (time && title) {
+                    slots.push({ time, title });
+                }
+            });
+    
+            data[day] = slots;
+        });
+    
+        return data;
+    }
+
+    document.querySelectorAll(".add-slot-btn").forEach(button => {
+        button.addEventListener("click", () => {
+            const container = button.previousElementSibling;
+            const slot = document.createElement("div");
+            slot.className = "slot";
+            slot.innerHTML = `
+                <input type="time" class="slot-time" required>
+                <input type="text" class="slot-title" placeholder="Show Title" required>
+                <button type="button" class="remove-slot-btn">✖</button>
+            `;
+            container.appendChild(slot);
+    
+            slot.querySelector(".remove-slot-btn").addEventListener("click", () => {
+                slot.remove();
+            });
+        });
+    });    
 
     // 🚀 On page load
     fetchSchedule();

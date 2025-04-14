@@ -55,7 +55,7 @@
                     <!-- Schedule -->
                     <div class="schedule-container">
                         <div class="schedule-header">
-                            <h3>Up Next</h3>
+                            <h3>Today's Lives</h3>
                             <button id="edit-schedule-btn" class="edit-button">Edit</button>
                         </div>
                         <ul id="schedule-list"></ul>
@@ -63,13 +63,14 @@
                         <!-- Editable Form (hidden by default) -->
                         <form id="schedule-form" style="display: none;">
                             <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
-                                <div class="schedule-day">
+                                <div class="schedule-day" data-day="<%= day %>">
                                     <label><%= day %></label>
-                                    <input type="text" name="<%= day.toLowerCase() %>" placeholder="HH:MM - Show Title" />
+                                    <div class="slots"></div>
+                                    <button type="button" class="add-slot-btn">+ Add Slot</button>
                                 </div>
                             <% }); %>
                             <button type="submit" class="save-schedule-button">Save</button>
-                        </form>
+                        </form>                        
                     </div>
                 </div>
 
