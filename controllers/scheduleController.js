@@ -18,10 +18,10 @@ const updateSchedule = async (req, res) => {
 
         let schedule = await Schedule.findOne();
         if (schedule) {
-            // Update existing
+            // Update existing schedule
             Object.assign(schedule, data);
         } else {
-            // Create new
+            // Create new schedule
             schedule = new Schedule(data);
         }
 
@@ -32,18 +32,6 @@ const updateSchedule = async (req, res) => {
         res.status(500).json({ error: "Failed to update schedule" });
     }
 };
-
-const now = new Date();
-
-// Convert to PH time (UTC+8)
-const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-const phTime = new Date(utc + 3600000 * 8);
-
-const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const today = days[phTime.getDay()];
-
-const currentMinutes = phTime.getHours() * 60 + phTime.getMinutes();
-
 
 module.exports = {
     getSchedule,

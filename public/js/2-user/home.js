@@ -315,7 +315,7 @@ function navigateMedia(direction) {
 }
 
 
-//right containers//
+//-------Schedule-----------//
    // Initialize as empty — filled from DB
     let weekSchedule = {};
 
@@ -350,56 +350,7 @@ function navigateMedia(direction) {
             }
         })
         .catch(err => console.error("Failed to save schedule:", err));
-    }
-
-    // Parse time in "HH:MM"
-    function parseTime(str) {
-        const [h, m] = str.split(":").map(Number);
-        return h * 60 + m;
-    }    
-
-    // Determine current live show
-    function getCurrentLive() {
-        const now = new Date();
-        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-        const phTime = new Date(utc + 3600000 * 8);
-    
-        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        const today = days[phTime.getDay()];
-        const currentMinutes = phTime.getHours() * 60 + phTime.getMinutes();
-    
-        if (!weekSchedule[today]) return null;
-    
-        const todaySchedule = weekSchedule[today].sort((a, b) => parseTime(a.start) - parseTime(b.start));
-    
-        for (let show of todaySchedule) {
-            const startMinutes = parseTime(show.start);
-            const endMinutes = parseTime(show.end);
-            if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                return show;
-            }
-        }
-    
-        return null;
-    }    
-
-    // Update "Live Now" section
-    function updateLiveNow() {
-        const live = getCurrentLive();
-        const container = document.getElementById("live-now-content");
-        const link = document.getElementById("live-now-link");
-    
-        if (live) {
-            container.innerHTML = `
-                <p style="margin: 0 0 8px;"><strong>${live.start} - ${live.end} | ${live.title}</strong></p>
-            `;
-            link.href = "/live";
-            link.style.display = "inline-block";
-        } else {
-            container.innerHTML = `<p>No live show at the moment.</p>`;
-            link.style.display = "none";
-        }
-    }     
+    } 
 
     // Show schedule on the page
     function renderScheduleList() {
@@ -488,11 +439,69 @@ function navigateMedia(direction) {
                 slot.remove();
             });
         });
-    });    
+    });
+
+//-----Live Now-----//
+    // Parse time in "HH:MM"
+    function parseTime(str) {
+        const [h, m] = str.split(":").map(Number);
+        return h * 60 + m;
+    }
+
+    // Determine current live show
+    function getCurrentLive() {
+        const now = new Date();
+
+        // Convert to PH time (UTC+8)
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        const phTime = new Date(utc + 3600000 * 8);  // PH time (UTC+8)
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = days[phTime.getDay()];
+
+        const currentMinutes = phTime.getHours() * 60 + phTime.getMinutes();
+        console.log(`Current time (in minutes): ${currentMinutes}`);
+
+        if (!weekSchedule[today]) return null;
+
+        const todaySchedule = weekSchedule[today].sort((a, b) => parseTime(a.start) - parseTime(b.start));
+
+        console.log(`Today's schedule: `, todaySchedule);
+
+        for (let i = 0; i < todaySchedule.length; i++) {
+            const showStart = parseTime(todaySchedule[i].start);
+            const showEnd = parseTime(todaySchedule[i].end);
+            console.log(`Checking show ${todaySchedule[i].title}: start ${showStart}, end ${showEnd}`);
+
+            // Check if the current time is between start and end times
+            if (currentMinutes >= showStart && currentMinutes < showEnd) {
+                return todaySchedule[i];
+            }
+        }
+
+        return null; // No live show at the moment
+    }
+
+    // Update "Live Now" section
+    function updateLiveNow() {
+        const live = getCurrentLive(); // Get the current live show
+        const container = document.getElementById("live-now-content");
+        const link = document.getElementById("live-now-link");
+
+        if (live) {
+            container.innerHTML = `
+                <p style="margin: 0 0 8px;"><strong>${live.start} - ${live.title}</strong></p>
+            `;
+            link.href = "/live";
+            link.style.display = "inline-block"; // Show the "Go to live" button
+        } else {
+            container.innerHTML = `<p>No live show at the moment.</p>`; // No live show message
+            link.style.display = "none"; // Hide the "Go to live" button
+        }
+    }
 
     // 🚀 On page load
     fetchSchedule().then(() => {
         updateLiveNow();
         setInterval(updateLiveNow, 60000); // Keep updating every minute
     });
-    
