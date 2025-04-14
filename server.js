@@ -57,6 +57,7 @@ app.use(contactRoutes);
 app.use(postRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
+app.use('/api', require('./routes/scheduleRoutes'));
 
 // 404 Handling
 app.all('*', (req, res) => {

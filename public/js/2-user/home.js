@@ -313,3 +313,134 @@ function navigateMedia(direction) {
         document.getElementById('modal-image').src = currentMediaList[currentMediaIndex];
     }
 }
+
+
+//right containers//
+    // LIVE SHOWS (TIME-BASED)
+    const schedule = [
+        { time: "10:00", title: "Morning Show", image: "/images/morning.jpg", link: "/live" },
+        { time: "12:00", title: "Campus News", image: "/images/news.jpg", link: "/live" },
+        { time: "14:00", title: "Midweek Mix", image: "/images/mix.jpg", link: "/live" },
+        { time: "16:00", title: "Green Hour", image: "/images/green.jpg", link: "/live" },
+        { time: "18:00", title: "Final Buzz", image: "/images/buzz.jpg", link: "/live" }
+    ];
+
+    // Initialize as empty — filled from DB
+    let weekSchedule = {};
+
+    // 🟢 Fetch schedule from MongoDB
+    function fetchSchedule() {
+        fetch('/api/schedule')
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    weekSchedule = data;
+                    renderScheduleList();
+                }
+            })
+            .catch(err => console.error("Failed to fetch schedule:", err));
+    }
+
+    // 🟢 Save schedule to MongoDB
+    function saveSchedule() {
+        fetch('/api/schedule', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(weekSchedule)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                console.log("✅ Schedule saved!");
+            }
+        })
+        .catch(err => console.error("Failed to save schedule:", err));
+    }
+
+    // Parse time in "HH:MM"
+    function parseTime(str) {
+        const [h, m] = str.split(":").map(Number);
+        return h * 60 + m;
+    }
+
+    // Determine current live show
+    function getCurrentLive() {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        let currentShow = null;
+        for (let i = 0; i < schedule.length; i++) {
+            const showStart = parseTime(schedule[i].time);
+            const nextStart = schedule[i + 1] ? parseTime(schedule[i + 1].time) : 1440;
+
+            if (currentMinutes >= showStart && currentMinutes < nextStart) {
+                currentShow = schedule[i];
+                break;
+            }
+        }
+        return currentShow;
+    }
+
+    // Update "Live Now" section
+    function updateLiveNow() {
+        const live = getCurrentLive();
+        const container = document.getElementById("live-now-content");
+        const link = document.getElementById("live-now-link");
+
+        if (live) {
+            container.innerHTML = `
+                <img src="${live.image}" alt="${live.title}" style="width: 100%; border-radius: 6px;">
+                <p style="margin-top: 8px;"><strong>${live.title}</strong></p>
+            `;
+            link.href = live.link;
+            link.style.display = "inline-block";
+        } else {
+            container.innerHTML = `<p>No live show at the moment.</p>`;
+            link.style.display = "none";
+        }
+    }
+
+    // Show schedule on the page
+    function renderScheduleList() {
+        const list = document.getElementById("schedule-list");
+        list.innerHTML = "";
+        Object.keys(weekSchedule).forEach(day => {
+            const li = document.createElement("li");
+            li.textContent = `${day}: ${weekSchedule[day]}`;
+            list.appendChild(li);
+        });
+    }
+
+    // Toggle edit form
+    document.getElementById("edit-schedule-btn").addEventListener("click", () => {
+        const form = document.getElementById("schedule-form");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+
+        // Pre-fill form with current values
+        Object.keys(weekSchedule).forEach(day => {
+            const input = form.querySelector(`[name="${day.toLowerCase()}"]`);
+            if (input) input.value = weekSchedule[day];
+        });
+    });
+
+    // Save form data to weekSchedule + DB
+    document.getElementById("schedule-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
+            const value = e.target[day].value;
+            if (value) weekSchedule[capitalize(day)] = value;
+        });
+        renderScheduleList();
+        saveSchedule(); // 🟢 Save to DB
+        document.getElementById("schedule-form").style.display = "none";
+    });
+
+    // Capitalize string (e.g., "monday" → "Monday")
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // 🚀 On page load
+    fetchSchedule();
+    updateLiveNow();
+    setInterval(updateLiveNow, 60000);
