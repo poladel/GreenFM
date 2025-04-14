@@ -343,6 +343,8 @@ function navigateMedia(direction) {
 
     // 🟢 Save schedule to MongoDB
     function saveSchedule() {
+        console.log("Sending weekSchedule:", weekSchedule); // 👈 Add this here
+
         fetch('/api/schedule', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -352,6 +354,8 @@ function navigateMedia(direction) {
         .then(data => {
             if (data.success) {
                 console.log("✅ Schedule saved!");
+            } else {
+                console.warn("⚠️ Schedule not saved properly:", data);
             }
         })
         .catch(err => console.error("Failed to save schedule:", err));
@@ -404,12 +408,17 @@ function navigateMedia(direction) {
     function renderScheduleList() {
         const list = document.getElementById("schedule-list");
         list.innerHTML = "";
-        Object.keys(weekSchedule).forEach(day => {
-            const li = document.createElement("li");
-            li.textContent = `${day}: ${weekSchedule[day]}`;
-            list.appendChild(li);
+    
+        const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    
+        validDays.forEach(day => {
+            if (weekSchedule[day]) {
+                const li = document.createElement("li");
+                li.textContent = `${day}: ${weekSchedule[day]}`;
+                list.appendChild(li);
+            }
         });
-    }
+    }    
 
     // Toggle edit form
     document.getElementById("edit-schedule-btn").addEventListener("click", () => {
@@ -427,9 +436,10 @@ function navigateMedia(direction) {
     document.getElementById("schedule-form").addEventListener("submit", (e) => {
         e.preventDefault();
         ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
-            const value = e.target[day].value;
-            if (value) weekSchedule[capitalize(day)] = value;
+            const value = e.target[day].value || ""; // ← always set something
+            weekSchedule[capitalize(day)] = value;
         });
+        
         renderScheduleList();
         saveSchedule(); // 🟢 Save to DB
         document.getElementById("schedule-form").style.display = "none";
