@@ -316,16 +316,7 @@ function navigateMedia(direction) {
 
 
 //right containers//
-    // LIVE SHOWS (TIME-BASED)
-    const schedule = [
-        { time: "10:00", title: "Morning Show", image: "/images/morning.jpg", link: "/live" },
-        { time: "12:00", title: "Campus News", image: "/images/news.jpg", link: "/live" },
-        { time: "14:00", title: "Midweek Mix", image: "/images/mix.jpg", link: "/live" },
-        { time: "16:00", title: "Green Hour", image: "/images/green.jpg", link: "/live" },
-        { time: "18:00", title: "Final Buzz", image: "/images/buzz.jpg", link: "/live" }
-    ];
-
-    // Initialize as empty — filled from DB
+   // Initialize as empty — filled from DB
     let weekSchedule = {};
 
     // 🟢 Fetch schedule from MongoDB
@@ -365,44 +356,50 @@ function navigateMedia(direction) {
     function parseTime(str) {
         const [h, m] = str.split(":").map(Number);
         return h * 60 + m;
-    }
+    }    
 
     // Determine current live show
     function getCurrentLive() {
         const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-        let currentShow = null;
-        for (let i = 0; i < schedule.length; i++) {
-            const showStart = parseTime(schedule[i].time);
-            const nextStart = schedule[i + 1] ? parseTime(schedule[i + 1].time) : 1440;
-
-            if (currentMinutes >= showStart && currentMinutes < nextStart) {
-                currentShow = schedule[i];
-                break;
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        const phTime = new Date(utc + 3600000 * 8);
+    
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const today = days[phTime.getDay()];
+        const currentMinutes = phTime.getHours() * 60 + phTime.getMinutes();
+    
+        if (!weekSchedule[today]) return null;
+    
+        const todaySchedule = weekSchedule[today].sort((a, b) => parseTime(a.start) - parseTime(b.start));
+    
+        for (let show of todaySchedule) {
+            const startMinutes = parseTime(show.start);
+            const endMinutes = parseTime(show.end);
+            if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                return show;
             }
         }
-        return currentShow;
-    }
+    
+        return null;
+    }    
 
     // Update "Live Now" section
     function updateLiveNow() {
         const live = getCurrentLive();
         const container = document.getElementById("live-now-content");
         const link = document.getElementById("live-now-link");
-
+    
         if (live) {
             container.innerHTML = `
-                <img src="${live.image}" alt="${live.title}" style="width: 100%; border-radius: 6px;">
-                <p style="margin-top: 8px;"><strong>${live.title}</strong></p>
+                <p style="margin: 0 0 8px;"><strong>${live.start} - ${live.end} | ${live.title}</strong></p>
             `;
-            link.href = live.link;
+            link.href = "/live";
             link.style.display = "inline-block";
         } else {
             container.innerHTML = `<p>No live show at the moment.</p>`;
             link.style.display = "none";
         }
-    }
+    }     
 
     // Show schedule on the page
     function renderScheduleList() {
@@ -417,7 +414,7 @@ function navigateMedia(direction) {
                 .sort((a, b) => parseTime(a.time) - parseTime(b.time))
                 .forEach(slot => {
                     const li = document.createElement("li");
-                    li.textContent = `${slot.time} - ${slot.title}`;
+                    li.textContent = `${slot.start} - ${slot.end} | ${slot.title}`;
                     list.appendChild(li);
                 });
         } else {
@@ -460,10 +457,11 @@ function navigateMedia(direction) {
             const slots = [];
     
             daySection.querySelectorAll('.slot').forEach(slotEl => {
-                const time = slotEl.querySelector('.slot-time').value;
+                const start = slotEl.querySelector('.slot-start').value;
+                const end = slotEl.querySelector('.slot-end').value;
                 const title = slotEl.querySelector('.slot-title').value;
-                if (time && title) {
-                    slots.push({ time, title });
+                if (start && end && title) {
+                    slots.push({ start, end, title });
                 }
             });
     
@@ -471,7 +469,7 @@ function navigateMedia(direction) {
         });
     
         return data;
-    }
+    }    
 
     document.querySelectorAll(".add-slot-btn").forEach(button => {
         button.addEventListener("click", () => {
@@ -479,7 +477,8 @@ function navigateMedia(direction) {
             const slot = document.createElement("div");
             slot.className = "slot";
             slot.innerHTML = `
-                <input type="time" class="slot-time" required>
+                <input type="time" class="slot-start" required>
+                <input type="time" class="slot-end" required>
                 <input type="text" class="slot-title" placeholder="Show Title" required>
                 <button type="button" class="remove-slot-btn">✖</button>
             `;
@@ -492,6 +491,8 @@ function navigateMedia(direction) {
     });    
 
     // 🚀 On page load
-    fetchSchedule();
-    updateLiveNow();
-    setInterval(updateLiveNow, 60000);
+    fetchSchedule().then(() => {
+        updateLiveNow();
+        setInterval(updateLiveNow, 60000); // Keep updating every minute
+    });
+    
