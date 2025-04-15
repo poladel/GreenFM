@@ -1,4 +1,3 @@
-
 <%- include('../partials/header.ejs') %>
 
     <div class="page-container">
@@ -10,6 +9,7 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
+                <% if (user && user.roles === 'Admin') { %>
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
                         <!-- New title input -->
@@ -36,9 +36,36 @@
                         </div>
                     </form>
                 </div>
-    
+                <% } %>
+   
                 <div id="posts-container">
                     <!-- Posts will be displayed here -->
+                    <div class="post">
+                        <% posts.forEach(post => { %>
+                        <div class="post-item">
+                            <div class="post-info">
+                                <p class="post-title"><strong><%= post.title %></strong></p>
+                                <p class="post-text"><%= post.text %></p>
+                                <div class="post-media">
+                                    <% if (post.media && post.media.length > 0) { %>
+                                        <% post.media.forEach(media => { %>
+                                            <img src="<%= media %>" class="post-media-img" alt="Post Media">
+                                        <% }) %>
+                                    <% } %>
+                                    <% if (post.video) { %>
+                                        <video src="<%= post.video %>" controls class="post-media-video"></video>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="post-actions">
+                                <% if (user && user.roles === 'Admin') { %>
+                                    <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
+                                    <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% }) %>
+                    </div>
                 </div>
 
                 <!-- Right Column (Live Now + Schedule) -->
@@ -56,7 +83,9 @@
                     <div class="schedule-container">
                         <div class="schedule-header">
                             <h3>Today's Lives</h3>
+                            <% if (user && user.roles === 'Admin') { %>
                             <button id="edit-schedule-btn" class="edit-button">Edit</button>
+                            <% } %>
                         </div>
                         <ul id="schedule-list"></ul>
 

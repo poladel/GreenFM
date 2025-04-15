@@ -32,12 +32,12 @@ const userSchema = new Schema({
         minlength: [5, 'Minimum of 5 Characters']
     },
     roles: {
-        User: {
-            type: [String],
-            default: ['User']
-        },
-        Admin: adminSchema, // Use the sub-schema for Admin
-        Staff: staffSchema  // Use the sub-schema for Staff
+        type: String,
+        default: 'User'
+    },
+    department: {
+        type: String,
+        default: '' // Optional field
     },
     password: {
         type: String,

@@ -141,7 +141,7 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
 // Fetch posts and display them
 async function loadPosts() {
     try {
-        const response = await fetch('/posts'); // Assuming this route fetches all posts
+        const response = await fetch('/posts'); // Fetch posts from the server
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -149,7 +149,7 @@ async function loadPosts() {
         const posts = await response.json();
         const container = document.getElementById('posts-container');
         
-        if (Array.isArray(posts)) {
+        if (Array.isArray(posts) && posts.length > 0) {
             container.innerHTML = posts.map(post => {
                 let mediaContent = '';
 
@@ -176,9 +176,11 @@ async function loadPosts() {
                 `;
             }).join('');
         } else {
-            console.error("Invalid posts data:", posts);
+            container.innerHTML = '<p>No posts available.</p>';
         }
     } catch (error) {
+        const container = document.getElementById('posts-container');
+        container.innerHTML = '<p>Failed to load posts. Please try again later.</p>';
         console.error('Failed to load posts:', error);
     }
 }
