@@ -298,7 +298,24 @@ function openMediaModal(src, type) {
 
     currentMediaIndex = currentMediaList.indexOf(src);
     modal.style.display = 'flex';
+
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
 }
+
+document.querySelector('.close-modal').addEventListener('click', () => {
+    const modal = document.getElementById('media-modal');
+    const modalVideo = document.getElementById('modal-video');
+
+    modal.style.display = 'none';
+
+    // Stop video if it's playing
+    modalVideo.pause();
+    modalVideo.currentTime = 0;
+
+    // Re-enable scrolling
+    document.body.style.overflow = '';
+});
 
 // Close modal
 document.querySelector('.close-modal').addEventListener('click', () => {
