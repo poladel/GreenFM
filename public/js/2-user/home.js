@@ -352,17 +352,17 @@ function navigateMedia(direction) {
         .catch(err => console.error("Failed to save schedule:", err));
     } 
 
-    // Show schedule on the page
+    // Show schedule on the page (used when page loads or when saving)
     function renderScheduleList() {
         const list = document.getElementById("schedule-list");
         list.innerHTML = "";
-    
+
         const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const today = days[new Date().getDay()];
-    
+
         if (weekSchedule[today]) {
             weekSchedule[today]
-                .sort((a, b) => parseTime(a.time) - parseTime(b.time))
+                .sort((a, b) => parseTime(a.start) - parseTime(b.start))
                 .forEach(slot => {
                     const li = document.createElement("li");
                     li.textContent = `${slot.start} - ${slot.end} | ${slot.title}`;
@@ -371,7 +371,7 @@ function navigateMedia(direction) {
         } else {
             list.innerHTML = "<li>No shows scheduled today.</li>";
         }
-    }    
+    }
 
     // Toggle edit form
     document.getElementById("edit-schedule-btn").addEventListener("click", () => {
@@ -379,9 +379,34 @@ function navigateMedia(direction) {
         form.style.display = form.style.display === "none" ? "block" : "none";
 
         // Pre-fill form with current values
-        Object.keys(weekSchedule).forEach(day => {
-            const input = form.querySelector(`[name="${day.toLowerCase()}"]`);
-            if (input) input.value = weekSchedule[day];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        days.forEach(day => {
+            const daySection = form.querySelector(`[data-day="${day}"]`);
+            const slotsContainer = daySection.querySelector('.slots');
+            slotsContainer.innerHTML = ''; // Clear any existing slots
+
+            // Check if there are any slots for this day and render them
+            if (weekSchedule[day] && weekSchedule[day].length > 0) {
+                weekSchedule[day].forEach(slot => {
+                    const slotElement = document.createElement("div");
+                    slotElement.className = "slot";
+                    slotElement.innerHTML = `
+                        <input type="time" class="slot-start" value="${slot.start}" required>
+                        <input type="time" class="slot-end" value="${slot.end}" required>
+                        <input type="text" class="slot-title" value="${slot.title}" placeholder="Show Title" required>
+                        <button type="button" class="remove-slot-btn">✖</button>
+                    `;
+                    slotsContainer.appendChild(slotElement);
+
+                    // Remove slot functionality
+                    slotElement.querySelector(".remove-slot-btn").addEventListener("click", () => {
+                        slotElement.remove();
+                    });
+                });
+            } else {
+                // If no slots for the day, you can add a default "No slots" message if needed
+                slotsContainer.innerHTML = '<p>No live shows scheduled</p>';
+            }
         });
     });
 
@@ -391,8 +416,8 @@ function navigateMedia(direction) {
         weekSchedule = gatherFormData();
         renderScheduleList();
         saveSchedule();
-        e.target.style.display = "none";
-    });    
+        e.target.style.display = "none"; // Hide form after saving
+    }); 
 
     // Capitalize string (e.g., "monday" → "Monday")
     function capitalize(str) {
@@ -403,10 +428,12 @@ function navigateMedia(direction) {
         const form = document.getElementById("schedule-form");
         const data = {};
     
+        // Loop through each day (Monday to Friday)
         ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
             const daySection = form.querySelector(`[data-day="${day}"]`);
             const slots = [];
     
+            // Gather all slots for this day
             daySection.querySelectorAll('.slot').forEach(slotEl => {
                 const start = slotEl.querySelector('.slot-start').value;
                 const end = slotEl.querySelector('.slot-end').value;
@@ -416,6 +443,7 @@ function navigateMedia(direction) {
                 }
             });
     
+            // Assign gathered slots to the respective day
             data[day] = slots;
         });
     
