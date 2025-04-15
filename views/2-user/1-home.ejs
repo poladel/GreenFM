@@ -84,23 +84,31 @@
                         <div class="schedule-header">
                             <h3>Today's Lives</h3>
                             <% if (user && user.roles === 'Admin') { %>
-                            <button id="edit-schedule-btn" class="edit-button">Edit</button>
+                                <button id="edit-schedule-btn" class="edit-button">Edit</button>
                             <% } %>
                         </div>
-                        <ul id="schedule-list"></ul>
-
-                        <!-- Editable Form (hidden by default) -->
-                        <form id="schedule-form" style="display: none;">
-                            <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
-                                <div class="schedule-day" data-day="<%= day %>">
-                                    <label><%= day %></label>
-                                    <div class="slots"></div>
-                                    <button type="button" class="add-slot-btn">+ Add Slot</button>
-                                </div>
-                            <% }); %>
-                            <button type="submit" class="save-schedule-button">Save</button>
-                        </form>
+                        <ul id="schedule-list">
+                            <% if (schedule && schedule.length > 0) { %>
+                                <% schedule.forEach(item => { %>
+                                    <li><%= item.start %> - <%= item.end %>: <%= item.title %></li>
+                                <% }) %>
+                            <% } else { %>
+                                <li>No schedule available.</li>
+                            <% } %>
+                        </ul>
                     </div>
+
+                    <!-- Editable Form (hidden by default) -->
+                    <form id="schedule-form" style="display: none;">
+                        <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                            <div class="schedule-day" data-day="<%= day %>">
+                                <label><%= day %></label>
+                                <div class="slots"></div>
+                                <button type="button" class="add-slot-btn">+ Add Slot</button>
+                            </div>
+                        <% }); %>
+                        <button type="submit" class="save-schedule-button">Save</button>
+                    </form>
                 </div>
 
                 <div id="media-modal" class="media-modal">
