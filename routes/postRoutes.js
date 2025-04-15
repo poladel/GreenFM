@@ -16,4 +16,7 @@ router.put('/post/:id', requireAuth, postController.updatePost);
 // Route to delete a post
 router.delete('/post/:id', requireAuth, postController.deletePost);
 
+// Toggle like
+router.post('/post/:id/like', requireAuth, postController.toggleLike);
+
 module.exports = router;

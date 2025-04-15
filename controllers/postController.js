@@ -139,11 +139,36 @@ const deletePost = async (req, res) => {
     }
 };
 
+const toggleLike = async (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    try {
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ error: 'Post not found' });
+
+        const hasLiked = post.likes.includes(userId);
+
+        if (hasLiked) {
+            post.likes.pull(userId); // Remove like
+        } else {
+            post.likes.push(userId); // Add like
+        }
+
+        await post.save();
+
+        res.json({ success: true, liked: !hasLiked, likeCount: post.likes.length });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to toggle like' });
+    }
+};
+
 module.exports = {
     upload,
     createPost,
     getAllPosts,
     updatePost,
     deletePost,
-    getPublicIdFromUrl
+    getPublicIdFromUrl,
+    toggleLike
 };

@@ -85,6 +85,11 @@
                                 </div>
                             </div>
                             <div class="post-actions">
+                                <% if (user) { %>
+                                    <button onclick="toggleLike('<%= post._id %>')" class="like-btn" id="like-btn-<%= post._id %>">
+                                        ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
+                                    </button>
+                                <% } %>
                                 <% if (user && user.roles === 'Admin') { %>
                                     <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
                                     <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>

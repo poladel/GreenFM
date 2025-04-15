@@ -261,6 +261,30 @@ async function deletePost(postId) {
     }
 }
 
+//----------Like Function----------//
+async function toggleLike(postId) {
+    try {
+        const response = await fetch(`/post/${postId}/like`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            const likeCountEl = document.getElementById(`like-count-${postId}`);
+            likeCountEl.textContent = data.likeCount;
+
+            const likeBtn = document.getElementById(`like-btn-${postId}`);
+            likeBtn.style.color = data.liked ? 'red' : 'black';
+        } else {
+            alert(data.error || 'Failed to like post');
+        }
+    } catch (err) {
+        alert('Error liking post');
+        console.error(err);
+    }
+}
+
 //----------Media Modal----------//
 let currentMediaIndex = 0;
 let currentMediaList = [];
