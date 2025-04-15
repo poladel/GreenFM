@@ -109,6 +109,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   result: {
     type: String,
     required: false,
+    default: "Pending",
   },
 }, {
   timestamps: true,
