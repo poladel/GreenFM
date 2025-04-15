@@ -8,7 +8,7 @@ const router = express.Router();
 
 // Define the routes for each 'user' section with dynamic titles
 const userRoutes = [
-    { path: '/Live', view: '2-user/2-live', pageTitle: 'Live',  headerTitle: 'LIVE'},
+    { path: '/Live', view: '2-user/2-live', pageTitle: 'Live',  headerTitle: 'LIVE', cssFile: 'css/live.css'},
     { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM', cssFile: 'css/forum.css'},
     { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST', cssFile: 'css/playlist.css' },
