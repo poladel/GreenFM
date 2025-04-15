@@ -1,46 +1,52 @@
 <%- include('../partials/header.ejs') %>
-
 <div class="page-container">
     <div class="content-wrap">
         <div class="container">
             <%- include('../partials/nav.ejs') %>
             <%- include('../partials/menu.ejs') %>
 
-            <!-------------------- POST COMPONENT -------------------->
-            <div class="post-container">
-                <textarea class="post-textbox" placeholder="Write something..."></textarea>
-                <div class="post-options">
-                    <button class="post-option-button">
-                        <img src="../img/image.png" alt="Add Image" class="option-icon">
-                    </button>
-                    <button class="post-option-button">
-                        <img src="../img/document.png" alt="Add Document" class="option-icon">
-                    </button>
-                    <button type="button" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
+
+                <h2 class="forum-title">Community Forum</h2>
+                
+                <form id="post-form" class="post-container">
+                    <input type="text" id="post-title" class="post-title-input" placeholder="Post title...">
+                    <textarea class="post-textbox" id="post-content" placeholder="Write something..."></textarea>
+                    
+                    <div class="post-options">
+                        <button type="button" id="add-image-button" class="post-option-button">
+                            <img src="../img/image.png" alt="Add Image" class="option-icon">
+                            <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
+                        </button>
+                        <button type="button" id="add-video-button" class="post-option-button">
+                            <img src="../img/video.png" alt="Add Video" class="option-icon">
+                            <input type="file" id="video-input" accept="video/*" style="display: none;">
+                        </button>
+                        <button type="button" id="add-file-button" class="post-option-button">
+                            <img src="../img/document.png" alt="Add Document" class="option-icon">
+                            <input type="file" id="file-input" style="display: none;">
+                        </button>
+                        
+                        <div id="preview-container" class="preview-container"></div>
+                        
+                        <button type="submit" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
+                    </div>
+                </form>
+
+                <div id="posts-container" class="posts-container">
+                    <div class="loading-posts">Loading posts...</div>
                 </div>
             </div>
-
-            <!-- Modal for post confirmation -->
-            <div id="loginPopup" class="modal" style="display:none;">
-                <div class="modal-content">
+            
+            <!-- Image preview modal -->
+            <div id="imagePreviewModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 90%; max-height: 90%;">
                     <span class="close-button">&times;</span>
-                    <p>Please sign in to continue.</p>
-                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
-                        <button type="submit">Log In</button>
-                    </a>
+                    <img id="previewed-image" src="" style="max-width: 100%; max-height: 80vh;">
                 </div>
             </div>
-
         </div>
     </div>
-
-    <!-------------------- FOOTER -------------------->
     <%- include('../partials/footer.ejs') %>
 </div>
 
 <script src="js/2-user/forum.js"></script>
-
-
-
-</body>
-</html>
