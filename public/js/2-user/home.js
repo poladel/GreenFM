@@ -1,3 +1,10 @@
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
 document.getElementById('add-image-button').addEventListener('click', () => {
     document.getElementById('image-input').click();
 });
@@ -98,43 +105,32 @@ function removeFile(file, type, previewElement) {
 }
 
 // Handle form submission
-document.getElementById('post-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    const titleValue = document.getElementById('post-title').value.trim();
-    const textValue = document.querySelector('.post-textbox').value.trim();
-
-    formData.append('title', titleValue);
-    formData.append('text', textValue);
-
-    const mediaInput = document.getElementById('image-input');
-    for (let file of mediaInput.files) {
-        formData.append('media', file);
-    }
-
+document.getElementById('post-form').addEventListener('submit', function (e) {
+    const imageInput = document.getElementById('image-input');
     const videoInput = document.getElementById('video-input');
-    if (videoInput.files.length > 0) {
-        formData.append('video', videoInput.files[0]);
+
+    // Check number of images
+    if (imageInput.files.length > 6) {
+        e.preventDefault();
+        showToast("You can upload a maximum of 6 images.");
+        return;
     }
 
-    try {
-        const response = await fetch('/post', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Post uploaded successfully!');
-            loadPosts();
-            document.getElementById('post-form').reset();
-            document.getElementById('preview-container').innerHTML = ''; 
-        } else {
-            alert(result.error || 'Failed to post');
+    // Check file sizes (20MB = 20 * 1024 * 1024)
+    for (let file of imageInput.files) {
+        if (file.size > 20 * 1024 * 1024) {
+            e.preventDefault();
+            showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
+            return;
         }
-    } catch (error) {
-        alert("Something went wrong!");
+    }
+
+    for (let file of videoInput.files) {
+        if (file.size > 20 * 1024 * 1024) {
+            e.preventDefault();
+            showToast(`Video "${file.name}" exceeds the 20MB size limit.`);
+            return;
+        }
     }
 });
 
@@ -266,7 +262,6 @@ async function deletePost(postId) {
 }
 
 //----------Media Modal----------//
-
 let currentMediaIndex = 0;
 let currentMediaList = [];
 

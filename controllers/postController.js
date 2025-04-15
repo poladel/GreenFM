@@ -15,7 +15,10 @@ const storage = new CloudinaryStorage({
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+    storage,
+    limits: { fileSize: 20 * 1024 * 1024 } // 20MB
+});
 
 // Handle post creation
 const createPost = async (req, res) => {
