@@ -14,4 +14,5 @@ const postSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false }
 });
 
+
 module.exports = mongoose.model('ForumPost', postSchema, 'ForumPosts');

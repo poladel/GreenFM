@@ -113,6 +113,8 @@ const upload = multer({
 mongoose.set('strictQuery', false);
 connectDB();
 
+
+
 // Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, '/public')));
 
