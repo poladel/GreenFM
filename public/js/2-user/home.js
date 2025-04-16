@@ -105,32 +105,66 @@ function removeFile(file, type, previewElement) {
 }
 
 // Handle form submission
-document.getElementById('post-form').addEventListener('submit', function (e) {
+document.getElementById('post-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
     const imageInput = document.getElementById('image-input');
     const videoInput = document.getElementById('video-input');
+    const titleValue = document.getElementById('post-title').value.trim();
+    const textValue = document.querySelector('.post-textbox').value.trim();
 
     // Check number of images
     if (imageInput.files.length > 6) {
-        e.preventDefault();
         showToast("You can upload a maximum of 6 images.");
         return;
     }
 
-    // Check file sizes (20MB = 20 * 1024 * 1024)
+    // Check image file sizes (20MB = 20 * 1024 * 1024)
     for (let file of imageInput.files) {
         if (file.size > 20 * 1024 * 1024) {
-            e.preventDefault();
             showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
             return;
         }
     }
 
-    for (let file of videoInput.files) {
-        if (file.size > 20 * 1024 * 1024) {
-            e.preventDefault();
-            showToast(`Video "${file.name}" exceeds the 20MB size limit.`);
+    // Check video file size (20MB = 20 * 1024 * 1024)
+    if (videoInput.files.length > 0) {
+        const videoFile = videoInput.files[0];
+        if (videoFile.size > 20 * 1024 * 1024) {
+            showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
             return;
         }
+    }
+
+    const formData = new FormData();
+    formData.append('title', titleValue);
+    formData.append('text', textValue);
+
+    for (let file of imageInput.files) {
+        formData.append('media', file);
+    }
+
+    if (videoInput.files.length > 0) {
+        formData.append('video', videoInput.files[0]);
+    }
+
+    try {
+        const response = await fetch('/post', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Post uploaded successfully!');
+            loadPosts();
+            document.getElementById('post-form').reset();
+            document.getElementById('preview-container').innerHTML = '';
+        } else {
+            alert(result.error || 'Failed to post');
+        }
+    } catch (error) {
+        alert("Something went wrong!");
     }
 });
 
@@ -141,10 +175,10 @@ async function loadPosts() {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const posts = await response.json();
         const container = document.getElementById('posts-container');
-        
+
         if (Array.isArray(posts) && posts.length > 0) {
             container.innerHTML = posts.map(post => {
                 let mediaContent = '';
