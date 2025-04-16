@@ -10,22 +10,77 @@
 
                 <!-------------------- CONTENTS START --------------------> 
                 <form class="manage-account-form">
+                  <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="<%= user.username %>" disabled>
+                    <div class="username-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<%= user.email %>" disabled>
+                    <div class="email-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" value="<%= user.lastName %>" disabled>
+                    <div class="lastName-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" value="<%= user.firstName %>" disabled>
+                    <div class="firstName-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="middleInitial">Middle Initial</label>
+                    <input type="text" id="middleInitial" name="middleInitial" value="<%= user.middleInitial %>" disabled>
+                    <div class="middleInitial-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="suffix">Suffix</label>
+                    <input type="text" id="suffix" name="suffix" value="<%= user.suffix %>" disabled>
+                    <div class="suffix-error"></div>
+                  </div>
+
+                  <% if (user.dlsuD) { %>
+                    <div class="form-group">
+                      <label for="dlsudEmail">DLSU-D Email</label>
+                      <input type="text" id="dlsudEmail" name="dlsudEmail" value="<%= user.dlsudEmail %>" disabled>
+                      <div class="dlsudEmail-error"></div>
+                    </div>
 
                     <div class="form-group">
-                      <label for="username">Username</label>
-                      <input type="text" id="username" name="username" required>
-                      <div class="username-error"></div>
-                    </div>
+                      <label for="studentNumber">Student Number</label>
+                      <input type="text" id="studentNumber" name="studentNumber" value="<%= user.studentNumber %>" disabled>
+                      <div class="studentNumber-error"></div>
+                    </div> 
+                  <% } %>       
+                
               
-                    <div class="form-group">
-                      <label for="password">Password</label>
-                      <input type="password" id="password" name="password" required>
-                      <div class="password-error"></div>
-                    </div>
-              
-                    <input type="hidden" name="redirect" value="<%= redirectUrl %>">
-                    <button type="submit" class="login-button">Log in</button>
-                  </form>
+                  <button type="button" class="login-button">Edit</button>
+                </form>
+
+              </br>
+
+                <form class="change-password-form">
+                  <div class="form-group">
+                    <label for="password">Old Password</label>
+                    <input type="password" id="password" name="password" disabled>
+                    <div class="password-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" disabled>
+                    <div class="newPassword-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" disabled>
+                    <div class="confirmNewPassword-error"></div>
+                  </div>
+
+                  <button type="button" class="login-button">Edit</button>
+                </form>
                 
             </div>
         </div>
@@ -34,5 +89,6 @@
         <%- include('../partials/footer.ejs') %>
         
     </div>
+    <script src="/js/3-logreg/manage-account.js"></script>
 </body>
 </html>

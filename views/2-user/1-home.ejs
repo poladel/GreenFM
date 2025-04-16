@@ -1,6 +1,32 @@
-
 <%- include('../partials/header.ejs') %>
+<div id="toast" class="toast"></div>
 
+<style>
+.toast {
+  visibility: hidden;
+  min-width: 200px;
+  margin-left: -100px;
+  background-color: #e74c3c;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  bottom: 30px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.5s ease, bottom 0.5s ease;
+}
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px;
+}
+</style>
+
+<body>
     <div class="page-container">
         <div class="content-wrap">
             <div class="container">
@@ -10,6 +36,7 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
+                <% if (user && user.roles === 'Admin') { %>
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
                         <!-- New title input -->
@@ -36,9 +63,109 @@
                         </div>
                     </form>
                 </div>
-    
+                <% } %>
+   
                 <div id="posts-container">
                     <!-- Posts will be displayed here -->
+                    <% posts.forEach(post => { %>
+                        <div class="post"> <!-- Move the class here -->
+                            <div class="post-item">
+                                <div class="post-info">
+                                    <p class="post-title"><strong><%= post.title %></strong></p>
+                                    <p class="post-text"><%= post.text %></p>
+                                    <div class="post-media">
+                                        <% if (post.media && post.media.length > 0) { %>
+                                            <% post.media.forEach(media => { %>
+                                                <img src="<%= media %>" class="post-media-img" alt="Post Media">
+                                            <% }) %>
+                                        <% } %>
+                                        <% if (post.video) { %>
+                                            <video src="<%= post.video %>" controls class="post-media-video"></video>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                <div class="post-actions">
+                                    <% if (user) { %>
+                                        <button onclick="toggleLike('<%= post._id %>')" class="like-btn" id="like-btn-<%= post._id %>">
+                                            ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
+                                        </button>
+                                    <% } %>
+                                    <% if (user && user.roles === 'Admin') { %>
+                                        <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
+                                        <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
+                                    <% } %>
+                                </div>
+                                <div class="post-comments">
+                                    <% if (user) { %>
+                                        <form onsubmit="submitComment(event, '<%= post._id %>')">
+                                            <input type="text" class="comment-input" placeholder="Write a comment..." required>
+                                            <button type="submit" class="comment-btn">Comment</button>
+                                        </form>
+                                    <% } %>
+                                    <div class="comment-list" id="comments-<%= post._id %>">
+                                        <% post.comments && post.comments.forEach(comment => { %>
+                                            <div class="comment">
+                                                <strong><%= comment.username %>:</strong> <%= comment.text %>
+                                            </div>
+                                        <% }) %>
+                                    </div>
+                                </div>                                
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>                
+
+                <!-- Right Column (Live Now + Schedule) -->
+                <div class="right-sidebar">
+                    <!-- Live Now! -->
+                    <div class="live-now-container">
+                        <h3>Live Now!</h3>
+                        <div id="live-now-content">
+                            <!-- Dynamic content filled by JS -->
+                        </div>
+                        <a id="live-now-link" href="/live" class="go-live-button">GO TO LIVE</a>
+                    </div>
+
+                    <!-- Schedule -->
+                    <div class="schedule-container">
+                        <div class="schedule-header">
+                            <h3>Today's Lives</h3>
+                            <% if (user && user.roles === 'Admin') { %>
+                                <button id="edit-schedule-btn" class="edit-button">Edit</button>
+                            <% } %>
+                        </div>
+                        <ul id="schedule-list">
+                            <% if (schedule && schedule.length > 0) { %>
+                                <% schedule.forEach(item => { %>
+                                    <li><%= item.start %> - <%= item.end %>: <%= item.title %></li>
+                                <% }) %>
+                            <% } else { %>
+                                <li>No schedule available.</li>
+                            <% } %>
+                        </ul>
+                    </div>
+
+                    <!-- Editable Form (hidden by default) -->
+                    <form id="schedule-form" style="display: none;">
+                        <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                            <div class="schedule-day" data-day="<%= day %>">
+                                <label><%= day %></label>
+                                <div class="slots"></div>
+                                <button type="button" class="add-slot-btn">+ Add Slot</button>
+                            </div>
+                        <% }); %>
+                        <button type="submit" class="save-schedule-button">Save</button>
+                    </form>
+                </div>
+
+                <div id="media-modal" class="media-modal">
+                    <span class="close-modal">&times;</span>
+                    <div class="modal-content">
+                        <button class="nav-arrow left-arrow">&#10094;</button>
+                        <img id="modal-image" class="modal-media" style="display: none;">
+                        <video id="modal-video" class="modal-media" controls style="display: none;"></video>
+                        <button class="nav-arrow right-arrow">&#10095;</button>
+                    </div>
                 </div>
     
             </div>

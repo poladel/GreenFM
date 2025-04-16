@@ -348,6 +348,11 @@ input[type="email"] {
     gap: 10px; /* Space between inputs and button */
 }
 
+button:disabled {
+    pointer-events: none; /* Ensure the button is not clickable */
+    opacity: 0.5; /* Optional: visually indicate the button is disabled */
+}
+
 /* Media Queries */
 @media screen and (min-width: 1px) and (max-width: 200px) {
     .form-title-container {

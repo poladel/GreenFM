@@ -124,14 +124,19 @@ app.set('view engine', 'ejs');
 // Define your routes
 const root = require('./routes/root');
 const userRoutes = require('./routes/user-routes');
+const adminRoutes = require('./routes/admin-routes');
 const authRoutes = require('./routes/authRoutes');
 const { checkUser } = require('./middleware/authMiddleware');
+const postRoutes = require('./routes/postRoutes');
 const joinGFMRoutes = require('./routes/joinGFMRoutes');
 const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
+const accountRoutes = require('./routes/accountRoutes');
+const blocktimerRoutes = require('./routes/blocktimerRoutes');
 const contactRoutes = require('./routes/contactRoutes');
-const postRoutes = require('./routes/postRoutes');
+const manageRoutes = require('./routes/manageRoutes');
+const liveRoutes = require('./routes/liveRoutes');
 
 const ForumPost = require('./models/ForumPost');
 
@@ -298,13 +303,19 @@ app.use((err, req, res, next) => {
 app.get('*', checkUser);
 app.use(root);
 app.use(userRoutes);
+app.use(adminRoutes);
 app.use(authRoutes);
+app.use(postRoutes);
 app.use(joinGFMRoutes);
 app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
+app.use(accountRoutes);
+app.use(blocktimerRoutes);
 app.use(contactRoutes);
-app.use(postRoutes);
+app.use(manageRoutes);
+app.use('/live', liveRoutes);
+app.use('/api', require('./routes/scheduleRoutes'));
 
 // Handle feedback form submission
 app.post('/send', async (req, res) => {

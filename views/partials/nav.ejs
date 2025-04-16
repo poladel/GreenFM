@@ -16,6 +16,11 @@
 
     <div class="sidebar1">
         <ul class="menu">
+            <% if (user && user.roles === 'Admin') { %>
+                <li><a href="/ManageAccounts">MANAGE<br>ACCOUNTS</a></li>
+                <li><a href="/BlocktimerApplication">BLOCKTIMER<br>APPLICATION</a></li>
+                <li><a href="/StaffApplication">STAFF<br>APPLICATION</a></li>
+            <% } else { %>
             <li>
                 <% if (user) { %>
                     <% if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
@@ -25,8 +30,9 @@
                     <% } else { %>
                         <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
                     <% } %>
-                <% } else { %>
-                    <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } else { %>  
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>
             </li>
             <li>
@@ -39,9 +45,11 @@
                         <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                     <% } %>
                 <% } else { %>
-                    <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinGFM" id="joingreenfm-link">JOIN<br>GREEN FM</a>
                 <% } %>
             </li>
+            <% } %>
         </ul>
     </div>
 

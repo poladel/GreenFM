@@ -1,9 +1,5 @@
 /* Form Container */
-.form-title-container {
-    background-color: #ffffff;
-    padding: 2px;
-    text-align: left;
-    margin-top: 2vh;
+.blocktimerForm2-title-container {
     position: fixed;
     background-color: #ffffff;
     padding: 2px;
@@ -224,10 +220,8 @@
     color: #797979;
     font-size: 11px;
     max-height: 3vw;
-}
-
-.schedule-table .schedulebtn:hover {
-    background-color: #d1d1d1;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .schedule-table button {
@@ -243,6 +237,16 @@
 
 .schedule-table button:hover {
     background-color: #145A32;
+}
+
+.schedule-table .availablebtn:disabled {
+    background-color: #e7e7e7;
+    border: 2px solid #1E8449;
+    color: #1E8449;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: not-allowed;
+    pointer-events: none; /* Ensure the button is not clickable */
 }
 
 /* Style for Station Sign On/Off and Angelus rows */

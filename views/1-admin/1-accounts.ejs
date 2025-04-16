@@ -1,0 +1,125 @@
+<%- include('../partials/header.ejs') %>
+
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
+
+                    <!-------------------- HEADER MENUS -------------------->
+                    <%- include('../partials/menu.ejs') %>
+
+                        <!-------------------- CONTENTS START -------------------->
+                        <div class="user-table-container">
+                            <h3>All Users</h3>
+                            <div class="search-container">
+                                <input type="text" id="user-search" placeholder="Search Account">
+                            </div>
+                            <table id="user-table" class="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Last Name</th>
+                                        <th>First Name</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be dynamically populated using JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <form class="manage-account-form">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" readOnly>
+                                <div class="username-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" readOnly>
+                                <div class="email-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" readOnly>
+                                <div class="lastName-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" readOnly>
+                                <div class="firstName-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="middleInitial">Middle Initial</label>
+                                <input type="text" id="middleInitial" name="middleInitial" readOnly>
+                                <div class="middleInitial-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="suffix">Suffix</label>
+                                <input type="text" id="suffix" name="suffix" readOnly>
+                                <div class="suffix-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dlsudEmail">DLSUD Email</label>
+                                <input type="text" id="dlsudEmail" name="dlsudEmail" readOnly>
+                                <div class="dlsudEmail-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentNumber">Student Number</label>
+                                <input type="text" id="studentNumber" name="studentNumber" readOnly>
+                                <div class="studentNumber-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="roles">Role</label>
+                                <select id="roles" name="roles" disabled>
+                                    <option value="" disabled selected>User Role</option> <!-- Default unselectable value -->
+                                    <option value="User">User</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Staff">Staff</option>
+                                </select>
+                                <div class="roles-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <select id="department" name="department" disabled>
+                                    <option value="" disabled selected>User Department</option> <!-- Default unselectable value -->
+                                    <option value="News and Public Affairs">News and Public Affairs</option>
+                                    <option value="Music and Entertainment">Music and Entertainment</option>
+                                    <option value="Operations and Logistics">Operations and Logistics</option>
+                                    <option value="Creatives and Promotions">Creatives and Promotions</option>
+                                    <option value="Internal Affairs">Internal Affairs</option>
+                                    <option value="External Affairs">External Affairs</option>
+                                </select>
+                                <div class="department-error"></div>
+                            </div>
+
+                            <button type="button" class="cancel-button" disabled>Cancel</button>
+                            <button type="button" class="submit-button" disabled>Submit</button>
+                        </form>
+
+                        </br>
+
+
+            </div>
+        </div>
+
+        <!-------------------- FOOTER -------------------->
+        <%- include('../partials/footer.ejs') %>
+
+    </div>
+    <script src="/js/1-admin/accounts.js"></script>
+    </body>
+
+    </html>

@@ -173,7 +173,7 @@ module.exports.register_post = async (req, res) => {
 
 // Additional User Info Submission
 module.exports.additional_info_post = async (req, res) => {
-    const { lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber} = req.body;
+    const { lastName, firstName, middleInitial, suffix, dlsuD, dlsudEmail, studentNumber} = req.body;
 
     // Check if registrationData exists in session
     if (!req.session.registrationData) {
@@ -195,6 +195,7 @@ module.exports.additional_info_post = async (req, res) => {
             lastName,
             firstName,
             middleInitial: middleInitial || '',
+            suffix: suffix || '',
             dlsuD: dlsuD === 'true' || dlsuD === true,
             dlsudEmail,
             studentNumber,
@@ -246,21 +247,30 @@ module.exports.login_post = async (req, res) => {
         // Set refresh token in cookie
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
-        // Check if user has completed both steps
-        const completedStep1 = user.completedJoinGFMStep1; // Adjust according to your user schema
-        const completedStep2 = user.completedJoinGFMStep2; // Adjust according to your user schema
-        let redirectUrl;
+        // Determine the correct redirect path based on user progress
+        let redirectUrl = redirect;
 
-        if (completedStep1 && completedStep2) {
-            // If the user has completed both steps, check if there is a redirect URL from the login request
-            redirectUrl = redirect || '/JoinGFM-Step3'; // Default to JoinGFM-Step3 if no redirect provided
-        } else if (completedStep1) {
-            // Fallback to query parameter if exists
-            redirectUrl = redirect || '/JoinGFM-Step2';
-        } else {
-            redirectUrl = redirect;
+        if (redirect === '/JoinBlocktimer') {
+            if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) {
+                redirectUrl = '/JoinBlocktimer-Step3';
+            } else if (user.completedBlocktimerStep1) {
+                redirectUrl = '/JoinBlocktimer-Step2';
+            } else {
+                redirectUrl = '/JoinBlocktimer-Step1';
+            }
         }
 
+        if (redirect === '/JoinGFM') {
+            if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) {
+                redirectUrl = '/JoinGFM-Step3';
+            } else if (user.completedJoinGFMStep1) {
+                redirectUrl = '/JoinGFM-Step2';
+            } else {
+                redirectUrl = '/JoinGFM-Step1';
+            }
+        }
+
+        // Return the redirect URL
         return res.status(200).json({ user: user._id, redirect: redirectUrl });
     } catch (err) {
         const errors = handleErrors(err);

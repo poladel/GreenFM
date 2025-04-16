@@ -73,18 +73,19 @@ module.exports.deleteSong = async (req, res) => {
 
         const song = await Playlist.findById(songId);
         if (!song) {
-            return res.json({ success: false, message: "Song not found" });
+            return res.status(404).json({ success: false, message: "Song not found" });
         }
 
-        if (song.user.email !== user.email) {
+        // Allow Admins to delete any song
+        if (user.roles !== 'Admin' && song.user.email !== user.email) {
             return res.status(403).json({ success: false, message: "Unauthorized" });
         }
 
         await Playlist.findByIdAndDelete(songId);
-        res.json({ success: true });
+        res.json({ success: true, message: "Song deleted successfully" });
     } catch (error) {
         console.error("Error deleting song:", error);
-        res.json({ success: false, message: "Error deleting song" });
+        res.status(500).json({ success: false, message: "Error deleting song" });
     }
 };
 

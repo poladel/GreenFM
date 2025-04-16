@@ -10,6 +10,18 @@
     margin-left: 3.8vw;
 }
 
+.change-password-form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 40vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 3.8vw;
+}
+
 .form-group {
     width: 95%;
     margin-left: 0;
@@ -41,6 +53,14 @@
     color: #888;
 }
 
+/* Style for disabled input fields */
+.form-group input:disabled {
+    background-color: #f5f5f5; /* Light gray background */
+    color: #888; /* Gray text color */
+    cursor: not-allowed; /* Change cursor to indicate non-editable */
+    border: 1px solid #ccc; /* Optional: Add a border to distinguish */
+}
+
 .username-error, .password-error {
     color: red;
     font-size: 12px;
@@ -62,5 +82,74 @@
 }
 
 .login-button:hover {
+    background-color: #00591F;
+}
+
+.user-table-container {
+    margin: 20px 3.8vw;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-table-container h3 {
+    margin-bottom: 15px;
+}
+
+.search-container {
+    margin-bottom: 15px;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th,
+.user-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.user-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    width: 95%;
+    justify-content: flex-end;
+}
+
+.cancel-button,
+.submit-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-button {
+    background-color: #888;
+    color: white;
+}
+
+.cancel-button:hover {
+    background-color: #666;
+}
+
+.submit-button {
+    background-color: #00722A;
+    color: white;
+}
+
+.submit-button:hover {
     background-color: #00591F;
 }

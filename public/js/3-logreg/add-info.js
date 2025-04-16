@@ -8,14 +8,15 @@ form2.addEventListener('submit', async (e) => {
     const lastName = form2.lastName.value;
     const firstName = form2.firstName.value;
     const middleInitial = form2.middleInitial.value || '';
-    const dlsuD = form2.dlsuD.checked;
+    const suffix = form2.suffix.value || '';
+    const dlsuD = document.getElementById('dlsuD').checked; // Check if dlsuD is selected
     const dlsudEmail = form2.dlsudEmail.value;
     const studentNumber = form2.studentNumber.value;
 
     try {
         const res = await fetch('/Register/Additional-Info', {
             method: 'POST',
-            body: JSON.stringify({ lastName, firstName, middleInitial, dlsuD, dlsudEmail, studentNumber }),
+            body: JSON.stringify({ lastName, firstName, middleInitial, suffix, dlsuD, dlsudEmail, studentNumber }),
             headers: { 'Content-Type': 'application/json' }
         });
         
@@ -23,18 +24,16 @@ form2.addEventListener('submit', async (e) => {
 
         // Handle success or error responses
         if (res.ok) {
-            // Handle successful response
             if (data.success) {
                 location.assign('/'); // Redirect to home page
             }
         } else {
-            // Handle error response
             alert(data.error); // Show alert with the error message
             window.location.href = '/Register'; // Redirect back to the Register page
         }
     } catch (err) {
         console.error('Error:', err);
-        alert('An unexpected error occurred. Please try again.'); // General error alert
+        alert('An unexpected error occurred. Please try again.');
         window.location.href = '/Register'; // Redirect back to the Register page
     }
 });
@@ -42,23 +41,39 @@ form2.addEventListener('submit', async (e) => {
 document.addEventListener("DOMContentLoaded", function () {
     /*--------------------------------- FROM DLSUD? ---------------------------------*/
     const dlsuDCheckbox = document.getElementById('dlsuD');
+    const dlsuDNoCheckbox = document.getElementById('dlsuDNo');
     const dlsudEmailContainer = document.getElementById('dlsudEmailContainer');
+    const dlsudEmailInput = document.querySelector('#dlsudEmail');
 
     // Function to toggle the visibility of the student number input
-    function toggleStudentNumberVisibility() {
+    function toggleOnStudentNumberVisibility() {
         if (dlsuDCheckbox.checked) {
             dlsudEmailContainer.style.display = 'block'; // Show input if checkbox is checked
+            dlsudEmailInput.required = true; // Make input required
         } else {
             dlsudEmailContainer.style.display = 'none'; // Hide input if checkbox is not checked
         }
     }
 
+    function toggleOffStudentNumberVisibility() {
+        if (dlsuDNoCheckbox.checked) {
+            dlsudEmailContainer.style.display = 'none';
+            dlsudEmailInput.required = false; // Show input if checkbox is checked
+        } else {
+            dlsudEmailContainer.style.display = 'block'; // Hide input if checkbox is not checked
+        }
+    }
+
     // Initial check to set visibility on page load
-    toggleStudentNumberVisibility();
+    toggleOnStudentNumberVisibility();
 
     // Add change event listener to the checkbox
     if (dlsuDCheckbox) {
-        dlsuDCheckbox.addEventListener('change', toggleStudentNumberVisibility);
+        dlsuDCheckbox.addEventListener('change', toggleOnStudentNumberVisibility);
+    }
+
+    if (dlsuDNoCheckbox) {
+        dlsuDNoCheckbox.addEventListener('change', toggleOffStudentNumberVisibility);
     }
 
     /*----------------------DLSUD EMAIL---------------------*/

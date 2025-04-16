@@ -41,7 +41,7 @@
                                 </div>                                
                             </div>
                             <div class="song-actions">
-                                <% if (user && user.email === song.user.email) { %>
+                                <% if (user && (user.email === song.user.email || user.roles === 'Admin')) { %>
                                     <button class="delete-btn" data-id="<%= song._id %>">❌</button>
                                 <% } %>
                                 <% if (user) { %>

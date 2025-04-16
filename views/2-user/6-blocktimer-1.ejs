@@ -17,59 +17,177 @@
                 <div class="circle circle-3">3</div>
             </div>                                            
 
-            <form id="blocktimerForm1">
-                <!-- FORMS START -->
-                <div class="forms-container">
-                    <div class="form-container1">
-                        <label>Type of Office/Organization</label>
-                        <div class="radio-group">
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Administration" required> Administration</label>
+                <form id="blocktimerForm1">
+                    <!-- FORMS START -->
+                        <div class="form-container1">
+                            <label>Type of Office/Organization</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Administration" required> Administration</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Department"> Department</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
+                                </div>
+                                <div class="radio-item">
+                                    <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
+                                </div>
+                            </div>                                                       
+                            <br>
+                            <label>Name of Office/Organization</label>
+                            <p class="formnote">Note: Please include abbreviated name</p>
+                            <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
+                            <br>
+                            <label>Proponent's Name</label>
+                            <div class="name-section">
+                                <input type="text" name="proponent.lastName" placeholder="Last Name" required>
+                                <input type="text" name="proponent.firstName" placeholder="First Name" required>
+                                <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
+                                <input type="text" name="proponent.suffix" class="middleinitial" placeholder="Suffix">
+                                <input type="text" name="proponent.cys" placeholder="CYS" >
                             </div>
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
+                            <br>
+                            <label>Co-Proponent's Name</label>
+                            <p class="formnote">If no co-proponent, check "N/A"</p>
+                            <div class="name-section">
+                                <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
+                                <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
+                                <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
+                                <input type="text" id="coProponentSuffix" name="coProponent.suffix" class="middleinitial" placeholder="Suffix">
+                                <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
                             </div>
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Department"> Department</label>
+                            <div class="checkbox-group">
+                                <label>
+                                    <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
+                                </label>
                             </div>
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
-                            </div>
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
-                            </div>
-                            <div class="radio-item">
-                                <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
-                            </div>
-                        </div>                                                       
-                        
-                        <br>
-                        <label>Name of Office/Organization</label>
-                        <p class="formnote">Note: Please include abbreviated name</p>
-                        <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
-                        
-                        <br>
-                        <label>Proponent's Name</label>
-                        <div class="name-section">
-                            <input type="text" name="proponent.lastName" placeholder="Last Name" required>
-                            <input type="text" name="proponent.firstName" placeholder="First Name" required>
-                            <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
-                            <input type="text" name="proponent.cys" placeholder="CYS">
                         </div>
 
-                        <br>
-                        <label>Co-Proponent's Name</label>
-                        <p class="formnote">If no co-proponent, check "N/A"</p>
-                        <div class="name-section">
-                            <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
-                            <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
-                            <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
-                            <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
+                    <!-- Form 2 -->
+                        <div class="form-container2">
+                            <div class="form-group">
+                                <label for="showTitle">Title of Show</label>
+                                <input type="text" id="showTitle" name="showDetails.title" required/>
+                            </div>
+
+                            <!-- Checkboxes -->
+                            <div class="form-group checkbox-group">
+                                <label>Type of Show</label>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
+                                    <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
+                                </div>
+                                <div class="checkbox-row">
+                                    <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
+                                    <input type="text" id="other-input" placeholder="Other" disabled="true" />
+                                </div>                                               
+                            </div>                          
+                        
+                            <div class="form-group">
+                                <label for="show-description">Brief Description of Show</label><br>
+                                <textarea id="show-description" name="showDetails.description" rows="4" cols="130" placeholder="Enter your answer" required></textarea>
+                            </div>
+                        
+                            <div class="form-group">
+                                <label for="show-objectives">Objective of Show</label>
+                                <textarea id="show-objectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
+                            </div>
                         </div>
-                        <div class="checkbox-group">
-                            <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
-                        </div>
-                    </div>
+
+                <!-- Form 3 -->
+                <div class="form-container3">
+                    <label>Name of Executive Producer</label>
+                            <div class="name-section">
+                                <input type="text" name="executiveProducer.lastName" placeholder="Last Name" required>
+                                <input type="text" name="executiveProducer.firstName" placeholder="First Name" required>
+                                <input type="text" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
+                                <input type="text" name="executiveProducer.suffix" class="middleinitial" placeholder="Suffix">
+                                <input type="text" name="executiveProducer.cys"placeholder="CYS">
+                            </div>
+
+                            <label>Name of Faculty Staff or Staff Adviser</label>
+                            <p class="formnote">For students only. If not applicable, check "N/A"</p>
+                            <div class="name-section">
+                                <input type="text" id="facultyStaffLastName" name="facultyStaff.lastName" placeholder="Last Name">
+                                <input type="text" id="facultyStaffFirstName" name="facultyStaff.firstName" placeholder="First Name">
+                                <input type="text" id="facultyStaffMi" name="facultyStaff.mi" class="middleinitial" placeholder="M.I.">
+                                <input type="text" id="facultyStaffSuffix" name="facultyStaff.suffix" class="middleinitial" placeholder="Suffix">
+                                <input type="text" id="facultyStaffDepartment" name="facultyStaff.department"placeholder="Department">
+                            </div>
+                            <div class="checkbox-group">
+                                <label>
+                                    <p><input type="checkbox" id="facultyStaffNotApplicable" name="facultyStaff.notApplicable"> Not Applicable</p>
+                                </label>
+                            </div>
+
+                            <label>Name of Host/s</label>
+                            <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
+                                This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
+
+                            <!-- Container for hosts, necessary for dynamic addition -->
+                            <div id="hosts-container">
+                                <div class="name-section host-input">
+                                    <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
+                                    <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
+                                    <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
+                                    <input type="text" name="hosts[0].suffix" class="middleinitial" placeholder="Suffix">
+                                    <input type="text" name="hosts[0].cys" placeholder="CYS">
+                                </div>
+                            </div>
+                            <button type="button" id="add-host" class="addbutton" disabled>+ Add Host</button><br><br>
+
+
+                            <label>Name of Technical Staff/s</label>
+                            <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
+                                technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
+
+                            <!-- Container for technical staff, necessary for dynamic addition -->
+                            <div id="technical-container">
+                                <div class="name-section technical-input">
+                                    <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
+                                    <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
+                                    <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
+                                    <input type="text" name="technicalStaff[0].suffix" class="middleinitial" placeholder="Suffix">
+                                    <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
+                                </div>
+                            </div>
+                            <button type="button" id="add-technical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
+
+
+                            <label>Name of Creative Staff</label>
+                            <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
+                                creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
+                            <div class="name-section">
+                                <input type="text" name="creativeStaff.lastName" placeholder="Last Name" required>
+                                <input type="text" name="creativeStaff.firstName" placeholder="First Name" required>
+                                <input type="text" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
+                                <input type="text" name="creativeStaff.suffix" class="middleinitial" placeholder="Suffix">
+                                <input type="text" name="creativeStaff.cys"placeholder="CYS">
+                            </div>
                 </div>
 
                 <!-- Contact Information -->
