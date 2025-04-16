@@ -163,6 +163,36 @@ const toggleLike = async (req, res) => {
     }
 };
 
+const addComment = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const { text } = req.body;
+
+        if (!text) {
+            return res.status(400).json({ error: 'Comment text is required.' });
+        }
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found.' });
+        }
+
+        const comment = {
+            userId: req.user._id,
+            username: req.user.username,
+            text
+        };
+
+        post.comments.push(comment);
+        await post.save();
+
+        res.status(200).json({ success: true, comment });
+    } catch (err) {
+        console.error('Error adding comment:', err);
+        res.status(500).json({ error: 'Failed to add comment.' });
+    }
+};
+
 module.exports = {
     upload,
     createPost,
@@ -170,5 +200,6 @@ module.exports = {
     updatePost,
     deletePost,
     getPublicIdFromUrl,
-    toggleLike
+    toggleLike,
+    addComment
 };

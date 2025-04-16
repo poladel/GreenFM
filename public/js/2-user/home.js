@@ -285,6 +285,43 @@ async function toggleLike(postId) {
     }
 }
 
+//------Comment Funtion-------//
+async function submitComment(event, postId) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const input = form.querySelector('.comment-input');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    try {
+        const res = await fetch(`/post/${postId}/comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const commentList = document.getElementById(`comments-${postId}`);
+            const newComment = document.createElement('div');
+            newComment.classList.add('comment');
+            newComment.innerHTML = `<strong>${result.comment.username}:</strong> ${result.comment.text}`;
+            commentList.appendChild(newComment);
+            input.value = '';
+        } else {
+            alert(result.error || 'Failed to post comment.');
+        }
+    } catch (err) {
+        console.error('Error posting comment:', err);
+        alert('Failed to post comment.');
+    }
+}
+
 //----------Media Modal----------//
 let currentMediaIndex = 0;
 let currentMediaList = [];
