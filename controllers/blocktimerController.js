@@ -22,3 +22,28 @@ module.exports.getSubmissionById = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch submission' });
     }
 };
+
+module.exports.patchSubmission = async (req, res) => {
+    try {
+        const submission = await ApplyBlocktimer.findById(req.params.id);
+        const { result } = req.body;
+
+        // Update only the fields provided
+        const updates = {};
+        if (result) updates.result = result;
+
+        const updatedSubmission = await ApplyBlocktimer.findByIdAndUpdate(submission, updates, {
+            new: true, // Return the updated document
+            runValidators: true // Ensure validation rules are applied
+        });
+
+        if (!updatedSubmission) {
+            return res.status(404).json({ error: 'Submission not found' });
+        }
+
+        res.json({ success: true, submission: updatedSubmission });
+    } catch (error) {
+        console.error('Error updating submission:', error);
+        res.status(500).json({ error: 'Failed to update submission' });
+    }
+};

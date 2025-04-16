@@ -7,13 +7,95 @@
 
             <!-- Tabs for Submissions and Schedule -->
             <div class="tabs-container">
-                <button class="tab-button active" data-tab="submissions-tab">Submissions</button>
-                <button class="tab-button" data-tab="schedule-tab">Schedule</button>
+                <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
+                <button class="tab-button" data-tab="submissions-tab">Submissions</button>
+                
             </div>
 
             <div class="tab-content">
+                <!-- Schedule Tab -->
+                <div id="schedule-tab" class="tab-pane active">
+                    <div class="schedule-container">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Monday</th>
+                                    <th>Tuesday</th>
+                                    <th>Wednesday</th>
+                                    <th>Thursday</th>
+                                    <th>Friday</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="time">9:10-9:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="9:10-9:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="9:10-9:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="9:10-9:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="9:10-9:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="9:10-9:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">10:00-10:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="10:00-10:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="10:00-10:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="10:00-10:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="10:00-10:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="10:00-10:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">11:00-11:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="11:00-11:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="11:00-11:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="11:00-11:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="11:00-11:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="11:00-11:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">12:01-12:55</td>
+                                    <td colspan="4"><button class="availablebtn">FM MIX</button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="12:01-12:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">1:00-1:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="1:00-1:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="1:00-1:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="1:00-1:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="1:00-1:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="1:00-1:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">2:00-2:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="2:00-2:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="2:00-2:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="2:00-2:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="2:00-2:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="2:00-2:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">3:00-3:55</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="3:00-3:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="3:00-3:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="3:00-3:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="3:00-3:55"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="3:00-3:55"></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="time">4:00-4:50</td>
+                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="4:00-4:50"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="4:00-4:50"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="4:00-4:50"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="4:00-4:50"></button></td>
+                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="4:00-4:50"></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Submissions Tab -->
-                <div id="submissions-tab" class="tab-pane active">
+                <div id="submissions-tab" class="tab-pane">
                     <div id="submissions-container">
                         <table class="submissions-table">
                             <thead>
@@ -131,7 +213,7 @@
 
                             <div>
                                 <label for="proponentSignature">Proponent Signature:</label>
-                                <img id="proponentSignature" name="proponentSignature" src="" alt="Proponent Signature" style="max-width: 100%; height: auto;">
+                                <img id="proponentSignature" name="proponentSignature" src="" alt="Proponent Signature" style="max-width: 15%; height: auto;  display: none;">
                             </div>
                             
                             <label for="preferredDay">Preferred Day:</label>
@@ -143,9 +225,9 @@
                             <div class="form-group">
                                 <label for="result">Result</label>
                                 <select id="result" name="result" disabled>
-                                    <option value="" disabled selected>Select Result</option> <!-- Default unselectable value -->
-                                    <option value="User">Accept</option>
-                                    <option value="Admin">Reject</option>
+                                    <option value="Pending" disabled selected>Pending</option> <!-- Default unselectable value -->
+                                    <option value="Accept">Accept</option>
+                                    <option value="Reject">Reject</option>
                                 </select>
                                 <div class="result-error"></div>
                             </div>
@@ -153,91 +235,7 @@
                             <button type="button" class="cancel-button" disabled>Cancel</button>
                             <button type="button" class="submit-button" disabled>Submit</button>
                         </form>
-                    </div>
-
-                    <!-- Form to populate submission details -->
-                    
-                </div>
-
-                <!-- Schedule Tab -->
-                <div id="schedule-tab" class="tab-pane">
-                    <div class="schedule-container">
-                        <table class="schedule-table">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Monday</th>
-                                    <th>Tuesday</th>
-                                    <th>Wednesday</th>
-                                    <th>Thursday</th>
-                                    <th>Friday</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="time">9:10-9:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="9:10-9:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="9:10-9:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="9:10-9:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="9:10-9:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="9:10-9:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">10:00-10:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="10:00-10:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="10:00-10:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="10:00-10:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="10:00-10:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="10:00-10:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">11:00-11:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="11:00-11:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="11:00-11:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="11:00-11:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="11:00-11:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="11:00-11:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">12:01-12:55</td>
-                                    <td colspan="4"><button class="availablebtn" disabled>FM MIX</button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="12:01-12:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">1:00-1:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="1:00-1:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="1:00-1:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="1:00-1:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="1:00-1:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="1:00-1:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">2:00-2:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="2:00-2:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="2:00-2:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="2:00-2:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="2:00-2:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="2:00-2:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">3:00-3:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="3:00-3:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="3:00-3:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="3:00-3:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="3:00-3:55" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="3:00-3:55" disabled></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">4:00-4:50</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="4:00-4:50" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="4:00-4:50" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="4:00-4:50" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="4:00-4:50" disabled></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="4:00-4:50" disabled></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    </div>                 
                 </div>
             </div>
         </div>

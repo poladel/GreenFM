@@ -102,7 +102,13 @@ async function selectSubmission(submissionId) {
             document.getElementById('FbLink-container').style.display = 'none'; // Properly hide the element
             document.getElementById('FbLink').value = ''; // Clear the value to avoid stale data
         }
-        document.getElementById('proponentSignature').src = submission.proponentSignature;
+        if (submission.proponentSignature) {
+            const proponentSignatureImg = document.getElementById('proponentSignature');
+            proponentSignatureImg.src = submission.proponentSignature;
+            proponentSignatureImg.style.display = 'block'; // Show the image
+        } else {
+            document.getElementById('proponentSignature').style.display = 'none'; // Hide the image
+        }
         document.getElementById('showTitle').value = submission.showDetails.title;
         document.getElementById('showType').value = submission.showDetails.type;
         document.getElementById('showDescription').value = submission.showDetails.description;
@@ -116,11 +122,55 @@ async function selectSubmission(submissionId) {
         // Enable the "Cancel" and "Submit" buttons
         document.querySelector('.cancel-button').disabled = false;
         document.querySelector('.submit-button').disabled = false;
+        
+        document.querySelector('.submit-button').dataset.submissionId = submissionId;
     } catch (error) {
         console.error('Error fetching submission details:', error);
         alert('Failed to load submission details.');
     }
 }
+
+async function updateSubmission(submissionId) {
+    const result = document.getElementById('result').value;
+
+    const updates = { result };
+
+    try {
+        const response = await fetch(`/submissions/${submissionId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Submission updated successfully!');
+            loadSubmissions(); // Reload the submissions table
+            clearFields(); // Clear the form fields
+        } else {
+            alert(result.error || 'Failed to update submission');
+        }
+    } catch (error) {
+        console.error('Error updating submission:', error);
+        alert('Failed to update submission');
+    }
+}
+
+// Add event listener to the "Submit" button
+document.querySelector('.submit-button').addEventListener('click', () => {
+    const submissionId = document.querySelector('.submit-button').dataset.submissionId;
+    if (submissionId) {
+        updateSubmission(submissionId);
+    } else {
+        alert('No submission selected');
+    }
+});
+
+document.querySelector('.cancel-button').addEventListener('click', () => {
+    clearFields();
+});
 
 // Load submissions on page load
 document.addEventListener('DOMContentLoaded', loadSubmissions);
@@ -137,4 +187,41 @@ document.querySelectorAll('.tab-button').forEach(button => {
         document.getElementById(button.dataset.tab).classList.add('active');
     });
 });
+
+function clearFields() {
+    // Clear all form fields
+    document.getElementById('organizationName').value = '';
+    document.getElementById('organizationType').value = '';
+    document.getElementById('proponentName').value = '';
+    document.getElementById('proponentCYS').value = '';
+    document.getElementById('coProponentName').value = '';
+    document.getElementById('coProponentCYS').value = '';
+    document.getElementById('executiveProducer').value = '';
+    document.getElementById('executiveProducerCYS').value = '';
+    document.getElementById('facultyStaff').value = '';
+    document.getElementById('facultyStaffDepartment').value = '';
+    document.getElementById('host-container').innerHTML = '';
+    document.getElementById('technicalStaff-container').innerHTML = '';
+    document.getElementById('creativeStaff').value = '';
+    document.getElementById('creativeStaffCYS').value = '';
+    document.getElementById('dlsudEmail').value = '';
+    document.getElementById('contactEmail').value = '';
+    document.getElementById('contactFbLink').value = '';
+    document.getElementById('FbLink').value = '';
+    document.getElementById('FbLink-container').style.display = 'none';
+    document.getElementById('proponentSignature').style.display = 'none';
+    document.getElementById('showTitle').value = '';
+    document.getElementById('showType').value = '';
+    document.getElementById('showDescription').value = '';
+    document.getElementById('showObjectives').value = '';
+    document.getElementById('preferredDay').value = '';
+    document.getElementById('preferredTime').value = '';
+
+    // Disable the "Cancel" and "Submit" buttons
+    document.querySelector('.cancel-button').disabled = true;
+    document.querySelector('.submit-button').disabled = true;
+
+    // Optionally, disable the form or reset any other state
+    document.getElementById('result').disabled = true;
+}
 

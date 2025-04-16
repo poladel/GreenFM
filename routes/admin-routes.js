@@ -6,7 +6,7 @@ const router = express.Router();
 // Define the routes for each 'user' section with dynamic titles
 const adminRoute = [
     { path: '/ManageAccounts', view: '1-admin/1-accounts', pageTitle: 'Manage Accounts',  headerTitle: 'MANAGE ACCOUNTS', cssFile: 'css/manage-account.css'},
-    { path: '/BlocktimerApplication', view: '1-admin/2-blocktimer', pageTitle: 'Blocktimer Applications',  headerTitle: 'BLOCKTIMER APPLICATIONS', cssFile: 'css/blocktimer-applications.css'}
+    { path: '/Blocktimer', view: '1-admin/2-blocktimer', pageTitle: 'Blocktimer',  headerTitle: 'BLOCKTIMER', cssFile: 'css/blocktimer-applications.css'}
 ];
 
 // Define the routes and render views with dynamic titles
