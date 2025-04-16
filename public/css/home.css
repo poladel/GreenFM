@@ -257,8 +257,8 @@
 /*--- right section ---*/
 .right-sidebar {
     position: absolute;
-    top: 8vw;
-    right: 2vw;
+    top: 6.5vw;
+    right: 1vw;
     width: 23vw;
     display: flex;
     flex-direction: column;
@@ -267,10 +267,11 @@
 
 .live-now-container,
 .schedule-container {
-    background-color: #f4f4f4;
+    background-color: #ffffff;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 3.3vw;
 }
 
 .live-now-container h3,
