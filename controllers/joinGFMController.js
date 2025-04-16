@@ -1,6 +1,5 @@
 const User = require('../models/User');
-const ApplyStaff = require('../models/ApplyStaff');
-const User = require('../models/User');
+const ApplyStaff = require('../models/ApplyStaff');``
 
 module.exports.joinGFM1_post = async (req, res) => {
     const {
