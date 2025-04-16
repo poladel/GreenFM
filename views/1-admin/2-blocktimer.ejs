@@ -1,248 +1,310 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-    <div class="content-wrap">
-        <div class="container">
-            <%- include('../partials/nav.ejs') %>
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
 
-            <!-- Tabs for Submissions and Schedule -->
-            <div class="tabs-container">
-                <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                <button class="tab-button" data-tab="submissions-tab">Submissions</button>
-                
-            </div>
+                    <!-- Tabs for Submissions and Schedule -->
+                    <div class="tabs-container">
+                        <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
+                        <button class="tab-button" data-tab="submissions-tab">Submissions</button>
 
-            <div class="tab-content">
-                <!-- Schedule Tab -->
-                <div id="schedule-tab" class="tab-pane active">
-                    <div class="schedule-container">
-                        <table class="schedule-table">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Monday</th>
-                                    <th>Tuesday</th>
-                                    <th>Wednesday</th>
-                                    <th>Thursday</th>
-                                    <th>Friday</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="time">9:10-9:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="9:10-9:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="9:10-9:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="9:10-9:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="9:10-9:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="9:10-9:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">10:00-10:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="10:00-10:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="10:00-10:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="10:00-10:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="10:00-10:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="10:00-10:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">11:00-11:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="11:00-11:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="11:00-11:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="11:00-11:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="11:00-11:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="11:00-11:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">12:01-12:55</td>
-                                    <td colspan="4"><button class="availablebtn">FM MIX</button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="12:01-12:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">1:00-1:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="1:00-1:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="1:00-1:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="1:00-1:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="1:00-1:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="1:00-1:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">2:00-2:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="2:00-2:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="2:00-2:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="2:00-2:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="2:00-2:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="2:00-2:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">3:00-3:55</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="3:00-3:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="3:00-3:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="3:00-3:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="3:00-3:55"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="3:00-3:55"></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="time">4:00-4:50</td>
-                                    <td><button type="button" class="availablebtn" data-day="Monday" data-time="4:00-4:50"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="4:00-4:50"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="4:00-4:50"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Thursday" data-time="4:00-4:50"></button></td>
-                                    <td><button type="button" class="availablebtn" data-day="Friday" data-time="4:00-4:50"></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
-                </div>
 
-                <!-- Submissions Tab -->
-                <div id="submissions-tab" class="tab-pane">
-                    <div id="submissions-container">
-                        <table class="submissions-table">
-                            <thead>
-                                <tr>
-                                    <th>Show Title</th>
-                                    <th>Organization</th>
-                                    <th>Preferred Schedule</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="submissions-table-body">
-                                <!-- Submissions will be dynamically loaded here -->
-                            </tbody>
-                        </table>
-
-                        <form id="submission-form">
-                            <h3>Submission Details</h3>
-                            <div>
-                                <label for="organizationName">Organization Name:</label>
-                                <input type="text" id="organizationName" name="organizationName" readonly>
+                    <div class="tab-content">
+                        <!-- Schedule Tab -->
+                        <div id="schedule-tab" class="tab-pane active">
+                            <div class="schedule-container">
+                                <table class="schedule-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Monday</th>
+                                            <th>Tuesday</th>
+                                            <th>Wednesday</th>
+                                            <th>Thursday</th>
+                                            <th>Friday</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="time">9:10-9:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="9:10-9:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="9:10-9:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="9:10-9:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="9:10-9:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="9:10-9:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">10:00-10:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="10:00-10:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="10:00-10:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="10:00-10:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="10:00-10:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="10:00-10:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">11:00-11:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="11:00-11:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="11:00-11:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="11:00-11:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="11:00-11:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="11:00-11:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">12:01-12:55</td>
+                                            <td colspan="4"><button class="availablebtn">FM MIX</button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="12:01-12:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">1:00-1:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="1:00-1:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="1:00-1:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="1:00-1:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="1:00-1:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="1:00-1:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">2:00-2:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="2:00-2:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="2:00-2:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="2:00-2:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="2:00-2:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="2:00-2:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">3:00-3:55</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="3:00-3:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="3:00-3:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="3:00-3:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="3:00-3:55"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="3:00-3:55"></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="time">4:00-4:50</td>
+                                            <td><button type="button" class="availablebtn" data-day="Monday"
+                                                    data-time="4:00-4:50"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
+                                                    data-time="4:00-4:50"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
+                                                    data-time="4:00-4:50"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Thursday"
+                                                    data-time="4:00-4:50"></button></td>
+                                            <td><button type="button" class="availablebtn" data-day="Friday"
+                                                    data-time="4:00-4:50"></button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-
-                            <div>
-                                <label for="organizationType">Organization Type:</label>
-                                <input type="text" id="organizationType" name="organizationType" readonly>
+                            <div id="scheduleModal" class="modal">
+                                <div class="modal-content">
+                                    <span class="close">&times;</span>
+                                    <form id="scheduleForm">
+                                        <h3>Schedule Details</h3>
+                                        <div>
+                                            <label for="title">Show Title:</label>
+                                            <input type="text" id="title" name="title" required>
+                                        </div>
+                                        <div>
+                                            <label for="description">Show Description:</label>
+                                            <textarea id="description" name="description" required></textarea>
+                                        </div>
+                                        <button id="saveButton" type="button">Save</button>
+                                        <button id="deleteButton" type="button" style="display: none;">Delete</button>
+                                    </form>
+                                </div>
                             </div>
+                        </div>
 
-                            <div>
-                                <label for="proponentName">Proponent Name:</label>
-                                <input type="text" id="proponentName" name="proponentName" readonly>
-                                
-                                <label for="proponentCYS">Proponent CYS:</label>
-                                <input type="text" id="proponentCYS" name="proponentCYS" readonly>
+                        <!-- Submissions Tab -->
+                        <div id="submissions-tab" class="tab-pane">
+                            <div id="submissions-container">
+                                <table class="submissions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Show Title</th>
+                                            <th>Organization</th>
+                                            <th>Preferred Schedule</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="submissions-table-body">
+                                        <!-- Submissions will be dynamically loaded here -->
+                                    </tbody>
+                                </table>
+
+                                <form id="submission-form">
+                                    <h3>Submission Details</h3>
+                                    <div>
+                                        <label for="organizationName">Organization Name:</label>
+                                        <input type="text" id="organizationName" name="organizationName" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="organizationType">Organization Type:</label>
+                                        <input type="text" id="organizationType" name="organizationType" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="proponentName">Proponent Name:</label>
+                                        <input type="text" id="proponentName" name="proponentName" readonly>
+
+                                        <label for="proponentCYS">Proponent CYS:</label>
+                                        <input type="text" id="proponentCYS" name="proponentCYS" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="coProponentName">Co-Proponent Name:</label>
+                                        <input type="text" id="coProponentName" name="coProponentName" readonly>
+
+                                        <label for="coProponentCYS">Co-Proponent CYS:</label>
+                                        <input type="text" id="coProponentCYS" name="coProponentCYS" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="showTitle">Show Title:</label>
+                                        <input type="text" id="showTitle" name="showTitle" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="showType">Show Type:</label>
+                                        <input type="text" id="showType" name="showType" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="showDescription">Show Description:</label>
+                                        <textarea id="showDescription" name="showDescription" readonly
+                                            rows="4"></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label for="showObjectives">Show Objectives:</label>
+                                        <textarea id="showObjectives" name="showObjectives" readonly
+                                            rows="4"></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label for="executiveProducer">Executive Producer Name:</label>
+                                        <input type="text" id="executiveProducer" name="executiveProducer" readonly>
+
+                                        <label for="executiveProducerCYS">Executive Producer CYS:</label>
+                                        <input type="text" id="executiveProducerCYS" name="executiveProducerCYS"
+                                            readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="CreativeStaff">Faculty Staff Name:</label>
+                                        <input type="text" id="facultyStaff" name="facultyStaff" readonly>
+
+                                        <label for="facultyStaffDepartment">Faculty Staff Department:</label>
+                                        <input type="text" id="facultyStaffDepartment" name="facultyStaffDepartment"
+                                            readonly>
+                                    </div>
+
+                                    <div id="host-container">
+                                        <!-- Host fields will be dynamically added here -->
+                                    </div>
+
+                                    <div id="technicalStaff-container">
+                                        <!-- Host fields will be dynamically added here -->
+                                    </div>
+
+                                    <div>
+                                        <label for="creativeStaff">Creative Staff Name:</label>
+                                        <input type="text" id="creativeStaff" name="creativeStaff" readonly>
+
+                                        <label for="creativeStaffCYS">Creative Staff CYS:</label>
+                                        <input type="text" id="creativeStaffCYS" name="creativeStaffCYS" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="dlsudEmail">DLSUD Email:</label>
+                                        <input type="text" id="dlsudEmail" name="dlsudEmail" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="contactEmail">Contact Email:</label>
+                                        <input type="text" id="contactEmail" name="contactEmail" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="contactFbLink">Contact FB Link:</label>
+                                        <input type="text" id="contactFbLink" name="contactFbLink" readonly>
+                                    </div>
+
+                                    <div id="FbLink-container">
+                                        <label for="FbLink">Crossposting FB Link:</label>
+                                        <input type="text" id="FbLink" name="FbLink" readonly>
+                                    </div>
+
+                                    <div>
+                                        <label for="proponentSignature">Proponent Signature:</label>
+                                        <img id="proponentSignature" name="proponentSignature" src=""
+                                            alt="Proponent Signature"
+                                            style="max-width: 15%; height: auto;  display: none;">
+                                    </div>
+
+                                    <label for="preferredDay">Preferred Day:</label>
+                                    <input type="text" id="preferredDay" name="preferredDay" readonly>
+
+                                    <label for="preferredTime">Preferred Time:</label>
+                                    <input type="text" id="preferredTime" name="preferredTime" readonly>
+
+                                    <div class="form-group">
+                                        <label for="result">Result</label>
+                                        <select id="result" name="result" disabled>
+                                            <option value="Pending" disabled selected>Pending</option>
+                                            <!-- Default unselectable value -->
+                                            <option value="Accept">Accept</option>
+                                            <option value="Reject">Reject</option>
+                                        </select>
+                                        <div class="result-error"></div>
+                                    </div>
+
+                                    <button type="button" class="cancel-button" disabled>Cancel</button>
+                                    <button type="button" class="submit-button" disabled>Submit</button>
+                                </form>
                             </div>
-                            
-                            <div>
-                                <label for="coProponentName">Co-Proponent Name:</label>
-                                <input type="text" id="coProponentName" name="coProponentName" readonly>
-
-                                <label for="coProponentCYS">Co-Proponent CYS:</label>
-                                <input type="text" id="coProponentCYS" name="coProponentCYS" readonly>
-                            </div>
-    
-                            <div>
-                                <label for="showTitle">Show Title:</label>
-                                <input type="text" id="showTitle" name="showTitle" readonly>
-                            </div>
-
-                            <div>
-                                <label for="showType">Show Type:</label>
-                                <input type="text" id="showType" name="showType" readonly>
-                            </div>
-
-                            <div>
-                                <label for="showDescription">Show Description:</label>
-                                <textarea id="showDescription" name="showDescription" readonly rows="4"></textarea>
-                            </div>
-
-                            <div>
-                                <label for="showObjectives">Show Objectives:</label>
-                                <textarea id="showObjectives" name="showObjectives" readonly rows="4"></textarea>
-                            </div>
-
-                            <div>
-                                <label for="executiveProducer">Executive Producer Name:</label>
-                                <input type="text" id="executiveProducer" name="executiveProducer" readonly>
-                                
-                                <label for="executiveProducerCYS">Executive Producer CYS:</label>
-                                <input type="text" id="executiveProducerCYS" name="executiveProducerCYS" readonly>
-                            </div>
-
-                            <div>
-                                <label for="CreativeStaff">Faculty Staff Name:</label>
-                                <input type="text" id="facultyStaff" name="facultyStaff" readonly>
-                                
-                                <label for="facultyStaffDepartment">Faculty Staff Department:</label>
-                                <input type="text" id="facultyStaffDepartment" name="facultyStaffDepartment" readonly>
-                            </div>       
-
-                            <div id="host-container">
-                                <!-- Host fields will be dynamically added here -->
-                            </div>  
-                            
-                            <div id="technicalStaff-container">
-                                <!-- Host fields will be dynamically added here -->
-                            </div> 
-
-                            <div>
-                                <label for="creativeStaff">Creative Staff Name:</label>
-                                <input type="text" id="creativeStaff" name="creativeStaff" readonly>
-                                
-                                <label for="creativeStaffCYS">Creative Staff CYS:</label>
-                                <input type="text" id="creativeStaffCYS" name="creativeStaffCYS" readonly>
-                            </div>
-
-                            <div>
-                                <label for="dlsudEmail">DLSUD Email:</label>
-                                <input type="text" id="dlsudEmail" name="dlsudEmail" readonly>
-                            </div>
-                            
-                            <div>
-                                <label for="contactEmail">Contact Email:</label>
-                                <input type="text" id="contactEmail" name="contactEmail" readonly>
-                            </div>
-
-                            <div>
-                                <label for="contactFbLink">Contact FB Link:</label>
-                                <input type="text" id="contactFbLink" name="contactFbLink" readonly>
-                            </div>
-
-                            <div id="FbLink-container">
-                                <label for="FbLink">Crossposting FB Link:</label>
-                                <input type="text" id="FbLink" name="FbLink" readonly>
-                            </div>
-
-                            <div>
-                                <label for="proponentSignature">Proponent Signature:</label>
-                                <img id="proponentSignature" name="proponentSignature" src="" alt="Proponent Signature" style="max-width: 15%; height: auto;  display: none;">
-                            </div>
-                            
-                            <label for="preferredDay">Preferred Day:</label>
-                            <input type="text" id="preferredDay" name="preferredDay" readonly>
-    
-                            <label for="preferredTime">Preferred Time:</label>
-                            <input type="text" id="preferredTime" name="preferredTime" readonly>
-
-                            <div class="form-group">
-                                <label for="result">Result</label>
-                                <select id="result" name="result" disabled>
-                                    <option value="Pending" disabled selected>Pending</option> <!-- Default unselectable value -->
-                                    <option value="Accept">Accept</option>
-                                    <option value="Reject">Reject</option>
-                                </select>
-                                <div class="result-error"></div>
-                            </div>
-
-                            <button type="button" class="cancel-button" disabled>Cancel</button>
-                            <button type="button" class="submit-button" disabled>Submit</button>
-                        </form>
-                    </div>                 
-                </div>
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="js/1-admin/blocktimer.js"></script>
+    <script src="js/1-admin/blocktimer.js"></script>
 
-</body>
-</html>
+    </body>
+
+    </html>

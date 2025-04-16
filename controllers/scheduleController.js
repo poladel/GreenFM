@@ -1,39 +1,64 @@
-const Schedule = require('../models/Schedule');
+const Schedule = require("../models/Schedule");
 
-// GET the latest schedule
-const getSchedule = async (req, res) => {
+module.exports.postSchedule = async (req, res) => {
+  try {
+    const { day, time, title, description, schoolYear } = req.body;
+
+    const newSchedule = new Schedule({
+      day,
+      time,
+      title,
+      description,
+      schoolYear,
+    });
+
+    await newSchedule.save();
+    res.status(200).json({ message: "Schedule saved successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to save schedule." });
+  }
+};
+
+module.exports.getSchedule = async (req, res) => {
     try {
-        const schedule = await Schedule.findOne().sort({ createdAt: -1 });
-        res.json(schedule);
-    } catch (err) {
-        console.error("Failed to get schedule:", err);
-        res.status(500).json({ error: "Failed to load schedule" });
+      const schedules = await Schedule.find(); // Fetch all schedules
+      res.status(200).json(schedules);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to fetch schedules." });
+    }
+  };
+
+module.exports.getScheduleById = async (req, res) => {
+    try {
+        const schedule = await Schedule.findById(req.params.id);
+        if (!schedule) return res.status(404).json({ message: "Schedule not found" });
+        res.status(200).json(schedule);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to fetch schedule." });
     }
 };
 
-// UPDATE or CREATE schedule
-const updateSchedule = async (req, res) => {
+module.exports.updateSchedule = async (req, res) => {
     try {
-        const data = req.body;
-
-        let schedule = await Schedule.findOne();
-        if (schedule) {
-            // Update existing schedule
-            Object.assign(schedule, data);
-        } else {
-            // Create new schedule
-            schedule = new Schedule(data);
-        }
-
-        await schedule.save();
-        res.json({ success: true, schedule });
-    } catch (err) {
-        console.error("Failed to update schedule:", err);
-        res.status(500).json({ error: "Failed to update schedule" });
+        const schedule = await Schedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!schedule) return res.status(404).json({ message: "Schedule not found" });
+        res.status(200).json(schedule);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to update schedule." });
     }
 };
 
-module.exports = {
-    getSchedule,
-    updateSchedule
+module.exports.deleteSchedule = async (req, res) => {
+    try {
+        const schedule = await Schedule.findByIdAndDelete(req.params.id);
+        if (!schedule) return res.status(404).json({ message: "Schedule not found" });
+        res.status(200).json({ message: "Schedule deleted successfully." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to delete schedule." });
+    }
 };

@@ -1,3 +1,159 @@
+/*-----SCHEDULE TAB-----*/
+document.addEventListener("DOMContentLoaded", async () => {
+    const scheduleButtons = document.querySelectorAll(".availablebtn");
+    const modal = document.getElementById("scheduleModal");
+    const scheduleForm = document.getElementById("scheduleForm");
+    const closeModal = document.querySelector(".close");
+    const saveButton = document.getElementById("saveButton");
+    const deleteButton = document.getElementById("deleteButton");
+
+    // Fetch schedules from the server
+    try {
+        const response = await fetch("/schedule"); // Ensure the correct endpoint is used
+        if (!response.ok) throw new Error("Failed to fetch schedules");
+
+        const schedules = await response.json();
+
+        // Populate buttons with schedule data
+        schedules.forEach((schedule) => {
+            const button = document.querySelector(
+                `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
+            );
+            if (button) {
+                button.textContent = schedule.title; // Set the title of the show
+                button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
+                button.dataset.scheduleId = schedule._id; // Store the schedule ID for editing
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching schedules:", error);
+    }
+
+    // Open modal on button click
+    scheduleButtons.forEach((button) => {
+        button.addEventListener("click", async (e) => {
+            const day = button.dataset.day;
+            const time = button.dataset.time;
+            const scheduleId = button.dataset.scheduleId;
+
+            // Populate the form with existing data if available
+            if (scheduleId) {
+                try {
+                    const response = await fetch(`/schedule/${scheduleId}`);
+                    if (!response.ok) throw new Error("Failed to fetch schedule details");
+
+                    const schedule = await response.json();
+                    scheduleForm.dataset.scheduleId = schedule._id; // Store the schedule ID in the form
+                    scheduleForm.dataset.day = day;
+                    scheduleForm.dataset.time = time;
+
+                    // Populate form fields
+                    document.getElementById("title").value = schedule.title || "";
+                    document.getElementById("description").value = schedule.description || "";
+
+                    // Change "Save" button to "Edit" and show the "Delete" button
+                    saveButton.textContent = "Edit";
+                    deleteButton.style.display = "inline-block";
+                } catch (error) {
+                    console.error("Error fetching schedule details:", error);
+                }
+            } else {
+                // If no schedule exists, clear the form
+                scheduleForm.dataset.scheduleId = "";
+                scheduleForm.dataset.day = day;
+                scheduleForm.dataset.time = time;
+                scheduleForm.reset();
+
+                // Change "Edit" button back to "Save" and hide the "Delete" button
+                saveButton.textContent = "Save";
+                deleteButton.style.display = "none";
+            }
+
+            modal.style.display = "block";
+        });
+    });
+
+    // Close modal
+    closeModal.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Save or Edit schedule
+    saveButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(scheduleForm);
+        formData.append("day", scheduleForm.dataset.day);
+        formData.append("time", scheduleForm.dataset.time);
+
+        const data = Object.fromEntries(formData.entries());
+        data.schoolYear = new Date().getFullYear().toString();
+
+        const scheduleId = scheduleForm.dataset.scheduleId;
+        const method = scheduleId ? "PATCH" : "POST";
+        const url = scheduleId ? `/schedule/${scheduleId}` : "/schedule";
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                alert(scheduleId ? "Schedule updated successfully!" : "Schedule saved successfully!");
+                modal.style.display = "none";
+
+                // Update button with show title
+                const button = document.querySelector(
+                    `.availablebtn[data-day="${data.day}"][data-time="${data.time}"]`
+                );
+                button.textContent = data.title;
+                button.classList.add("schedulebtn");
+            } else {
+                alert("Failed to save schedule.");
+            }
+        } catch (error) {
+            console.error("Error saving schedule:", error);
+        }
+    });
+
+    // Delete schedule
+    deleteButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const scheduleId = scheduleForm.dataset.scheduleId;
+        if (!scheduleId) return;
+
+        const confirmDelete = confirm("Are you sure you want to delete this schedule?");
+        if (!confirmDelete) return;
+
+        try {
+            const response = await fetch(`/schedule/${scheduleId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                alert("Schedule deleted successfully!");
+                modal.style.display = "none";
+
+                // Clear the button text and re-enable it
+                const button = document.querySelector(
+                    `.availablebtn[data-day="${scheduleForm.dataset.day}"][data-time="${scheduleForm.dataset.time}"]`
+                );
+                button.textContent = "";
+                button.classList.remove("schedulebtn");
+                button.disabled = false;
+            } else {
+                alert("Failed to delete schedule.");
+            }
+        } catch (error) {
+            console.error("Error deleting schedule:", error);
+        }
+    });
+});
+
+/*-----SUBMISSIONS TAB-----*/
 // Fetch and display submissions in the table
 async function loadSubmissions() {
     try {

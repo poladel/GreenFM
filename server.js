@@ -44,6 +44,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const accountRoutes = require('./routes/accountRoutes');
 const blocktimerRoutes = require('./routes/blocktimerRoutes');
+const schedRoutes = require('./routes/scheduleRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
@@ -63,7 +64,7 @@ app.use(blocktimerRoutes);
 app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
-app.use('/api', require('./routes/scheduleRoutes'));
+app.use(schedRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
