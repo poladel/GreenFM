@@ -1,29 +1,112 @@
 /*----------------------SCHED SELECTOR---------------------*/
-document.addEventListener("DOMContentLoaded", async () => {
-    const scheduleButtons = document.querySelectorAll(".availablebtn");
-  
-    // Fetch schedules from the server
-    try {
-      const response = await fetch("/schedule");
-      if (!response.ok) throw new Error("Failed to fetch schedules");
-  
-      const schedules = await response.json();
-  
-      // Populate buttons with schedule data
-      schedules.forEach((schedule) => {
-        const button = document.querySelector(
-          `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
-        );
-        if (button) {
-            button.textContent = schedule.showDetails.title; // Set the title of the show
-          button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
-          button.disabled = true; // Disable the button
+document.addEventListener("DOMContentLoaded", function () {
+    const scheduleBtn = document.querySelector(".see-schedule-btn");
+    const modal = document.getElementById("scheduleModal");
+    const closeBtn = document.querySelector(".close-btn");
+    const currentYear = new Date().getFullYear();
+
+    let selectedButton = null; // Keep track of the currently selected button
+
+    // Function to fetch and display schedules
+    async function fetchAndDisplaySchedules() {
+        try {
+            // Fetch schedules for the current year
+            const scheduleResponse = await fetch(`/schedule?schoolYear=${currentYear}`);
+            if (!scheduleResponse.ok) throw new Error("Failed to fetch schedules");
+            const schedules = await scheduleResponse.json();
+    
+            // Fetch "Pending" submissions for the current year
+            const submissionResponse = await fetch(`/submissions?schoolYear=${currentYear}&result=Pending`);
+            if (!submissionResponse.ok) throw new Error("Failed to fetch submissions");
+            const submissions = await submissionResponse.json();
+    
+            // Reset all buttons to their default state
+            const scheduleButtons = document.querySelectorAll(".availablebtn");
+            scheduleButtons.forEach((button) => {
+                if (button !== selectedButton) {
+                    button.textContent = "Select Time Slot";
+                    button.classList.remove("schedulebtn", "disabled");
+                    button.disabled = false;
+                }
+            });
+    
+            // Populate buttons with schedule data
+            schedules.forEach((schedule) => {
+                const button = document.querySelector(
+                    `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
+                );
+                if (button) {
+                    button.textContent = schedule.showDetails.title; // Set the title of the show
+                    button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
+                    button.disabled = true; // Disable the button
+                }
+            });
+    
+            // Handle "Pending" submissions (if needed)
+            submissions.forEach((submission) => {
+                const normalizedTime = submission.time.replace(/^0/, ''); // Remove leading zero if present
+                const button = document.querySelector(
+                    `.availablebtn[data-day="${submission.day}"][data-time="${normalizedTime}"]`
+                );
+            
+                if (button) {
+                    button.textContent = `Pending: ${submission.showDetails.title || "No Title"}`; // Set the title of the pending show
+                    button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
+                    button.disabled = true; // Disable the button
+                } else {
+                    console.warn(`No button found for day="${submission.day}" and time="${normalizedTime}"`);
+                }
+            });
+    
+            // Restore the "Selected" state for the previously selected button
+            if (selectedButton) {
+                selectedButton.textContent = "Selected";
+                selectedButton.classList.add("disabled");
+                selectedButton.disabled = true;
+            }
+        } catch (error) {
+            console.error("Error fetching schedules or submissions:", error);
         }
-      });
-    } catch (error) {
-      console.error("Error fetching schedules:", error);
     }
-  });
+
+    // Show modal and fetch schedules when button is clicked
+    scheduleBtn.addEventListener("click", async () => {
+        await fetchAndDisplaySchedules(); // Fetch and display schedules
+        modal.style.display = "block";
+    });
+
+    // Hide modal when close button is clicked
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Hide modal when clicking outside the modal content
+    window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    // Add event listeners to all "Select Time Slot" buttons
+    document.querySelectorAll(".availablebtn").forEach((button) => {
+        button.addEventListener("click", function () {
+            // Update the selected button
+            if (selectedButton) {
+                selectedButton.textContent = "Select Time Slot";
+                selectedButton.classList.remove("disabled");
+                selectedButton.disabled = false;
+            }
+
+            selectedButton = this; // Set the new selected button
+            selectedButton.textContent = "Selected";
+            selectedButton.classList.add("disabled");
+            selectedButton.disabled = true;
+
+            // Close the modal (optional)
+            modal.style.display = "none";
+        });
+    });
+});
 
 // Add event listeners to all "Select Time Slot" buttons
 document.querySelectorAll('.schedule-table button').forEach(button => {
@@ -149,91 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('disabled'); // Add a disabled class for styling
         }
     }
-
-/*----------------------FORM 2 SUBMISSION---------------------*/
-    const form2 = document.getElementById('blocktimerForm2');
-
-    form2.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
-
-        const formData = new FormData(form2); // Gather form data
-        const data = Object.fromEntries(formData.entries()); // Convert to a plain object
-
-        // Convert 'notApplicable' fields from string to boolean
-        data.coProponent = {
-            lastName: data.coProponentLastName || undefined,
-            firstName: data.coProponentFirstName || undefined,
-            mi: data.coProponentMi || undefined,
-            suffix: data.coProponentSuffix || undefined, // Correct field name
-            cys: data.coProponentCys || undefined,
-            notApplicable: !!data.coProponentNotApplicable, // Convert to boolean
-        };
-
-        data.facultyStaff = {
-            lastName: data.facultyStaffLastName || undefined,
-            firstName: data.facultyStaffFirstName || undefined,
-            mi: data.facultyStaffMi || undefined,
-            suffix: data.facultyStaffSuffix || undefined, // Correct field name
-            department: data.facultyStaffDepartment || undefined,
-            notApplicable: !!data.facultyStaffNotApplicable, // Convert to boolean
-        };
-
-        try {
-            // Send POST request to the backend
-            const response = await fetch('/JoinBlocktimer-Step2', { // Replace with your actual endpoint
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                // Handle success
-                alert('Successfully submitted your application!');
-                // Redirect or perform any other action as needed
-                window.location.href = '/JoinBlocktimer-Step3'; // Replace with your success page
-            } else if (result.redirect) {
-                alert(`Error: ${result.error}`);
-                // Redirect to Step 1 if specified in response
-                window.location.href = result.redirect;
-            } else {
-                // Handle errors
-                alert(`Error: ${result.error || 'Something went wrong'}`);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('There was a problem with the submission. Please try again.');
-        }
-    });
 });
 
-// Full Schedule Modal
-document.addEventListener("DOMContentLoaded", function () {
-    const scheduleBtn = document.querySelector(".see-schedule-btn");
-    const modal = document.getElementById("scheduleModal");
-    const closeBtn = document.querySelector(".close-btn");
-  
-    // Show modal when button is clicked
-    scheduleBtn.addEventListener("click", () => {
-      modal.style.display = "block";
-    });
-  
-    // Hide modal when close button is clicked
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  
-    // Hide modal when clicking outside the modal content
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  });
-
+/*----------------------FORM 2 SUBMISSION---------------------*/
 document.addEventListener('DOMContentLoaded', () => {
     const form2 = document.getElementById('blocktimerForm2');
     const timeDropdown = document.getElementById('time');

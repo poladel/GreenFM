@@ -1,3 +1,17 @@
+function showSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'flex';
+    }
+}
+
+function hideSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}
+
 document.getElementById('blocktimerForm1').addEventListener('submit', function(event) {
     const checkboxes = document.querySelectorAll("input[name^='showDetails']");
     const otherCheckbox = document.getElementById("other");
@@ -313,11 +327,13 @@ async function uploadFileToServer(file) {
 document.addEventListener("DOMContentLoaded", function () {
     toggleAddHostButton();
     toggleAddTechnicalButton();
-    const form1 = document.getElementById('blocktimerForm1');
-    
+    const form1 = document.getElementById('blocktimerForm1');    
 
     form1.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        // Show the spinner when the "Next" button is clicked
+        showSpinner();
 
         const formData = new FormData(form1);
 
@@ -365,7 +381,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         });
-
 
         // Assign the showTypeArray directly to showDetails.type
         data.showDetails.type = showTypeArray;
@@ -433,6 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (validationErrors.length > 0) {
             alert(`Please fill in all required fields: ${validationErrors.join(', ')}`);
             console.log('User input data:', data); // Console log user input for debugging
+            hideSpinner(); // Hide spinner if validation fails
             return;
         }
 
@@ -460,10 +476,12 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 const errorMessage = await response.text();
                 alert(`Error: ${errorMessage}`);
+                hideSpinner(); // Hide spinner if submission fails
             }
         } catch (error) {
             console.error('Error uploading file:', error);
             alert('There was an error uploading the signature. Please try again.');
+            hideSpinner(); // Hide spinner if an error occurs
         }
     });
 });
