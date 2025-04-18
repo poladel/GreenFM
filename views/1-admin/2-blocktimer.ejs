@@ -16,6 +16,16 @@
                         <!-- Schedule Tab -->
                         <div id="schedule-tab" class="tab-pane active">
                             <div class="schedule-container">
+                                <label for="schoolYear">School Year:</label>
+                                <select id="schoolYear" name="schoolYear">
+                                    <option value="2024" selected>2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                </select>
                                 <table class="schedule-table">
                                     <thead>
                                         <tr>
@@ -69,7 +79,7 @@
                                         </tr>
                                         <tr>
                                             <td class="time">12:01-12:55</td>
-                                            <td colspan="4"><button class="availablebtn">FM MIX</button></td>
+                                            <td colspan="4"><button class="permaSchedbtn">FM MIX</button></td>
                                             <td><button type="button" class="availablebtn" data-day="Friday"
                                                     data-time="12:01-12:55"></button></td>
                                         </tr>
@@ -133,14 +143,112 @@
                                     <span class="close">&times;</span>
                                     <form id="scheduleForm">
                                         <h3>Schedule Details</h3>
-                                        <div>
-                                            <label for="title">Show Title:</label>
-                                            <input type="text" id="title" name="title" required>
+                                        <div class="form-group">
+                                            <label for="modalSchoolYear">School Year:</label>
+                                            <select id="modalSchoolYear" name="modalSchoolYear">
+                                                <option value="2024">2024</option>
+                                                <option value="2025">2025</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2027">2027</option>
+                                                <option value="2028">2028</option>
+                                                <option value="2029">2029</option>
+                                                <option value="2030">2030</option>
+                                            </select>
                                         </div>
-                                        <div>
-                                            <label for="description">Show Description:</label>
-                                            <textarea id="description" name="description" required></textarea>
+                                        <div class="form-group">
+                                            <label for="showTitle">Title of Show</label>
+                                            <input type="text" id="showTitle" name="showDetails.title" required/>
                                         </div>
+            
+                                        <!-- Checkboxes -->
+                                        <div class="form-group checkbox-group">
+                                            <label>Type of Show</label>
+                                            <div class="checkbox-row">
+                                                <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
+                                            </div>
+                                            <div class="checkbox-row">
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
+                                            </div>
+                                            <div class="checkbox-row">
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
+                                            </div>
+                                            <div class="checkbox-row">
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
+                                            </div>
+                                            <div class="checkbox-row">
+                                                <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
+                                                <input type="text" id="other-input" placeholder="Other" disabled="true" />
+                                            </div>                                               
+                                        </div>                          
+                                    
+                                        <div class="form-group">
+                                            <label for="show-description">Brief Description of Show</label><br>
+                                            <textarea id="show-description" name="showDetails.description" rows="4" cols="130" placeholder="Enter your answer" required></textarea>
+                                        </div>
+                                    
+                                        <div class="form-group">
+                                            <label for="showObjectives">Objective of Show</label>
+                                            <textarea id="showObjectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
+                                        </div>
+                                        <label>Name of Executive Producer</label>
+                                        <div class="name-section">
+                                            <input type="text" id="execProducerLastName" name="executiveProducer.lastName" placeholder="Last Name" required>
+                                            <input type="text" id="execProducerFirstName" name="executiveProducer.firstName" placeholder="First Name" required>
+                                            <input type="text" id="execProducerMI" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
+                                            <input type="text" id="execProducerSuffix" name="executiveProducer.suffix" class="middleinitial" placeholder="Suffix">
+                                            <input type="text" id="execProducerCYS" name="executiveProducer.cys"placeholder="CYS">
+                                        </div>
+                                        <label>Name of Host/s</label>
+                                        <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
+                                        This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
+
+                                        <!-- Container for hosts, necessary for dynamic addition -->
+                                        <div id="hosts-container">
+                                            <div class="name-section host-input">
+                                                <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
+                                                <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
+                                                <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
+                                                <input type="text" name="hosts[0].suffix" class="middleinitial" placeholder="Suffix">
+                                                <input type="text" name="hosts[0].cys" placeholder="CYS">
+                                            </div>
+                                        </div>
+                                        <button type="button" id="add-host" class="addbutton" disabled>+ Add Host</button><br><br>
+
+                                        <label>Name of Technical Staff/s</label>
+                                        <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
+                                        technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
+
+                                        <!-- Container for technical staff, necessary for dynamic addition -->
+                                        <div id="technical-container">
+                                            <div class="name-section technical-input">
+                                                <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
+                                                <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
+                                                <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
+                                                <input type="text" name="technicalStaff[0].suffix" class="middleinitial" placeholder="Suffix">
+                                                <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
+                                            </div>
+                                        </div>
+                                        <button type="button" id="add-technical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
+
+                                        <label>Name of Creative Staff</label>
+                                        <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
+                                        creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
+                                        <div class="name-section">
+                                            <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName" placeholder="Last Name" required>
+                                            <input type="text" id="creativeStaffFirstName" name="creativeStaff.firstName" placeholder="First Name" required>
+                                            <input type="text" id="creativeStaffMI" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
+                                            <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix" class="middleinitial" placeholder="Suffix">
+                                            <input type="text" id="creativeStaffCYS" name="creativeStaff.cys"placeholder="CYS">
+                                        </div>
+
                                         <button id="saveButton" type="button">Save</button>
                                         <button id="deleteButton" type="button" style="display: none;">Delete</button>
                                     </form>
@@ -151,12 +259,24 @@
                         <!-- Submissions Tab -->
                         <div id="submissions-tab" class="tab-pane">
                             <div id="submissions-container">
+                                <!-- Add School Year Dropdown -->
+                                <label for="submissionSchoolYear">School Year:</label>
+                                <select id="submissionSchoolYear" name="submissionSchoolYear">
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                </select>
                                 <table class="submissions-table">
                                     <thead>
                                         <tr>
                                             <th>Show Title</th>
                                             <th>Organization</th>
                                             <th>Preferred Schedule</th>
+                                            <th>Result</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -194,8 +314,8 @@
                                     </div>
 
                                     <div>
-                                        <label for="showTitle">Show Title:</label>
-                                        <input type="text" id="showTitle" name="showTitle" readonly>
+                                        <label for="show-title">Show Title:</label>
+                                        <input type="text" id="show-title" name="show-title" readonly>
                                     </div>
 
                                     <div>
@@ -205,14 +325,12 @@
 
                                     <div>
                                         <label for="showDescription">Show Description:</label>
-                                        <textarea id="showDescription" name="showDescription" readonly
-                                            rows="4"></textarea>
+                                        <textarea id="showDescription" name="showDescription" readonly rows="4"></textarea>
                                     </div>
 
                                     <div>
-                                        <label for="showObjectives">Show Objectives:</label>
-                                        <textarea id="showObjectives" name="showObjectives" readonly
-                                            rows="4"></textarea>
+                                        <label for="show-objectives">Show Objectives:</label>
+                                        <textarea id="show-objectives" name="show-objectives" readonly rows="4"></textarea>
                                     </div>
 
                                     <div>
@@ -277,10 +395,19 @@
                                     </div>
 
                                     <label for="preferredDay">Preferred Day:</label>
-                                    <input type="text" id="preferredDay" name="preferredDay" readonly>
+                                    <select id="preferredDay" name="preferredDay" disabled>
+                                        <option value="" disabled selected>Select a day</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                    </select>
 
                                     <label for="preferredTime">Preferred Time:</label>
-                                    <input type="text" id="preferredTime" name="preferredTime" readonly>
+                                    <select id="preferredTime" name="preferredTime" disabled>
+                                        <option value="" disabled selected>Select a time</option>
+                                    </select>
 
                                     <div class="form-group">
                                         <label for="result">Result</label>

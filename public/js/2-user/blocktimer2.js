@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
         );
         if (button) {
-          button.textContent = schedule.title; // Set the title of the show
+            button.textContent = schedule.showDetails.title; // Set the title of the show
           button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
           button.disabled = true; // Disable the button
         }
