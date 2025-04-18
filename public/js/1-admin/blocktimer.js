@@ -53,10 +53,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     schoolYearDropdown.addEventListener("change", async () => {
         const selectedYear = schoolYearDropdown.value;
         console.log("Selected schoolYearDropdown value (on change):", selectedYear);
-        await refreshSchedule(selectedYear); // Pass the selected year to the refresh function
-
-        modalSchoolYearDropdown.value = schoolYearDropdown.value;
+    
+        // Update the modalSchoolYearDropdown to match the selected year
+        modalSchoolYearDropdown.value = selectedYear;
+    
+        // Synchronize the selected attribute of the options
+        Array.from(modalSchoolYearDropdown.options).forEach((option) => {
+            option.selected = option.value === selectedYear;
+        });
+    
+        if (!modalSchoolYearDropdown.value) {
+            console.error(`Value ${selectedYear} not found in modalSchoolYearDropdown options.`);
+        }
+    
         console.log("Updated modalSchoolYearDropdown value (on change):", modalSchoolYearDropdown.value);
+    
+        // Refresh the schedule for the selected year
+        await refreshSchedule(selectedYear);
     });
 
     // Initial load of schedules for the current school year
@@ -93,6 +106,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             const day = button.dataset.day;
             const time = button.dataset.time;
             const scheduleId = button.dataset.scheduleId;
+
+            if (!scheduleId) {
+                const selectedYear = schoolYearDropdown.value;
+            
+                // Dynamically rebuild the dropdown options
+                const options = Array.from(modalSchoolYearDropdown.options).map((option) => {
+                    return `<option value="${option.value}" ${option.value === selectedYear ? "selected" : ""}>${option.textContent}</option>`;
+                });
+            
+                modalSchoolYearDropdown.innerHTML = options.join(""); // Rebuild the dropdown options
+            
+                console.log("Updated modalSchoolYearDropdown value:", modalSchoolYearDropdown.value);
+            }
 
             if (scheduleId) {
                 try {
@@ -190,16 +216,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     console.error("Error fetching schedule details:", error);
                 }
             } else {
-                console.log("No existing schedule. Setting modalSchoolYearDropdown to:", schoolYearDropdown.value);
-                modalSchoolYearDropdown.querySelector(`option[value="${schoolYearDropdown.value}"]`)?.setAttribute("selected", "selected");
-
-                
-                modalSchoolYearDropdown.value = schoolYearDropdown.value || currentYear;
-                // Ensure the dropdown reflects the value
-                if (!Array.from(modalSchoolYearDropdown.options).some(option => option.value === modalSchoolYearDropdown.value)) {
-                    console.error(`Value ${modalSchoolYearDropdown.value} not found in dropdown options.`);
-                }  
-                
                 scheduleForm.dataset.scheduleId = "";
                 scheduleForm.dataset.day = day;
                 scheduleForm.dataset.time = time;
