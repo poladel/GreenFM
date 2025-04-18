@@ -274,6 +274,7 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
 
     // Retrieve selected day and time from the form
     const { 'preferred-days': preferredDay, 'preferred-time': preferredTime } = req.body;
+    const schoolYear = new Date().getFullYear();
 
     // Check if user is authenticated via middleware
     if (!req.user) {
@@ -344,7 +345,8 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             preferredSchedule: {
                 day: preferredDay,
                 time: preferredTime
-            } // Set the current date and time
+            },
+            schoolYear// Set the current date and time
         });
 
         console.log('Blocktimer Application Created:', applyBlocktimer.showDetails.title);

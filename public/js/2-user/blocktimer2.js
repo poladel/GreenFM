@@ -1,4 +1,30 @@
 /*----------------------SCHED SELECTOR---------------------*/
+document.addEventListener("DOMContentLoaded", async () => {
+    const scheduleButtons = document.querySelectorAll(".availablebtn");
+  
+    // Fetch schedules from the server
+    try {
+      const response = await fetch("/schedule");
+      if (!response.ok) throw new Error("Failed to fetch schedules");
+  
+      const schedules = await response.json();
+  
+      // Populate buttons with schedule data
+      schedules.forEach((schedule) => {
+        const button = document.querySelector(
+          `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
+        );
+        if (button) {
+            button.textContent = schedule.showDetails.title; // Set the title of the show
+          button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
+          button.disabled = true; // Disable the button
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    }
+  });
+
 // Add event listeners to all "Select Time Slot" buttons
 document.querySelectorAll('.schedule-table button').forEach(button => {
     button.addEventListener('click', function () {

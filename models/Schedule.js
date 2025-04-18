@@ -1,17 +1,43 @@
 const mongoose = require('mongoose');
 
-const slotSchema = new mongoose.Schema({
-    start: String,
-    end: String,
-    title: String
-}, { _id: false }); // Disable _id on subdocs to keep it clean
-
 const scheduleSchema = new mongoose.Schema({
-    Monday: [slotSchema],
-    Tuesday: [slotSchema],
-    Wednesday: [slotSchema],
-    Thursday: [slotSchema],
-    Friday: [slotSchema]
+    day: String,
+    time: String,
+    schoolYear: String,
+    showDetails: {
+        title: { type: String, required: true },
+        type: { type: [String], required: true },
+        description: { type: String, required: true },
+        objectives: { type: String, required: true },
+    },
+    executiveProducer: {
+        lastName: { type: String, required: true },
+        firstName: { type: String, required: true },
+        mi: String,
+        suffix: String,
+        cys: String,
+    },
+    hosts: [{
+        lastName: { type: String, required: true },
+        firstName: { type: String, required: true },
+        mi: String,
+        suffix: String,
+        cys: String,
+    }],
+    technicalStaff: [{
+        lastName: { type: String, required: true },
+        firstName: { type: String, required: true },
+        mi: String,
+        suffix: String,
+        cys: String,
+    }],
+    creativeStaff: {
+        lastName: { type: String, required: true },
+        firstName: { type: String, required: true },
+        mi: String,
+        suffix: String,
+        cys: String,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Schedule', scheduleSchema);
