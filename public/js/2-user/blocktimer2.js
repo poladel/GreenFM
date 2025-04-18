@@ -17,8 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
     
             // Fetch "Pending" submissions for the current year
             const submissionResponse = await fetch(`/submissions?schoolYear=${currentYear}&result=Pending`);
+            console.log('Submission Response:', submissionResponse);
+
             if (!submissionResponse.ok) throw new Error("Failed to fetch submissions");
             const submissions = await submissionResponse.json();
+            console.log('Submissions Data:', submissions);
     
             // Reset all buttons to their default state
             const scheduleButtons = document.querySelectorAll(".availablebtn");
@@ -44,17 +47,24 @@ document.addEventListener("DOMContentLoaded", function () {
     
             // Handle "Pending" submissions (if needed)
             submissions.forEach((submission) => {
-                const normalizedTime = submission.time.replace(/^0/, ''); // Remove leading zero if present
-                const button = document.querySelector(
-                    `.availablebtn[data-day="${submission.day}"][data-time="${normalizedTime}"]`
-                );
+                const timeRange = submission.preferredSchedule?.time || null; // Get the full time range
+            
+                if (!timeRange) {
+                    console.warn(`Missing or invalid time for submission:`, submission);
+                    return; // Skip this submission if time is missing or invalid
+                }
+            
+                const buttonQuery = `.availablebtn[data-day="${submission.preferredSchedule?.day}"][data-time="${timeRange}"]`;
+                console.log('Button Query:', buttonQuery);
+            
+                const button = document.querySelector(buttonQuery);
             
                 if (button) {
-                    button.textContent = `Pending: ${submission.showDetails.title || "No Title"}`; // Set the title of the pending show
-                    button.classList.add("schedulebtn"); // Add a class to indicate it's scheduled
-                    button.disabled = true; // Disable the button
+                    button.textContent = `Pending: ${submission.showDetails?.title || "No Title"}`;
+                    button.classList.add("pendingbtn");
+                    button.disabled = true;
                 } else {
-                    console.warn(`No button found for day="${submission.day}" and time="${normalizedTime}"`);
+                    console.warn(`No button found for day="${submission.preferredSchedule?.day}" and time="${timeRange}"`);
                 }
             });
     

@@ -10,7 +10,7 @@ module.exports.getSubmissions = async (req, res) => {
         }
 
         const query = { schoolYear };
-        if (result) query.status = result;
+        if (result) query.result = result;
 
         const submissions = await ApplyBlocktimer.find(query).sort({ createdAt: -1 });
         res.json(submissions);
