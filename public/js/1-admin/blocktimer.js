@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
 
         // Add schoolYear
-        data.schoolYear = new Date().getFullYear().toString();
+        data.schoolYear = document.getElementById("modalSchoolYear").value;
 
         // Determine if this is a new schedule or an update
         const scheduleId = scheduleForm.dataset.scheduleId;
