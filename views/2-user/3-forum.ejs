@@ -1,64 +1,58 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="content-wrap">
-    <div class="container">
-        <%- include('../partials/nav.ejs') %>
-        <%- include('../partials/menu.ejs') %>
+  <div class="container">
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs') %>
 
-        <h2 class="forum-title">Community Forum</h2>
+    <h2 class="forum-title">Community Forum</h2>
 
-        <form id="post-form" class="post-container">
-            <input type="text" id="post-title" class="post-title-input" placeholder="Post title..." required>
-            <textarea class="post-textbox" id="post-content" placeholder="Write something..." required></textarea>
+    <form id="post-form" class="post-container">
+      <input type="text" id="post-title" class="post-title-input" placeholder="Post title..." required>
+      <textarea class="post-textbox" id="post-content" placeholder="Write something..." required></textarea>
 
-            <!-- Media Buttons Container -->
-            <div class="media-buttons">
-                <button type="button" id="add-image-button" class="media-button">
-                    <img src="../img/image.png" alt="Add Image" class="option-icon">
-                    <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
-                </button>
-                <button type="button" id="add-video-button" class="media-button">
-                    <img src="../img/video.png" alt="Add Video" class="option-icon">
-                    <input type="file" id="video-input" accept="video/*" style="display: none;">
-                </button>
-                <button type="button" id="add-file-button" class="media-button">
-                    <img src="../img/document-icon.png" alt="Add File" class="option-icon">
-                    <input type="file" id="file-input" style="display: none;">
-                </button>
-            </div>
+      <!-- Media Buttons Container -->
+      <div class="media-buttons">
+        <button type="button" id="add-image-button" class="media-button">
+          <img src="../img/image.png" alt="Add Image" class="option-icon">
+          <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
+        </button>
+        <button type="button" id="add-video-button" class="media-button">
+          <img src="../img/video.png" alt="Add Video" class="option-icon">
+          <input type="file" id="video-input" accept="video/*" style="display: none;">
+        </button>
+        <button type="button" id="add-file-button" class="media-button">
+          <img src="../img/document-icon.png" alt="Add File" class="option-icon">
+          <input type="file" id="file-input" style="display: none;">
+        </button>
+      </div>
 
-            <!-- Preview Container for Selected Media -->
-            <div id="preview-container" class="preview-container"></div>
+      <!-- Preview Container for Selected Media -->
+      <div id="preview-container" class="preview-container"></div>
 
-            <!-- Post Button Wrapper -->
-            <div class="post-button-wrapper">
-                <button type="submit" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
-            </div>
-        </form>
+      <!-- Post Button Wrapper -->
+      <div class="post-button-wrapper">
+        <button type="submit" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
+      </div>
+    </form>
 
-        <div id="posts-container" class="posts-container">
-            <div class="loading-posts">Loading posts...</div>
-        </div>
+    <div id="posts-container" class="posts-container">
+      <!-- This will be dynamically rendered by forum.js -->
+      <!-- Example static post -->
+      <div class="post">
+        <p class="post-author">AuthorUsername</p>
+        <p>Post content goes here...</p>
+      </div>
     </div>
+  </div>
 
-    <!-- Image Preview Modal -->
-    <div id="imagePreviewModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 90%; max-height: 90%;">
-            <span class="close-button">&times;</span>
-            <img id="previewed-image" src="" style="max-width: 100%; max-height: 80vh;">
-        </div>
+  <!-- Image Preview Modal -->
+  <div id="imagePreviewModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 90%; max-height: 90%;">
+      <span class="close-button">&times;</span>
+      <img id="previewed-image" src="" style="max-width: 100%; max-height: 80vh;">
     </div>
-
-    <!-- Comment Modal -->
-    <div id="commentModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3>Add a Comment</h3>
-            <textarea id="comment-text" class="comment-textbox" placeholder="Write your comment..."></textarea>
-            <button id="submit-comment" class="post-button">Submit</button>
-            <div id="comments-list" class="comments-list"></div>
-        </div>
-    </div>
+  </div>
 
 <%- include('../partials/footer.ejs') %>
-<script src="js/2-user/forum.js"></script>
+<script src="/js/2-user/forum.js"></script>

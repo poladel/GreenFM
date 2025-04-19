@@ -1,56 +1,17 @@
-router.post('/posts/:postId/like', async (req, res) => {
-    try {
-        const { postId } = req.params;
-        const { action } = req.body; // 'like' or 'unlike'
-        const userId = req.user._id;
+const express = require('express');
+const router = express.Router();
+const forumController = require('../controllers/forumController');
+const { requireAuth } = require('../middleware/authMiddleware');
+const ForumPost = require('../models/ForumPost');
 
-        const post = await ForumPost.findById(postId);
-        
-        if (action === 'like') {
-            if (!post.likes.includes(userId)) {
-                post.likes.push(userId);
-            }
-        } else {
-            post.likes = post.likes.filter(id => id.toString() !== userId.toString());
-        }
+router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost);
+router.get('/posts', forumController.getAllPosts);
+router.get('/posts/:id', forumController.getPostById);
+router.put('/posts/:id', requireAuth, forumController.handleFileUploads, forumController.updatePost);
+router.delete('/posts/:id', requireAuth, forumController.deletePost);
+router.post('/posts/:id/like', requireAuth, forumController.toggleLike);
+router.post('/posts/:id/comment', requireAuth, forumController.addComment);
+router.get('/posts/:id/comments', forumController.getComments);
 
-        await post.save();
-        
-        res.json({
-            success: true,
-            likesCount: post.likes.length
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
-router.get('/posts/:postId/comments', async (req, res) => {
-    try {
-        const post = await ForumPost.findById(req.params.postId)
-            .populate('comments.userId', 'username');
-            
-        res.json(post.comments || []);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-router.post('/Forumposts/:postId/comment', async (req, res) => {
-    try {
-        const post = await ForumPost.findById(req.params.postId);
-        post.comments.push({
-            userId: req.user._id,
-            text: req.body.text
-        });
-        
-        await post.save();
-        
-        res.json({
-            success: true,
-            commentsCount: post.comments.length
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+module.exports = router;

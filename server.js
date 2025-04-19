@@ -12,6 +12,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const forumRoutes = require('./routes/ForumRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +24,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
+app.use('/', forumRoutes); 
+
 
 // Configure Cloudinary
 cloudinary.config({
@@ -317,6 +320,7 @@ app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
 app.use(schedRoutes);
+app.use(express.static('public'));
 
 // Handle feedback form submission
 app.post('/send', async (req, res) => {
@@ -387,6 +391,7 @@ app.all('*', (req, res) => {
         res.type('txt').send('404 Not Found');
     }
 });
+
 
 mongoose.connection.once('open', () => {
     app.listen(PORT, () => {
