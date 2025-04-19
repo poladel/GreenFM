@@ -1,34 +1,224 @@
 function showToast(message) {
     const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
+    if (toast) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+    }
 }
 
-document.getElementById('add-image-button').addEventListener('click', () => {
-    document.getElementById('image-input').click();
-});
+document.addEventListener('DOMContentLoaded', () => {
+    updateScheduleList();
 
-document.getElementById('add-video-button').addEventListener('click', () => {
-    document.getElementById('video-input').click();
-});
+    // Check if the admin-only elements exist
+    const addImageButton = document.getElementById('add-image-button');
+    const addVideoButton = document.getElementById('add-video-button');
+    const imageInput = document.getElementById('image-input');
+    const videoInput = document.getElementById('video-input');
+    const postForm = document.getElementById('post-form');
+    const closeModalButton = document.querySelector('.close-modal');
 
-// Show file previews, handle image & video file selection
-document.getElementById('image-input').addEventListener('change', function () {
-    const files = this.files;
-
-    if (!files.length) return;
-
-    for (let file of files) {
-        if (file.type.startsWith('image/')) {
-            previewFile(file, 'image');
-        }
+    // Add event listeners only if the elements exist
+    if (addImageButton && imageInput) {
+        addImageButton.addEventListener('click', () => {
+            imageInput.click();
+        });
     }
+
+    if (addVideoButton && videoInput) {
+        addVideoButton.addEventListener('click', () => {
+            videoInput.click();
+        });
+    }
+
+    if (postForm) {
+        postForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            console.log('Post form submitted');
+        });
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function () {
+            const files = this.files;
+            if (!files.length) return;
+
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    previewFile(file, 'image');
+                }
+            }
+        });
+    }
+
+    if (videoInput) {
+        videoInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                previewFile(this.files[0], 'video');
+            }
+        });
+    }
+
+    if (postForm) {
+        postForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const imageInput = document.getElementById('image-input');
+            const videoInput = document.getElementById('video-input');
+            const titleValue = document.getElementById('post-title').value.trim();
+            const textValue = document.querySelector('.post-textbox').value.trim();
+
+            // Check number of images
+            if (imageInput.files.length > 6) {
+                showToast("You can upload a maximum of 6 images.");
+                return;
+            }
+
+            // Check image file sizes (20MB = 20 * 1024 * 1024)
+            for (let file of imageInput.files) {
+                if (file.size > 20 * 1024 * 1024) {
+                    showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
+                    return;
+                }
+            }
+
+            // Check video file size (20MB = 20 * 1024 * 1024)
+            if (videoInput.files.length > 0) {
+                const videoFile = videoInput.files[0];
+                if (videoFile.size > 20 * 1024 * 1024) {
+                    showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
+                    return;
+                }
+            }
+
+            const formData = new FormData();
+            formData.append('title', titleValue);
+            formData.append('text', textValue);
+
+            for (let file of imageInput.files) {
+                formData.append('media', file);
+            }
+
+            if (videoInput.files.length > 0) {
+                formData.append('video', videoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/post', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Post uploaded successfully!');
+                    loadPosts();
+                    postForm.reset();
+                    document.getElementById('preview-container').innerHTML = '';
+                } else {
+                    alert(result.error || 'Failed to post');
+                }
+            } catch (error) {
+                alert("Something went wrong!");
+            }
+        });
+    } else {
+        console.warn("Element with ID 'post-form' not found. This is expected if no admin is logged in.");
+    }
+
+    if (closeModalButton) {
+        closeModalButton.addEventListener('click', () => {
+            const modal = document.getElementById('media-modal');
+            const modalVideo = document.getElementById('modal-video');
+
+            if (modal) {
+                modal.style.display = 'none';
+            }
+
+            // Stop video if it's playing
+            if (modalVideo) {
+                modalVideo.pause();
+                modalVideo.currentTime = 0;
+            }
+
+            // Re-enable scrolling
+            document.body.style.overflow = '';
+        });
+    } else {
+        console.warn("Element with class 'close-modal' not found.");
+    }
+
+    // Navigate left and right in modal
+    const leftArrow = document.querySelector('.left-arrow');
+    const rightArrow = document.querySelector('.right-arrow');
+
+    if (leftArrow) {
+        leftArrow.addEventListener('click', () => navigateMedia(-1));
+    } else {
+        console.warn("Element with class 'left-arrow' not found.");
+    }
+
+    if (rightArrow) {
+        rightArrow.addEventListener('click', () => navigateMedia(1));
+    } else {
+        console.warn("Element with class 'right-arrow' not found.");
+    }
+
+    // Open modal when clicking on an image/video in a post
+    document.addEventListener('click', (event) => {
+        const modal = document.getElementById('media-modal');
+        if (!modal) {
+            console.warn("Modal element not found.");
+            return;
+        }
+
+        if (event.target.classList.contains('post-media-img')) {
+            currentMediaList = Array.from(event.target.parentElement.getElementsByClassName('post-media-img'))
+                .map(img => img.src);
+            openMediaModal(event.target.src, 'image');
+        } else if (event.target.classList.contains('post-media')) {
+            openMediaModal(event.target.src, 'video');
+        }
+    });
 });
 
-document.getElementById('video-input').addEventListener('change', function () {
-    previewFile(this.files[0], 'video');
-});
+//----------Media Modal----------//
+let currentMediaIndex = 0;
+let currentMediaList = [];
+
+function openMediaModal(src, type) {
+    const modal = document.getElementById('media-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalVideo = document.getElementById('modal-video');
+
+    if (!modal || !modalImage || !modalVideo) {
+        console.warn("Modal elements not found.");
+        return;
+    }
+
+    if (type === 'image') {
+        modalImage.src = src;
+        modalImage.style.display = 'block';
+        modalVideo.style.display = 'none';
+    } else if (type === 'video') {
+        modalVideo.src = src;
+        modalVideo.style.display = 'block';
+        modalImage.style.display = 'none';
+    }
+
+    currentMediaIndex = currentMediaList.indexOf(src);
+    modal.style.display = 'flex';
+
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+}
+
+function navigateMedia(direction) {
+    if (currentMediaList.length > 1) {
+        currentMediaIndex = (currentMediaIndex + direction + currentMediaList.length) % currentMediaList.length;
+        document.getElementById('modal-image').src = currentMediaList[currentMediaIndex];
+    }
+}
 
 let imageFiles = []; // Store selected image files
 let videoFile = null; // Store selected video file
@@ -356,76 +546,41 @@ async function submitComment(event, postId) {
     }
 }
 
-//----------Media Modal----------//
-let currentMediaIndex = 0;
-let currentMediaList = [];
-
-// Open modal when clicking on an image/video in a post
-document.addEventListener('click', (event) => {
-    if (event.target.classList.contains('post-media-img')) {
-        currentMediaList = Array.from(event.target.parentElement.getElementsByClassName('post-media-img'))
-            .map(img => img.src);
-        openMediaModal(event.target.src, 'image');
-    } else if (event.target.classList.contains('post-media')) {
-        openMediaModal(event.target.src, 'video');
-    }
-});
-
-function openMediaModal(src, type) {
-    const modal = document.getElementById('media-modal');
-    const modalImage = document.getElementById('modal-image');
-    const modalVideo = document.getElementById('modal-video');
-
-    if (type === 'image') {
-        modalImage.src = src;
-        modalImage.style.display = 'block';
-        modalVideo.style.display = 'none';
-    } else if (type === 'video') {
-        modalVideo.src = src;
-        modalVideo.style.display = 'block';
-        modalImage.style.display = 'none';
-    }
-
-    currentMediaIndex = currentMediaList.indexOf(src);
-    modal.style.display = 'flex';
-
-    // Disable scrolling
-    document.body.style.overflow = 'hidden';
-}
-
-document.querySelector('.close-modal').addEventListener('click', () => {
-    const modal = document.getElementById('media-modal');
-    const modalVideo = document.getElementById('modal-video');
-
-    modal.style.display = 'none';
-
-    // Stop video if it's playing
-    modalVideo.pause();
-    modalVideo.currentTime = 0;
-
-    // Re-enable scrolling
-    document.body.style.overflow = '';
-});
-
-// Close modal
-document.querySelector('.close-modal').addEventListener('click', () => {
-    document.getElementById('media-modal').style.display = 'none';
-});
-
-// Navigate left and right in modal
-document.querySelector('.left-arrow').addEventListener('click', () => navigateMedia(-1));
-document.querySelector('.right-arrow').addEventListener('click', () => navigateMedia(1));
-
-function navigateMedia(direction) {
-    if (currentMediaList.length > 1) {
-        currentMediaIndex = (currentMediaIndex + direction + currentMediaList.length) % currentMediaList.length;
-        document.getElementById('modal-image').src = currentMediaList[currentMediaIndex];
-    }
-}
-
 
 //-------Schedule-----------//
-   // Initialize as empty — filled from DB
+function updateScheduleList() {
+    const scheduleList = document.getElementById('schedule-list');
+
+    // Clear the existing list
+    scheduleList.innerHTML = '<li>Loading schedule...</li>';
+
+    // Fetch today's schedule
+    const now = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = days[now.getDay()];
+    const currentYear = now.getFullYear().toString();
+
+    fetch(`/schedule?day=${today}&schoolYear=${currentYear}`)
+        .then((res) => res.json())
+        .then((todaySchedule) => {
+            if (todaySchedule && todaySchedule.length > 0) {
+                scheduleList.innerHTML = ''; // Clear the loading message
+                todaySchedule.forEach((item) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${item.time}: ${item.showDetails.title}`;
+                    scheduleList.appendChild(listItem);
+                });
+            } else {
+                // If no schedule is available
+                scheduleList.innerHTML = '<li>No schedule available.</li>';
+            }
+        })
+        .catch((err) => {
+            console.error('Failed to fetch schedule:', err);
+            scheduleList.innerHTML = '<li>Error loading schedule.</li>';
+        });
+}
+   /*// Initialize as empty — filled from DB
     let weekSchedule = {};
 
     // 🟢 Fetch schedule from MongoDB
@@ -576,9 +731,21 @@ function navigateMedia(direction) {
                 slot.remove();
             });
         });
-    });
+    });*/
 
 //-----Live Now-----//
+// 🟢 Fetch schedule from MongoDB
+function fetchSchedule() {
+    fetch('/schedule')
+        .then(res => res.json())
+        .then(data => {
+            if (data) {
+                weekSchedule = data;
+                renderScheduleList();
+            }
+        })
+        .catch(err => console.error("Failed to fetch schedule:", err));
+}
     // Parse time in "HH:MM"
     function parseTime(str) {
         const [h, m] = str.split(":").map(Number);

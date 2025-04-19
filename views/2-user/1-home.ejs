@@ -130,22 +130,14 @@
                     <div class="schedule-container">
                         <div class="schedule-header">
                             <h3>Today's Lives</h3>
-                            <% if (user && user.roles === 'Admin') { %>
-                                <button id="edit-schedule-btn" class="edit-button">Edit</button>
-                            <% } %>
                         </div>
                         <ul id="schedule-list">
-                            <% if (schedule && schedule.length > 0) { %>
-                                <% schedule.forEach(item => { %>
-                                    <li><%= item.start %> - <%= item.end %>: <%= item.title %></li>
-                                <% }) %>
-                            <% } else { %>
-                                <li>No schedule available.</li>
-                            <% } %>
+                            <!-- This will be dynamically populated by JavaScript -->
+                            <li>Loading schedule...</li>
                         </ul>
                     </div>
 
-                    <!-- Editable Form (hidden by default) -->
+                    <!-- Editable Form (hidden by default)
                     <form id="schedule-form" style="display: none;">
                         <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
                             <div class="schedule-day" data-day="<%= day %>">
@@ -156,7 +148,7 @@
                         <% }); %>
                         <button type="submit" class="save-schedule-button">Save</button>
                     </form>
-                </div>
+                </div>  -->
 
                 <div id="media-modal" class="media-modal">
                     <span class="close-modal">&times;</span>

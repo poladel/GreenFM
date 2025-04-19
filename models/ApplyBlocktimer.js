@@ -104,7 +104,7 @@ const ApplyBlocktimerSchema = new mongoose.Schema({
   },
   preferredSchedule: {
     day: { type: String, required: true },
-    time: { type: [String], required: true },
+    time: { type: String, required: true },
   },
   schoolYear: {
     type: String,
