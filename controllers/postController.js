@@ -198,18 +198,30 @@ const deleteComment = async (req, res) => {
     const user = req.user;
 
     try {
+        console.log(`Attempting to delete comment: PostId=${postId}, CommentId=${commentId}`);
+
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ error: 'Post not found' });
 
+        console.log('Post found:', post);
+
+        // Find the comment by its ID within the post's comments
         const comment = post.comments.id(commentId);
         if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+        console.log('Comment found:', comment);
 
         // Check if user is owner or admin
         if (comment.username !== user.username && user.roles !== 'Admin') {
             return res.status(403).json({ error: 'Unauthorized to delete this comment.' });
         }
 
-        comment.remove();
+        console.log('User authorized, deleting comment...');
+        
+        // Remove the comment using the `pull` method
+        post.comments.pull({ _id: commentId });
+
+        // Save the post after modifying its comments array
         await post.save();
 
         res.status(200).json({ success: true, message: 'Comment deleted successfully' });

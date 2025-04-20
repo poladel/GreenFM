@@ -566,6 +566,8 @@ async function submitComment(event, postId) {
 async function deleteComment(postId, commentId) {
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
+    console.log(`Attempting to delete comment: PostId=${postId}, CommentId=${commentId}`);
+
     try {
         const res = await fetch(`/post/${postId}/comment/${commentId}`, {
             method: 'DELETE'
