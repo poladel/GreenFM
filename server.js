@@ -44,29 +44,6 @@ const storage = new CloudinaryStorage({
     }
 });
 
-// Update your Cloudinary configuration
-const upload = multer({
-    storage: new CloudinaryStorage({
-      cloudinary: cloudinary,
-      params: {
-        folder: 'forum_media',
-        resource_type: 'auto',
-        allowed_formats: ['jpg', 'png', 'gif', 'mp4', 'mov'],
-        transformation: [{ width: 800, height: 800, crop: 'limit' }]
-      }
-    }),
-    limits: {
-      fileSize: 10 * 1024 * 1024 // 10MB
-    },
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only images and videos are allowed'), false);
-      }
-    }
-  });
-
 // Connecting to MongoDB Atlas
 mongoose.set('strictQuery', false);
 connectDB();
@@ -139,31 +116,9 @@ app.post('/send', async (req, res) => {
         to: `${process.env.ADMIN_EMAIL}, ${process.env.DLSUD_EMAIL}`,
         replyTo: email,
         subject: `New Message from ${name}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-                <h2 style="color: #0b730d;">New Message from ${name}</h2>
-                <p>You have received a new message from a user. Here are the details:</p>
-                
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Name</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${name}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Email</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${email}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Message</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${message}</td>
-                    </tr>
-                </table>
-        
-                <p style="margin-top: 20px;">Please respond to this message at your earliest convenience.</p>
-                <p>Best regards,<br>Your Application Team</p>
-            </div>
-        `,
-    };
+        html: mailHtml,
+      };
+      
 
     // Send the email
     try {

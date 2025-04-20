@@ -37,3 +37,25 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
       });
     }
   });
+
+  const formData = new URLSearchParams(new FormData(e.target));
+
+    const response = await fetch('/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    });
+
+    const result = await response.text();
+
+    document.getElementById('message').value = '';
+
+    Swal.fire({
+      icon: response.ok ? 'success' : 'error',
+      title: response.ok ? 'Success!' : 'Oops...',
+      text: result,
+      showConfirmButton: false,
+      timer: 1500
+    });

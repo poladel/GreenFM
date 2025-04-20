@@ -96,9 +96,6 @@ exports.createPost = async (req, res) => {
       });
     }
 
-    console.log('📌 req.user:', req.user); // Add this for debug
-    console.log('📌 Uploaded media:', req.uploadedMedia); // Add this for debug
-
     const post = new ForumPost({
       title: title?.trim(),
       text: text?.trim(),
@@ -120,15 +117,14 @@ exports.createPost = async (req, res) => {
       post: populatedPost.toObject()
     });
   } catch (error) {
-    console.error('❌ Create post error:', error);  // Logs actual error in terminal
+    console.error('Create post error:', error);  // <- 🔍 this should log the real issue
     res.status(500).json({
       success: false,
       error: 'Failed to create post',
-      details: error.message  // Show real cause
+      details: error.message   // <- Add this temporarily for debugging
     });
   }
 };
-
 
 
 
