@@ -361,47 +361,64 @@ document.getElementById('post-form').addEventListener('submit', async function (
 // Fetch posts and display them
 async function loadPosts() {
     try {
-        const response = await fetch('/posts'); // Fetch posts from the server
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        const response = await fetch('/posts'); // Adjust your endpoint as needed
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const posts = await response.json();
         const container = document.getElementById('posts-container');
 
-        if (Array.isArray(posts) && posts.length > 0) {
-            container.innerHTML = posts.map(post => {
-                let mediaContent = '';
+        if (!Array.isArray(posts) || posts.length === 0) {
+            container.innerHTML = '<p>No posts available.</p>';
+            return;
+        }
 
-                if (post.media && post.media.length > 0) {
-                    mediaContent = post.media.map(image => `<img src="${image}" class="post-media-img" />`).join('');
-                }
+        container.innerHTML = posts.map(post => {
+            const mediaHtml = `
+                ${post.media?.map(img => `<img src="${img}" class="post-media-img" alt="Image">`).join('') || ''}
+                ${post.video ? `<video src="${post.video}" controls class="post-media-video"></video>` : ''}
+            `;
 
-                if (post.video) {
-                    mediaContent += `<video src="${post.video}" controls class="post-media"></video>`;
-                }
+            const commentsHtml = post.comments?.map(comment => `
+                <div class="comment">
+                    <strong>${comment.username}:</strong> ${comment.text}
+                </div>
+            `).join('') || '';
 
-                return `
-                    <div class="post" id="post-${post._id}">
-                        <p><strong>${post.title}</strong></p>
-                        <p>${post.text}</p>
-                        <div class="post-media">
-                            ${mediaContent}
+            return `
+                <div class="post" id="post-${post._id}">
+                    <div class="post-item">
+                        <div class="post-info">
+                            <p class="post-title"><strong>${post.title}</strong></p>
+                            <p class="post-text">${post.text}</p>
+                            <div class="post-media">${mediaHtml}</div>
                         </div>
                         <div class="post-actions">
-                            <button class="edit-btn" onclick="editPost('${post._id}', '${post.title}', '${post.text}')">Edit</button>
-                            <button class="delete-btn" onclick="deletePost('${post._id}')">Delete</button>
+                            <button onclick="toggleLike('${post._id}')" class="like-btn" id="like-btn-${post._id}">
+                                ❤️ <span id="like-count-${post._id}">${post.likes?.length || 0}</span>
+                            </button>
+                            ${window.user?.roles === 'Admin' ? `
+                                <button class="edit-btn" onclick="editPost('${post._id}', '${post.title}', '${post.text}')">Edit</button>
+                                <button class="delete-btn" onclick="deletePost('${post._id}')">Delete</button>
+                            ` : ''}
+                        </div>
+                        <div class="post-comments">
+                            ${window.user ? `
+                                <form onsubmit="submitComment(event, '${post._id}')">
+                                    <input type="text" class="comment-input" placeholder="Write a comment..." required>
+                                    <button type="submit" class="comment-btn">Comment</button>
+                                </form>
+                            ` : ''}
+                            <div class="comment-list" id="comments-${post._id}">
+                                ${commentsHtml}
+                            </div>
                         </div>
                     </div>
-                `;
-            }).join('');
-        } else {
-            container.innerHTML = '<p>No posts available.</p>';
-        }
-    } catch (error) {
-        const container = document.getElementById('posts-container');
-        container.innerHTML = '<p>Failed to load posts. Please try again later.</p>';
-        console.error('Failed to load posts:', error);
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Failed to load posts:', err);
+        document.getElementById('posts-container').innerHTML = '<p>Failed to load posts. Please try again later.</p>';
     }
 }
 
@@ -546,6 +563,29 @@ async function submitComment(event, postId) {
     }
 }
 
+async function deleteComment(postId, commentId) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    console.log(`Attempting to delete comment: PostId=${postId}, CommentId=${commentId}`);
+
+    try {
+        const res = await fetch(`/post/${postId}/comment/${commentId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const commentElement = document.getElementById(`comment-${commentId}`);
+            if (commentElement) commentElement.remove();
+        } else {
+            alert(result.error || 'Failed to delete comment.');
+        }
+    } catch (err) {
+        console.error('Error deleting comment:', err);
+        alert('Failed to delete comment.');
+    }
+}
 
 //-------Schedule-----------//
 function updateScheduleList() {
