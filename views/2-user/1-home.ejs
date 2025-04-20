@@ -68,11 +68,12 @@
                 <div id="posts-container">
                     <!-- Posts will be displayed here -->
                     <% posts.forEach(post => { %>
-                        <div class="post"> <!-- Move the class here -->
+                        <div class="post">
                             <div class="post-item">
                                 <div class="post-info">
                                     <p class="post-title"><strong><%= post.title %></strong></p>
                                     <p class="post-text"><%= post.text %></p>
+                                    <p class="post-date">Posted on <%= post.createdAt.toLocaleString() %></p> <!-- Added this line -->
                                     <div class="post-media">
                                         <% if (post.media && post.media.length > 0) { %>
                                             <% post.media.forEach(media => { %>
@@ -101,7 +102,7 @@
                                             <input type="text" class="comment-input" placeholder="Write a comment..." required>
                                             <button type="submit" class="comment-btn">Comment</button>
                                         </form>
-                                    <% } %>                                                                       
+                                    <% } %>
                                     <div class="comment-list" id="comments-<%= post._id %>">
                                         <% post.comments && post.comments.forEach(comment => { %>
                                             <div class="comment" id="comment-<%= comment._id %>">
@@ -110,12 +111,12 @@
                                                     <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
                                                 <% } %>
                                             </div>
-                                        <% }) %>                                        
+                                        <% }) %>
                                     </div>
-                                </div>                                
+                                </div>
                             </div>
                         </div>
-                    <% }) %>
+                    <% }) %>                    
                 </div>                
 
                 <!-- Right Column (Live Now + Schedule) -->
