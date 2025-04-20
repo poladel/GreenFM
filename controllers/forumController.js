@@ -29,14 +29,14 @@ const upload = multer({
       cb(new Error(`Unsupported file type: ${file.mimetype}`), false);
     }
   }
-}).any(); // Allow all files in one array
+}).any();
 
 // Upload to Cloudinary
 const uploadToCloudinary = (file) => {
   return new Promise((resolve, reject) => {
     const isVideo = file.mimetype.startsWith('video/');
     const uploadOptions = {
-      folder: 'GreenFM/forum',
+      folder: 'uploads',
       resource_type: isVideo ? 'video' : 'image',
       format: isVideo ? 'mp4' : 'webp',
       quality: 'auto:good',
@@ -96,6 +96,9 @@ exports.createPost = async (req, res) => {
       });
     }
 
+    console.log('📌 req.user:', req.user); // Add this for debug
+    console.log('📌 Uploaded media:', req.uploadedMedia); // Add this for debug
+
     const post = new ForumPost({
       title: title?.trim(),
       text: text?.trim(),
@@ -106,6 +109,7 @@ exports.createPost = async (req, res) => {
     });
 
     await post.save();
+
     const populatedPost = await ForumPost.populate(post, {
       path: 'userId',
       select: 'username profilePicture'
@@ -116,14 +120,17 @@ exports.createPost = async (req, res) => {
       post: populatedPost.toObject()
     });
   } catch (error) {
-    console.error('Create post error:', error);
+    console.error('❌ Create post error:', error);  // Logs actual error in terminal
     res.status(500).json({
       success: false,
       error: 'Failed to create post',
-      ...(process.env.NODE_ENV === 'development' && { details: error.message })
+      details: error.message  // Show real cause
     });
   }
 };
+
+
+
 
 exports.getAllPosts = async (req, res) => {
   try {
@@ -167,7 +174,6 @@ exports.getAllPosts = async (req, res) => {
     });
   }
 };
-
 
 exports.getPostById = async (req, res) => {
   try {
@@ -241,8 +247,6 @@ exports.updatePost = async (req, res) => {
   }
 };
 
-
-
 exports.deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -275,7 +279,11 @@ exports.deletePost = async (req, res) => {
 exports.toggleLike = async (req, res) => {
   try {
     const postId = req.params.id;
-    const userId = req.user._id;
+    const userId = req.user?._id || req.session?.userId || null;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
 
     const post = await ForumPost.findById(postId);
     if (!post || post.isDeleted) {
@@ -285,7 +293,7 @@ exports.toggleLike = async (req, res) => {
       });
     }
 
-    const likeIndex = post.likes.indexOf(userId);
+    const likeIndex = post.likes.findIndex(id => id.toString() === userId.toString());
     const liked = likeIndex === -1;
 
     if (liked) {
