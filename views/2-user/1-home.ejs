@@ -101,13 +101,16 @@
                                             <input type="text" class="comment-input" placeholder="Write a comment..." required>
                                             <button type="submit" class="comment-btn">Comment</button>
                                         </form>
-                                    <% } %>
+                                    <% } %>                                                                       
                                     <div class="comment-list" id="comments-<%= post._id %>">
                                         <% post.comments && post.comments.forEach(comment => { %>
-                                            <div class="comment">
+                                            <div class="comment" id="comment-<%= comment._id %>">
                                                 <strong><%= comment.username %>:</strong> <%= comment.text %>
+                                                <% if (user && (user.username === comment.username || user.roles === 'Admin')) { %>
+                                                    <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
+                                                <% } %>
                                             </div>
-                                        <% }) %>
+                                        <% }) %>                                        
                                     </div>
                                 </div>                                
                             </div>

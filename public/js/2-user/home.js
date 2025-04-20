@@ -563,6 +563,27 @@ async function submitComment(event, postId) {
     }
 }
 
+async function deleteComment(postId, commentId) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+        const res = await fetch(`/post/${postId}/comment/${commentId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const commentElement = document.getElementById(`comment-${commentId}`);
+            if (commentElement) commentElement.remove();
+        } else {
+            alert(result.error || 'Failed to delete comment.');
+        }
+    } catch (err) {
+        console.error('Error deleting comment:', err);
+        alert('Failed to delete comment.');
+    }
+}
 
 //-------Schedule-----------//
 function updateScheduleList() {

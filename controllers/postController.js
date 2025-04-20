@@ -193,6 +193,32 @@ const addComment = async (req, res) => {
     }
 };
 
+const deleteComment = async (req, res) => {
+    const { postId, commentId } = req.params;
+    const user = req.user;
+
+    try {
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ error: 'Post not found' });
+
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+        // Check if user is owner or admin
+        if (comment.username !== user.username && user.roles !== 'Admin') {
+            return res.status(403).json({ error: 'Unauthorized to delete this comment.' });
+        }
+
+        comment.remove();
+        await post.save();
+
+        res.status(200).json({ success: true, message: 'Comment deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting comment:', err);
+        res.status(500).json({ error: 'Failed to delete comment' });
+    }
+};
+
 module.exports = {
     upload,
     createPost,
@@ -201,5 +227,6 @@ module.exports = {
     deletePost,
     getPublicIdFromUrl,
     toggleLike,
-    addComment
+    addComment,
+    deleteComment
 };

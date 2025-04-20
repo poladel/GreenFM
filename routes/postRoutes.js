@@ -22,4 +22,7 @@ router.post('/post/:id/like', requireAuth, postController.toggleLike);
 // Add comments
 router.post('/post/:id/comment', requireAuth, postController.addComment);
 
+// Delete comment
+router.delete('/post/:postId/comment/:commentId', requireAuth, postController.deleteComment);
+
 module.exports = router;
