@@ -74,7 +74,6 @@ const requireAuth = async (req, res, next) => {
     }
 };
 
-
 // Check current user
 const checkUser = async (req, res, next) => {
     const token = req.cookies.jwt; // Access token
@@ -143,5 +142,15 @@ const checkUser = async (req, res, next) => {
     }
 };
 
+// Middleware to check user roles
+const checkRoles = (allowedRoles) => {
+    return (req, res, next) => {
+        const user = res.locals.user; // Assuming user info is stored in res.locals.user
+        if (user && user.roles && allowedRoles.includes(user.roles)) {
+            return next();
+        }
+        return res.status(403).send('Access Denied: Insufficient Permissions');
+    };
+};
 
-module.exports = { requireAuth, checkUser };
+module.exports = { requireAuth, checkUser, checkRoles };

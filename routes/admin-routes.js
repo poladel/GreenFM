@@ -1,19 +1,18 @@
 const express = require('express');
-const { requireAuth } = require('../middleware/authMiddleware');
+const { requireAuth, checkRoles } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const router = express.Router();  
 
 // Define the routes for each 'user' section with dynamic titles
 const adminRoute = [
-    { path: '/ManageAccounts', view: '1-admin/1-accounts', pageTitle: 'Manage Accounts',  headerTitle: 'MANAGE ACCOUNTS', cssFile: 'css/admin-account.css'},
-    { path: '/Blocktimer', view: '1-admin/2-blocktimer', pageTitle: 'Blocktimer',  headerTitle: 'BLOCKTIMER', cssFile: 'css/admin-blocktimer.css'}
+    { path: '/ManageAccounts', view: '1-admin/1-accounts', pageTitle: 'Manage Accounts',  headerTitle: 'MANAGE ACCOUNTS', cssFile: 'css/admin-account.css', roles: ['Admin', 'Staff'] },
+    { path: '/Blocktimer', view: '1-admin/2-blocktimer', pageTitle: 'Blocktimer',  headerTitle: 'BLOCKTIMER', cssFile: 'css/admin-blocktimer.css', roles: ['Admin', 'Staff'] }
 ];
 
 // Define the routes and render views with dynamic titles
 adminRoute.forEach(adminRoute => {
-    router.get(adminRoute.path, async (req, res, next) => {
+    router.get(adminRoute.path, requireAuth, checkRoles(adminRoute.roles), async (req, res, next) => {
         try {
-
             if (adminRoute.auth) {
                 return requireAuth(req, res, async () => {
                     // Delegate to controller if specified
