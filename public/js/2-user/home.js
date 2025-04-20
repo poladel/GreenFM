@@ -587,7 +587,7 @@ async function deleteComment(postId, commentId) {
     }
 }
 
-//-------Schedule-----------//
+//-------Scheduled Shows-----------//
 function updateScheduleList() {
     const scheduleList = document.getElementById('schedule-list');
 
@@ -597,12 +597,37 @@ function updateScheduleList() {
     // Fetch today's schedule
     const now = new Date();
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[now.getDay()];
-    const currentYear = now.getFullYear().toString();
+    const today = days[now.getDay()]; // Dynamically get today's day
+    console.log(`Today is: ${today}`); // Debugging log
 
-    fetch(`/schedule?day=${today}&schoolYear=${currentYear}`)
-        .then((res) => res.json())
+    // Fetch the current school year from the schoolYearController
+    fetch('/schoolYear')
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch school year: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            console.log('School year data:', data); // Debugging log
+            let schoolYear = data.schoolYear;
+
+            // Normalize the schoolYear format to "2024-2025"
+            schoolYear = schoolYear.split('/')[1].split(' ')[0] + '-' + schoolYear.split('/')[2];
+            console.log('Normalized school year:', schoolYear); // Debugging log
+
+            // Use the fetched school year to get the schedule
+            return fetch(`/schedule?day=${today}&schoolYear=${schoolYear}`);
+        })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch schedule: ${res.status}`);
+            }
+            return res.json();
+        })
         .then((todaySchedule) => {
+            console.log('Today\'s schedule:', todaySchedule); // Debugging log
+
             if (todaySchedule && todaySchedule.length > 0) {
                 scheduleList.innerHTML = ''; // Clear the loading message
                 todaySchedule.forEach((item) => {
@@ -617,161 +642,9 @@ function updateScheduleList() {
         })
         .catch((err) => {
             console.error('Failed to fetch schedule:', err);
-            scheduleList.innerHTML = '<li>Error loading schedule.</li>';
+            scheduleList.innerHTML = '<li>Error loading schedule. Please try again later.</li>';
         });
 }
-   /*// Initialize as empty — filled from DB
-    let weekSchedule = {};
-
-    // 🟢 Fetch schedule from MongoDB
-    function fetchSchedule() {
-        fetch('/api/schedule')
-            .then(res => res.json())
-            .then(data => {
-                if (data) {
-                    weekSchedule = data;
-                    renderScheduleList();
-                }
-            })
-            .catch(err => console.error("Failed to fetch schedule:", err));
-    }
-
-    // 🟢 Save schedule to MongoDB
-    function saveSchedule() {
-        console.log("Sending weekSchedule:", weekSchedule); // 👈 Add this here
-
-        fetch('/api/schedule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(weekSchedule)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                console.log("✅ Schedule saved!");
-            } else {
-                console.warn("⚠️ Schedule not saved properly:", data);
-            }
-        })
-        .catch(err => console.error("Failed to save schedule:", err));
-    } 
-
-    // Show schedule on the page (used when page loads or when saving)
-    function renderScheduleList() {
-        const list = document.getElementById("schedule-list");
-        list.innerHTML = "";
-
-        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        const today = days[new Date().getDay()];
-
-        if (weekSchedule[today]) {
-            weekSchedule[today]
-                .sort((a, b) => parseTime(a.start) - parseTime(b.start))
-                .forEach(slot => {
-                    const li = document.createElement("li");
-                    li.textContent = `${slot.start} - ${slot.end} | ${slot.title}`;
-                    list.appendChild(li);
-                });
-        } else {
-            list.innerHTML = "<li>No shows scheduled today.</li>";
-        }
-    }
-
-    // Toggle edit form
-    document.getElementById("edit-schedule-btn").addEventListener("click", () => {
-        const form = document.getElementById("schedule-form");
-        form.style.display = form.style.display === "none" ? "block" : "none";
-
-        // Pre-fill form with current values
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        days.forEach(day => {
-            const daySection = form.querySelector(`[data-day="${day}"]`);
-            const slotsContainer = daySection.querySelector('.slots');
-            slotsContainer.innerHTML = ''; // Clear any existing slots
-
-            // Check if there are any slots for this day and render them
-            if (weekSchedule[day] && weekSchedule[day].length > 0) {
-                weekSchedule[day].forEach(slot => {
-                    const slotElement = document.createElement("div");
-                    slotElement.className = "slot";
-                    slotElement.innerHTML = `
-                        <input type="time" class="slot-start" value="${slot.start}" required>
-                        <input type="time" class="slot-end" value="${slot.end}" required>
-                        <input type="text" class="slot-title" value="${slot.title}" placeholder="Show Title" required>
-                        <button type="button" class="remove-slot-btn">✖</button>
-                    `;
-                    slotsContainer.appendChild(slotElement);
-
-                    // Remove slot functionality
-                    slotElement.querySelector(".remove-slot-btn").addEventListener("click", () => {
-                        slotElement.remove();
-                    });
-                });
-            } else {
-                // If no slots for the day, you can add a default "No slots" message if needed
-                slotsContainer.innerHTML = '<p>No live shows scheduled</p>';
-            }
-        });
-    });
-
-    // Save form data to weekSchedule + DB
-    document.getElementById("schedule-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        weekSchedule = gatherFormData();
-        renderScheduleList();
-        saveSchedule();
-        e.target.style.display = "none"; // Hide form after saving
-    }); 
-
-    // Capitalize string (e.g., "monday" → "Monday")
-    function capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    function gatherFormData() {
-        const form = document.getElementById("schedule-form");
-        const data = {};
-    
-        // Loop through each day (Monday to Friday)
-        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
-            const daySection = form.querySelector(`[data-day="${day}"]`);
-            const slots = [];
-    
-            // Gather all slots for this day
-            daySection.querySelectorAll('.slot').forEach(slotEl => {
-                const start = slotEl.querySelector('.slot-start').value;
-                const end = slotEl.querySelector('.slot-end').value;
-                const title = slotEl.querySelector('.slot-title').value;
-                if (start && end && title) {
-                    slots.push({ start, end, title });
-                }
-            });
-    
-            // Assign gathered slots to the respective day
-            data[day] = slots;
-        });
-    
-        return data;
-    }    
-
-    document.querySelectorAll(".add-slot-btn").forEach(button => {
-        button.addEventListener("click", () => {
-            const container = button.previousElementSibling;
-            const slot = document.createElement("div");
-            slot.className = "slot";
-            slot.innerHTML = `
-                <input type="time" class="slot-start" required>
-                <input type="time" class="slot-end" required>
-                <input type="text" class="slot-title" placeholder="Show Title" required>
-                <button type="button" class="remove-slot-btn">✖</button>
-            `;
-            container.appendChild(slot);
-    
-            slot.querySelector(".remove-slot-btn").addEventListener("click", () => {
-                slot.remove();
-            });
-        });
-    });*/
 
 //-----Live Now-----//
 // 🟢 Fetch schedule from MongoDB

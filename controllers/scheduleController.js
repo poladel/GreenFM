@@ -6,56 +6,27 @@ module.exports.postSchedule = async (req, res) => {
       day,
       time,
       schoolYear,
-      showDetails: {
-        title: showTitle,
-        type: showType = [],
-        description: showDescription,
-        objectives: showObjectives
-      },
-      executiveProducer: {
-        lastName: execProducerLastName,
-        firstName: execProducerFirstName,
-        mi: execProducerMI,
-        suffix: execProducerSuffix,
-        cys: execProducerCYS
-      },
+      showDetails, // Directly destructure showDetails
+      executiveProducer,
       hosts = [], // array of hosts
       technicalStaff = [], // array of technical staff
-      creativeStaff: {
-        lastName: creativeStaffLastName,
-        firstName: creativeStaffFirstName,
-        mi: creativeStaffMI,
-        suffix: creativeStaffSuffix,
-        cys: creativeStaffCYS
-      }
+      creativeStaff
     } = req.body;
+
+    // Validate required fields
+    if (!day || !time || !schoolYear || !showDetails || !executiveProducer || !creativeStaff) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
     const newSchedule = new Schedule({
       day,
       time,
       schoolYear,
-      showDetails: {
-        title: showTitle,
-        type: showType,
-        description: showDescription,
-        objectives: showObjectives
-      },
-      executiveProducer: {
-        lastName: execProducerLastName,
-        firstName: execProducerFirstName,
-        mi: execProducerMI,
-        suffix: execProducerSuffix,
-        cys: execProducerCYS
-      },
+      showDetails, // Use the showDetails object directly
+      executiveProducer,
       hosts,
-      technicalStaff, 
-      creativeStaff: {
-        lastName: creativeStaffLastName,
-        firstName: creativeStaffFirstName,
-        mi: creativeStaffMI,
-        suffix: creativeStaffSuffix,
-        cys: creativeStaffCYS
-      }
+      technicalStaff,
+      creativeStaff
     });
 
     await newSchedule.save();
