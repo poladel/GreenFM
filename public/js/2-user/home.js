@@ -358,73 +358,6 @@ document.getElementById('post-form').addEventListener('submit', async function (
     }
 });
 
-// Fetch posts and display them
-async function loadPosts() {
-    try {
-        const response = await fetch('/posts'); // Adjust your endpoint as needed
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-        const posts = await response.json();
-        const container = document.getElementById('posts-container');
-
-        if (!Array.isArray(posts) || posts.length === 0) {
-            container.innerHTML = '<p>No posts available.</p>';
-            return;
-        }
-
-        container.innerHTML = posts.map(post => {
-            const mediaHtml = `
-                ${post.media?.map(img => `<img src="${img}" class="post-media-img" alt="Image">`).join('') || ''}
-                ${post.video ? `<video src="${post.video}" controls class="post-media-video"></video>` : ''}
-            `;
-
-            const commentsHtml = post.comments?.map(comment => `
-                <div class="comment">
-                    <strong>${comment.username}:</strong> ${comment.text}
-                </div>
-            `).join('') || '';
-
-            return `
-                <div class="post" id="post-${post._id}">
-                    <div class="post-item">
-                        <div class="post-info">
-                            <p class="post-title"><strong>${post.title}</strong></p>
-                            <p class="post-text">${post.text}</p>
-                            <div class="post-media">${mediaHtml}</div>
-                        </div>
-                        <div class="post-actions">
-                            <button onclick="toggleLike('${post._id}')" class="like-btn" id="like-btn-${post._id}">
-                                ❤️ <span id="like-count-${post._id}">${post.likes?.length || 0}</span>
-                            </button>
-                            ${window.user?.roles === 'Admin' ? `
-                                <button class="edit-btn" onclick="editPost('${post._id}', '${post.title}', '${post.text}')">Edit</button>
-                                <button class="delete-btn" onclick="deletePost('${post._id}')">Delete</button>
-                            ` : ''}
-                        </div>
-                        <div class="post-comments">
-                            ${window.user ? `
-                                <form onsubmit="submitComment(event, '${post._id}')">
-                                    <input type="text" class="comment-input" placeholder="Write a comment..." required>
-                                    <button type="submit" class="comment-btn">Comment</button>
-                                </form>
-                            ` : ''}
-                            <div class="comment-list" id="comments-${post._id}">
-                                ${commentsHtml}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (err) {
-        console.error('Failed to load posts:', err);
-        document.getElementById('posts-container').innerHTML = '<p>Failed to load posts. Please try again later.</p>';
-    }
-}
-
-// Call the loadPosts function when the page is loaded
-window.addEventListener('DOMContentLoaded', loadPosts);
-
 // Example of editPost and deletePost functions (to be implemented)
 function editPost(postId, title, text) {
     console.log('Editing post', postId, title, text);
@@ -529,7 +462,7 @@ async function toggleLike(postId) {
 //------Comment Funtion-------//
 async function submitComment(event, postId) {
     event.preventDefault();
-    
+
     const form = event.target;
     const input = form.querySelector('.comment-input');
     const text = input.value.trim();
@@ -551,8 +484,21 @@ async function submitComment(event, postId) {
             const commentList = document.getElementById(`comments-${postId}`);
             const newComment = document.createElement('div');
             newComment.classList.add('comment');
-            newComment.innerHTML = `<strong>${result.comment.username}:</strong> ${result.comment.text}`;
-            commentList.appendChild(newComment);
+            newComment.id = `comment-${result.comment._id}`;
+
+            // Check permissions
+            const canDelete = window.user &&
+                (window.user.username === result.comment.username ||
+                (Array.isArray(window.user.roles)
+                    ? window.user.roles.includes('Admin')
+                    : window.user.roles === 'Admin'));
+
+            newComment.innerHTML = `
+                <strong>${result.comment.username}:</strong> ${result.comment.text}
+                ${canDelete ? `<button class="delete-comment-btn" onclick="deleteComment('${postId}', '${result.comment._id}')">🗑️</button>` : ''}
+            `;
+
+            window.location.reload();
             input.value = '';
         } else {
             alert(result.error || 'Failed to post comment.');

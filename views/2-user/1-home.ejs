@@ -107,7 +107,7 @@
                                         <% post.comments && post.comments.forEach(comment => { %>
                                             <div class="comment" id="comment-<%= comment._id %>">
                                                 <strong><%= comment.username %>:</strong> <%= comment.text %>
-                                                <% if (user && (user.username === comment.username || user.roles === 'Admin')) { %>
+                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') : user.roles === 'Admin'))) { %>
                                                     <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
                                                 <% } %>
                                             </div>
