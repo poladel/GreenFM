@@ -4,21 +4,6 @@ const bcrypt = require('bcrypt');
 
 const Schema = mongoose.Schema;
 
-// Define the sub-schema for Admin and Staff
-const adminSchema = new Schema({
-    department: {
-        type: String,
-        required: [true, 'Please specify the department for Admin']
-    }
-});
-
-const staffSchema = new Schema({
-    department: {
-        type: String,
-        required: [true, 'Please specify the department for Staff']
-    }
-});
-
 // Main user schema
 const userSchema = new Schema({
     email: {
