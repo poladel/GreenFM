@@ -524,6 +524,24 @@
     overflow: hidden;
 }
 
+/* ===== Toast NOTIFICATION ===== */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #333;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .toast.show {
+    opacity: 1;
+  }
+
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 768px) {
     #commentModal .modal-content {

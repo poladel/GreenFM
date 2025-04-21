@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
         this.elements.postForm.reset();
         this.elements.previewContainer.innerHTML = '';
         this.loadPosts();
+
+        showToast('✅ Post submitted successfully!');
       } catch (error) {
         console.error('Post error:', error);
         alert('Error submitting post');
@@ -168,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    
     async loadComments(postId, container) {
       try {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
@@ -202,6 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const countSpan = button.querySelector('.like-count');
         countSpan.textContent = data.likeCount;
         button.classList.toggle('liked', data.liked);
+        showToast(data.liked ? '❤️ Liked!' : '💔 Unliked!');
+
       } else {
         alert('Failed to like.');
       }
@@ -231,6 +236,8 @@ document.addEventListener('DOMContentLoaded', function () {
         textarea.value = '';
         const app = new ForumApp();
         app.loadComments(postId, commentsList);
+        showToast('💬 Comment posted!');
+
       } else {
         alert('Comment failed');
       }
@@ -244,6 +251,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const wrapper = document.getElementById(`comment-input-wrapper-${postId}`);
     if (wrapper) wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
   };
+
+  function showToast(message, duration = 3000) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    toast.classList.add('show');
+  
+    setTimeout(() => {
+      toast.classList.remove('show');
+      toast.classList.add('hidden');
+    }, duration);
+  }
 
   new ForumApp();
 });
