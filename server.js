@@ -8,10 +8,6 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
 const cookieParser = require('cookie-parser');
 const sessionMiddleware = require('./middleware/session');
-const nodemailer = require('nodemailer');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const forumRoutes = require('./routes/ForumRoutes');
 
 const app = express();
@@ -28,21 +24,9 @@ app.use('/', forumRoutes);
 app.use('/', require('./routes/ForumRoutes'));
 
 
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+// 
 
 // Set up Cloudinary storage for Multer
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'forum_media',
-        resource_type: 'auto'
-    }
-});
 
 // Connecting to MongoDB Atlas
 mongoose.set('strictQuery', false);
@@ -74,7 +58,7 @@ const contactRoutes = require('./routes/contactRoutes');
 const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
 
-const ForumPost = require('./models/ForumPost');
+
 
 // Start server with enhanced logging
 

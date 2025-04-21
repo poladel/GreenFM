@@ -1,7 +1,16 @@
-const ForumPost = require('../models/ForumPost');
+const ForumPost = require('../models/ForumPost');``
 const cloudinary = require('../config/cloudinaryConfig');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const streamifier = require('streamifier');
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Configuration
 const FILE_UPLOAD_LIMITS = {

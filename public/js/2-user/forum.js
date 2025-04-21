@@ -1,5 +1,3 @@
-// Updated forum.js with improved media handling, clickable like, and toggled comment textarea
-
 document.addEventListener('DOMContentLoaded', function () {
   class ForumApp {
     constructor() {
@@ -73,15 +71,14 @@ document.addEventListener('DOMContentLoaded', function () {
     async handlePostSubmit(e) {
       e.preventDefault();
       if (!this.isAuthenticated) return alert('Please log in.');
-    
+
       const formData = new FormData();
       formData.append('title', this.elements.postTitle.value);
       formData.append('text', this.elements.postContent.value);
-    
-      [...this.elements.imageInput.files, ...this.elements.videoInput.files, ...this.elements.fileInput.files]
-        .forEach(file => formData.append('media', file));
 
-      console.log('📤 Submitting post...');
+      [...this.elements.imageInput.files, ...this.elements.videoInput.files,  ].forEach(file => {
+        formData.append('media', file);
+      });
 
       try {
         const res = await fetch('/posts', {
@@ -89,19 +86,14 @@ document.addEventListener('DOMContentLoaded', function () {
           credentials: 'include',
           body: formData
         });
-        
-        const data = await res.json();
-        console.log('✅ Server response:', data);
-        
-        if (!data.success) throw new Error(data.details || data.error || 'Post failed');
-        
 
+        if (!res.ok) throw new Error('Post failed');
         this.elements.postForm.reset();
         this.elements.previewContainer.innerHTML = '';
         this.loadPosts();
       } catch (error) {
         console.error('Post error:', error);
-        alert('Error submitting post. ' + error.message);
+        alert('Error submitting post');
       }
     }
 
@@ -124,49 +116,51 @@ document.addEventListener('DOMContentLoaded', function () {
           if (media.type === 'image') {
             return `<img src="${media.url}" class="post-media" />`;
           } else if (media.type === 'video') {
-            return `<video controls class="post-media"><source src="${media.url}" type="video/mp4"></video>`;
+            return `<video controls controlsList="nodownload" oncontextmenu="return false" class="post-media"><source src="${media.url}" type="video/mp4"></video>`;
+
           } else {
             return `<a href="${media.url}" target="_blank">${media.url}</a>`;
           }
         }).join('') || '';
-
-        const author = post.userId?.username || 'Unknown';
-
+    
         return `
           <div class="post" data-id="${post._id}">
-            <p class="post-author" >${author}</p>
-            <h3 style="margin-top: 1.5;">${post.title}</h3>
-            <p>${post.text}</p>
-            <div class="media-block">${mediaContent}</div>
-            <div class="like-section" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-              <button class="like-button" 
-                      onclick="toggleLike('${post._id}', this)" 
-                      style=""
-                      onmouseover="this.style.backgroundColor='#e74c3c'; this.style.color='white';"
-                      onmouseout="this.style.backgroundColor='white'; this.style.color='#e74c3c';">
-                ❤️ <span class="like-count">${post.likes?.length || 0}</span>
-              </button>
-              <button class="comment-toggle-button"
-                      onclick="toggleCommentInput('${post._id}')"
-                      style="background-color: white; border: 2px solid #2c7a7b; color: #2c7a7b; padding: 6px 16px; border-radius: 9999px; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;"
-                      onmouseover="this.style.backgroundColor='#2c7a7b'; this.style.color='white';"
-                      onmouseout="this.style.backgroundColor='white'; this.style.color='#2c7a7b';">
-                💬 Comment
-              </button>
-            </div>
-            <div class="interaction-panel" data-post-id="${post._id}">
-              <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none; margin-top: 0.5rem;">
-                <textarea class="comment-input" placeholder="Write a comment..." style=""></textarea>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
-                  <button onclick="submitComment('${post._id}', this)" style="padding: 0.4rem 1rem;">Post Comment</button>
-                </div>
-              </div>
-              <div class="comments-list" id="comments-${post._id}"></div>
+        <p class="post-author">${post.userId?.username || 'Unknown'}</p>
+        <h3>${post.title}</h3>
+        <p>${post.text}</p>
+        <div class="media-block">${mediaContent}</div>
+
+        <!-- Buttons aligned right -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button class="like-button ${post.liked ? 'liked' : ''}" 
+                  onclick="toggleLike('${post._id}', this)"
+                  onmouseover="this.style.backgroundColor='#e74c3c'; this.style.color='white';"
+                  onmouseout="this.style.backgroundColor='white'; this.style.color='#e74c3c';">
+            ❤️ <span class="like-count">${post.likes?.length || 0}</span>
+          </button>
+
+          <button class="comment-toggle-button"
+                  onclick="toggleCommentInput('${post._id}')"
+                  style="background-color: white; border: 2px solid #2c7a7b; color: #2c7a7b; padding: 6px 16px; border-radius: 9999px; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;"
+                  onmouseover="this.style.backgroundColor='#2c7a7b'; this.style.color='white';"
+                  onmouseout="this.style.backgroundColor='white'; this.style.color='#2c7a7b';">
+            💬 Comment
+          </button>
+        </div>
+
+        <div class="interaction-panel" data-post-id="${post._id}">
+          <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none; margin-top: 0.5rem;">
+            <textarea class="comment-input" placeholder="Write a comment..."></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+              <button onclick="submitComment('${post._id}', this)" style="padding: 0.4rem 1rem;">Post Comment</button>
             </div>
           </div>
+          <div class="comments-list" id="comments-${post._id}"></div>
+        </div>
+      </div>
         `;
       }).join('');
-
+    
       document.querySelectorAll('.interaction-panel').forEach(panel => {
         const postId = panel.dataset.postId;
         const container = panel.querySelector(`#comments-${postId}`);
