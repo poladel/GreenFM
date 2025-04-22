@@ -292,7 +292,7 @@ exports.toggleLike = async (req, res) => {
 
     await post.save();
 
-    res.json({ success: true, liked, likeCount: post.likes.length });
+    res.json({ success: true, likes: post.likes });
   } catch (error) {
     console.error('Toggle like error:', error);
     res.status(500).json({
@@ -406,24 +406,17 @@ exports.updateComment = async (req, res) => {
 
 exports.deleteComment = async (req, res) => {
   const { postId, commentId } = req.params;
-  const userId = req.user._id;
-
   try {
     const post = await ForumPost.findById(postId);
-    if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
 
-    const comment = post.comments.id(commentId);
-    if (!comment || comment.userId.toString() !== userId.toString()) {
-      return res.status(403).json({ success: false, error: 'Unauthorized' });
-    }
-
-    comment.remove();
+    post.comments = post.comments.filter(c => c._id.toString() !== commentId);
     await post.save();
 
-    res.json({ success: true, message: 'Comment deleted' });
+    res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: 'Failed to delete comment' });
+    console.error('Delete comment error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ${showControls ? `
               <div class="edit-delete-buttons" style="margin-left:auto;">
                 <button class="edit-btn" onclick="editPost('${post._id}')">✏️ Edit</button>
-                <button class="delete-btn" onclick="deletePost('${post._id}')">🗑️ Delete</button>
+                <button class="delete-btn" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
               </div>` : ''}
           </div>
           <h3 class="post-title">${post.title}</h3>
@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
               ${c.userId?._id === this.currentUserId ? `
               <div class="edit-delete-buttons" style="display: flex; gap: 4px;">
-                <button class="edit-btn" type="button" onclick="editComment('${postId}', '${c._id}', this)">✏️</button>
-                <button class="delete-btn" type="button" onclick="deleteComment('${postId}', '${c._id}', this)">🗑️</button>
+                <button class="edit-btn" type="button" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
+                <button class="delete-btn" type="button" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
               </div>` : ''}
             </div>
             <p class="comment-text" data-comment-id="${c._id}">${c.text}</p>
@@ -179,177 +179,38 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   new ForumApp();
-
-  window.editComment = async function (postId, commentId, button) {
-    const commentItem = button.closest('.comment-item');
-    const commentTextEl = commentItem.querySelector('.comment-text');
-    const originalText = commentTextEl.innerText;
-  
-    const textarea = document.createElement('textarea');
-    textarea.className = 'comment-input';
-    textarea.value = originalText;
-    commentTextEl.replaceWith(textarea);
-  
-    const buttonsWrapper = commentItem.querySelector('.edit-delete-buttons');
-    buttonsWrapper.innerHTML = '';
-  
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = '💾 Save';
-    saveBtn.className = 'edit-btn';
-    saveBtn.type = 'button';
-  
-    saveBtn.onclick = async () => {
-      const updatedText = textarea.value.trim();
-      if (!updatedText) return;
-  
-      try {
-        const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ text: updatedText })
-        });
-        const data = await res.json();
-  
-        if (data.success) {
-          const newText = document.createElement('p');
-          newText.className = 'comment-text';
-          newText.dataset.commentId = commentId;
-          newText.innerText = updatedText;
-          textarea.replaceWith(newText);
-  
-          buttonsWrapper.innerHTML = `
-            <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
-            <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
-          `;
-          showToast('✅ Comment updated!');
-        } else {
-          showToast('❌ Failed to update comment', 'error');
-        }
-      } catch (err) {
-        console.error('Comment update error:', err);
-        showToast('❌ Error updating comment', 'error');
-      }
-    };
-  
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '✖ Cancel';
-    cancelBtn.className = 'delete-btn';
-    cancelBtn.type = 'button';
-  
-    cancelBtn.onclick = () => {
-      textarea.replaceWith(commentTextEl);
-      buttonsWrapper.innerHTML = `
-        <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
-        <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
-      `;
-    };
-  
-    buttonsWrapper.appendChild(saveBtn);
-    buttonsWrapper.appendChild(cancelBtn);
-  };
-  
-
-  window.deleteComment = async function (postId, commentId, button) {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
-
-    try {
-      const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (data.success) {
-        button.closest('.comment-item').remove();
-        showToast('🗑️ Comment deleted!');
-      } else {
-        showToast('❌ Failed to delete comment', 'error');
-      }
-    } catch (err) {
-      console.error('Comment delete error:', err);
-      showToast('❌ Error deleting comment', 'error');
-    }
-  };
 });
 
 
-// ===== COMMENT FUNCTIONS =====
-window.editComment = function (postId, commentId, button) {
-  const commentItem = button.closest('.comment-item');
-  const commentTextEl = commentItem.querySelector('.comment-text');
-  const originalText = commentTextEl.innerText;
-
-  const textarea = document.createElement('textarea');
-  textarea.className = 'comment-input';
-  textarea.value = originalText;
-  commentTextEl.replaceWith(textarea);
-
-  const buttonsWrapper = commentItem.querySelector('.edit-delete-buttons');
-  buttonsWrapper.innerHTML = '';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = '💾 Save';
-  saveBtn.className = 'edit-btn';
-  saveBtn.type = 'button';
-  saveBtn.onclick = async () => {
-    const updatedText = textarea.value.trim();
-    if (!updatedText) return;
-
-    try {
-      const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ text: updatedText })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        const updatedP = document.createElement('p');
-        updatedP.className = 'comment-text';
-        updatedP.dataset.commentId = commentId;
-        updatedP.innerText = updatedText;
-        textarea.replaceWith(updatedP);
-
-        buttonsWrapper.innerHTML = `
-          <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
-          <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
-        `;
-        showToast('✅ Comment updated!');
-      } else {
-        showToast('❌ Failed to update comment', 'error');
-      }
-    } catch (err) {
-      console.error('Comment update error:', err);
-      showToast('❌ Error updating comment', 'error');
-    }
-  };
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '✖ Cancel';
-  cancelBtn.className = 'delete-btn';
-  cancelBtn.type = 'button';
-  cancelBtn.onclick = () => {
-    textarea.replaceWith(commentTextEl);
-    buttonsWrapper.innerHTML = `
-      <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
-      <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
-    `;
-  };
-
-  buttonsWrapper.appendChild(saveBtn);
-  buttonsWrapper.appendChild(cancelBtn);
-};
-
-window.deleteComment = async function (postId, commentId, button) {
-  if (!confirm('Are you sure you want to delete this comment?')) return;
+window.safeDeletePost = async function (postId, button) {
+  if (!confirm('Are you sure you want to delete this post?')) return;
 
   try {
-    const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+    const res = await fetch(`/posts/${postId}`, {
       method: 'DELETE',
       credentials: 'include'
     });
+    const data = await res.json();
+    if (data.success) {
+      button.closest('.post').remove();
+      showToast('🗑️ Post deleted!');
+    } else {
+      showToast('❌ Failed to delete post', 'error');
+    }
+  } catch (err) {
+    console.error('Post delete error:', err);
+    showToast('❌ Error deleting post', 'error');
+  }
+};
 
+window.safeDeleteComment = async function (postId, commentId, button) {
+  if (!confirm('Are you sure you want to delete this comment?')) return;
+
+  try {
+    const res = await fetch(`/posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
     const data = await res.json();
     if (data.success) {
       button.closest('.comment-item').remove();
@@ -445,24 +306,147 @@ window.editPost = function (postId) {
   buttonsWrapper.appendChild(cancelBtn);
 };
 
-window.deletePost = async function (postId) {
-  if (!confirm('Are you sure you want to delete this post?')) return;
+window.showToast = function(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3000);
+};
+
+window.toggleCommentInput = function(postId) {
+  const inputWrapper = document.getElementById(`comment-input-wrapper-${postId}`);
+  if (!inputWrapper) return;
+  inputWrapper.style.display = inputWrapper.style.display === 'none' ? 'block' : 'none';
+};
+
+window.toggleLike = function(postId, button) {
+  fetch(`/posts/${postId}/like`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && Array.isArray(data.likes)) {
+        const likeCountSpan = button.querySelector('.like-count');
+        likeCountSpan.textContent = data.likes.length;
+        button.classList.toggle('liked');
+      } else {
+        window.showToast('❌ Failed to like post (invalid response)', 'error');
+        console.warn('Like API response:', data);
+      }
+    })
+    .catch(err => {
+      console.error('Like error:', err);
+      window.showToast('❌ Error liking post', 'error');
+    });
+};
+
+
+window.submitComment = async function (postId, button) {
+  const panel = button.closest('.interaction-panel');
+  const textarea = panel.querySelector('.comment-input');
+  const commentsList = panel.querySelector(`#comments-${postId}`);
+  const text = textarea.value.trim();
+  if (!text) return;
 
   try {
-    const res = await fetch(`/posts/${postId}`, {
-      method: 'DELETE',
-      credentials: 'include'
+    const res = await fetch(`/posts/${postId}/comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ text })
     });
 
     const data = await res.json();
     if (data.success) {
-      document.querySelector(`.post[data-id="${postId}"]`).remove();
-      showToast('🗑️ Post deleted!');
+      textarea.value = '';
+      const commentHTML = `
+        <div class="comment-item">
+          <div class="comment-header" style="display: flex; justify-content: space-between;">
+            <div>
+              <span class="comment-author">${data.comment.userId?.username || 'You'}</span>
+              <span class="comment-date">${new Date(data.comment.createdAt).toLocaleString('en-US')}</span>
+            </div>
+          </div>
+          <p class="comment-text">${data.comment.text}</p>
+        </div>`;
+      commentsList.innerHTML += commentHTML;
+      showToast('💬 Comment posted!');
     } else {
-      showToast('❌ Failed to delete post', 'error');
+      showToast('❌ Failed to comment', 'error');
     }
   } catch (err) {
-    console.error('Post delete error:', err);
-    showToast('❌ Error deleting post', 'error');
+    console.error('Submit comment error:', err);
+    showToast('❌ Error posting comment', 'error');
   }
 };
+
+window.editComment = async function (postId, commentId, button) {
+  const commentItem = button.closest('.comment-item');
+  const commentTextEl = commentItem.querySelector('.comment-text');
+  const originalText = commentTextEl.innerText;
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'comment-input';
+  textarea.value = originalText;
+  commentTextEl.replaceWith(textarea);
+
+  const buttonsWrapper = commentItem.querySelector('.edit-delete-buttons');
+  buttonsWrapper.innerHTML = '';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = '💾 Save';
+  saveBtn.className = 'edit-btn';
+  saveBtn.type = 'button';
+  saveBtn.onclick = async () => {
+    const updatedText = textarea.value.trim();
+    if (!updatedText) return;
+
+    try {
+      const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: updatedText })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const updatedP = document.createElement('p');
+        updatedP.className = 'comment-text';
+        updatedP.dataset.commentId = commentId;
+        updatedP.innerText = updatedText;
+        textarea.replaceWith(updatedP);
+
+        buttonsWrapper.innerHTML = `
+          <button class="edit-btn" onclick="window.editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+          <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+        `;
+        showToast('✅ Comment updated!');
+      } else {
+        showToast('❌ Failed to update comment', 'error');
+      }
+    } catch (err) {
+      console.error('Comment update error:', err);
+      showToast('❌ Error updating comment', 'error');
+    }
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✖ Cancel';
+  cancelBtn.className = 'delete-btn';
+  cancelBtn.type = 'button';
+  cancelBtn.onclick = () => {
+    textarea.replaceWith(commentTextEl);
+    buttonsWrapper.innerHTML = `
+      <button class="edit-btn" onclick="window.editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+      <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+    `;
+  };
+
+  buttonsWrapper.appendChild(saveBtn);
+  buttonsWrapper.appendChild(cancelBtn);
+};
+
