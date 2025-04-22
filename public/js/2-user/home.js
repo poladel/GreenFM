@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 if (response.ok) {
                     alert('Post uploaded successfully!');
-                    loadPosts();
+                    window.location.reload();
                     postForm.reset();
                     document.getElementById('preview-container').innerHTML = '';
                 } else {
@@ -347,7 +347,7 @@ document.getElementById('post-form').addEventListener('submit', async function (
         const result = await response.json();
         if (response.ok) {
             alert('Post uploaded successfully!');
-            loadPosts();
+            window.location.reload();
             document.getElementById('post-form').reset();
             document.getElementById('preview-container').innerHTML = '';
         } else {
@@ -357,19 +357,6 @@ document.getElementById('post-form').addEventListener('submit', async function (
         alert("Something went wrong!");
     }
 });
-
-// Example of editPost and deletePost functions (to be implemented)
-function editPost(postId, title, text) {
-    console.log('Editing post', postId, title, text);
-    // Add your logic for editing a post
-}
-
-function deletePost(postId) {
-    console.log('Deleting post', postId);
-    // Add your logic for deleting a post
-}
-
-loadPosts();
 
 // Function to edit a post
 async function editPost(postId, currentTitle, currentText) {
@@ -405,7 +392,7 @@ async function updatePost(postId, newTitle, newText) {
 
         if (response.ok) {
             alert('Post updated successfully!');
-            loadPosts(); // Reload the posts
+            window.location.reload();
         } else {
             alert(result.error || 'Failed to update post');
         }
@@ -425,7 +412,7 @@ async function deletePost(postId) {
 
             if (response.ok) {
                 alert('Post deleted successfully!');
-                loadPosts(); // Reload the posts
+                window.location.reload();
             } else {
                 alert(result.error || 'Failed to delete post');
             }
@@ -490,8 +477,8 @@ async function submitComment(event, postId) {
             const canDelete = window.user &&
                 (window.user.username === result.comment.username ||
                 (Array.isArray(window.user.roles)
-                    ? window.user.roles.includes('Admin')
-                    : window.user.roles === 'Admin'));
+                ? (window.user.roles.includes('Admin') || window.user.roles.includes('Staff'))
+                : (window.user.roles === 'Admin' || window.user.roles === 'Staff')));
 
             newComment.innerHTML = `
                 <strong>${result.comment.username}:</strong> ${result.comment.text}

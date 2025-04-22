@@ -36,7 +36,7 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
-                <% if (user && user.roles === 'Admin') { %>
+                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
                         <!-- New title input -->
@@ -91,7 +91,7 @@
                                             ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
                                         </button>
                                     <% } %>
-                                    <% if (user && user.roles === 'Admin') { %>
+                                    <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
                                         <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
                                         <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
                                     <% } %>
@@ -107,7 +107,7 @@
                                         <% post.comments && post.comments.forEach(comment => { %>
                                             <div class="comment" id="comment-<%= comment._id %>">
                                                 <strong><%= comment.username %>:</strong> <%= comment.text %>
-                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') : user.roles === 'Admin'))) { %>
+                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? (user.roles.includes('Admin') || user.roles.includes('Staff')) : (user.roles === 'Admin' || user.roles === 'Staff')))) { %>
                                                     <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
                                                 <% } %>
                                             </div>
