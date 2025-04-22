@@ -394,6 +394,10 @@ window.submitComment = async function (postId, button) {
     const data = await res.json();
     if (data.success) {
       textarea.value = '';
+
+      // ✅ Check if user is authenticated and same user
+      const isOwner = data.comment.userId?._id === window.currentUserId;
+
       const commentHTML = `
         <div class="comment-item">
           <div class="comment-header" style="display: flex; justify-content: space-between;">
@@ -401,9 +405,16 @@ window.submitComment = async function (postId, button) {
               <span class="comment-author">${data.comment.userId?.username || 'You'}</span>
               <span class="comment-date">${new Date(data.comment.createdAt).toLocaleString('en-US')}</span>
             </div>
+            ${isOwner ? `
+              <div class="edit-delete-buttons" style="display: flex; gap: 4px;">
+                <button class="edit-btn" type="button" onclick="window.editComment('${postId}', '${data.comment._id}', this)">✏️</button>
+                <button class="delete-btn" type="button" data-post-id="${postId}" data-comment-id="${data.comment._id}">🗑️</button>
+              </div>
+            ` : ''}
           </div>
-          <p class="comment-text">${data.comment.text}</p>
+          <p class="comment-text" data-comment-id="${data.comment._id}">${data.comment.text}</p>
         </div>`;
+
       commentsList.innerHTML += commentHTML;
       showToast('💬 Comment posted!');
     } else {
@@ -414,6 +425,7 @@ window.submitComment = async function (postId, button) {
     showToast('❌ Error posting comment', 'error');
   }
 };
+
 
 window.editComment = async function (postId, commentId, button) {
   const commentItem = button.closest('.comment-item');
