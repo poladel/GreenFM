@@ -1,3 +1,59 @@
+/* --- Search & Filter Styles --- */
+.post-filters {
+    background-color: white;
+    padding: 15px 20px;
+    margin: 1vw 4vw 0 4vw;
+    width: 61vw;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-family: Arial, sans-serif;
+}
+.post-filters select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+/* Increase width of the search box */
+.post-filters input[type="text"] {
+    width: 38vw; /* Adjust the width as needed */
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+.post-filters input::placeholder {
+    color: #888;
+}
+
+#filterBtn {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#filterBtn:hover {
+    background-color: #00591F;
+}
+
 /* Post Component Styles */
 .post-container {
     background-color: white;

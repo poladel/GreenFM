@@ -35,8 +35,8 @@
                 <!-------------------- HEADER MENUS -------------------->   
                 <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- CONTENTS START --------------------> 
-                <% if (user && user.roles === 'Admin') { %>
+                <!-------------------- CONTENTS START -------------------->               
+                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
                         <!-- New title input -->
@@ -64,60 +64,32 @@
                     </form>
                 </div>
                 <% } %>
-   
-                <div id="posts-container">
+
+                <!---Search & Filter-->
+                <div class="post-filters">
+                    <input type="text" id="searchInput" placeholder="Search posts...">
+                                    
+                    <select id="filterMonth">
+                        <option value="">Month</option>
+                            <% for (let m = 0; m < 12; m++) { %>
+                                <option value="<%= m %>"><%= new Date(2000, m).toLocaleString('default', { month: 'long' }) %></option>
+                            <% } %>
+                    </select>
+                                
+                    <select id="filterYear">
+                        <option value="">Year</option>
+                            <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
+                                <option value="<%= y %>"><%= y %></option>
+                            <% } %>
+                    </select>
+                                
+                    <button id="filterBtn">Apply Filter</button>
+                </div>  
+                
                     <!-- Posts will be displayed here -->
-                    <% posts.forEach(post => { %>
-                        <div class="post">
-                            <div class="post-item">
-                                <div class="post-info">
-                                    <p class="post-title"><strong><%= post.title %></strong></p>
-                                    <p class="post-text"><%= post.text %></p>
-                                    <p class="post-date">Posted on <%= post.createdAt.toLocaleString() %></p> <!-- Added this line -->
-                                    <div class="post-media">
-                                        <% if (post.media && post.media.length > 0) { %>
-                                            <% post.media.forEach(media => { %>
-                                                <img src="<%= media %>" class="post-media-img" alt="Post Media">
-                                            <% }) %>
-                                        <% } %>
-                                        <% if (post.video) { %>
-                                            <video src="<%= post.video %>" controls class="post-media-video"></video>
-                                        <% } %>
-                                    </div>
-                                </div>
-                                <div class="post-actions">
-                                    <% if (user) { %>
-                                        <button onclick="toggleLike('<%= post._id %>')" class="like-btn" id="like-btn-<%= post._id %>">
-                                            ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
-                                        </button>
-                                    <% } %>
-                                    <% if (user && user.roles === 'Admin') { %>
-                                        <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
-                                        <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
-                                    <% } %>
-                                </div>
-                                <div class="post-comments">
-                                    <% if (user) { %>
-                                        <form onsubmit="submitComment(event, '<%= post._id %>')">
-                                            <input type="text" class="comment-input" placeholder="Write a comment..." required>
-                                            <button type="submit" class="comment-btn">Comment</button>
-                                        </form>
-                                    <% } %>
-                                    <div class="comment-list" id="comments-<%= post._id %>">
-                                        <% post.comments && post.comments.forEach(comment => { %>
-                                            <div class="comment" id="comment-<%= comment._id %>">
-                                                <strong><%= comment.username %>:</strong> <%= comment.text %>
-                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') : user.roles === 'Admin'))) { %>
-                                                    <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
-                                                <% } %>
-                                            </div>
-                                        <% }) %>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <% }) %>                    
-                </div>                
+                    <div id="posts-container">
+                        <%- include('../partials/postList.ejs', { posts, user }) %>
+                    </div>                                            
 
                 <!-- Right Column (Live Now + Schedule) -->
                 <div class="right-sidebar">

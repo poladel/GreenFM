@@ -31,13 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (postForm) {
-        postForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            console.log('Post form submitted');
-        });
-    }
-
     if (imageInput) {
         imageInput.addEventListener('change', function () {
             const files = this.files;
@@ -62,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postForm) {
         postForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-
+    
             const imageInput = document.getElementById('image-input');
             const videoInput = document.getElementById('video-input');
             const titleValue = document.getElementById('post-title').value.trim();
@@ -112,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 if (response.ok) {
                     alert('Post uploaded successfully!');
-                    loadPosts();
+                    window.location.reload();
                     postForm.reset();
                     document.getElementById('preview-container').innerHTML = '';
                 } else {
@@ -294,83 +287,6 @@ function removeFile(file, type, previewElement) {
     }
 }
 
-// Handle form submission
-document.getElementById('post-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const imageInput = document.getElementById('image-input');
-    const videoInput = document.getElementById('video-input');
-    const titleValue = document.getElementById('post-title').value.trim();
-    const textValue = document.querySelector('.post-textbox').value.trim();
-
-    // Check number of images
-    if (imageInput.files.length > 6) {
-        showToast("You can upload a maximum of 6 images.");
-        return;
-    }
-
-    // Check image file sizes (20MB = 20 * 1024 * 1024)
-    for (let file of imageInput.files) {
-        if (file.size > 20 * 1024 * 1024) {
-            showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    // Check video file size (20MB = 20 * 1024 * 1024)
-    if (videoInput.files.length > 0) {
-        const videoFile = videoInput.files[0];
-        if (videoFile.size > 20 * 1024 * 1024) {
-            showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    const formData = new FormData();
-    formData.append('title', titleValue);
-    formData.append('text', textValue);
-
-    for (let file of imageInput.files) {
-        formData.append('media', file);
-    }
-
-    if (videoInput.files.length > 0) {
-        formData.append('video', videoInput.files[0]);
-    }
-
-    try {
-        const response = await fetch('/post', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Post uploaded successfully!');
-            loadPosts();
-            document.getElementById('post-form').reset();
-            document.getElementById('preview-container').innerHTML = '';
-        } else {
-            alert(result.error || 'Failed to post');
-        }
-    } catch (error) {
-        alert("Something went wrong!");
-    }
-});
-
-// Example of editPost and deletePost functions (to be implemented)
-function editPost(postId, title, text) {
-    console.log('Editing post', postId, title, text);
-    // Add your logic for editing a post
-}
-
-function deletePost(postId) {
-    console.log('Deleting post', postId);
-    // Add your logic for deleting a post
-}
-
-loadPosts();
-
 // Function to edit a post
 async function editPost(postId, currentTitle, currentText) {
     console.log('Editing post', postId, currentTitle, currentText);
@@ -387,25 +303,23 @@ async function editPost(postId, currentTitle, currentText) {
 
 // Function to update a post
 async function updatePost(postId, newTitle, newText) {
-    const formData = new FormData();
-    formData.append('title', newTitle);
-    formData.append('text', newText);
-
-    console.log('Updating post:', postId);
-    console.log('Title:', newTitle);
-    console.log('Text:', newText);
-
     try {
         const response = await fetch(`/post/${postId}`, {
             method: 'PUT',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: newTitle,
+                text: newText
+            })
         });
 
         const result = await response.json();
 
         if (response.ok) {
             alert('Post updated successfully!');
-            loadPosts(); // Reload the posts
+            window.location.reload();
         } else {
             alert(result.error || 'Failed to update post');
         }
@@ -425,7 +339,7 @@ async function deletePost(postId) {
 
             if (response.ok) {
                 alert('Post deleted successfully!');
-                loadPosts(); // Reload the posts
+                window.location.reload();
             } else {
                 alert(result.error || 'Failed to delete post');
             }
@@ -490,8 +404,8 @@ async function submitComment(event, postId) {
             const canDelete = window.user &&
                 (window.user.username === result.comment.username ||
                 (Array.isArray(window.user.roles)
-                    ? window.user.roles.includes('Admin')
-                    : window.user.roles === 'Admin'));
+                ? (window.user.roles.includes('Admin') || window.user.roles.includes('Staff'))
+                : (window.user.roles === 'Admin' || window.user.roles === 'Staff')));
 
             newComment.innerHTML = `
                 <strong>${result.comment.username}:</strong> ${result.comment.text}
@@ -532,6 +446,83 @@ async function deleteComment(postId, commentId) {
         alert('Failed to delete comment.');
     }
 }
+
+function enableEditComment(postId, commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    textDisplay.style.display = 'none';
+    form.style.display = 'block';
+}
+
+function cancelEditComment(commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    form.style.display = 'none';
+    textDisplay.style.display = 'inline';
+}
+
+async function editComment(event, postId, commentId) {
+    event.preventDefault();
+
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const input = commentElement.querySelector('.edit-comment-input');
+    const newText = input.value.trim();
+
+    if (!newText) return;
+
+    try {
+        const res = await fetch(`/post/${postId}/comment/${commentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: newText })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const textDisplay = commentElement.querySelector('.comment-text');
+            textDisplay.textContent = newText;
+            cancelEditComment(commentId);
+        } else {
+            alert(result.error || 'Failed to edit comment.');
+        }
+    } catch (err) {
+        console.error('Error editing comment:', err);
+        alert('Error editing comment.');
+    }
+}
+
+//-------Search & Filter-----------//
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const filterMonth = document.getElementById("filterMonth");
+    const filterYear = document.getElementById("filterYear");
+    const filterBtn = document.getElementById("filterBtn");
+    const postsContainer = document.getElementById("posts-container");
+
+    const fetchPosts = async (query = {}) => {
+        const params = new URLSearchParams(query);
+        const res = await fetch(`/posts?${params}`);
+        const data = await res.text();
+        postsContainer.innerHTML = data;
+    };
+
+    searchInput.addEventListener("input", () => {
+        fetchPosts({ search: searchInput.value });
+    });
+
+    filterBtn.addEventListener("click", () => {
+        fetchPosts({
+            month: filterMonth.value,
+            year: filterYear.value,
+            search: searchInput.value
+        });
+    });
+});
 
 //-------Scheduled Shows-----------//
 function updateScheduleList() {
