@@ -15,6 +15,8 @@ router.delete('/posts/:id', requireAuth, forumController.deletePost);
 router.post('/posts/:id/like', requireAuth, forumController.toggleLike);
 router.post('/posts/:id/comment', requireAuth, forumController.addComment);
 router.get('/posts/:id/comments', forumController.getComments);
+router.delete('/posts/:id/comments/:commentId', requireAuth, forumController.deleteComment);
+
 
 // Edit comment
 // PUT /posts/:postId/comment/:commentId

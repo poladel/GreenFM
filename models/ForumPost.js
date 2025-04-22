@@ -1,10 +1,10 @@
-// models/ForumPost.js
 const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   text: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  isDeleted: { type: Boolean, default: false } // ✅ Supports soft-delete
 });
 
 const mediaSchema = new mongoose.Schema({
@@ -16,7 +16,7 @@ const forumPostSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   text: { type: String, default: '' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  media: [mediaSchema], // Properly typed array of media objects
+  media: [mediaSchema],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [commentSchema],
   isDeleted: { type: Boolean, default: false }

@@ -38,6 +38,34 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('add-image-button')?.addEventListener('click', () => this.elements.imageInput.click());
       document.getElementById('add-video-button')?.addEventListener('click', () => this.elements.videoInput.click());
       this.elements.postForm?.addEventListener('submit', (e) => this.handlePostSubmit(e));
+
+      // 🔁 Centralize delete comment logic
+      document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-btn') && e.target.dataset.commentId) {
+          const postId = e.target.dataset.postId;
+          const commentId = e.target.dataset.commentId;
+          const commentItem = e.target.closest('.comment-item');
+
+          if (!confirm('Are you sure you want to delete this comment?')) return;
+
+          try {
+            const res = await fetch(`/posts/${postId}/comments/${commentId}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+              commentItem.remove();
+              showToast('🗑️ Comment deleted!');
+            } else {
+              showToast('❌ Failed to delete comment', 'error');
+            }
+          } catch (err) {
+            console.error('Comment delete error:', err);
+            showToast('❌ Error deleting comment', 'error');
+          }
+        }
+      });
     }
 
     handleFileSelect(event) {
@@ -85,7 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const response = await fetch(`/posts?page=${page}`, { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to load posts');
         const data = await response.json();
-        this.renderPosts(data.posts);
+        const filteredPosts = data.posts.filter(p => !p.isDeleted);
+        this.renderPosts(filteredPosts);
         this.renderPagination(data.totalPages, data.currentPage);
       } catch (error) {
         console.error('Error loading posts:', error);
@@ -154,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
         const data = await res.json();
-        const comments = data.comments || [];
+        const comments = data.comments?.filter(c => !c.isDeleted) || [];
         container.innerHTML = comments.map(c => `
           <div class="comment-item">
             <div class="comment-header" style="display: flex; align-items: center; justify-content: space-between;">
@@ -165,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
               ${c.userId?._id === this.currentUserId ? `
               <div class="edit-delete-buttons" style="display: flex; gap: 4px;">
                 <button class="edit-btn" type="button" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
-                <button class="delete-btn" type="button" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
+                <button class="delete-btn" type="button" data-post-id="${postId}" data-comment-id="${c._id}">🗑️</button>
               </div>` : ''}
             </div>
             <p class="comment-text" data-comment-id="${c._id}">${c.text}</p>
@@ -180,6 +209,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   new ForumApp();
 });
+
+
+
 
 
 window.safeDeletePost = async function (postId, button) {

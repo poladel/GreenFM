@@ -264,6 +264,7 @@ exports.deletePost = async (req, res) => {
   }
 };
 
+
 exports.toggleLike = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -363,22 +364,18 @@ exports.getComments = async (req, res) => {
       .lean();
 
     if (!post || post.isDeleted) {
-      return res.status(404).json({
-        success: false,
-        error: 'Post not found'
-      });
+      return res.status(404).json({ success: false, error: 'Post not found' });
     }
 
-    res.json({ success: true, comments: post.comments });
+    const visibleComments = post.comments.filter(c => !c.isDeleted); // ✅ Hide deleted comments
+
+    res.json({ success: true, comments: visibleComments });
   } catch (error) {
     console.error('Get comments error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch comments',
-      ...(process.env.NODE_ENV === 'development' && { details: error.message })
-    });
+    res.status(500).json({ success: false, error: 'Failed to fetch comments' });
   }
 };
+
 
 exports.updateComment = async (req, res) => {
   const { postId, commentId } = req.params;
@@ -405,18 +402,26 @@ exports.updateComment = async (req, res) => {
 };
 
 exports.deleteComment = async (req, res) => {
-  const { postId, commentId } = req.params;
-  try {
-    const post = await ForumPost.findById(postId);
-    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+  const { id: postId, commentId } = req.params;
 
-    post.comments = post.comments.filter(c => c._id.toString() !== commentId);
-    await post.save();
+  try {
+    const post = await ForumPost.findOneAndUpdate(
+      { _id: postId, "comments._id": commentId },
+      { $set: { "comments.$.isDeleted": true } }, // Soft-delete
+      { new: true }
+    );
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
 
     res.json({ success: true });
-  } catch (err) {
-    console.error('Delete comment error:', err);
+  } catch (error) {
+    console.error('❌ Error in deleteComment:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+
+
 
