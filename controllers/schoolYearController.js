@@ -1,4 +1,4 @@
-const SchoolYear = require("../models/schoolYear");
+const SchoolYear = require("../models/SchoolYear");
 
 const getCurrentSchoolYear = (startMonth, startYear, endMonth, endYear) => {
     return `${startMonth}/${startYear} - ${endMonth}/${endYear}`;

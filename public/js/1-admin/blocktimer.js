@@ -1163,7 +1163,7 @@ async function updateSubmission(submissionId) {
 		const existingSchedules = await response.json();
 		if (existingSchedules.length > 0) {
 			alert(
-				`${preferredDay} (${preferredTime}) are already occupied by another schedule in ${selectedYear}.`
+				`${preferredDay} (${preferredTime}) is already occupied by another schedule in ${selectedYear}.`
 			);
 			return;
 		}
