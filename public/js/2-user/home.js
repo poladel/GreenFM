@@ -374,18 +374,16 @@ async function editPost(postId, currentTitle, currentText) {
 
 // Function to update a post
 async function updatePost(postId, newTitle, newText) {
-    const formData = new FormData();
-    formData.append('title', newTitle);
-    formData.append('text', newText);
-
-    console.log('Updating post:', postId);
-    console.log('Title:', newTitle);
-    console.log('Text:', newText);
-
     try {
         const response = await fetch(`/post/${postId}`, {
             method: 'PUT',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: newTitle,
+                text: newText
+            })
         });
 
         const result = await response.json();
