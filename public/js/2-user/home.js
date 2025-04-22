@@ -31,13 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (postForm) {
-        postForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            console.log('Post form submitted');
-        });
-    }
-
     if (imageInput) {
         imageInput.addEventListener('change', function () {
             const files = this.files;
@@ -62,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postForm) {
         postForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-
+    
             const imageInput = document.getElementById('image-input');
             const videoInput = document.getElementById('video-input');
             const titleValue = document.getElementById('post-title').value.trim();
@@ -293,70 +286,6 @@ function removeFile(file, type, previewElement) {
         videoFile = null;
     }
 }
-
-// Handle form submission
-document.getElementById('post-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const imageInput = document.getElementById('image-input');
-    const videoInput = document.getElementById('video-input');
-    const titleValue = document.getElementById('post-title').value.trim();
-    const textValue = document.querySelector('.post-textbox').value.trim();
-
-    // Check number of images
-    if (imageInput.files.length > 6) {
-        showToast("You can upload a maximum of 6 images.");
-        return;
-    }
-
-    // Check image file sizes (20MB = 20 * 1024 * 1024)
-    for (let file of imageInput.files) {
-        if (file.size > 20 * 1024 * 1024) {
-            showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    // Check video file size (20MB = 20 * 1024 * 1024)
-    if (videoInput.files.length > 0) {
-        const videoFile = videoInput.files[0];
-        if (videoFile.size > 20 * 1024 * 1024) {
-            showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    const formData = new FormData();
-    formData.append('title', titleValue);
-    formData.append('text', textValue);
-
-    for (let file of imageInput.files) {
-        formData.append('media', file);
-    }
-
-    if (videoInput.files.length > 0) {
-        formData.append('video', videoInput.files[0]);
-    }
-
-    try {
-        const response = await fetch('/post', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Post uploaded successfully!');
-            window.location.reload();
-            document.getElementById('post-form').reset();
-            document.getElementById('preview-container').innerHTML = '';
-        } else {
-            alert(result.error || 'Failed to post');
-        }
-    } catch (error) {
-        alert("Something went wrong!");
-    }
-});
 
 // Function to edit a post
 async function editPost(postId, currentTitle, currentText) {
