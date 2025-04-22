@@ -49,13 +49,11 @@ document.addEventListener('DOMContentLoaded', function () {
     createPreview(file) {
       const previewItem = document.createElement('div');
       previewItem.className = 'preview-item';
-
       const isImage = file.type.startsWith('image/');
       const preview = isImage ? document.createElement('img') : document.createElement('div');
       preview.className = isImage ? 'preview-thumbnail' : '';
-      preview.src = isImage ? URL.createObjectURL(file) : null;
-      preview.textContent = !isImage ? file.name : '';
-
+      if (isImage) preview.src = URL.createObjectURL(file);
+      else preview.textContent = file.name;
       previewItem.appendChild(preview);
       this.elements.previewContainer.appendChild(previewItem);
     }
@@ -67,10 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const formData = new FormData();
       formData.append('title', this.elements.postTitle.value);
       formData.append('text', this.elements.postContent.value);
-
-      [...this.elements.imageInput.files, ...this.elements.videoInput.files].forEach(file =>
-        formData.append('media', file)
-      );
+      [...this.elements.imageInput.files, ...this.elements.videoInput.files].forEach(file => formData.append('media', file));
 
       try {
         const res = await fetch('/posts', { method: 'POST', credentials: 'include', body: formData });
@@ -101,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
     renderPagination(totalPages, currentPage) {
       const paginationContainer = document.getElementById('pagination-container');
       if (!paginationContainer) return;
-
       paginationContainer.innerHTML = '';
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
@@ -118,14 +112,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
-
         const showControls = post.userId && post.userId._id === this.currentUserId;
-
         div.innerHTML = `
           <div class="post-header">
             <p class="post-author">${post.userId?.username || 'Unknown'}</p>
             ${showControls ? `
-              <div class="edit-delete-buttons">
+              <div class="edit-delete-buttons" style="margin-left:auto;">
                 <button class="edit-btn" onclick="editPost('${post._id}')">✏️ Edit</button>
                 <button class="delete-btn" onclick="deletePost('${post._id}')">🗑️ Delete</button>
               </div>` : ''}
@@ -153,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="comments-list" id="comments-${post._id}"></div>
           </div>`;
-
         this.elements.postsContainer.appendChild(div);
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
@@ -166,12 +157,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const comments = data.comments || [];
         container.innerHTML = comments.map(c => `
           <div class="comment-item">
-            <div class="comment-header">
-              <span class="comment-author">${c.userId?.username || 'Anonymous'}</span>
-              <span class="comment-date">${new Date(c.createdAt).toLocaleString('en-US')}</span>
+            <div class="comment-header" style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <span class="comment-author">${c.userId?.username || 'Anonymous'}</span>
+                <span class="comment-date">${new Date(c.createdAt).toLocaleString('en-US')}</span>
+              </div>
+              ${c.userId?._id === this.currentUserId ? `
+              <div class="edit-delete-buttons" style="display: flex; gap: 4px;">
+                <button class="edit-btn" type="button" onclick="editComment('${postId}', '${c._id}', this)">✏️</button>
+                <button class="delete-btn" type="button" onclick="deleteComment('${postId}', '${c._id}', this)">🗑️</button>
+              </div>` : ''}
             </div>
-            <p class="comment-text">${c.text}</p>
-          </div>`).join('');
+            <p class="comment-text" data-comment-id="${c._id}">${c.text}</p>
+          </div>
+        `).join('');
       } catch (error) {
         console.error('Load comments error:', error);
         container.innerHTML = '<div class="no-comments">Failed to load comments.</div>';
@@ -180,60 +179,270 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   new ForumApp();
+
+  window.editComment = async function (postId, commentId, button) {
+    const commentItem = button.closest('.comment-item');
+    const commentTextEl = commentItem.querySelector('.comment-text');
+    const originalText = commentTextEl.innerText;
+  
+    const textarea = document.createElement('textarea');
+    textarea.className = 'comment-input';
+    textarea.value = originalText;
+    commentTextEl.replaceWith(textarea);
+  
+    const buttonsWrapper = commentItem.querySelector('.edit-delete-buttons');
+    buttonsWrapper.innerHTML = '';
+  
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '💾 Save';
+    saveBtn.className = 'edit-btn';
+    saveBtn.type = 'button';
+  
+    saveBtn.onclick = async () => {
+      const updatedText = textarea.value.trim();
+      if (!updatedText) return;
+  
+      try {
+        const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ text: updatedText })
+        });
+        const data = await res.json();
+  
+        if (data.success) {
+          const newText = document.createElement('p');
+          newText.className = 'comment-text';
+          newText.dataset.commentId = commentId;
+          newText.innerText = updatedText;
+          textarea.replaceWith(newText);
+  
+          buttonsWrapper.innerHTML = `
+            <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+            <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+          `;
+          showToast('✅ Comment updated!');
+        } else {
+          showToast('❌ Failed to update comment', 'error');
+        }
+      } catch (err) {
+        console.error('Comment update error:', err);
+        showToast('❌ Error updating comment', 'error');
+      }
+    };
+  
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '✖ Cancel';
+    cancelBtn.className = 'delete-btn';
+    cancelBtn.type = 'button';
+  
+    cancelBtn.onclick = () => {
+      textarea.replaceWith(commentTextEl);
+      buttonsWrapper.innerHTML = `
+        <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+        <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+      `;
+    };
+  
+    buttonsWrapper.appendChild(saveBtn);
+    buttonsWrapper.appendChild(cancelBtn);
+  };
+  
+
+  window.deleteComment = async function (postId, commentId, button) {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        button.closest('.comment-item').remove();
+        showToast('🗑️ Comment deleted!');
+      } else {
+        showToast('❌ Failed to delete comment', 'error');
+      }
+    } catch (err) {
+      console.error('Comment delete error:', err);
+      showToast('❌ Error deleting comment', 'error');
+    }
+  };
 });
 
-// ========= GLOBAL FUNCTIONS =========
-let editPostId = null;
 
-window.editPost = function (postId) {
-  const postEl = document.querySelector(`.post[data-id="${postId}"]`);
-  document.getElementById('edit-title').value = postEl.querySelector('.post-title')?.innerText || '';
-  document.getElementById('edit-content').value = postEl.querySelector('.post-text')?.innerText || '';
-  editPostId = postId;
+// ===== COMMENT FUNCTIONS =====
+window.editComment = function (postId, commentId, button) {
+  const commentItem = button.closest('.comment-item');
+  const commentTextEl = commentItem.querySelector('.comment-text');
+  const originalText = commentTextEl.innerText;
 
-  // ✅ Show modal and prevent body scroll
-  document.getElementById('editPostModal').classList.add('show');
-  document.body.classList.add('no-scroll');
+  const textarea = document.createElement('textarea');
+  textarea.className = 'comment-input';
+  textarea.value = originalText;
+  commentTextEl.replaceWith(textarea);
+
+  const buttonsWrapper = commentItem.querySelector('.edit-delete-buttons');
+  buttonsWrapper.innerHTML = '';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = '💾 Save';
+  saveBtn.className = 'edit-btn';
+  saveBtn.type = 'button';
+  saveBtn.onclick = async () => {
+    const updatedText = textarea.value.trim();
+    if (!updatedText) return;
+
+    try {
+      const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: updatedText })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const updatedP = document.createElement('p');
+        updatedP.className = 'comment-text';
+        updatedP.dataset.commentId = commentId;
+        updatedP.innerText = updatedText;
+        textarea.replaceWith(updatedP);
+
+        buttonsWrapper.innerHTML = `
+          <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+          <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+        `;
+        showToast('✅ Comment updated!');
+      } else {
+        showToast('❌ Failed to update comment', 'error');
+      }
+    } catch (err) {
+      console.error('Comment update error:', err);
+      showToast('❌ Error updating comment', 'error');
+    }
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✖ Cancel';
+  cancelBtn.className = 'delete-btn';
+  cancelBtn.type = 'button';
+  cancelBtn.onclick = () => {
+    textarea.replaceWith(commentTextEl);
+    buttonsWrapper.innerHTML = `
+      <button class="edit-btn" onclick="editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
+      <button class="delete-btn" onclick="deleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
+    `;
+  };
+
+  buttonsWrapper.appendChild(saveBtn);
+  buttonsWrapper.appendChild(cancelBtn);
 };
 
-window.closeEditModal = function () {
-  document.getElementById('editPostModal').classList.remove('show');
-  document.getElementById('edit-title').value = '';
-  document.getElementById('edit-content').value = '';
-  editPostId = null;
-
-  // ✅ Restore body scroll
-  document.body.classList.remove('no-scroll');
-};
-
-
-window.submitEditPost = async function () {
-  const title = document.getElementById('edit-title').value.trim();
-  const text = document.getElementById('edit-content').value.trim();
-  if (!title || !text || !editPostId) return alert('Please fill out both fields.');
+window.deleteComment = async function (postId, commentId, button) {
+  if (!confirm('Are you sure you want to delete this comment?')) return;
 
   try {
-    const res = await fetch(`/posts/${editPostId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ title, text })
+    const res = await fetch(`/posts/${postId}/comment/${commentId}`, {
+      method: 'DELETE',
+      credentials: 'include'
     });
 
-    const result = await res.json();
-    if (result.success) {
-      const el = document.querySelector(`.post[data-id="${editPostId}"]`);
-      el.querySelector('.post-title').innerText = title;
-      el.querySelector('.post-text').innerText = text;
-      closeEditModal();
-      showToast('✅ Post updated!', 'success');
+    const data = await res.json();
+    if (data.success) {
+      button.closest('.comment-item').remove();
+      showToast('🗑️ Comment deleted!');
     } else {
-      showToast('❌ Failed to update post', 'error');
+      showToast('❌ Failed to delete comment', 'error');
     }
   } catch (err) {
-    console.error(err);
-    showToast('❌ Error updating post', 'error');
+    console.error('Comment delete error:', err);
+    showToast('❌ Error deleting comment', 'error');
   }
+};
+
+// ===== POST FUNCTIONS =====
+window.editPost = function (postId) {
+  const postEl = document.querySelector(`.post[data-id="${postId}"]`);
+  const titleEl = postEl.querySelector('.post-title');
+  const textEl = postEl.querySelector('.post-text');
+  const originalTitle = titleEl.innerText;
+  const originalText = textEl.innerText;
+
+  const titleInput = document.createElement('input');
+  titleInput.className = 'post-title-input';
+  titleInput.value = originalTitle;
+
+  const textArea = document.createElement('textarea');
+  textArea.className = 'post-textbox';
+  textArea.value = originalText;
+
+  titleEl.replaceWith(titleInput);
+  textEl.replaceWith(textArea);
+
+  const buttonsWrapper = postEl.querySelector('.edit-delete-buttons');
+  buttonsWrapper.innerHTML = '';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = '💾 Save';
+  saveBtn.className = 'edit-btn';
+  saveBtn.onclick = async () => {
+    const updatedTitle = titleInput.value.trim();
+    const updatedText = textArea.value.trim();
+    if (!updatedTitle || !updatedText) return;
+
+    try {
+      const res = await fetch(`/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title: updatedTitle, text: updatedText })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const newTitle = document.createElement('h3');
+        newTitle.className = 'post-title';
+        newTitle.innerText = updatedTitle;
+
+        const newText = document.createElement('p');
+        newText.className = 'post-text';
+        newText.innerText = updatedText;
+
+        titleInput.replaceWith(newTitle);
+        textArea.replaceWith(newText);
+
+        buttonsWrapper.innerHTML = `
+          <button class="edit-btn" onclick="editPost('${postId}')">✏️ Edit</button>
+          <button class="delete-btn" onclick="deletePost('${postId}')">🗑️ Delete</button>
+        `;
+
+        showToast('✅ Post updated!');
+      } else {
+        showToast('❌ Failed to update post', 'error');
+      }
+    } catch (err) {
+      console.error('Post update error:', err);
+      showToast('❌ Error updating post', 'error');
+    }
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✖ Cancel';
+  cancelBtn.className = 'delete-btn';
+  cancelBtn.onclick = () => {
+    titleInput.replaceWith(titleEl);
+    textArea.replaceWith(textEl);
+    buttonsWrapper.innerHTML = `
+      <button class="edit-btn" onclick="editPost('${postId}')">✏️ Edit</button>
+      <button class="delete-btn" onclick="deletePost('${postId}')">🗑️ Delete</button>
+    `;
+  };
+
+  buttonsWrapper.appendChild(saveBtn);
+  buttonsWrapper.appendChild(cancelBtn);
 };
 
 window.deletePost = async function (postId) {
@@ -242,149 +451,18 @@ window.deletePost = async function (postId) {
   try {
     const res = await fetch(`/posts/${postId}`, {
       method: 'DELETE',
-      credentials: 'include',
+      credentials: 'include'
     });
-    const result = await res.json();
-    if (result.success) {
+
+    const data = await res.json();
+    if (data.success) {
       document.querySelector(`.post[data-id="${postId}"]`).remove();
-      showToast('🗑️ Post deleted successfully!', 'success');
+      showToast('🗑️ Post deleted!');
     } else {
       showToast('❌ Failed to delete post', 'error');
     }
   } catch (err) {
-    console.error('Delete error:', err);
+    console.error('Post delete error:', err);
     showToast('❌ Error deleting post', 'error');
   }
 };
-
-// LIKE toggle function
-window.toggleLike = async function (postId, button) {
-  try {
-    const res = await fetch(`/posts/${postId}/like`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    const data = await res.json();
-
-    if (data.success) {
-      const likeCount = button.querySelector('.like-count');
-      if (data.liked) {
-        button.classList.add('liked');
-        likeCount.textContent = parseInt(likeCount.textContent) + 1;
-      } else {
-        button.classList.remove('liked');
-        likeCount.textContent = parseInt(likeCount.textContent) - 1;
-      }
-    } else {
-      showToast('❌ Like failed', 'error');
-    }
-  } catch (err) {
-    console.error('Like error:', err);
-    showToast('❌ Error liking post', 'error');
-  }
-};
-
-// COMMENT submit function
-window.submitComment = async function (postId, button) {
-  const panel = button.closest('.interaction-panel');
-  const textarea = panel.querySelector('.comment-input');
-  const commentsList = panel.querySelector(`#comments-${postId}`);
-  const text = textarea.value.trim();
-
-  if (!text) return;
-
-  try {
-    const res = await fetch(`/posts/${postId}/comment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ text }),
-    });
-    const data = await res.json();
-
-    if (data.success && data.comment) {
-      textarea.value = '';
-      const comment = data.comment;
-      const newComment = document.createElement('div');
-      newComment.className = 'comment-item';
-      newComment.innerHTML = `
-        <div class="comment-header">
-          <span class="comment-author">${comment.userId?.username || 'Anonymous'}</span>
-          <span class="comment-date">${new Date(comment.createdAt).toLocaleString('en-US')}</span>
-        </div>
-        <p class="comment-text">${comment.text}</p>
-      `;
-      commentsList.appendChild(newComment);
-      showToast('💬 Comment posted!', 'success');
-    } else {
-      showToast('❌ Failed to post comment', 'error');
-    }
-  } catch (err) {
-    console.error('Comment error:', err);
-    showToast('❌ Error posting comment', 'error');
-  }
-};
-
-window.toggleCommentInput = function (postId) {
-  const wrapper = document.getElementById(`comment-input-wrapper-${postId}`);
-  if (wrapper) {
-    wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
-  }
-};
-
-window.submitComment = async function (postId, button) {
-  const panel = button.closest('.interaction-panel');
-  const textarea = panel.querySelector('.comment-input');
-  const commentsList = panel.querySelector(`#comments-${postId}`);
-  const text = textarea.value.trim();
-
-  if (!text) return;
-
-  try {
-    const res = await fetch(`/posts/${postId}/comment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ text }),
-    });
-
-    const data = await res.json();
-
-    if (data.success && data.comment) {
-      // Append the comment
-      const comment = data.comment;
-      const newComment = document.createElement('div');
-      newComment.className = 'comment-item';
-      newComment.innerHTML = `
-        <div class="comment-header">
-          <span class="comment-author">${comment.userId?.username || 'Anonymous'}</span>
-          <span class="comment-date">${new Date(comment.createdAt).toLocaleString('en-US')}</span>
-        </div>
-        <p class="comment-text">${comment.text}</p>
-      `;
-      commentsList.appendChild(newComment);
-      textarea.value = '';
-      showToast('💬 Comment posted!', 'success');
-    } else {
-      showToast('❌ Failed to post comment', 'error');
-    }
-  } catch (err) {
-    console.error('Comment error:', err);
-    showToast('❌ Error posting comment', 'error');
-  }
-};
-
-
-function showToast(message, type = 'success', duration = 3000) {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-  toast.textContent = message;
-  toast.className = `toast fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white ${
-    type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'
-  }`;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), duration);
-}
-
-
-

@@ -17,25 +17,30 @@ router.post('/posts/:id/comment', requireAuth, forumController.addComment);
 router.get('/posts/:id/comments', forumController.getComments);
 
 // Edit comment
-router.put('/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
-  const { postId, commentId } = req.params;
-  const { text } = req.body;
-
+// PUT /posts/:postId/comment/:commentId
+router.put('/posts/:postId/comment/:commentId', requireAuth, async (req, res) => {
   try {
-    const post = await ForumPost.findById(postId);
-    const comment = post.comments.id(commentId);
+    const { postId, commentId } = req.params;
+    const { text } = req.body;
 
+    const post = await ForumPost.findById(postId);
+    if (!post) return res.status(404).json({ success: false });
+
+    const comment = post.comments.id(commentId);
     if (!comment || comment.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Unauthorized' });
+      return res.status(403).json({ success: false });
     }
 
     comment.text = text;
     await post.save();
+
     res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
   }
 });
+
 
 // Delete comment
 router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
@@ -142,5 +147,7 @@ router.put('/posts/:id', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+
+
 
 module.exports = router;
