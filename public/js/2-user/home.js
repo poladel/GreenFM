@@ -447,6 +447,55 @@ async function deleteComment(postId, commentId) {
     }
 }
 
+function enableEditComment(postId, commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    textDisplay.style.display = 'none';
+    form.style.display = 'block';
+}
+
+function cancelEditComment(commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    form.style.display = 'none';
+    textDisplay.style.display = 'inline';
+}
+
+async function editComment(event, postId, commentId) {
+    event.preventDefault();
+
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const input = commentElement.querySelector('.edit-comment-input');
+    const newText = input.value.trim();
+
+    if (!newText) return;
+
+    try {
+        const res = await fetch(`/post/${postId}/comment/${commentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: newText })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const textDisplay = commentElement.querySelector('.comment-text');
+            textDisplay.textContent = newText;
+            cancelEditComment(commentId);
+        } else {
+            alert(result.error || 'Failed to edit comment.');
+        }
+    } catch (err) {
+        console.error('Error editing comment:', err);
+        alert('Error editing comment.');
+    }
+}
+
 //-------Scheduled Shows-----------//
 function updateScheduleList() {
     const scheduleList = document.getElementById('schedule-list');

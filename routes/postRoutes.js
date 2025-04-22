@@ -25,4 +25,7 @@ router.post('/post/:id/comment', requireAuth, postController.addComment);
 // Delete comment
 router.delete('/post/:postId/comment/:commentId', requireAuth, postController.deleteComment);
 
+// Edit comment
+router.put('/post/:postId/comment/:commentId', requireAuth, postController.editComment);
+
 module.exports = router;

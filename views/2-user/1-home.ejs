@@ -106,11 +106,19 @@
                                     <div class="comment-list" id="comments-<%= post._id %>">
                                         <% post.comments && post.comments.forEach(comment => { %>
                                             <div class="comment" id="comment-<%= comment._id %>">
-                                                <strong><%= comment.username %>:</strong> <%= comment.text %>
-                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? (user.roles.includes('Admin') || user.roles.includes('Staff')) : (user.roles === 'Admin' || user.roles === 'Staff')))) { %>
+                                                <strong><%= comment.username %>:</strong> <span class="comment-text"><%= comment.text %></span>
+                                                
+                                                <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') || user.roles.includes('Staff') : user.roles === 'Admin' || user.roles === 'Staff'))) { %>
+                                                    <button class="edit-comment-btn" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">✏️</button>
                                                     <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
                                                 <% } %>
-                                            </div>
+                                            
+                                                <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form" style="display:none;">
+                                                    <input type="text" class="edit-comment-input" value="<%= comment.text %>" required />
+                                                    <button type="submit">Save</button>
+                                                    <button type="button" onclick="cancelEditComment('<%= comment._id %>')">Cancel</button>
+                                                </form>
+                                            </div>                                            
                                         <% }) %>
                                     </div>
                                 </div>
