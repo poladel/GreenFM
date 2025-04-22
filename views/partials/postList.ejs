@@ -1,0 +1,63 @@
+<% posts.forEach(post => { %>
+    <div class="post">
+        <div class="post-item">
+            <div class="post-info">
+                <p class="post-title"><strong><%= post.title %></strong></p>
+                <p class="post-text"><%= post.text %></p>
+                <p class="post-date">Posted on <%= post.createdAt.toLocaleString() %></p>
+                <div class="post-media">
+                    <% if (post.media && post.media.length > 0) { %>
+                        <% post.media.forEach(media => { %>
+                            <img src="<%= media %>" class="post-media-img" alt="Post Media">
+                        <% }) %>
+                    <% } %>
+                    <% if (post.video) { %>
+                        <video src="<%= post.video %>" controls class="post-media-video"></video>
+                    <% } %>
+                </div>
+            </div>
+            <div class="post-actions">
+                <% if (user) { %>
+                    <button onclick="toggleLike('<%= post._id %>')" class="like-btn" id="like-btn-<%= post._id %>">
+                        ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
+                    </button>
+                <% } %>
+                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                    <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
+                    <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
+                <% } %>
+            </div>
+            <div class="post-comments">
+                <% if (user) { %>
+                    <form onsubmit="submitComment(event, '<%= post._id %>')">
+                        <input type="text" class="comment-input" placeholder="Write a comment..." required>
+                        <button type="submit" class="comment-btn">Comment</button>
+                    </form>
+                <% } %>
+                <div class="comment-list" id="comments-<%= post._id %>">
+                    <% post.comments && post.comments.forEach(comment => { %>
+                        <div class="comment" id="comment-<%= comment._id %>">
+                            <strong><%= comment.username %>:</strong> <span class="comment-text"><%= comment.text %></span>
+                        
+                            <!-- Only the comment author can edit -->
+                            <% if (user && user.username === comment.username) { %>
+                                <button class="edit-comment-btn" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">✏️</button>
+                            <% } %>
+                        
+                            <!-- Admins and Staff (and author) can delete -->
+                            <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') || user.roles.includes('Staff') : user.roles === 'Admin' || user.roles === 'Staff'))) { %>
+                                <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
+                            <% } %>
+                        
+                            <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form" style="display:none;">
+                                <input type="text" class="edit-comment-input" value="<%= comment.text %>" required />
+                                <button type="submit">Save</button>
+                                <button type="button" onclick="cancelEditComment('<%= comment._id %>')">Cancel</button>
+                            </form>
+                        </div>                        
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+<% }) %>

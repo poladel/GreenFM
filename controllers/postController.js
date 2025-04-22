@@ -262,6 +262,36 @@ const editComment = async (req, res) => {
     }
 };
 
+const getFilteredPosts = async (req, res) => {
+    const { search, month, year } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { text: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    if (month && year) {
+        const start = new Date(year, month, 1);
+        const end = new Date(year, parseInt(month) + 1, 1);
+        query.createdAt = { $gte: start, $lt: end };
+    } else if (year) {
+        const start = new Date(year, 0, 1);
+        const end = new Date(parseInt(year) + 1, 0, 1);
+        query.createdAt = { $gte: start, $lt: end };
+    }
+
+    try {
+        const posts = await Post.find(query).sort({ createdAt: -1 });
+        res.render('partials/postList', { posts, user: req.user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error fetching posts');
+    }
+};
+
 module.exports = {
     upload,
     createPost,
@@ -272,5 +302,6 @@ module.exports = {
     toggleLike,
     addComment,
     deleteComment,
-    editComment
+    editComment,
+    getFilteredPosts
 };

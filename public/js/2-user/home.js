@@ -496,6 +496,34 @@ async function editComment(event, postId, commentId) {
     }
 }
 
+//-------Search & Filter-----------//
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const filterMonth = document.getElementById("filterMonth");
+    const filterYear = document.getElementById("filterYear");
+    const filterBtn = document.getElementById("filterBtn");
+    const postsContainer = document.getElementById("posts-container");
+
+    const fetchPosts = async (query = {}) => {
+        const params = new URLSearchParams(query);
+        const res = await fetch(`/posts?${params}`);
+        const data = await res.text();
+        postsContainer.innerHTML = data;
+    };
+
+    searchInput.addEventListener("input", () => {
+        fetchPosts({ search: searchInput.value });
+    });
+
+    filterBtn.addEventListener("click", () => {
+        fetchPosts({
+            month: filterMonth.value,
+            year: filterYear.value,
+            search: searchInput.value
+        });
+    });
+});
+
 //-------Scheduled Shows-----------//
 function updateScheduleList() {
     const scheduleList = document.getElementById('schedule-list');
