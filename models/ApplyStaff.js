@@ -69,6 +69,14 @@ const ApplyStaffSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  preferredSchedule: {
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+  },
+  schoolYear: {
+    type: String,
+    required: true,
+  },
   result: {
     type: String,
     default: ''

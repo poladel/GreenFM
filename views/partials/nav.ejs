@@ -37,11 +37,11 @@
             <li>
                 <% if (user) { %>
                     <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                        <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step3" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } else if (user.completedJoinGFMStep1) { %>
-                        <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step2" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } else { %>
-                        <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step1" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } %>
                 <% } else { %>
                     <!-- Redirect to login with a generic redirect path -->
@@ -90,3 +90,4 @@
         document.querySelector('.sidebars').classList.toggle('active');
     });
 </script>
+<script src="/js/restrictedLinks.js"></script>

@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.getElementById('scheduleModal');
     const closeModal = document.querySelector('.close');
     const scheduleForm = document.getElementById('scheduleForm');
+    const routeSettingsForm = document.getElementById('routeSettingsForm');
+    const routeSettingsFields = routeSettingsForm.querySelectorAll('input, button'); 
+
+    routeSettingsFields.forEach(field => {
+        field.disabled = true;
+    });
 
     // Fetch user data from the server
     const fetchUserData = async () => {
@@ -19,6 +25,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     };
+
+    const user = await fetchUserData();
+
+    if (user && user.roles === 'Admin') {
+        routeSettingsFields.forEach(field => {
+            field.disabled = false;
+        });  
+    }
 
     const fetchSchedules = async (year, department) => {
         try {
@@ -61,8 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     };
-
-    const user = await fetchUserData();
 
     if (user) {
         if (user.roles === 'Admin') {
@@ -375,10 +387,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    routeSettingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        const key = 'JoinGFM'; // Get the key value from the form
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+    
+        if (!key || !startDate || !endDate) {
+            alert('Please fill in all fields (key, start date, and end date).');
+            return;
+        }
+
+        // Disable buttons and populate inputs
+        routeSettingsFields.forEach(field => {
+            field.disabled = true;
+        });
+
+        // Populate inputs with the selected values
+        document.getElementById('startDate').value = startDate;
+        document.getElementById('endDate').value = endDate;
+
+        try {
+            const response = await fetch('/admin/route-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, startDate, endDate }),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to save route settings');
+            }
+    
+            alert('Route settings saved successfully!');
+
+            // Calculate the time period and re-enable buttons after the end date
+            const now = new Date();
+            const endDateTime = new Date(endDate).getTime();
+            const timeUntilEnd = endDateTime - now.getTime();
+
+            if (timeUntilEnd > 0) {
+                setTimeout(() => {
+                    routeSettingsFields.forEach(field => {
+                        field.disabled = false;
+                    });
+                    scheduleButtons.forEach(button => {
+                        button.disabled = false;
+                    });
+                }, timeUntilEnd);
+            }
+        } catch (error) {
+            console.error('Error saving route settings:', error);
+            alert('Failed to save route settings.');
+        }
+    });
+
     // Helper function to capitalize the first letter of a string
-    function capitalize(str) {
+    /*function capitalize(str) {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    }*/
 });
 

@@ -43,7 +43,12 @@ module.exports.getSchedules = async (req, res) => {
             return res.status(400).json({ error: 'Year and department are required.' });
         }
 
-        const schedules = await AdminSchedule.find({ year, department }).sort({ day: 1, time: 1 });
+        const schedules = await AdminSchedule.find({ 
+            year: parseInt(year), // Ensure year is treated as a number
+            department: department.trim() // Ensure department matches exactly
+        }).sort({ day: 1, time: 1 });
+        
+        console.log('Fetched schedules:', schedules);
         res.status(200).json(schedules);
     } catch (error) {
         console.error('Error fetching schedules:', error);
