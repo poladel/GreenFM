@@ -1,51 +1,120 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="content-wrap">
-  <div class="container">
-    <%- include('../partials/nav.ejs') %>
-    <%- include('../partials/menu.ejs') %>
+<div class="forum-layout flex">
+  <%- include('../partials/menu.ejs') %>
 
-    <h2 class="forum-title">Community Forum</h2>
+  <div class="content-wrap p-4 sm:p-6 flex-1">
+    <div class="container mx-auto max-w-4xl space-y-6">
+      <%- include('../partials/nav.ejs') %>
 
-    <form id="post-form" class="post-container">
-      <input type="text" id="post-title" class="post-title-input" placeholder="Post title..." required>
-      <textarea class="post-textbox" id="post-content" placeholder="Write something..." required></textarea>
+      <!-- Toast Notification -->
+      <div id="toast" class="hidden fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
 
-      <!-- Media Buttons Container -->
-      <div class="media-buttons">
-        <button type="button" id="add-image-button" class="media-button">
-          <img src="../img/image.png" alt="Add Image" class="option-icon">
-          <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
-        </button>
-        <button type="button" id="add-video-button" class="media-button">
-          <img src="../img/video.png" alt="Add Video" class="option-icon">
-          <input type="file" id="video-input" accept="video/*" style="display: none;">
-        </button>
-      </div>
+      <!-- POST FORM -->
+      <form id="post-form" class="bg-white p-4 rounded-xl shadow">
+        <h2 class="text-2xl font-semibold mb-4 text-green-700">🟢 Community Forum</h2>
+        <input type="text" id="post-title" class="w-full mb-2 p-2 border rounded post-title-input" placeholder="Post title..." required>
+        <textarea class="w-full p-2 border rounded post-textbox" id="post-content" placeholder="Write something..." required></textarea>
 
-      <!-- Preview Container for Selected Media -->
-      <div id="preview-container" class="preview-container"></div>
+        <div class="media-buttons">
+          <button type="button" id="add-image-button" class="media-button">
+            <img src="../img/image.png" alt="Add Image" class="option-icon">
+            <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
+          </button>
+          <button type="button" id="add-video-button" class="media-button">
+            <img src="../img/video.png" alt="Add Video" class="option-icon">
+            <input type="file" id="video-input" accept="video/*" style="display: none;">
+          </button>
+        </div>
 
-      <!-- Post Button Wrapper -->
-      <div class="post-button-wrapper">
-        <button type="submit" id="postButton" data-authenticated="<%= !!user %>" data-userid="<%= user ? user._id : '' %>" class="post-button">Post</button>
-      </div>
-    </form>
 
-    <div id="posts-container" class="posts-container">
-      <!-- Posts will be rendered here by forum.js -->
+        <!-- Media Previews -->
+        <div id="preview-container" class="preview-container mt-3"></div>
+
+        <div class="post-button-wrapper mt-4">
+          <button
+            type="submit"
+            id="postButton"
+            data-authenticated="<%= !!user %>"
+            data-userid="<%= user ? user._id : '' %>"
+            class="post-button bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+            Post
+          </button>
+        </div>
+      </form>
+
+<br>
+<br>
+
+      <!-- POSTS RENDERED HERE -->
+      <div id="posts-container" class="posts-container"></div>
+
+      <!-- PAGINATION -->
+      <div id="pagination-container" class="flex justify-center z-10 mt-6 space-x-2"></div>
     </div>
   </div>
+</div>
 
-  <!-- Image Preview Modal -->
-  <div id="imagePreviewModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 90%; max-height: 90%;">
-      <span class="close-button">&times;</span>
-      <img id="previewed-image" src="" style="max-width: 100%; max-height: 80vh;">
+<!-- EDIT POST MODAL -->
+<div id="editPostModal" class="fixed inset-0 hidden z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow-xl relative">
+    <!-- Close Button -->
+    <button
+      onclick="closeEditModal()"
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold close-btn"
+    >
+      ✖
+    </button>
+
+    <h2 class="text-2xl font-bold mb-6 text-center text-green-700">✏️ Edit Post</h2>
+
+    <!-- Title Field -->
+    <div class="mb-4">
+      <label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input
+        id="edit-title"
+        type="text"
+        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-400 outline-none"
+        placeholder="Edit title..."
+      />
+    </div>
+
+    <!-- Content Field -->
+    <div class="mb-6">
+      <label for="edit-content" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+      <textarea
+        id="edit-content"
+        rows="4"
+        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-400 outline-none"
+        placeholder="Edit content..."
+      ></textarea>
+    </div>
+
+    <!-- Modal Action Buttons -->
+    <div class="flex justify-end gap-3">
+      <button
+        onclick="submitEditPost()"
+        class="edit-button-primary"
+      >
+        Update
+      </button>
+      <button
+        onclick="closeEditModal()"
+        class="edit-button-secondary"
+      >
+        Cancel
+      </button>
     </div>
   </div>
+</div>
 
-  <div id="toast" class="toast hidden"></div>
+<!-- Inject User ID -->
+<script>
+  window.currentUserId = "<%= user ? user._id.toString() : '' %>";
+</script>
+
+<!-- Forum Script -->
+<script src="/js/2-user/forum.js"></script>
 
 <%- include('../partials/footer.ejs') %>
-<script src="/js/2-user/forum.js"></script>

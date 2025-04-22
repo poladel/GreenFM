@@ -143,40 +143,23 @@ exports.getAllPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const userId = req.user ? req.user._id.toString() : null;
+    const posts = await ForumPost.find({ isDeleted: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('userId', 'username profilePicture')
+      .lean();
 
-    const [posts, total] = await Promise.all([
-      ForumPost.find({ isDeleted: { $ne: true } })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('userId', 'username profilePicture')
-        .populate('comments.userId', 'username profilePicture')
-        .lean(),
-      ForumPost.countDocuments({ isDeleted: { $ne: true } })
-    ]);
-
-    const updatedPosts = posts.map(post => ({
-      ...post,
-      liked: userId ? post.likes.some(id => id.toString() === userId) : false
-    }));
+    const totalPosts = await ForumPost.countDocuments({ isDeleted: { $ne: true } });
 
     res.json({
       success: true,
-      posts: updatedPosts,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalPosts: total
-      }
+      posts,
+      totalPages: Math.ceil(totalPosts / limit),
+      currentPage: page
     });
-  } catch (error) {
-    console.error('Get posts error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch posts',
-      ...(process.env.NODE_ENV === 'development' && { details: error.message })
-    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Failed to fetch posts' });
   }
 };
 
@@ -396,3 +379,51 @@ exports.getComments = async (req, res) => {
     });
   }
 };
+
+exports.updateComment = async (req, res) => {
+  const { postId, commentId } = req.params;
+  const { text } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const post = await ForumPost.findById(postId);
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
+
+    const comment = post.comments.id(commentId);
+    if (!comment || comment.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    }
+
+    comment.text = text;
+    await post.save();
+
+    res.json({ success: true, comment });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Failed to update comment' });
+  }
+};
+
+exports.deleteComment = async (req, res) => {
+  const { postId, commentId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const post = await ForumPost.findById(postId);
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
+
+    const comment = post.comments.id(commentId);
+    if (!comment || comment.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    }
+
+    comment.remove();
+    await post.save();
+
+    res.json({ success: true, message: 'Comment deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Failed to delete comment' });
+  }
+};
+
