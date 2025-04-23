@@ -27,6 +27,7 @@ html, body {
 
 /*---SIDEBARS---*/
 .sidebars {
+    z-index: 9999;
     position: fixed;
     top: 2vh;
     left: 1vw;
@@ -171,6 +172,7 @@ html, body {
     align-items: center;
     margin-right: 2vh;
     padding-bottom: 1vh;
+    background-color: #EFEFEF;
 }
 
 .posts-title-container {
