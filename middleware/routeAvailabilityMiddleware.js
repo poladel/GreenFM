@@ -3,19 +3,14 @@ const RouteSettings = require('../models/RouteSettings');
 module.exports.checkRouteAvailability = (key) => {
     return async (req, res, next) => {
         try {
+            console.log(`Checking route availability for key: ${key}`); // Debugging
             const settings = await RouteSettings.findOne({ key });
 
             if (!settings) {
-                if (key === 'JoinGFM') {
-                    return res.status(403).json({
-                        message: 'Applications for GFM Staff are currently closed. Check Home for announcements of the next application period.',
-                        redirectUrl: '/' // Redirect to Home or any other page
-                    });
-                }
-                return res.status(403).json({ message: 'This route is currently unavailable.' });
+                console.log(`No settings found for key: ${key}`); // Debugging
+                return renderRestricted('This route is currently unavailable.', res);
             }
 
-            // Adjust current date to UTC+8
             const currentDate = new Date();
             const timezoneOffset = 8 * 60 * 60 * 1000; // +8 hours in milliseconds
             const adjustedCurrentDate = new Date(currentDate.getTime() + timezoneOffset);
@@ -24,29 +19,31 @@ module.exports.checkRouteAvailability = (key) => {
             const endDate = new Date(settings.endDate);
             endDate.setHours(23, 59, 59, 999); // Extend the end date to the end of the day
 
-            // Compare only the date portion
-            const currentDateOnly = new Date(adjustedCurrentDate.toISOString().split('T')[0]);
-            const startDateOnly = new Date(startDate.toISOString().split('T')[0]);
-            const endDateOnly = new Date(endDate.toISOString().split('T')[0]);
+            console.log('Adjusted Current Date (UTC+8):', adjustedCurrentDate); // Debugging
+            console.log('Start Date (UTC):', startDate); // Debugging
+            console.log('End Date (UTC):', endDate); // Debugging
 
-            console.log('Adjusted Current Date (UTC+8):', currentDateOnly);
-            console.log('Start Date (UTC):', startDateOnly);
-            console.log('End Date (UTC):', endDateOnly);
-
-            if (currentDateOnly < startDateOnly || currentDateOnly > endDateOnly) {
-                if (key === 'JoinGFM') {
-                    return res.status(403).json({
-                        message: 'Applications for GFM Staff are currently closed. Check Home for announcements of the next application period.',
-                        redirectUrl: '/' // Redirect to Home or any other page
-                    });
-                }
-                return res.status(403).json({ message: 'This route is currently unavailable.' });
+            if (adjustedCurrentDate < startDate || adjustedCurrentDate > endDate) {
+                console.log(`Route is unavailable for key: ${key}`); // Debugging
+                const message = key === 'JoinGFM'
+                    ? 'Applications for GFM Staff are currently closed. Check Home for announcements of the next application period.'
+                    : 'This route is currently unavailable.';
+                return renderRestricted(message, res);
             }
 
-            next();
+            console.log(`Route is available for key: ${key}`); // Debugging
+            next(); // Proceed to the next middleware or route handler if the route is available
         } catch (error) {
             console.error('Error checking route availability:', error);
-            res.status(500).json({ message: 'Server error.' });
+            return renderRestricted('Server error. Please try again later.', res, 500);
         }
     };
 };
+
+// Helper function to render the restricted page
+function renderRestricted(message, res, statusCode = 200) {
+    return res.status(statusCode).render('restricted', {
+        message,
+        redirectUrl: '/'
+    });
+}

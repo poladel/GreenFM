@@ -149,7 +149,11 @@ const checkRoles = (allowedRoles) => {
         if (user && user.roles && allowedRoles.includes(user.roles)) {
             return next();
         }
-        return res.status(403).send('Access Denied: Insufficient Permissions');
+        // Render the restricted view with an alert message
+        return res.render('restricted', {
+            message: "You do not have permission to access this page. You will be redirected to the home page.",
+            redirectUrl: '/' // Redirect to Home or any other page
+        });
     };
 };
 

@@ -1,9 +1,9 @@
 const express = require('express');
 const { requireAuth, checkRoles } = require('../middleware/authMiddleware');
 const { checkRouteAvailability } = require('../middleware/routeAvailabilityMiddleware');
-const joinBlocktimerController = require('../controllers/joinBlocktimerController'); // Import the controller
-const joinGFMController = require('../controllers/joinGFMController'); // Import the controller
-const User = require('../models/User'); // Adjust the path to your User model
+const joinBlocktimerController = require('../controllers/joinBlocktimerController');
+const joinGFMController = require('../controllers/joinGFMController');
+const User = require('../models/User');
 const Playlist = require("../models/Playlist");
 const router = express.Router();    
 
@@ -13,12 +13,12 @@ const userRoutes = [
     { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM', cssFile: 'css/forum.css'},
     { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST', cssFile: 'css/playlist.css' },
-    { path: '/JoinBlocktimer-Step1', view: '2-user/6-blocktimer-1', pageTitle: 'Join Blocktimer - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/blocktimer.css', roles: ['User']},
-    { path: '/JoinBlocktimer-Step2', controller: joinBlocktimerController.joinBlocktimer2_get, headerTitle: 'STEP 2', auth: true, roles: ['User'],  },
-    { path: '/JoinBlocktimer-Step3', view: '2-user/6-blocktimer-3', pageTitle: 'Join Blocktimer - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/blocktimer.css', roles: ['User']},
-    { path: '/JoinGFM-Step1', view: '2-user/7-joingreenfm-1', pageTitle: 'Join GFM - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/joingreenfm.css', roles: ['User'], middleware: checkRouteAvailability('JoinGFM') },
-    { path: '/JoinGFM-Step2', controller: joinGFMController.joinGFM2_get, headerTitle: 'STEP 2', auth: true, roles: ['User'], middleware: checkRouteAvailability('JoinGFM')},
-    { path: '/JoinGFM-Step3', view: '2-user/7-joingreenfm-3', pageTitle: 'Join GFM - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/joingreenfm.css', roles: ['User'], middleware: checkRouteAvailability('JoinGFM') },
+    { path: '/JoinBlocktimer-Step1', view: '2-user/6-blocktimer-1', pageTitle: 'Join Blocktimer - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/blocktimer.css', roles: ['User'], restricted: true},
+    { path: '/JoinBlocktimer-Step2', controller: joinBlocktimerController.joinBlocktimer2_get, headerTitle: 'STEP 2', auth: true, roles: ['User'], restricted: true},
+    { path: '/JoinBlocktimer-Step3', view: '2-user/6-blocktimer-3', pageTitle: 'Join Blocktimer - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/blocktimer.css', roles: ['User'], restricted: true},
+    { path: '/JoinGFM-Step1', view: '2-user/7-joingreenfm-1', pageTitle: 'Join GFM - Step 1', headerTitle: 'STEP 1', auth: true, cssFile: 'css/joingreenfm.css', roles: ['User'], middleware: checkRouteAvailability('JoinGFM'), restricted: true },
+    { path: '/JoinGFM-Step2', controller: joinGFMController.joinGFM2_get, headerTitle: 'STEP 2', auth: true, roles: ['User'], middleware: checkRouteAvailability('JoinGFM'), restricted: true},
+    { path: '/JoinGFM-Step3', view: '2-user/7-joingreenfm-3', pageTitle: 'Join GFM - Step 3', headerTitle: 'STEP 3', auth: true, cssFile: 'css/joingreenfm.css', roles: ['User'], middleware: checkRouteAvailability('JoinGFM'), restricted: true },
     { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' , cssFile: 'css/about.css'},
     { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US', cssFile: 'css/contact.css' },
     { path: '/ManageAccount', view: '3-logreg/5-manage-account', pageTitle: 'Manage Account', headerTitle: 'MANAGE ACCOUNT', auth: true, cssFile: 'css/admin-account.css'  },
@@ -29,14 +29,34 @@ const userRoutes = [
 userRoutes.forEach(userRoute => {
     router.get(userRoute.path, requireAuth, 
         userRoute.roles ? checkRoles(userRoute.roles) : (req, res, next) => next(), // Only apply checkRoles if roles are defined
-        userRoute.middleware || ((req, res, next) => next()),
+        async (req, res, next) => {
+            if (userRoute.middleware) {
+                console.log(`Executing middleware for route: ${userRoute.path}`); // Debugging
+                await userRoute.middleware(req, res, next); // Execute middleware
+            } else {
+                next();
+            }
+        },
         async (req, res, next) => {
         try {
+            console.log(`Handling route: ${userRoute.path}`); // Debugging
+
             let playlist = [];
 
             // Fetch playlist only if the route is '/Playlist'
             if (userRoute.path === '/Playlist') {
                 playlist = await Playlist.find().sort({ createdAt: -1 }); // Retrieve playlist items sorted by latest
+            }
+
+            // Handle restricted routes
+            if (userRoute.restricted) {
+                const user = res.locals.user;
+                if (!user || (userRoute.roles && !userRoute.roles.includes(user.roles))) {
+                    return res.render('restricted', { 
+                        message: 'Access Denied: Insufficient Permissions', 
+                        redirectUrl: '/' 
+                    });
+                }
             }
 
             // Handle authentication-required routes
