@@ -5,7 +5,13 @@
                 <p class="post-title"><strong><%= post.title %></strong></p>
                 <p class="post-text"><%= post.text %></p>
                 <p class="post-date">Posted on <%= post.createdAt.toLocaleString() %></p>
-                <div class="post-media">
+                <%
+                    const mediaCount = post.media ? post.media.length : 0;
+                    const mediaClass = mediaCount > 0 
+                        ? `media-${mediaCount > 6 ? 6 : mediaCount}` 
+                        : (post.video ? 'media-1' : '');
+                %>
+                <div class="post-media <%= mediaClass %>" id="post-<%= post._id %>">
                     <% if (post.media && post.media.length > 0) { %>
                         <% post.media.forEach(media => { %>
                             <img src="<%= media %>" class="post-media-img" alt="Post Media">
@@ -15,6 +21,7 @@
                         <video src="<%= post.video %>" controls class="post-media-video"></video>
                     <% } %>
                 </div>
+                
             </div>
             <div class="post-actions">
                 <% if (user) { %>
@@ -39,14 +46,14 @@
                         <div class="comment" id="comment-<%= comment._id %>">
                             <strong><%= comment.username %>:</strong> <span class="comment-text"><%= comment.text %></span>
                         
-                            <!-- Only the comment author can edit -->
-                            <% if (user && user.username === comment.username) { %>
-                                <button class="edit-comment-btn" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">✏️</button>
-                            <% } %>
-                        
                             <!-- Admins and Staff (and author) can delete -->
                             <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') || user.roles.includes('Staff') : user.roles === 'Admin' || user.roles === 'Staff'))) { %>
-                                <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">🗑️</button>
+                                <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">Delete</button>
+                            <% } %>
+
+                            <!-- Only the comment author can edit -->
+                            <% if (user && user.username === comment.username) { %>
+                                <button class="edit-comment-btn" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
                             <% } %>
                         
                             <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form" style="display:none;">
