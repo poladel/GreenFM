@@ -8,7 +8,6 @@ const adminRoute = [
     { path: '/Manage-Accounts', view: '1-admin/1-accounts', pageTitle: 'Manage Accounts', headerTitle: 'MANAGE ACCOUNTS', cssFile: 'css/admin-account.css', roles: ['Admin', 'Staff'], restricted: true },
     { path: '/Blocktimer', view: '1-admin/2-blocktimer', pageTitle: 'Blocktimer', headerTitle: 'BLOCKTIMER', cssFile: 'css/admin-blocktimer.css', roles: ['Admin', 'Staff'], restricted: true },
     { path: '/Staff', view: '1-admin/3-staff', pageTitle: 'Staff', headerTitle: 'STAFF', cssFile: 'css/admin-staff.css', roles: ['Admin', 'Staff'], restricted: true },
-    { path: '/Chat', view: '1-admin/4-chat', pageTitle: 'Chat', headerTitle: 'CHAT' , cssFile: 'css/chat.css', roles: ['Admin', 'Staff'], restricted: true }
 ];
 
 // Define the routes and render views with dynamic titles
@@ -64,6 +63,30 @@ adminRoute.forEach(adminRoute => {
             res.status(500).send('Server Error');
         }
     });
+});
+
+const Chat = require('../models/Chat');
+
+// Custom handler for Chat route (with DB data)
+router.get('/Chat', requireAuth, checkRoles(['Admin', 'Staff']), async (req, res) => {
+    try {
+        const userId = res.locals.user._id;
+
+        const chats = await Chat.find({ members: userId }).lean();
+
+        res.render('1-admin/4-chat', {
+            pageTitle: 'Chat',
+            cssFile: 'css/chat.css',
+            user: res.locals.user,
+            headerTitle: 'CHAT',
+            currentPath: '/Chat',
+            chats,
+            selectedChat: null
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
 });
 
 module.exports = router;

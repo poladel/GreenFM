@@ -1,0 +1,34 @@
+.chat-wrapper {
+    display: flex;
+  }
+  .chat-sidebar {
+    width: 25%;
+    background: #eee;
+    padding: 1rem;
+  }
+  .chat-main {
+    width: 75%;
+    padding: 1rem;
+  }
+  .chat-messages {
+    height: 400px;
+    overflow-y: scroll;
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .message {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+  }
+  .message.me {
+    background-color: #0a883e;
+    color: white;
+    text-align: right;
+  }
+  .message.them {
+    background-color: #ddd;
+    color: black;
+  }
+  
