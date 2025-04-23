@@ -1,6 +1,6 @@
-const RouteSettings = require('../models/RouteSettings');
+const ApplicationPeriod = require('../models/ApplicationPeriod');
 
-module.exports.saveRouteSettings = async (req, res) => {
+module.exports.saveApplicationPeriod = async (req, res) => {
     try {
         // Check if the user is an admin
         if (!req.user || req.user.roles !== 'Admin') {
@@ -15,14 +15,14 @@ module.exports.saveRouteSettings = async (req, res) => {
         }
 
         // Check if settings already exist for the given key
-        let settings = await RouteSettings.findOne({ key });
+        let settings = await ApplicationPeriod.findOne({ key });
         if (settings) {
             // Update existing settings
             settings.startDate = startDate;
             settings.endDate = endDate;
         } else {
             // Create new settings
-            settings = new RouteSettings({ key, startDate, endDate });
+            settings = new ApplicationPeriod({ key, startDate, endDate });
         }
 
         // Save to the database
@@ -34,22 +34,20 @@ module.exports.saveRouteSettings = async (req, res) => {
     }
 };
 
-module.exports.getRouteSettings = async (req, res) => {
+module.exports.getApplicationPeriod = async (req, res) => {
+    const { key } = req.query;
     try {
-        const { key } = req.query; // Get the key from the query string
-
         if (!key) {
             return res.status(400).json({ error: 'Key is required to fetch route settings.' });
         }
 
-        const settings = await RouteSettings.findOne({ key }); // Fetch settings for the given key
-        if (!settings) {
-            return res.status(404).json({ error: 'No settings found for the specified key.' });
+        const applicationPeriod = await ApplicationPeriod.findOne({ key }); // Replace with your DB query
+        if (!applicationPeriod) {
+            return res.status(404).json({ message: 'Application period not found' });
         }
-
-        res.status(200).json(settings);
+        res.json(applicationPeriod);
     } catch (error) {
-        console.error('Error fetching route settings:', error);
-        res.status(500).json({ error: 'Failed to fetch route settings.' });
+        console.error('Error fetching application period:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 };

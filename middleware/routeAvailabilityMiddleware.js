@@ -1,4 +1,4 @@
-const RouteSettings = require('../models/RouteSettings');
+const RouteSettings = require('../models/ApplicationPeriod');
 
 module.exports.checkRouteAvailability = (key) => {
     return async (req, res, next) => {

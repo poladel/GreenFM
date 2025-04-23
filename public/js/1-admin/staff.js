@@ -14,6 +14,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         field.disabled = true;
     });
 
+    // Fetch application period data from the server
+    const fetchApplicationPeriod = async (key) => {
+        try {
+            const response = await fetch(`/admin/application-period?key=${key}`);
+            if (!response.ok) throw new Error('Failed to fetch application period data');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching application period data:', error);
+            return null;
+        }
+    };
+
+    // Fetch and display the existing application period
+    const displayExistingApplicationPeriod = async () => {
+        const applicationPeriod = await fetchApplicationPeriod('JoinGFM');
+        const existingPeriodElement = document.getElementById('existingApplicationPeriod');
+
+        if (applicationPeriod) {
+            const { startDate, endDate } = applicationPeriod;
+
+            // Get the current year
+            const currentYear = new Date().getFullYear();
+
+            // Check if both startDate and endDate are within the current year
+            const startYear = new Date(startDate).getFullYear();
+            const endYear = new Date(endDate).getFullYear();
+
+            if (startYear === currentYear && endYear === currentYear) {
+                const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                existingPeriodElement.textContent = `${currentYear} Application Period: ${formattedStartDate} - ${formattedEndDate}`;
+            } else {
+                existingPeriodElement.textContent = `No application period set for ${currentYear}.`;
+            }
+        } else {
+            existingPeriodElement.textContent = `No application period set for ${currentYear}.`;
+        }
+    };
+
+    // Call the function on page load
+    displayExistingApplicationPeriod();
+
     // Fetch user data from the server
     const fetchUserData = async () => {
         try {
@@ -109,18 +152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('User data not available');
     }
 
-    // Tab functionality
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabPanes.forEach(pane => pane.classList.remove('active'));
-
-            button.classList.add('active');
-            const tabId = button.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
-
     // Dropdown filter functionality
     departmentFilter.addEventListener('change', async () => {
         const selectedDepartment = departmentFilter.value;
@@ -140,7 +171,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // Fetch the schedule data from the database
                 const response = await fetch(`/admin/schedule?day=${encodeURIComponent(day)}&time=${encodeURIComponent(time)}`);
-                if (!response.ok && response.status !== 404) throw new Error('Failed to fetch schedule data');
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.warn(`No schedule found for ${day} at ${time}.`);
+                    } else {
+                        throw new Error('Failed to fetch schedule data');
+                    }
+                }
+
                 const schedule = response.status === 404 ? null : await response.json();
 
                 // Populate modal fields
@@ -228,7 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             time: document.getElementById('time').value,
             subject: document.getElementById('subject').value,
             roomNum: document.getElementById('roomNum').value,
-            year: new Date().getFullYear(), // Assuming you want the current year
+            year: new Date().getFullYear(),
         };
 
         // Validate required fields
@@ -258,8 +296,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (button) {
                 button.textContent = `${formData.subject} (${formData.roomNum})`;
-                button.classList.remove('availablebtn'); // Remove the existing class
-                button.classList.add('schedulebtn'); // Add the new class
+                button.classList.remove('availablebtn'); 
+                button.classList.add('schedulebtn'); 
             }
         } catch (error) {
             console.error('Error saving schedule:', error);
@@ -399,6 +437,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Validate that endDate is after startDate
+        const startDateTime = new Date(startDate).getTime();
+        const endDateTime = new Date(endDate).getTime();
+
+        if (endDateTime <= startDateTime) {
+            alert('End Date must be after Start Date.');
+            return;
+        }
+
+        // Format the dates as "MMMM dd, YYYY"
+        const formatDate = (date) => {
+            const options = { year: 'numeric', month: 'long', day: '2-digit' };
+            return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+        };
+
+        const formattedStartDate = formatDate(startDate);
+        const formattedEndDate = formatDate(endDate);
+
+        // Ask for confirmation
+        const confirmation = confirm(
+            `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period?`
+        );
+
+        if (!confirmation) {
+            // Clear the fields if the user cancels
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            return;
+        }
+
         // Disable buttons and populate inputs
         routeSettingsFields.forEach(field => {
             field.disabled = true;
@@ -409,7 +477,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('endDate').value = endDate;
 
         try {
-            const response = await fetch('/admin/route-settings', {
+            const response = await fetch('/admin/application-period', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ key, startDate, endDate }),
@@ -419,7 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('Failed to save route settings');
             }
     
-            alert('Route settings saved successfully!');
+            alert('GFM Application Period saved successfully!');
 
             // Calculate the time period and re-enable buttons after the end date
             const now = new Date();
@@ -440,6 +508,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error saving route settings:', error);
             alert('Failed to save route settings.');
         }
+    });
+
+    // Tab functionality
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+
+            button.classList.add('active');
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
     });
 
     // Helper function to capitalize the first letter of a string

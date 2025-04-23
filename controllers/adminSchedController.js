@@ -65,6 +65,7 @@ module.exports.getSchedule = async (req, res) => {
         }
 
         const schedule = await AdminSchedule.findOne({ day, time });
+        console.log('Fetched schedule:', schedule);
 
         if (!schedule) {
             return res.status(404).json({ error: 'Schedule not found.' });

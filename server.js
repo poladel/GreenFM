@@ -33,7 +33,7 @@ app.set('view engine', 'ejs');
 
 // Define your routes
 const root = require('./routes/root');
-const routeSettingRoutes = require('./routes/routeSettingRoutes');
+const ApplicationPeriodRoutes = require('./routes/ApplicationPeriodRoutes');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
 const authRoutes = require('./routes/authRoutes');
@@ -54,7 +54,7 @@ const liveRoutes = require('./routes/liveRoutes');
 
 app.get('*', checkUser);
 app.use(root);
-app.use(routeSettingRoutes);
+app.use(ApplicationPeriodRoutes);
 app.use(userRoutes);
 app.use(adminRoutes);
 app.use(authRoutes);

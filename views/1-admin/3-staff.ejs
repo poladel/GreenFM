@@ -15,7 +15,7 @@
                 <!-- Schedule Tab -->
                 <div id="schedule-tab" class="tab-pane active">
                     <div class="route-settings">
-                        <h3>Set Join GFM Route Availability</h3>
+                        <h3>GFM Application Period</h3>
                         <form id="routeSettingsForm">
                             <div>
                                 <label for="startDate">Start Date:</label>
@@ -27,6 +27,10 @@
                             </div>
                             <button type="submit">Save</button>
                         </form>
+                        <!-- Display the existing application period -->
+                        <div id="existingApplicationPeriod" style="margin-top: 10px; font-weight: bold;">
+                            <!-- This will be dynamically updated by JavaScript -->
+                        </div>
                     </div>
                     <label for="department-filter">Filter by Department:</label>
                     <select id="department-filter">
