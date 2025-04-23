@@ -427,88 +427,149 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     routeSettingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-    
-        const key = 'JoinGFM'; // Get the key value from the form
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-    
+
+        const key = 'JoinGFM';
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+
         if (!key || !startDate || !endDate) {
-            alert('Please fill in all fields (key, start date, and end date).');
+            alert('Please fill in all fields (start date and end date).');
             return;
         }
 
-        // Validate that endDate is after startDate
-        const startDateTime = new Date(startDate).getTime();
-        const endDateTime = new Date(endDate).getTime();
+        // --- Date Validation ---
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Normalize current date
 
-        if (endDateTime <= startDateTime) {
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+             alert('Invalid date format provided.');
+             return;
+        }
+        if (endDateTime < startDateTime) {
             alert('End Date must be after Start Date.');
             return;
         }
 
-        // Format the dates as "MMMM dd, YYYY"
-        const formatDate = (date) => {
-            const options = { year: 'numeric', month: 'long', day: '2-digit' };
-            return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
-        };
+        const targetYear = startDateTime.getFullYear();
 
-        const formattedStartDate = formatDate(startDate);
-        const formattedEndDate = formatDate(endDate);
+        // --- Pre-submission Checks ---
+        try {
+            // Fetch the current settings to check status
+            const existingPeriod = await fetchApplicationPeriod(key);
 
-        // Ask for confirmation
-        const confirmation = confirm(
-            `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period?`
-        );
+            if (existingPeriod) {
+                const existingStartDate = new Date(existingPeriod.startDate);
+                const existingEndDate = new Date(existingPeriod.endDate);
+                existingEndDate.setHours(23, 59, 59, 999); // Include whole end day
 
-        if (!confirmation) {
-            // Clear the fields if the user cancels
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            return;
+                // Check 1: Is the current date within the existing active period?
+                if (currentDate >= existingStartDate && currentDate <= existingEndDate) {
+                    alert('Cannot add application period during an active application period. Please wait until the period ends.');
+                    return; // Stop submission
+                }
+
+                // Check 2: Is the target year's period already finished?
+                const existingPeriodYear = existingStartDate.getFullYear();
+                if (targetYear === existingPeriodYear && currentDate > existingEndDate) {
+                     alert(`An application period for ${targetYear} has already concluded. You cannot set a new period for this year.`);
+                     return; // Stop submission
+                }
+            }
+
+            // --- If checks pass, proceed with confirmation and submission ---
+
+            // Format the dates for confirmation message
+            const formatDate = (dateStr) => {
+                const options = { year: 'numeric', month: 'long', day: '2-digit' };
+                // Adjust for potential timezone issues by parsing as UTC if needed, or ensure input is treated consistently
+                const dateObj = new Date(dateStr + 'T00:00:00'); // Treat input as local time start of day
+                return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+            };
+
+            const formattedStartDate = formatDate(startDate);
+            const formattedEndDate = formatDate(endDate);
+
+            // Ask for confirmation (initial attempt, no force flag)
+            let confirmation = confirm(
+                `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period?`
+            );
+
+            if (!confirmation) {
+                // Clear the fields if the user cancels initially
+                startDateInput.value = '';
+                endDateInput.value = '';
+                return;
+            }
+
+            // --- Attempt to Save (potentially triggering backend confirmation) ---
+            await saveApplicationPeriod(key, startDate, endDate, false); // Initial attempt with force = false
+
+        } catch (error) {
+            // Handle errors during pre-check fetch (less likely)
+            console.error('Error during pre-submission checks:', error);
+            alert('An error occurred while checking existing settings. Please try again.');
         }
+    });
 
-        // Disable buttons and populate inputs
-        routeSettingsFields.forEach(field => {
-            field.disabled = true;
-        });
+    // --- Separate function to handle saving and potential confirmation ---
+    const saveApplicationPeriod = async (key, startDate, endDate, force) => {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
 
-        // Populate inputs with the selected values
-        document.getElementById('startDate').value = startDate;
-        document.getElementById('endDate').value = endDate;
+        // Disable form fields during submission attempt
+        routeSettingsFields.forEach(field => { field.disabled = true; });
 
         try {
             const response = await fetch('/admin/application-period', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key, startDate, endDate }),
+                body: JSON.stringify({ key, startDate, endDate, force }), // Include force flag
             });
-    
-            if (!response.ok) {
-                throw new Error('Failed to save route settings');
-            }
-    
-            alert('GFM Application Period saved successfully!');
 
-            // Calculate the time period and re-enable buttons after the end date
-            const now = new Date();
-            const endDateTime = new Date(endDate).getTime();
-            const timeUntilEnd = endDateTime - now.getTime();
+            const data = await response.json(); // Always try to parse JSON
 
-            if (timeUntilEnd > 0) {
-                setTimeout(() => {
-                    routeSettingsFields.forEach(field => {
-                        field.disabled = false;
-                    });
-                    scheduleButtons.forEach(button => {
-                        button.disabled = false;
-                    });
-                }, timeUntilEnd);
+            if (response.ok) { // Status 200-299
+                alert(data.message || 'GFM Application Period saved successfully!');
+                displayExistingApplicationPeriod(); // Refresh the displayed period
+                // Optionally clear fields or keep them disabled until period ends
+                // startDateInput.value = ''; // Decide if you want to clear on success
+                // endDateInput.value = '';
+                // Keep fields disabled if needed based on new period? Re-enable based on logic?
+                // For now, let's re-enable if successful and not within a new active period (simplification)
+                 routeSettingsFields.forEach(field => { field.disabled = false; });
+
+
+            } else if (response.status === 409 && data.conflict) {
+                // Backend detected conflict, ask for confirmation again
+                console.warn('Backend detected conflict:', data.message);
+                const forceConfirmation = confirm(data.message + "\n\nDo you want to overwrite?"); // Show backend message
+
+                if (forceConfirmation) {
+                    // Resend with force = true
+                    await saveApplicationPeriod(key, startDate, endDate, true);
+                } else {
+                    // User cancelled overwrite
+                    alert('Operation cancelled.');
+                    startDateInput.value = ''; // Clear fields on cancellation
+                    endDateInput.value = '';
+                    routeSettingsFields.forEach(field => { field.disabled = false; }); // Re-enable fields
+                }
+            } else {
+                 // Handle other errors (400, 403, 500 etc.)
+                 throw new Error(data.error || data.message || `Failed to save settings (Status: ${response.status})`);
             }
+
         } catch (error) {
-            console.error('Error saving route settings:', error);
-            alert('Failed to save route settings.');
+            console.error('Error saving application period:', error);
+            alert(`Error: ${error.message}`);
+            // Re-enable fields on error
+            routeSettingsFields.forEach(field => { field.disabled = false; });
         }
-    });
+    };
 
     // Tab functionality
     tabButtons.forEach(button => {

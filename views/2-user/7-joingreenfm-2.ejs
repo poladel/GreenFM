@@ -101,9 +101,8 @@
   </div>
 
   <script>
-    const applicationData = {
-      preferredDepartment: "<%= applicationData?.preferredDepartment || '' %>"
-    };
+    const preferredDepartment = "<%= applicationData?.preferredDepartment || '' %>";
+    const currentYear = new Date().getFullYear();
   </script>
   <script src="js/2-user/joingreenfm2.js"></script>
   </body>
