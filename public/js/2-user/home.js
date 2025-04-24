@@ -636,23 +636,51 @@ function fetchSchedule() {
         return null; // No live show at the moment
     }
 
-    // Update "Live Now" section
-    function updateLiveNow() {
-        const live = getCurrentLive(); // Get the current live show
-        const container = document.getElementById("live-now-content");
-        const link = document.getElementById("live-now-link");
+    // LIVE NOW!
+    async function fetchStatus() {
+        const res = await fetch('/status');
+        const data = await res.json();
+        const statusEl = document.getElementById('status-indicator');
+        const subtextEl = document.getElementById('live-now-subtext');
+        const linkEl = document.getElementById('live-now-link');
 
-        if (live) {
-            container.innerHTML = `
-                <p style="margin: 0 0 8px;"><strong>${live.start} - ${live.title}</strong></p>
-            `;
-            link.href = "/live";
-            link.style.display = "inline-block"; // Show the "Go to live" button
+        if (data.live) {
+            statusEl.textContent = 'LIVE NOW!';
+            statusEl.className = 'status-live';
+            subtextEl.textContent = ''; // Clear subtext
+            linkEl.style.display = 'inline-block';
         } else {
-            container.innerHTML = `<p>No live show at the moment.</p>`; // No live show message
-            link.style.display = "none"; // Hide the "Go to live" button
+            statusEl.textContent = 'Offline';
+            statusEl.className = 'status-offline';
+            subtextEl.textContent = 'no live broadcast available.';
+            linkEl.style.display = 'none';
         }
     }
+
+    async function setStatus(live) {
+        const res = await fetch('/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ live })
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchStatus();
+            closeStatusModal();
+        } else {
+            alert(data.error || "Failed to update status.");
+        }
+    }
+
+    function openStatusModal() {
+        document.getElementById('status-modal').style.display = 'flex';
+    }
+
+    function closeStatusModal() {
+        document.getElementById('status-modal').style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchStatus);
 
     // 🚀 On page load
     fetchSchedule().then(() => {

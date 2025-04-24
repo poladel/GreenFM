@@ -51,6 +51,7 @@ const adminSchedRoutes = require('./routes/adminSchedRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
+const statusRoutes = require('./routes/statusRoutes');
 
 app.get('*', checkUser);
 app.use(root);
@@ -71,6 +72,7 @@ app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
 app.use(schedRoutes);
+app.use('/', statusRoutes);
 
 // 404 Handling
 app.all('*', (req, res) => {
