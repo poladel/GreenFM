@@ -8,8 +8,9 @@
       <%- include('../partials/nav.ejs') %>
 
       <!-- Toast Notification -->
-      <div id="toast" class="hidden fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
+      <div id="toast" class="fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
 
+      
       <!-- POST FORM -->
       <form id="post-form" class="bg-white p-4 rounded-xl shadow">
         <h2 class="text-2xl font-semibold mb-4 text-green-700">🟢 Community Forum</h2>
@@ -26,7 +27,6 @@
             <input type="file" id="video-input" accept="video/*" style="display: none;">
           </button>
         </div>
-
 
         <!-- Media Previews -->
         <div id="preview-container" class="preview-container mt-3"></div>
@@ -45,7 +45,35 @@
       </form>
 
 <br>
-<br>
+
+    <!-- Poll Card -->
+
+    <div class="poll-card">
+  <form id="poll-form" method="POST" action="/poll">
+      <h3>Create a Poll</h3>
+    <input type="text" id="poll-question" name="question" placeholder="Enter your poll question..." required />
+
+    <div id="poll-options-wrapper">
+      <input type="text" name="options[]" placeholder="Option 1" required />
+      <input type="text" name="options[]" placeholder="Option 2" required />
+    </div>
+
+    <!-- Align buttons right -->
+    <div class="poll-button-group">
+      <button type="button" id="add-option-button" class="poll-btn">+ Add Option</button>
+      <button type="submit" id="submit-poll-button" class="poll-btn">📤 Post Poll</button>
+    </div>
+  </form>
+</div>
+
+
+
+
+
+        
+<div id="posts-container"></div>
+
+
 
       <!-- POSTS RENDERED HERE -->
       <div id="posts-container" class="posts-container"></div>
@@ -110,7 +138,6 @@
 </div>
 
 <div id="toast" class="hidden fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
-
 
 <!-- Inject User ID -->
 <script>

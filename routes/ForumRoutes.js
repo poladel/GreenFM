@@ -16,7 +16,9 @@ router.post('/posts/:id/like', requireAuth, forumController.toggleLike);
 router.post('/posts/:id/comment', requireAuth, forumController.addComment);
 router.get('/posts/:id/comments', forumController.getComments);
 router.delete('/posts/:id/comments/:commentId', requireAuth, forumController.deleteComment);
-
+router.post('/poll', requireAuth, forumController.createPoll);
+router.post('/poll/vote', requireAuth, forumController.votePoll);
+router.put('/poll/:postId', requireAuth, forumController.updatePoll);
 
 // Edit comment
 // PUT /posts/:postId/comment/:commentId
@@ -149,6 +151,32 @@ router.put('/posts/:id', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+
+router.get('/posts', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await ForumPost.countDocuments();
+    const posts = await ForumPost.find()
+      .populate('userId') // Make sure this field exists
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      posts,
+      totalPages: Math.ceil(totalPosts / limit),
+      currentPage: page
+    });
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
 
 
 

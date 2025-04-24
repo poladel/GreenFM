@@ -10,6 +10,7 @@ const cookieParser = require('cookie-parser');
 const sessionMiddleware = require('./middleware/session');
 const forumRoutes = require('./routes/ForumRoutes');
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
 app.use('/', forumRoutes); 
+app.use(forumRoutes);
 app.use('/', require('./routes/ForumRoutes'));
 
 

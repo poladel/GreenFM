@@ -1,9 +1,10 @@
-const ForumPost = require('../models/ForumPost');``
+const ForumPost = require('../models/ForumPost');
 const cloudinary = require('../config/cloudinaryConfig');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const streamifier = require('streamifier');
+
 
 
 cloudinary.config({
@@ -93,47 +94,35 @@ exports.handleFileUploads = (req, res, next) => {
   });
 };
 
-// Controller Methods
+// Controller Method
+
 exports.createPost = async (req, res) => {
   try {
-    const { title, text } = req.body;
+    const { title, text, pollQuestion, pollOptions } = req.body;
+    const media = req.files?.map(file => ({
+      url: file.path,
+      type: file.mimetype.startsWith('image/') ? 'image' : 'video'
+    })) || [];
 
-    if (!title?.trim() && !text?.trim() && !req.uploadedMedia?.length) {
-      return res.status(400).json({
-        success: false,
-        error: 'Post must contain either title, text, or media'
-      });
-    }
-
-    const post = new ForumPost({
-      title: title?.trim(),
-      text: text?.trim(),
+    const newPost = new ForumPost({
       userId: req.user._id,
-      media: req.uploadedMedia,
-      likes: [],
-      comments: []
+      title,
+      text,
+      media,
+      poll: pollQuestion ? {
+        question: pollQuestion,
+        options: pollOptions.map(opt => ({ text: opt }))
+      } : null
     });
 
-    await post.save();
-
-    const populatedPost = await ForumPost.populate(post, {
-      path: 'userId',
-      select: 'username profilePicture'
-    });
-
-    res.status(201).json({
-      success: true,
-      post: populatedPost.toObject()
-    });
-  } catch (error) {
-    console.error('Create post error:', error);  // <- 🔍 this should log the real issue
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create post',
-      details: error.message   // <- Add this temporarily for debugging
-    });
+    await newPost.save();
+    res.json({ success: true, post: newPost });
+  } catch (err) {
+    console.error('Create post error:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 
 
@@ -422,6 +411,72 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
+// Create a poll
+exports.createPoll = async (req, res) => {
+  const { question, options } = req.body;
+  try {
+    if (!question || !options || options.length < 2) {
+      return res.status(400).json({ success: false, message: 'Invalid poll' });
+    }
+
+    const newPost = new ForumPost({
+      userId: req.user._id,
+      poll: {
+        question,
+        options: options.map(opt => ({ text: opt.trim(), votes: [] }))
+      }
+    });
+
+    await newPost.save();
+    res.redirect('/forum'); // or respond with JSON
+  } catch (err) {
+    console.error('Poll creation error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 
+// Vote on an option
+exports.votePoll = async (req, res) => {
+  const { postId, optionIndex } = req.body;
+  const userId = req.user._id;
 
+  const post = await ForumPost.findById(postId);
+  if (!post || !post.poll) return res.status(404).json({ success: false });
+
+  // Check if user already voted
+  const alreadyVoted = post.poll.options.some(opt => opt.votes.includes(userId));
+  if (alreadyVoted) return res.status(400).json({ success: false, message: 'Already voted' });
+
+  post.poll.options[optionIndex].votes.push(userId);
+  await post.save();
+
+  res.json({ success: true, poll: post.poll });
+};
+
+// Update Poll (question and options)
+exports.updatePoll = async (req, res) => {
+  const { postId } = req.params;
+  const { question, options } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const post = await ForumPost.findById(postId);
+    if (!post || post.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this poll' });
+    }
+
+    if (!question || !Array.isArray(options) || options.length < 2) {
+      return res.status(400).json({ success: false, message: 'Poll must have a question and at least 2 options' });
+    }
+
+    post.poll.question = question;
+    post.poll.options = options.map(opt => ({ text: opt.trim(), votes: [] }));
+
+    await post.save();
+    res.json({ success: true, poll: post.poll });
+  } catch (error) {
+    console.error('Update poll error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update poll' });
+  }
+};
