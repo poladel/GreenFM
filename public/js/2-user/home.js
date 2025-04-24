@@ -650,9 +650,9 @@ function fetchSchedule() {
             subtextEl.textContent = ''; // Clear subtext
             linkEl.style.display = 'inline-block';
         } else {
-            statusEl.textContent = 'Offline';
+            statusEl.textContent = 'OFFLINE';
             statusEl.className = 'status-offline';
-            subtextEl.textContent = 'no live broadcast available.';
+            subtextEl.textContent = 'No live broadcast available.';
             linkEl.style.display = 'none';
         }
     }
