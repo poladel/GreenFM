@@ -8,8 +8,7 @@ async function refreshSchedule(selectedYear) {
 		console.log(`Schedules for ${selectedYear}:`, schedules); // Debugging log
 
 		// Clear existing schedule buttons
-		const scheduleButtons = document.querySelectorAll(".availablebtn");
-		scheduleButtons.forEach((button) => {
+		document.querySelectorAll(".availablebtn").forEach((button) => {
 			button.textContent = "";
 			button.classList.remove("schedulebtn");
 			delete button.dataset.scheduleId;
@@ -31,31 +30,133 @@ async function refreshSchedule(selectedYear) {
 		console.error("Error updating schedule buttons:", error);
 	}
 }
+
+document.getElementById("schoolYearConfigForm").addEventListener("submit", async (e) => {
+		e.preventDefault();
+
+		const startMonth = document.getElementById("startMonth").value;
+		const startYear = document.getElementById("startYear").value;
+		const endMonth = document.getElementById("endMonth").value;
+		const endYear = document.getElementById("endYear").value;
+
+		if (
+			!confirm(
+				`Are you sure you want to save the school year configuration?\nStart: ${startMonth}/${startYear}\nEnd: ${endMonth}/${endYear}`
+			)
+		) {
+			alert("Submission canceled.");
+			return;
+		}
+
+		try {
+			const response = await fetch("/schoolYear/config", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					startMonth,
+					startYear,
+					endMonth,
+					endYear,
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				alert(
+					errorData.error ||
+						"Failed to save school year configuration"
+				);
+				return;
+			}
+
+			const result = await response.json();
+			alert(result.message);
+		} catch (error) {
+			console.error("Error saving school year configuration:", error);
+			alert("Failed to save school year configuration");
+		}
+	});
+
+
 /*-----SCHEDULE TAB-----*/
 const modal = document.getElementById("scheduleModal");
-let existingSchedules = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
-	const scheduleButtons = document.querySelectorAll(".availablebtn");
-	const scheduleForm = document.getElementById("scheduleForm");
-	const closeModal = document.querySelector(".close");
-	const saveButton = document.getElementById("saveButton");
-	const deleteButton = document.getElementById("deleteButton");
-	const currentYear = new Date().getFullYear();
 	const schoolYearDropdown = document.getElementById("schoolYear");
 	const modalSchoolYearDropdown = document.getElementById("modalSchoolYear");
-	const submissionSchoolYearDropdown = document.getElementById(
-		"submissionSchoolYear"
-	);
+	const submissionSchoolYearDropdown = document.getElementById("submissionSchoolYear");
+	const scheduleButtons = document.querySelectorAll(".availablebtn");
+	const closeModal = document.querySelector(".close");
 
-	// Set the dropdown to the current year
-	schoolYearDropdown.value = currentYear;
-	console.log("Initial schoolYearDropdown value:", schoolYearDropdown.value);
+	await populateDropdowns();
 
-	// Initial load of schedules for the current school year
-	await refreshSchedule(currentYear);
+	if (submissionSchoolYearDropdown.value) {
+		await loadSubmissions();
+	} else {
+		console.warn(
+			"No school year selected in submissionSchoolYearDropdown."
+		);
+	}
 
-	// Event listener to filter schedules based on the selected school year
+	submissionSchoolYearDropdown.addEventListener("change", async () => {
+		const selectedYear = submissionSchoolYearDropdown.value;
+		console.log("Refreshing submissions for year:", selectedYear);
+		await loadSubmissions();
+	});
+
+	async function fetchSchoolYears() {
+		try {
+			const response = await fetch("/schoolYear/all");
+			if (!response.ok) throw new Error("Failed to fetch school years");
+
+			const schoolYears = await response.json();
+			console.log("Fetched school years:", schoolYears); // Debugging log
+			return schoolYears;
+		} catch (error) {
+			console.error("Error fetching school years:", error);
+			return [];
+		}
+	}
+
+	function getCurrentSchoolYear(schoolYears) {
+		const currentDate = new Date();
+		return schoolYears.find((year) => {
+			const startDate = new Date(year.startYear, year.startMonth - 1);
+			const endDate = new Date(year.endYear, year.endMonth - 1);
+			return currentDate >= startDate && currentDate <= endDate;
+		});
+	}
+
+	async function populateDropdowns() {
+		const schoolYears = await fetchSchoolYears();
+
+		populateDropdown(schoolYearDropdown, schoolYears);
+		populateDropdown(modalSchoolYearDropdown, schoolYears);
+		populateDropdown(submissionSchoolYearDropdown, schoolYears);
+
+		const currentSchoolYear = getCurrentSchoolYear(schoolYears);
+		if (currentSchoolYear) {
+			const currentYearValue = `${currentSchoolYear.startYear}-${currentSchoolYear.endYear}`;
+			schoolYearDropdown.value = currentYearValue;
+			modalSchoolYearDropdown.value = currentYearValue;
+			submissionSchoolYearDropdown.value = currentYearValue;
+		} else {
+			console.warn("No matching school year found for the current date.");
+		}
+
+		await refreshSchedule(schoolYearDropdown.value);
+	}
+
+	function populateDropdown(dropdown, schoolYears) {
+		dropdown.innerHTML = "";
+		schoolYears.forEach((year) => {
+			const option = document.createElement("option");
+			option.value = `${year.startYear}-${year.endYear}`;
+			option.textContent = `${year.startYear}-${year.endYear}`;
+			dropdown.appendChild(option);
+		});
+	}
+
 	schoolYearDropdown.addEventListener("change", async () => {
 		const selectedYear = schoolYearDropdown.value;
 		console.log(
@@ -66,48 +167,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 		// Update the modalSchoolYearDropdown to match the selected year
 		modalSchoolYearDropdown.value = selectedYear;
 
-		// Synchronize the selected attribute of the options
-		Array.from(modalSchoolYearDropdown.options).forEach((option) => {
-			option.selected = option.value === selectedYear;
-		});
-
-		if (!modalSchoolYearDropdown.value) {
-			console.error(
-				`Value ${selectedYear} not found in modalSchoolYearDropdown options.`
-			);
-		}
-
-		console.log(
-			"Updated modalSchoolYearDropdown value (on change):",
-			modalSchoolYearDropdown.value
-		);
-
 		// Refresh the schedule for the selected year
 		await refreshSchedule(selectedYear);
 	});
-
-	// Fetch schedules from the server
-	try {
-		const response = await fetch("/schedule?schoolYear=${selectedYear}");
-		if (!response.ok) throw new Error("Failed to fetch schedules");
-
-		const schedules = await response.json();
-		console.log("Fetched schedules:", schedules); // Debugging log
-
-		// Populate buttons with schedule data
-		schedules.forEach((schedule) => {
-			const button = document.querySelector(
-				`.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
-			);
-			if (button) {
-				button.textContent = schedule.showDetails.title; // Use the correct field for the title
-				button.classList.add("schedulebtn");
-				button.dataset.scheduleId = schedule._id;
-			}
-		});
-	} catch (error) {
-		console.error("Error fetching schedules:", error);
-	}
 
 	// Open modal on button click
 	scheduleButtons.forEach((button) => {
@@ -156,17 +218,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 					scheduleForm.dataset.time = schedule.time;
 
 					// Populate modal field
-					document.getElementById("showTitle").value =
-						schedule.showDetails.title || "";
-					document.getElementById("show-description").value =
-						schedule.showDetails.description || "";
-					document.getElementById("showObjectives").value =
-						schedule.showDetails.objectives || "";
+					document.getElementById("showTitle").value = schedule.showDetails.title || "";
+					document.getElementById("show-description").value = schedule.showDetails.description || "";
+					document.getElementById("showObjectives").value = schedule.showDetails.objectives || "";
 
 					// Populate show type checkboxes
-					const showTypeCheckboxes = document.querySelectorAll(
-						"input[name='showDetails.type[]']"
-					);
+					const showTypeCheckboxes = document.querySelectorAll("input[name='showDetails.type[]']");
 					showTypeCheckboxes.forEach((checkbox) => {
 						checkbox.checked = schedule.showDetails.type.includes(
 							checkbox.value
@@ -195,32 +252,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 					}
 
 					// Populate executive producer fields
-					document.getElementById("execProducerLastName").value =
-						schedule.executiveProducer.lastName || "";
-					document.getElementById("execProducerFirstName").value =
-						schedule.executiveProducer.firstName || "";
-					document.getElementById("execProducerMI").value =
-						schedule.executiveProducer.mi || "";
-					document.getElementById("execProducerSuffix").value =
-						schedule.executiveProducer.suffix || "";
-					document.getElementById("execProducerCYS").value =
-						schedule.executiveProducer.cys || "";
+					document.getElementById("execProducerLastName").value = schedule.executiveProducer.lastName || "";
+					document.getElementById("execProducerFirstName").value = schedule.executiveProducer.firstName || "";
+					document.getElementById("execProducerMI").value = schedule.executiveProducer.mi || "";
+					document.getElementById("execProducerSuffix").value = schedule.executiveProducer.suffix || "";
+					document.getElementById("execProducerCYS").value = schedule.executiveProducer.cys || "";
 
 					// Populate creative staff fields
-					document.getElementById("creativeStaffLastName").value =
-						schedule.creativeStaff.lastName || "";
-					document.getElementById("creativeStaffFirstName").value =
-						schedule.creativeStaff.firstName || "";
-					document.getElementById("creativeStaffMI").value =
-						schedule.creativeStaff.mi || "";
-					document.getElementById("creativeStaffSuffix").value =
-						schedule.creativeStaff.suffix || "";
-					document.getElementById("creativeStaffCYS").value =
-						schedule.creativeStaff.cys || "";
+					document.getElementById("creativeStaffLastName").value = schedule.creativeStaff.lastName || "";
+					document.getElementById("creativeStaffFirstName").value = schedule.creativeStaff.firstName || "";
+					document.getElementById("creativeStaffMI").value = schedule.creativeStaff.mi || "";
+					document.getElementById("creativeStaffSuffix").value = schedule.creativeStaff.suffix || "";
+					document.getElementById("creativeStaffCYS").value = schedule.creativeStaff.cys || "";
 
 					// Populate hosts
-					const hostsContainer =
-						document.getElementById("hosts-container");
+					const hostsContainer = document.getElementById("hosts-container");
 					hostsContainer.innerHTML = ""; // Clear existing hosts
 					schedule.hosts.forEach((host, index) => {
 						const hostDiv = document.createElement("div");
@@ -236,9 +282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 					});
 
 					// Populate technical staff
-					const technicalContainer = document.getElementById(
-						"technical-container"
-					);
+					const technicalContainer = document.getElementById("technical-container");
 					technicalContainer.innerHTML = ""; // Clear existing technical staff
 					schedule.technicalStaff.forEach((tech, index) => {
 						const techDiv = document.createElement("div");
@@ -265,59 +309,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 				scheduleForm.reset();
 
 				// Clear dynamically added hosts while keeping the default structure
-				const hostsContainer =
-					document.getElementById("hosts-container");
-				const hostInputs =
-					hostsContainer.querySelectorAll(".host-input");
+				const hostsContainer = document.getElementById("hosts-container");
+				const hostInputs = hostsContainer.querySelectorAll(".host-input");
 				hostInputs.forEach((hostInput, index) => {
 					if (index > 0) {
 						hostsContainer.removeChild(hostInput); // Remove all but the first default host input
 					} else {
 						// Reset the default host input fields
-						hostInput.querySelector(
-							"input[name='hosts[0].lastName']"
-						).value = "";
-						hostInput.querySelector(
-							"input[name='hosts[0].firstName']"
-						).value = "";
-						hostInput.querySelector(
-							"input[name='hosts[0].mi']"
-						).value = "";
-						hostInput.querySelector(
-							"input[name='hosts[0].suffix']"
-						).value = "";
-						hostInput.querySelector(
-							"input[name='hosts[0].cys']"
-						).value = "";
+						hostInput.querySelector("input[name='hosts[0].lastName']").value = "";
+						hostInput.querySelector("input[name='hosts[0].firstName']").value = "";
+						hostInput.querySelector("input[name='hosts[0].mi']").value = "";
+						hostInput.querySelector("input[name='hosts[0].suffix']").value = "";
+						hostInput.querySelector("input[name='hosts[0].cys']").value = "";
 					}
 				});
 
 				// Clear dynamically added technical staff while keeping the default structure
-				const technicalContainer = document.getElementById(
-					"technical-container"
-				);
-				const technicalInputs =
-					technicalContainer.querySelectorAll(".technical-input");
+				const technicalContainer = document.getElementById("technical-container");
+				const technicalInputs = technicalContainer.querySelectorAll(".technical-input");
 				technicalInputs.forEach((technicalInput, index) => {
 					if (index > 0) {
 						technicalContainer.removeChild(technicalInput); // Remove all but the first default technical input
 					} else {
 						// Reset the default technical input fields
-						technicalInput.querySelector(
-							"input[name='technicalStaff[0].lastName']"
-						).value = "";
-						technicalInput.querySelector(
-							"input[name='technicalStaff[0].firstName']"
-						).value = "";
-						technicalInput.querySelector(
-							"input[name='technicalStaff[0].mi']"
-						).value = "";
-						technicalInput.querySelector(
-							"input[name='technicalStaff[0].suffix']"
-						).value = "";
-						technicalInput.querySelector(
-							"input[name='technicalStaff[0].cys']"
-						).value = "";
+						technicalInput.querySelector("input[name='technicalStaff[0].lastName']").value = "";
+						technicalInput.querySelector("input[name='technicalStaff[0].firstName']").value = "";
+						technicalInput.querySelector("input[name='technicalStaff[0].mi']").value = "";
+						technicalInput.querySelector("input[name='technicalStaff[0].suffix']").value = "";
+						technicalInput.querySelector("input[name='technicalStaff[0].cys']").value = "";
 					}
 				});
 
@@ -333,34 +352,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 		modal.style.display = "none";
 	});
 
-	document
-		.getElementById("scheduleForm")
-		.addEventListener("saveButton", function (event) {
-			const checkboxes = document.querySelectorAll(
-				"input[name^='showDetails']"
-			);
-			const otherCheckbox = document.getElementById("other");
-			const otherInput = document.getElementById("other-input");
-			let isChecked = false;
+	document.getElementById("scheduleForm").addEventListener("saveButton", function (event) {
+		const checkboxes = document.querySelectorAll("input[name^='showDetails']");
+		const otherCheckbox = document.getElementById("other");
+		const otherInput = document.getElementById("other-input");
+		let isChecked = false;
 
-			checkboxes.forEach((checkbox) => {
-				if (checkbox.checked) {
-					isChecked = true;
-				}
-			});
-
-			if (!isChecked) {
-				alert("Please choose at least one type of show.");
-				event.preventDefault();
-				return;
-			}
-
-			if (otherCheckbox.checked && otherInput.value.trim() === "") {
-				alert("Please specify other type of show.");
-				event.preventDefault();
-				return;
+		checkboxes.forEach((checkbox) => {
+			if (checkbox.checked) {
+				isChecked = true;
 			}
 		});
+
+		if (!isChecked) {
+			alert("Please choose at least one type of show.");
+			event.preventDefault();
+			return;
+		}
+
+		if (otherCheckbox.checked && otherInput.value.trim() === "") {
+			alert("Please specify other type of show.");
+			event.preventDefault();
+			return;
+		}
+	});
 
 	const checkbox = document.getElementById("other");
 	const input = document.getElementById("other-input");
@@ -505,47 +520,52 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	saveButton.addEventListener("click", async (e) => {
 		e.preventDefault(); // Prevent default form submission
-
+	
+		// Check if the form is valid
+		if (!scheduleForm.checkValidity()) {
+			// If the form is invalid, trigger the browser's built-in validation UI
+			scheduleForm.reportValidity();
+			return;
+		}
+	
 		// Validate show type selection
 		const selectedTypes = Array.from(
-			document.querySelectorAll(
-				"input[name='showDetails.type[]']:checked"
-			)
+			document.querySelectorAll("input[name='showDetails.type[]']:checked")
 		).map((cb) => cb.value);
 		const otherCheckbox = document.getElementById("other");
 		const otherInput = document.getElementById("other-input");
-
+	
 		if (selectedTypes.length === 0) {
 			alert("Please choose at least one type of show.");
 			return;
 		}
-
+	
 		if (otherCheckbox.checked && otherInput.value.trim() === "") {
 			alert("Please specify the 'Other' type of show.");
 			return;
 		}
-
+	
 		// If "Other" is selected, add its value to the selected types
 		if (otherCheckbox.checked) {
 			selectedTypes.push(otherInput.value.trim());
 		}
-
+	
 		// Collect form data
 		const formData = new FormData(scheduleForm);
 		formData.append("day", scheduleForm.dataset.day);
 		formData.append("time", scheduleForm.dataset.time);
-
+	
 		// Convert FormData to JSON object
 		const data = Object.fromEntries(formData.entries());
-
+	
 		// Add nested objects for showDetails, executiveProducer, hosts, technicalStaff, and creativeStaff
 		data.showDetails = {
 			title: document.getElementById("showTitle").value,
-			type: selectedTypes, // Use the validated and updated selected types
+			type: selectedTypes,
 			description: document.getElementById("show-description").value,
 			objectives: document.getElementById("showObjectives").value,
 		};
-
+	
 		data.executiveProducer = {
 			lastName: document.getElementById("execProducerLastName").value,
 			firstName: document.getElementById("execProducerFirstName").value,
@@ -553,18 +573,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 			suffix: document.getElementById("execProducerSuffix").value,
 			cys: document.getElementById("execProducerCYS").value,
 		};
-
+	
 		data.hosts = Array.from(document.querySelectorAll(".host-input")).map(
 			(host) => ({
 				lastName: host.querySelector("input[name$='.lastName']").value,
-				firstName: host.querySelector("input[name$='.firstName']")
-					.value,
+				firstName: host.querySelector("input[name$='.firstName']").value,
 				mi: host.querySelector("input[name$='.mi']").value,
 				suffix: host.querySelector("input[name$='.suffix']").value,
 				cys: host.querySelector("input[name$='.cys']").value,
 			})
 		);
-
+	
 		data.technicalStaff = Array.from(
 			document.querySelectorAll(".technical-input")
 		).map((tech) => ({
@@ -574,7 +593,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			suffix: tech.querySelector("input[name$='.suffix']").value,
 			cys: tech.querySelector("input[name$='.cys']").value,
 		}));
-
+	
 		data.creativeStaff = {
 			lastName: document.getElementById("creativeStaffLastName").value,
 			firstName: document.getElementById("creativeStaffFirstName").value,
@@ -582,22 +601,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 			suffix: document.getElementById("creativeStaffSuffix").value,
 			cys: document.getElementById("creativeStaffCYS").value,
 		};
-
+	
 		// Add schoolYear
 		data.schoolYear = document.getElementById("modalSchoolYear").value;
-
+	
 		// Determine if this is a new schedule or an update
 		const scheduleId = scheduleForm.dataset.scheduleId;
 		const method = scheduleId ? "PATCH" : "POST";
 		const url = scheduleId ? `/schedule/${scheduleId}` : "/schedule";
-
+	
 		try {
 			const response = await fetch(url, {
 				method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			});
-
+	
 			if (response.ok) {
 				alert(
 					scheduleId
@@ -605,7 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 						: "Schedule saved successfully!"
 				);
 				modal.style.display = "none";
-
+	
 				// Dynamically update the schedule buttons
 				const selectedYear =
 					document.getElementById("schoolYear").value;
@@ -617,7 +636,55 @@ document.addEventListener("DOMContentLoaded", async () => {
 			console.error("Error saving schedule:", error);
 		}
 	});
+	
 
+	deleteButton.addEventListener("click", async () => {
+		const scheduleId = scheduleForm.dataset.scheduleId;
+	
+		console.log("Schedule ID to delete:", scheduleId); // Debugging log
+	
+		if (!scheduleId) {
+			alert("No schedule selected to delete.");
+			return;
+		}
+	
+		const confirmDelete = confirm(
+			"Are you sure you want to delete this schedule?"
+		);
+		if (!confirmDelete) return;
+	
+		try {
+			const response = await fetch(`/schedule/${scheduleId}`, {
+				method: "DELETE",
+			});
+	
+			console.log("Delete response status:", response.status); // Debugging log
+	
+			if (response.ok) {
+				alert("Schedule deleted successfully!");
+				modal.style.display = "none";
+	
+				// Refresh the schedule buttons to reflect the deletion
+				const selectedYear = document.getElementById("schoolYear").value;
+				console.log("Refreshing schedule for year:", selectedYear); // Debugging log
+				await refreshSchedule(selectedYear);
+			} else {
+				// Handle non-OK responses
+				const errorData = await response.json();
+				console.error("Failed to delete schedule:", errorData);
+				alert("Failed to delete schedule.");
+			}
+		} catch (error) {
+			// Only handle actual errors here
+			console.error("Error deleting schedule:", error);
+			alert("An error occurred while trying to delete the schedule.");
+		}
+	});
+});
+
+/*-----SUBMISSIONS TAB-----*/
+document.addEventListener("DOMContentLoaded", async () => {
+	const submissionSchoolYearDropdown = document.getElementById("submissionSchoolYear");
 	const preferredDayDropdown = document.getElementById("preferredDay");
 	const preferredTimeDropdown = document.getElementById("preferredTime");
 
@@ -731,14 +798,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 		//preferredTimeDropdown.value = selectedTime || ""; // Set the selected time if available
 	});
 
-	// Initial load of submissions for the current year
-	submissionSchoolYearDropdown.value = currentYear;
-	// Load submissions for the current year on page load
-	await loadSubmissions();
+	document.getElementById("resultFilter").addEventListener("change", () => {
+		loadSubmissions();
+		clearFields();
+	});
 
-	document
-		.getElementById("resultFilter")
-		.addEventListener("change", loadSubmissions);
+	//document.getElementById("resultFilter").addEventListener("change", loadSubmissions);
 
 	// Add event listener to reload submissions when the year changes
 	submissionSchoolYearDropdown.addEventListener("change", async () => {
@@ -768,56 +833,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 	});
 });
 
-deleteButton.addEventListener("click", async () => {
-	const scheduleId = scheduleForm.dataset.scheduleId;
-
-	console.log("Schedule ID to delete:", scheduleId); // Debugging log
-
-	if (!scheduleId) {
-		alert("No schedule selected to delete.");
-		return;
-	}
-
-	const confirmDelete = confirm(
-		"Are you sure you want to delete this schedule?"
-	);
-	if (!confirmDelete) return;
-
-	try {
-		const response = await fetch(`/schedule/${scheduleId}`, {
-			method: "DELETE",
-		});
-
-		console.log("Delete response status:", response.status); // Debugging log
-
-		if (response.ok) {
-			alert("Schedule deleted successfully!");
-			modal.style.display = "none";
-
-			// Refresh the schedule buttons to reflect the deletion
-			const selectedYear = document.getElementById("schoolYear").value;
-			console.log("Refreshing schedule for year:", selectedYear); // Debugging log
-			await refreshSchedule(selectedYear);
-		} else {
-			// Handle non-OK responses
-			const errorData = await response.json();
-			console.error("Failed to delete schedule:", errorData);
-			alert("Failed to delete schedule.");
-		}
-	} catch (error) {
-		// Only handle actual errors here
-		console.error("Error deleting schedule:", error);
-		alert("An error occurred while trying to delete the schedule.");
-	}
-});
-
-/*-----SUBMISSIONS TAB-----*/
 // Fetch and display submissions in the table
 async function loadSubmissions() {
 	try {
 		const schoolYear = document.getElementById(
 			"submissionSchoolYear"
 		).value;
+		if (!schoolYear) {
+			console.error("No school year selected.");
+			return; // Exit the function if no school year is selected
+		}
+
 		const result = document.getElementById("resultFilter")?.value || "All";
 		const queryParams = new URLSearchParams({ schoolYear });
 		if (result && result !== "All") queryParams.append("result", result);
@@ -1115,7 +1141,7 @@ async function updateSubmission(submissionId) {
 	const result = document.getElementById("result").value;
 	const preferredDay = document.getElementById("preferredDay").value;
 	const preferredTime = document.getElementById("preferredTime").value;
-    const selectedYear = document.getElementById("submissionSchoolYear").value; // Get the selected school year
+	const selectedYear = document.getElementById("submissionSchoolYear").value; // Get the selected school year
 
 	if (result === "Pending") {
 		alert("Please select a RESULT before submitting.");
@@ -1137,7 +1163,7 @@ async function updateSubmission(submissionId) {
 		const existingSchedules = await response.json();
 		if (existingSchedules.length > 0) {
 			alert(
-				`${preferredDay} (${preferredTime}) are already occupied by another schedule in ${selectedYear}.`
+				`${preferredDay} (${preferredTime}) is already occupied by another schedule in ${selectedYear}.`
 			);
 			return;
 		}
@@ -1256,9 +1282,6 @@ document.querySelector(".submit-button").addEventListener("click", () => {
 document.querySelector(".cancel-button").addEventListener("click", () => {
 	clearFields();
 });
-
-// Load submissions on page load
-document.addEventListener("DOMContentLoaded", loadSubmissions);
 
 // Tab switching logic
 document.querySelectorAll(".tab-button").forEach((button) => {

@@ -9,35 +9,19 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
-                <div class="live-section container">
-                    <h2 class="text-2xl font-semibold mb-4">Live Broadcast</h2>
-    
-                    <% if (typeof live !== 'undefined' && live) { %>
-                        <div id="livePlayer" class="aspect-video w-full mb-4">
-                            <iframe 
-                                src="https://www.facebook.com/plugins/video.php?href=<%= encodeURIComponent(live.url) %>&show_text=0&autoplay=1&mute=0"
-                                width="100%" 
-                                height="480" 
-                                style="border:none;overflow:hidden" 
-                                scrolling="no" 
-                                frameborder="0" 
-                                allowfullscreen="true" 
-                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-                            </iframe>
-                        </div>
-                    <% } else { %>
-                        <div id="livePlayer">
-                            <p>No live stream available.</p>
-                        </div>
-                    <% } %>                    
-    
-                    <!-- Form to Add Live -->
-                    <form id="liveForm" action="/live" method="POST" class="mt-6">
-                        <input type="text" name="url" id="fbLiveLink" placeholder="Paste Facebook Live link here" class="border p-2 w-full mb-2" required>
-                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Post Live</button>
-                    </form>
+                <div class="video-wrapper" style="margin-top: 20px; text-align: center;">
+                    <iframe 
+                        src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fdzbb594%2Fvideos%2F552584174549577%2F&show_text=false&width=560&t=0" 
+                        width="560" 
+                        height="314" 
+                        style="border:none;overflow:hidden" 
+                        scrolling="no" 
+                        frameborder="0" 
+                        allowfullscreen="true" 
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+                    </iframe>
                 </div>
-
+                
             </div>
         </div>
 

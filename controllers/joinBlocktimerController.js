@@ -273,8 +273,7 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
     } = req.session.joinBlocktimer1Data;
 
     // Retrieve selected day and time from the form
-    const { 'preferred-days': preferredDay, 'preferred-time': preferredTime } = req.body;
-    const schoolYear = new Date().getFullYear();
+    const { 'preferred-days': preferredDay, 'preferred-time': preferredTime, schoolYear } = req.body;
 
     // Check if user is authenticated via middleware
     if (!req.user) {

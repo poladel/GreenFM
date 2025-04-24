@@ -27,6 +27,7 @@ html, body {
 
 /*---SIDEBARS---*/
 .sidebars {
+    z-index: 9999;
     position: fixed;
     top: 2vh;
     left: 1vw;
@@ -165,9 +166,14 @@ html, body {
 
 /*---HEADER MENU---*/
 .header-container {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     display: flex;
     align-items: center;
     margin-right: 2vh;
+    padding-bottom: 1vh;
+    background-color: #EFEFEF;
 }
 
 .posts-title-container {
@@ -202,7 +208,7 @@ html, body {
     margin-left: 1vw;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
-    width: 10vw;
+    width: 6vw;
     height: 50px;
     display: flex;
     justify-content: center;
@@ -220,7 +226,6 @@ html, body {
 .icon {
     width: 20px;
     height: auto;
-    margin: 0 5px;
 }
 
 /*---USER DROPDOWN---*/
@@ -229,6 +234,7 @@ html, body {
     padding: 2px;
     margin-top: 1vh;
     margin-left: 1vw;
+    margin-right: 0.1vw;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
     width: 10vw;
@@ -244,7 +250,6 @@ html, body {
 .user-container {
     display: flex;
     align-items: center;
-    margin-left: 1vw;
     width: 8vw;
 }
 
@@ -252,15 +257,12 @@ html, body {
     width: 20px;
     height: auto;
     margin-right: 1vh;
-    margin-left: 1vh;
-    margin-right: 1vh;
-    margin-left: 1vh;
 }
 
 .login-text {
     font-size: 14px;
     color: #333;
-    margin-right: 2vh;
+    margin-left: 0.5vw;
 }
 
 .user-dropdown {
@@ -277,7 +279,7 @@ html, body {
     z-index: 9999;
     border-radius: 10px;
     top: 3.2vw;
-    left: -2vw;
+    left: -2.5vw;
     margin-top: 0;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;

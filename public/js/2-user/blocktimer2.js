@@ -3,26 +3,79 @@ document.addEventListener("DOMContentLoaded", function () {
     const scheduleBtn = document.querySelector(".see-schedule-btn");
     const modal = document.getElementById("scheduleModal");
     const closeBtn = document.querySelector(".close-btn");
-    const currentYear = new Date().getFullYear();
+    const schoolYearDropdown = document.getElementById('schoolYear');
+    const today = new Date();
+
+    // Fetch school years from the schoolYearController
+    fetch('/schoolYear/all') // Assuming the endpoint returns all school years
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch school years: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then((schoolYears) => {
+            // Populate the dropdown with school years
+            schoolYears.forEach((year) => {
+                const option = document.createElement('option');
+                option.value = `${year.startYear}-${year.endYear}`; // Assuming the API returns objects with startYear and endYear
+                option.textContent = `${year.startYear}-${year.endYear}`;
+                schoolYearDropdown.appendChild(option);
+            });
+
+            // Determine the current school year based on today's date
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth() + 1; // Months are 0-indexed
+            let currentSchoolYear = null;
+
+            schoolYears.forEach((year) => {
+                if (
+                    (currentMonth >= 8 && currentYear === year.startYear) || // August to December
+                    (currentMonth <= 5 && currentYear === year.endYear) // January to May
+                ) {
+                    currentSchoolYear = `${year.startYear}-${year.endYear}`;
+                }
+            });
+
+            // Set the current school year as the selected option
+            if (currentSchoolYear) {
+                schoolYearDropdown.value = currentSchoolYear;
+            }
+        })
+        .catch((err) => {
+            console.error('Error fetching school years:', err);
+            schoolYearDropdown.innerHTML = '<option value="" disabled>Error loading school years</option>';
+        });
+    
 
     let selectedButton = null; // Keep track of the currently selected button
 
     // Function to fetch and display schedules
     async function fetchAndDisplaySchedules() {
         try {
-            // Fetch schedules for the current year
-            const scheduleResponse = await fetch(`/schedule?schoolYear=${currentYear}`);
+            // Get the selected school year from the dropdown
+            const schoolYearDropdown = document.getElementById('schoolYear');
+            const selectedSchoolYear = schoolYearDropdown.value;
+
+            if (!selectedSchoolYear) {
+                throw new Error("No school year selected");
+            }
+
+            console.log(`Selected school year: ${selectedSchoolYear}`); // Debugging log
+
+            // Fetch schedules for the selected school year
+            const scheduleResponse = await fetch(`/schedule?schoolYear=${selectedSchoolYear}`);
             if (!scheduleResponse.ok) throw new Error("Failed to fetch schedules");
             const schedules = await scheduleResponse.json();
-    
-            // Fetch "Pending" submissions for the current year
-            const submissionResponse = await fetch(`/submissions?schoolYear=${currentYear}&result=Pending`);
-            console.log('Submission Response:', submissionResponse);
 
+            // Fetch "Pending" submissions for the selected school year
+            const submissionResponse = await fetch(`/submissions?schoolYear=${selectedSchoolYear}&result=Pending`);
             if (!submissionResponse.ok) throw new Error("Failed to fetch submissions");
             const submissions = await submissionResponse.json();
-            console.log('Submissions Data:', submissions);
-    
+
+            console.log('Schedules:', schedules);
+            console.log('Submissions:', submissions);
+
             // Reset all buttons to their default state
             const scheduleButtons = document.querySelectorAll(".availablebtn");
             scheduleButtons.forEach((button) => {
@@ -32,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     button.disabled = false;
                 }
             });
-    
+
             // Populate buttons with schedule data
             schedules.forEach((schedule) => {
                 const button = document.querySelector(
@@ -44,21 +97,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     button.disabled = true; // Disable the button
                 }
             });
-    
+
             // Handle "Pending" submissions (if needed)
             submissions.forEach((submission) => {
                 const timeRange = submission.preferredSchedule?.time || null; // Get the full time range
-            
+
                 if (!timeRange) {
                     console.warn(`Missing or invalid time for submission:`, submission);
                     return; // Skip this submission if time is missing or invalid
                 }
-            
+
                 const buttonQuery = `.availablebtn[data-day="${submission.preferredSchedule?.day}"][data-time="${timeRange}"]`;
                 console.log('Button Query:', buttonQuery);
-            
+
                 const button = document.querySelector(buttonQuery);
-            
+
                 if (button) {
                     button.textContent = `Pending: ${submission.showDetails?.title || "No Title"}`;
                     button.classList.add("pendingbtn");
@@ -67,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.warn(`No button found for day="${submission.preferredSchedule?.day}" and time="${timeRange}"`);
                 }
             });
-    
+
             // Restore the "Selected" state for the previously selected button
             if (selectedButton) {
                 selectedButton.textContent = "Selected";
@@ -248,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const form2 = document.getElementById('blocktimerForm2');
     const timeDropdown = document.getElementById('time');
+    const schoolYearDropdown = document.getElementById('schoolYear'); // Get the school year dropdown
     const radioButtons = document.querySelectorAll('input[name="preferred-days"]');
     const buttons = document.querySelectorAll('.schedule-table button.availablebtn');
 
@@ -301,11 +355,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form2); // Gather form data
         const data = Object.fromEntries(formData.entries()); // Convert to a plain object
 
-        // Add the selected day and time to the form data
+        // Add the selected day, time, and school year to the form data
         data.preferredSchedule = {
             day: selectedDay,
             time: selectedTime,
         };
+        data.schoolYear = schoolYearDropdown.value; // Get the selected school year
 
         try {
             // Send POST request to the backend

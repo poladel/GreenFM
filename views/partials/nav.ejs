@@ -16,8 +16,8 @@
 
     <div class="sidebar1">
         <ul class="menu">
-            <% if (user && user.roles === 'Admin') { %>
-                <li><a href="/ManageAccounts">MANAGE<br>ACCOUNTS</a></li>
+            <% if (user && (user.roles === 'Admin' || user.roles === 'Staff')) { %>
+                <li><a href="/Manage-Accounts">MANAGE<br>ACCOUNTS</a></li>
                 <li><a href="/Blocktimer">BLOCKTIMER</a></li>
                 <li><a href="/Staff">STAFF</a></li>
             <% } else { %>
@@ -32,17 +32,17 @@
                     <% } %>
                 <% } else { %>  
                     <!-- Redirect to login with a generic redirect path -->
-                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
                 <% } %>
             </li>
             <li>
                 <% if (user) { %>
                     <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                        <a href="/JoinGFM-Step3" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step3" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } else if (user.completedJoinGFMStep1) { %>
-                        <a href="/JoinGFM-Step2" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step2" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } else { %>
-                        <a href="/JoinGFM-Step1" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                        <a href="/JoinGFM-Step1" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
                     <% } %>
                 <% } else { %>
                     <!-- Redirect to login with a generic redirect path -->
@@ -73,7 +73,7 @@
             <% if (user) { %>
                 <li>
                     <ul class="user-menu">
-                        <li><a href="/manage-account">MANAGE<br>ACCOUNT</a></li>
+                        <li><a href="/ManageAccount">MANAGE<br>ACCOUNT</a></li>
                         <li><a href="/LogOut">LOG OUT</a></li>
                     </ul>
                 </li>
@@ -97,3 +97,4 @@
         document.querySelector('.sidebars').classList.toggle('active');
     });
 </script>
+<script src="/js/restrictedLinks.js"></script>

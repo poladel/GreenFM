@@ -74,7 +74,6 @@ const requireAuth = async (req, res, next) => {
     }
 };
 
-
 // Check current user
 const checkUser = async (req, res, next) => {
     const token = req.cookies.jwt; // Access token
@@ -143,5 +142,19 @@ const checkUser = async (req, res, next) => {
     }
 };
 
+// Middleware to check user roles
+const checkRoles = (allowedRoles) => {
+    return (req, res, next) => {
+        const user = res.locals.user; // Assuming user info is stored in res.locals.user
+        if (user && user.roles && allowedRoles.includes(user.roles)) {
+            return next();
+        }
+        // Render the restricted view with an alert message
+        return res.render('restricted', {
+            message: "You do not have permission to access this page. You will be redirected to the home page.",
+            redirectUrl: '/' // Redirect to Home or any other page
+        });
+    };
+};
 
-module.exports = { requireAuth, checkUser };
+module.exports = { requireAuth, checkUser, checkRoles };

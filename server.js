@@ -44,6 +44,7 @@ app.set('view engine', 'ejs');
 
 // Define your routes
 const root = require('./routes/root');
+const ApplicationPeriodRoutes = require('./routes/ApplicationPeriodRoutes');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
 const authRoutes = require('./routes/authRoutes');
@@ -55,7 +56,9 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const accountRoutes = require('./routes/accountRoutes');
 const blocktimerRoutes = require('./routes/blocktimerRoutes');
+const schoolYearRoutes = require('./routes/schoolYearRoutes');
 const schedRoutes = require('./routes/scheduleRoutes');
+const adminSchedRoutes = require('./routes/adminSchedRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
@@ -67,6 +70,7 @@ const liveRoutes = require('./routes/liveRoutes');
 // Existing routes
 app.get('*', checkUser);
 app.use(root);
+app.use(ApplicationPeriodRoutes);
 app.use(userRoutes);
 app.use(adminRoutes);
 app.use(authRoutes);
@@ -77,6 +81,8 @@ app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
 app.use(accountRoutes);
 app.use(blocktimerRoutes);
+app.use(schoolYearRoutes);
+app.use(adminSchedRoutes);
 app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);

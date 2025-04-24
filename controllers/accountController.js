@@ -25,6 +25,20 @@ module.exports.getUserById = async (req, res) => {
     }
 };
 
+// Fetch current logged-in user
+module.exports.getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password'); // Exclude password field
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        res.status(500).json({ error: 'Failed to fetch user' });
+    }
+};
+
 module.exports.patchUser = async (req, res) => {
     try {
         const userId = req.params.id;
