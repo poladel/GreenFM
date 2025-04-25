@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const specificDateContainer = document.getElementById('specificDateContainer');
     const specificDateDropdown = document.getElementById('specificDateDropdown');
     const weekFilterDropdown = document.getElementById('week-filter');
+    const specificDateDisplay = document.getElementById('specificDateDisplay'); // Get the new display input
+    const specificDateValue = document.getElementById('specificDateValue'); // Get the new hidden input
     let currentApplicationPeriod = null;
+    let clickedButtonDateString = ''; // Variable to store the calculated date for the clicked button
+    let formattedClickedButtonDate = ''; // Variable for display format
 
     // --- Define fetchApplicationPeriod function ---
     const fetchApplicationPeriod = async (key) => {
@@ -45,13 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (currentApplicationPeriod) {
             const { startDate, endDate } = currentApplicationPeriod;
+            // FIX: Pass the original ISO string directly to new Date()
             const startYear = new Date(startDate).getFullYear();
             const endYear = new Date(endDate).getFullYear();
 
-            // Check if the period falls within the current display year (optional, but good practice)
-            // This logic might need adjustment depending on how you want to display cross-year periods
-            if (startYear === currentYear || endYear === currentYear) { // Adjusted to show if start OR end is in current year
-                // FIX: Pass the original ISO string directly to new Date()
+            // Check if the period falls within the current display year
+            if (startYear === currentYear || endYear === currentYear) { // Show if start OR end is in current year
                 const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 existingPeriodElement.textContent = `${currentYear} Application Period: ${formattedStartDate} - ${formattedEndDate}`;
@@ -66,29 +69,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Define Function to Populate Week Dropdown ---
     const populateWeekDropdown = () => {
         weekFilterDropdown.innerHTML = ''; // Clear previous options
+        const currentYear = new Date().getFullYear();
 
+        // ... (keep existing checks for currentApplicationPeriod and date validity) ...
         if (!currentApplicationPeriod || !currentApplicationPeriod.startDate || !currentApplicationPeriod.endDate) {
             weekFilterDropdown.innerHTML = '<option value="">Period Not Set</option>';
             weekFilterDropdown.disabled = true;
-            return;
+            return false; // Indicate no valid period for current year
         }
-
-        // FIX: Pass the original ISO string directly to new Date()
         const startDate = new Date(currentApplicationPeriod.startDate);
         const endDate = new Date(currentApplicationPeriod.endDate);
-
-        // Check if dates are valid after parsing
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        if (startYear !== currentYear && endYear !== currentYear) {
+             weekFilterDropdown.innerHTML = `<option value="">No Period Set for ${currentYear}</option>`;
+             weekFilterDropdown.disabled = true;
+             return false; // Indicate no valid period for current year
+        }
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
              console.error("Invalid start or end date parsed in populateWeekDropdown:", currentApplicationPeriod.startDate, currentApplicationPeriod.endDate);
              weekFilterDropdown.innerHTML = '<option value="">Invalid Period Dates</option>';
              weekFilterDropdown.disabled = true;
-             return;
+             return false; // Indicate invalid dates
         }
 
 
         let currentWeekStart = new Date(startDate);
 
-        // Adjust currentWeekStart to the beginning of its week (e.g., Monday)
+        // Adjust currentWeekStart to the beginning of its week (Monday)
         const dayOfWeek = currentWeekStart.getDay(); // 0=Sun, 1=Mon, ...
         const diff = currentWeekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust to Monday
         currentWeekStart.setDate(diff);
@@ -96,65 +104,92 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let weekIndex = 0;
         while (currentWeekStart <= endDate) {
-            const weekEnd = new Date(currentWeekStart);
-            weekEnd.setDate(currentWeekStart.getDate() + 6); // Get end of the week (Sunday)
+            // --- Calculate Friday for display ---
+            const weekFriday = new Date(currentWeekStart);
+            weekFriday.setDate(currentWeekStart.getDate() + 4); // Monday + 4 days = Friday
+            // --- End Friday calculation ---
+
+            // Calculate the actual end of the week (Sunday) for loop condition check
+            const weekEndSunday = new Date(currentWeekStart);
+            weekEndSunday.setDate(currentWeekStart.getDate() + 6);
 
             // Ensure the week start is not after the overall period end date before adding
             if (currentWeekStart > endDate) break;
 
-            const displayEndDate = weekEnd > endDate ? endDate : weekEnd;
+            // Only add weeks that are relevant to the current year
+            // Use weekEndSunday for the relevance check to include weeks ending in the current year
+            if (currentWeekStart.getFullYear() === currentYear || weekEndSunday.getFullYear() === currentYear) {
+                // --- Adjust display end date if Friday goes past the period end ---
+                const displayEndDate = weekFriday > endDate ? endDate : weekFriday;
+                // --- End adjustment ---
 
-            const option = document.createElement('option');
-            const weekStartDateString = currentWeekStart.toISOString().split('T')[0]; // YYYY-MM-DD
-            option.value = weekStartDateString;
+                const option = document.createElement('option');
+                const weekStartDateString = currentWeekStart.toISOString().split('T')[0]; // YYYY-MM-DD (Value is still Monday)
+                option.value = weekStartDateString;
 
-            const formatOptions = { month: 'short', day: 'numeric' };
-            const startText = currentWeekStart.toLocaleDateString('en-US', formatOptions);
-            const endText = displayEndDate.toLocaleDateString('en-US', formatOptions);
-            option.textContent = `Week of ${startText} - ${endText}`;
+                const formatOptions = { month: 'short', day: 'numeric' };
+                const startText = currentWeekStart.toLocaleDateString('en-US', formatOptions);
+                // --- Use displayEndDate (Friday or period end) for text ---
+                const endText = displayEndDate.toLocaleDateString('en-US', formatOptions);
+                option.textContent = `Week of ${startText} - ${endText}`; // Display Mon - Fri (or end date)
+                // --- End text change ---
 
-            weekFilterDropdown.appendChild(option);
+                weekFilterDropdown.appendChild(option);
+                weekIndex++;
+            }
 
-            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-            weekIndex++;
+
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7); // Move to next Monday
         }
 
         weekFilterDropdown.disabled = weekIndex === 0;
-        // Removed the call to handleWeekChange from here, it's called later in fetchAndStoreApplicationPeriod
+        if (weekIndex === 0) {
+             weekFilterDropdown.innerHTML = `<option value="">No Weeks Available for ${currentYear}</option>`;
+        }
+        return weekIndex > 0; // Return true if weeks were populated
     };
 
-    // --- Define fetchSchedules function ---
-    // Moved UP
-    const fetchSchedules = async (year, department) => {
+    // --- Define fetchSchedules function (fetches ONLY recurring) ---
+    const fetchRecurringSchedules = async (year, department) => {
         try {
-            const response = await fetch(`/admin/schedules?year=${year}&department=${department}`);
-            if (!response.ok) throw new Error('Failed to fetch schedules');
+            // Use the endpoint specifically for recurring schedules
+            const response = await fetch(`/admin/schedules?year=${year}&department=${encodeURIComponent(department)}`);
+            if (!response.ok) throw new Error('Failed to fetch recurring schedules');
             const data = await response.json();
-            console.log('Fetched schedules:', data); // Debugging
-            return data;
+            console.log('Fetched recurring schedules:', data); // Debugging
+            return data; // Should be an array of recurring schedules
         } catch (error) {
-            console.error('Error fetching schedules:', error);
+            console.error('Error fetching recurring schedules:', error);
             return [];
         }
     };
 
     // --- Define displaySchedules function ---
-    // --- FIX: Rewritten to handle weeklyData { recurring, overrides } ---
-    const displaySchedules = (weeklyData, weekStartDateString) => {
-        console.log('Displaying weekly availability:', weeklyData);
-        const { recurring, overrides } = weeklyData;
-        const weekStart = new Date(weekStartDateString + 'T00:00:00'); // Parse week start in local time
+    // --- FIX: Rewritten to handle weeklyData OR just recurringData ---
+    const displaySchedules = (scheduleData, weekStartDateString = null) => {
+        let recurring = [];
+        let overrides = [];
+        let overrideMap = new Map();
+        let recurringMap = new Map();
+        const isWeeklyView = weekStartDateString && scheduleData && typeof scheduleData === 'object' && 'recurring' in scheduleData;
 
-        // Create a lookup map for overrides: "YYYY-MM-DD_HH:MM-HH:MM" -> override object
-        const overrideMap = new Map();
-        overrides.forEach(override => {
-            // Assuming override.date is already in "YYYY-MM-DD" format from backend
-            const key = `${override.date}_${override.time}`;
-            overrideMap.set(key, override);
-        });
+        if (isWeeklyView) {
+            console.log('Displaying weekly availability:', scheduleData);
+            ({ recurring, overrides } = scheduleData); // Destructure from weeklyData
+            const weekStart = new Date(weekStartDateString + 'T00:00:00'); // Parse week start in local time
+
+            // Create lookup map for overrides: "YYYY-MM-DD_HH:MM-HH:MM" -> override object
+            overrides.forEach(override => {
+                const key = `${override.date}_${override.time}`;
+                overrideMap.set(key, override);
+            });
+        } else {
+            console.log('Displaying only recurring schedules:', scheduleData);
+            recurring = scheduleData; // Assume scheduleData is just the recurring array
+        }
+
 
         // Create a lookup map for recurring schedules: "DayName_HH:MM-HH:MM" -> schedule object
-        const recurringMap = new Map();
         recurring.forEach(schedule => {
             const key = `${schedule.day}_${schedule.time}`;
             recurringMap.set(key, schedule);
@@ -166,64 +201,76 @@ document.addEventListener('DOMContentLoaded', async () => {
             const dayName = button.getAttribute('data-day'); // e.g., "Monday"
             const time = button.getAttribute('data-time'); // e.g., "7:00-8:00"
 
-            // Calculate the specific date for this button within the current week
-            const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
-            let buttonDate = new Date(weekStart); // Create mutable copy
-            const weekStartDayIndex = weekStart.getDay(); // 0=Sun, 1=Mon
-
-            // Calculate days to add based on local time start of week
-            let daysToAdd = dayIndex - weekStartDayIndex;
-             if (daysToAdd < 0) {
-                 daysToAdd += 7;
-             }
-            buttonDate.setDate(buttonDate.getDate() + daysToAdd); // Modify buttonDate
-
-            // --- FIX: Format buttonDateString using local components ---
-            const year = buttonDate.getFullYear();
-            const month = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
-            const day = buttonDate.getDate().toString().padStart(2, '0');
-            const buttonDateString = `${year}-${month}-${day}`; // Correct YYYY-MM-DD based on local date
-            // --- End of FIX ---
-
-            // Determine the status based on overrides first, then recurring
-            const overrideKey = `${buttonDateString}_${time}`; // Key uses local date string
-            const recurringKey = `${dayName}_${time}`;
-
             let isAvailable = true;
             let buttonText = '';
             let scheduleDetails = null; // To hold either override or recurring details
 
-            const override = overrideMap.get(overrideKey); // Check map using local date string key
+            const recurringKey = `${dayName}_${time}`;
             const recurringSchedule = recurringMap.get(recurringKey);
 
-            if (override) {
-                // Override exists for this specific date and time
-                scheduleDetails = override;
-                if (override.status === 'available') {
-                    isAvailable = true;
-                    buttonText = ''; // Slot is available due to override
-                    console.log(`Override found for ${overrideKey}: AVAILABLE`); // Debugging
-                } else { // status === 'unavailable'
+            if (isWeeklyView) {
+                // Calculate the specific date for this button within the current week
+                const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
+                let buttonDate = new Date(weekStartDateString + 'T00:00:00'); // Use weekStartDateString
+                const weekStartDayIndex = buttonDate.getDay(); // 0=Sun, 1=Mon
+
+                let daysToAdd = dayIndex - weekStartDayIndex;
+                 if (daysToAdd < 0) {
+                     daysToAdd += 7;
+                 }
+                buttonDate.setDate(buttonDate.getDate() + daysToAdd); // Modify buttonDate
+
+                const year = buttonDate.getFullYear();
+                const month = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = buttonDate.getDate().toString().padStart(2, '0');
+                const buttonDateString = `${year}-${month}-${day}`; // Correct YYYY-MM-DD based on local date
+
+                // Determine the status based on overrides first, then recurring
+                const overrideKey = `${buttonDateString}_${time}`; // Key uses local date string
+                const override = overrideMap.get(overrideKey); // Check map using local date string key
+
+                if (override) {
+                    // Override exists for this specific date and time
+                    scheduleDetails = override;
+                    if (override.status === 'available') {
+                        isAvailable = true;
+                        buttonText = ''; // Slot is available due to override
+                        // console.log(`Override found for ${overrideKey}: AVAILABLE`); // Debugging
+                    } else { // status === 'unavailable'
+                        isAvailable = false;
+                        buttonText = `${override.subject} (${override.roomNum})`; // Slot is booked by override
+                        // console.log(`Override found for ${overrideKey}: UNAVAILABLE`); // Debugging
+                    }
+                } else if (recurringSchedule) {
+                    // No override, but a recurring schedule exists for this day and time
+                    scheduleDetails = recurringSchedule;
                     isAvailable = false;
-                    buttonText = `${override.subject} (${override.roomNum})`; // Slot is booked by override
-                    console.log(`Override found for ${overrideKey}: UNAVAILABLE`); // Debugging
+                    buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`; // Slot is booked by recurring rule
+                    // console.log(`No override for ${buttonDateString}_${time}, using recurring for ${recurringKey}`); // Debugging
+                } else {
+                    // No override and no recurring schedule
+                    isAvailable = true;
+                    buttonText = ''; // Slot is available by default
+                    // console.log(`No override or recurring for ${buttonDateString}_${time}`); // Debugging
                 }
-            } else if (recurringSchedule) {
-                // No override, but a recurring schedule exists for this day and time
-                scheduleDetails = recurringSchedule;
-                isAvailable = false;
-                buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`; // Slot is booked by recurring rule
-                 console.log(`No override for ${buttonDateString}_${time}, using recurring for ${recurringKey}`); // Debugging
             } else {
-                // No override and no recurring schedule
-                isAvailable = true;
-                buttonText = ''; // Slot is available by default
-                 console.log(`No override or recurring for ${buttonDateString}_${time}`); // Debugging
+                 // Not a weekly view, just check recurring
+                 if (recurringSchedule) {
+                    scheduleDetails = recurringSchedule;
+                    isAvailable = false;
+                    buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`;
+                 } else {
+                    isAvailable = true;
+                    buttonText = '';
+                 }
             }
+
 
             // Update button appearance
             button.textContent = buttonText;
-            button.disabled = false; // Re-enable button
+            // --- Always enable buttons for interaction ---
+            button.disabled = false;
+            // --- ---
             if (isAvailable) {
                 button.classList.remove('schedulebtn');
                 button.classList.add('availablebtn');
@@ -241,41 +288,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     const handleWeekChange = async () => {
         const selectedWeekStartDate = weekFilterDropdown.value;
         const selectedDepartment = departmentFilter.value;
+        const currentYear = new Date().getFullYear().toString(); // Get current year as string
 
-        if (!selectedWeekStartDate || !selectedDepartment) {
-            console.log("Week or department not selected.");
-            // Clear the grid or show a message
-            scheduleButtons.forEach(button => {
-                button.textContent = '';
-                button.classList.remove('schedulebtn');
-                button.classList.add('availablebtn');
-                button.disabled = true; // Disable if no selection
-            });
-            return;
-        }
+        // Always enable buttons when department changes or week changes
+        scheduleButtons.forEach(button => button.disabled = false);
 
-        console.log(`Fetching weekly availability for week starting: ${selectedWeekStartDate}, Department: ${selectedDepartment}`);
+        if (selectedWeekStartDate && !weekFilterDropdown.disabled) {
+            // A valid week is selected for the current year, fetch weekly data
+            console.log(`Fetching weekly availability for week starting: ${selectedWeekStartDate}, Department: ${selectedDepartment}`);
+            try {
+                const response = await fetch(`/admin/weekly-schedule?weekStart=${selectedWeekStartDate}&department=${encodeURIComponent(selectedDepartment)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch weekly availability');
+                }
+                const weeklyData = await response.json(); // Contains { recurring: [...], overrides: [...] }
+                displaySchedules(weeklyData, selectedWeekStartDate); // Pass combined data and week start
 
-        try {
-            // --- FIX: Fetch combined data from the new endpoint ---
-            const response = await fetch(`/admin/weekly-schedule?weekStart=${selectedWeekStartDate}&department=${encodeURIComponent(selectedDepartment)}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch weekly availability');
+            } catch (error) {
+                console.error("Error fetching/displaying weekly schedule:", error);
+                 scheduleButtons.forEach(button => {
+                    button.textContent = 'Error';
+                    button.classList.remove('schedulebtn');
+                    button.classList.add('availablebtn');
+                    // Keep buttons enabled even on error for potential recurring edits
+                    // button.disabled = true;
+                });
             }
-            const weeklyData = await response.json(); // Contains { recurring: [...], overrides: [...] }
-
-            // --- FIX: Pass the combined data to displaySchedules ---
-            displaySchedules(weeklyData, selectedWeekStartDate); // Pass week start date too
-
-        } catch (error) {
-            console.error("Error fetching/displaying weekly schedule:", error);
-            // Clear the grid or show an error message
-             scheduleButtons.forEach(button => {
-                button.textContent = 'Error';
-                button.classList.remove('schedulebtn');
-                button.classList.add('availablebtn');
-                button.disabled = true; // Disable buttons on error
-            });
+        } else {
+             // No valid week selected (or dropdown disabled), fetch only recurring for the current year
+             console.log(`No valid week selected. Fetching recurring schedules for year: ${currentYear}, Department: ${selectedDepartment}`);
+             try {
+                 const recurringData = await fetchRecurringSchedules(currentYear, selectedDepartment);
+                 displaySchedules(recurringData); // Pass only recurring data
+             } catch (error) {
+                 console.error("Error fetching/displaying recurring schedules:", error);
+                 scheduleButtons.forEach(button => {
+                    button.textContent = 'Error';
+                    button.classList.remove('schedulebtn');
+                    button.classList.add('availablebtn');
+                    // Keep buttons enabled even on error
+                    // button.disabled = true;
+                });
+             }
         }
     };
 
@@ -284,23 +338,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             currentApplicationPeriod = await fetchApplicationPeriod('JoinGFM');
             console.log("Fetched application period:", currentApplicationPeriod);
-            if (currentApplicationPeriod) {
-                populateWeekDropdown();
-                weekFilterDropdown.disabled = false;
-                displayExistingApplicationPeriod();
-                if (weekFilterDropdown.options.length > 0 && weekFilterDropdown.value) {
-                     handleWeekChange(); // Call to load initial week data
-                }
+            const populated = populateWeekDropdown(); // Populates and returns true if successful for current year
+            displayExistingApplicationPeriod(); // Display the text regardless
+
+            if (populated && weekFilterDropdown.value) {
+                 // Valid period for current year exists and a week is selected, load weekly view
+                 await handleWeekChange();
             } else {
-                weekFilterDropdown.innerHTML = '<option value="">No Active Period</option>';
-                weekFilterDropdown.disabled = true;
-                displayExistingApplicationPeriod();
+                 // No valid period for current year or no week selected, load recurring view
+                 await handleWeekChange(); // Will fetch recurring based on dropdown state
             }
         } catch (error) {
             console.error("Failed to fetch application period on load:", error);
             weekFilterDropdown.innerHTML = '<option value="">Error Loading Period</option>';
             weekFilterDropdown.disabled = true;
             displayExistingApplicationPeriod();
+            // Attempt to load recurring view even on error
+            await handleWeekChange();
         }
     };
 
@@ -333,78 +387,124 @@ document.addEventListener('DOMContentLoaded', async () => {
     departmentFilter.addEventListener('change', handleWeekChange);
     weekFilterDropdown.addEventListener('change', handleWeekChange);
 
-    // --- Define populateDateDropdownForOverride ---
-    const populateDateDropdownForOverride = () => {
-        specificDateDropdown.innerHTML = '<option value="">Loading dates...</option>'; // Clear previous
+    // --- Add Checkbox Event Listener ---
+    recurringCheckbox.addEventListener('change', () => {
+        const isChecked = recurringCheckbox.checked;
+        const weekSelected = weekFilterDropdown.value && !weekFilterDropdown.disabled;
 
-        if (!currentApplicationPeriod || !currentApplicationPeriod.startDate || !currentApplicationPeriod.endDate) {
-            console.error("Application period data is not available.");
-            specificDateDropdown.innerHTML = '<option value="">Error: Period not set</option>';
-            // Optionally try fetching again if needed, but it should be fetched on load
-            return;
+        if (!isChecked) {
+            // Trying to uncheck (switch to specific date)
+            if (!weekSelected) {
+                alert("Please select a valid week from the 'View Week' dropdown to set a specific date schedule.");
+                recurringCheckbox.checked = true; // Prevent unchecking
+                return;
+            }
+
+            // A valid week is selected, proceed to show specific date
+            if (clickedButtonDateString) { // Ensure a date was calculated when modal opened
+                specificDateContainer.style.display = 'block';
+                specificDateDisplay.value = formattedClickedButtonDate; // Show formatted date
+                specificDateValue.value = clickedButtonDateString; // Set hidden input value
+            } else {
+                console.error("Cannot set specific date - clicked button date not calculated.");
+                alert("Error: Could not determine the specific date for this slot. Please re-open the modal.");
+                recurringCheckbox.checked = true; // Re-check the box
+            }
+        } else {
+            // Checked - Hide specific date container and clear fields
+            specificDateContainer.style.display = 'none';
+            specificDateDisplay.value = '';
+            specificDateValue.value = '';
         }
-
-        const startDate = new Date(currentApplicationPeriod.startDate + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues affecting the date part
-        const endDate = new Date(currentApplicationPeriod.endDate + 'T00:00:00');
-
-        specificDateDropdown.innerHTML = '<option value="">Select a date</option>'; // Reset with placeholder
-
-        let currentDate = new Date(startDate);
-
-        while (currentDate <= endDate) {
-            const option = document.createElement('option');
-            const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-            option.value = dateString;
-            // Display format: "Friday, May 2, 2025"
-            option.textContent = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            specificDateDropdown.appendChild(option);
-            currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
-        }
-    };
+    });
 
     // --- Modal Opening Logic ---
     scheduleButtons.forEach(button => {
         button.addEventListener('click', async () => {
-            const day = button.getAttribute('data-day'); // e.g., "Friday"
+            const dayName = button.getAttribute('data-day'); // e.g., "Friday"
             const time = button.getAttribute('data-time'); // e.g., "7:00-8:00"
+            const selectedWeekStartDate = weekFilterDropdown.value;
+            const isWeekViewActive = selectedWeekStartDate && !weekFilterDropdown.disabled;
+
+            // --- Calculate the specific date for this button (only if in week view) ---
+            clickedButtonDateString = ''; // Reset
+            formattedClickedButtonDate = ''; // Reset
+
+            if (isWeekViewActive) {
+                // Only calculate specific date if a valid week is selected
+                if (/^\d{4}-\d{2}-\d{2}$/.test(selectedWeekStartDate)) {
+                    try {
+                        const weekStart = new Date(selectedWeekStartDate + 'T00:00:00');
+                        const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
+                        let buttonDate = new Date(weekStart);
+                        const weekStartDayIndex = weekStart.getDay();
+                        let daysToAdd = dayIndex - weekStartDayIndex;
+                        if (daysToAdd < 0) daysToAdd += 7;
+                        buttonDate.setDate(buttonDate.getDate() + daysToAdd);
+
+                        // Store YYYY-MM-DD string
+                        const year = buttonDate.getFullYear();
+                        const month = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
+                        const day = buttonDate.getDate().toString().padStart(2, '0');
+                        clickedButtonDateString = `${year}-${month}-${day}`;
+
+                        // Store formatted string for display
+                        formattedClickedButtonDate = buttonDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+                        console.log(`Calculated specific date for modal: ${clickedButtonDateString} (${formattedClickedButtonDate})`);
+
+                    } catch (dateError) {
+                        console.error("Error calculating specific date for button:", dateError);
+                    }
+                } else {
+                     console.warn("Could not calculate specific date: Week dropdown value is invalid format.");
+                }
+            } else {
+                 console.log("Not in week view, specific date not calculated.");
+            }
+            // --- End date calculation ---
+
 
             // 1. Reset Modal State
             recurringCheckbox.checked = true; // Default to recurring
-            specificDateContainer.style.display = 'none'; // Hide date dropdown
-            specificDateDropdown.required = false;
-            specificDateDropdown.innerHTML = ''; // Clear dropdown options
-            document.getElementById('scheduleForm').reset(); // Clear form fields
-            document.getElementById('day').value = day; // Set hidden day field
+            specificDateContainer.style.display = 'none'; // Hide date container initially
+            specificDateDisplay.value = ''; // Clear display field
+            specificDateValue.value = ''; // Clear hidden value field
+            document.getElementById('scheduleForm').reset(); // Clear other form fields
+            document.getElementById('day').value = dayName; // Set hidden day field
             document.getElementById('time').value = time; // Set hidden time field
 
             // --- FIX: Remove previously added dynamic buttons ---
             const buttonContainer = scheduleForm.querySelector('.modal-buttons');
+            if (!buttonContainer) {
+                console.error("Modal button container not found!");
+                return; // Stop if container missing
+            }
             const existingDeleteButton = buttonContainer.querySelector('.delete-button');
-            if (existingDeleteButton) {
-                existingDeleteButton.remove();
-            }
+            if (existingDeleteButton) existingDeleteButton.remove();
             const existingMakeAvailableButton = buttonContainer.querySelector('.make-available-button');
-            if (existingMakeAvailableButton) {
-                existingMakeAvailableButton.remove();
-            }
+            if (existingMakeAvailableButton) existingMakeAvailableButton.remove();
             // --- End of FIX ---
 
             const saveButton = scheduleForm.querySelector('button[type="submit"]');
+            if (!saveButton) {
+                console.error("Modal save button not found!");
+                return; // Stop if save button missing
+            }
 
 
             try {
-                // 2. Fetch RECURRING schedule data for context
+                // 2. Fetch RECURRING schedule data for context (always needed)
                 const currentYear = new Date().getFullYear();
                 const currentDepartment = departmentFilter.value;
-                const response = await fetch(`/admin/schedule?day=${encodeURIComponent(day)}&time=${encodeURIComponent(time)}&year=${currentYear}&department=${encodeURIComponent(currentDepartment)}`);
-
-                if (!response.ok && response.status !== 404) {
-                    throw new Error('Failed to fetch schedule data');
-                }
+                const response = await fetch(`/admin/schedule?day=${encodeURIComponent(dayName)}&time=${encodeURIComponent(time)}&year=${currentYear}&department=${encodeURIComponent(currentDepartment)}`);
+                if (!response.ok && response.status !== 404) throw new Error('Failed to fetch schedule data');
                 const schedule = response.status === 404 ? null : await response.json();
+
 
                 // 3. Populate Modal based on Recurring Data (or lack thereof)
                 document.getElementById('adminName').value = `${user.lastName}, ${user.firstName} ${user.middleInitial ?? ''} ${user.suffix ?? ''}`;
+
 
                 if (schedule) { // Existing RECURRING schedule found
                     document.getElementById('cys').value = schedule.cys;
@@ -414,7 +514,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     saveButton.textContent = 'Edit Recurring';
                     saveButton.onclick = (e) => {
                         e.preventDefault();
-                        handleFormSubmit(schedule._id);
+                        handleFormSubmit(schedule._id); // Pass ID for editing recurring
                     };
 
                     // Add Delete button for the RECURRING schedule
@@ -424,54 +524,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                     deleteButton.type = 'button';
                     deleteButton.onclick = async () => {
                         if (confirm('Are you sure you want to delete this recurring weekly schedule?')) {
-                            await deleteSchedule(schedule._id);
+                            await deleteSchedule(schedule._id); // Uses recurring endpoint
                             modal.style.display = 'none';
-                            const schedules = await fetchSchedules(currentYear, currentDepartment);
-                            displaySchedules(schedules);
+                            // Refresh view (will fetch recurring or weekly based on state)
+                            await handleWeekChange();
                         }
                     };
                     buttonContainer.appendChild(deleteButton); // Append AFTER potential removal
 
-                    // Add "Make Available This Week" button
-                    const makeAvailableButton = document.createElement('button');
-                    makeAvailableButton.textContent = 'Make Available This Week';
-                    makeAvailableButton.classList.add('make-available-button'); // Ensure class is present
-                    makeAvailableButton.type = 'button';
-                    makeAvailableButton.onclick = async () => {
-                        // --- DEBUGGING START ---
-                        const selectedWeekStartDate = weekFilterDropdown.value;
-                        console.log("--- Make Available Click ---");
-                        console.log("Selected Week Dropdown Value:", selectedWeekStartDate);
-                        console.log("Recurring Schedule Day:", schedule.day);
-                        console.log("Recurring Schedule Time:", schedule.time);
-                        console.log("Admin User:", user);
-                        // --- DEBUGGING END ---
+                    // Add "Make Available This Week" button ONLY if in week view
+                    if (isWeekViewActive && clickedButtonDateString) {
+                        const makeAvailableButton = document.createElement('button');
+                        makeAvailableButton.textContent = 'Make Available This Week';
+                        makeAvailableButton.classList.add('make-available-button'); // Ensure class is present
+                        makeAvailableButton.type = 'button';
+                        makeAvailableButton.onclick = async () => {
+                            // --- DEBUGGING START ---
+                            console.log("--- Make Available Click ---");
+                            console.log("Selected Week Dropdown Value:", selectedWeekStartDate);
+                            console.log("Calculated Target Date:", clickedButtonDateString); // Use the date calculated for the modal
+                            console.log("Recurring Schedule Day:", schedule.day);
+                            console.log("Recurring Schedule Time:", schedule.time);
+                            console.log("Admin User:", user);
+                            // --- DEBUGGING END ---
 
-                        if (!selectedWeekStartDate) {
-                            alert('Please select a week from the "View Week" dropdown first.');
-                            return;
-                        }
-                        // Check if selectedWeekStartDate is a valid date string format if needed
-                        if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedWeekStartDate)) {
-                             alert('Invalid week selected in dropdown.');
-                             console.error("Invalid date format from week dropdown:", selectedWeekStartDate);
-                             return;
-                        }
+                            if (confirm(`Are you sure you want to make the recurring slot (${schedule.day} ${schedule.time}) available specifically on ${formattedClickedButtonDate}? This creates an override.`)) {
+                                // Pass the specific date calculated when opening the modal
+                                await makeRecurringAvailableForDate(schedule, clickedButtonDateString, user); // Use specific date
+                                modal.style.display = 'none';
+                                await handleWeekChange(); // Refresh the view
+                            }
+                        };
+                        buttonContainer.appendChild(makeAvailableButton); // Append AFTER potential removal
+                    }
 
-                        if (confirm(`Are you sure you want to make the recurring slot (${schedule.day} ${schedule.time}) available for the week starting ${selectedWeekStartDate}? This cannot be undone easily.`)) {
-                            // Pass the confirmed selectedWeekStartDate to the function
-                            await makeRecurringAvailableForWeek(schedule, selectedWeekStartDate, user);
-                            modal.style.display = 'none';
-                            await handleWeekChange(); // Refresh the view
-                        }
-                    };
-                    buttonContainer.appendChild(makeAvailableButton); // Append AFTER potential removal
 
                 } else { // No existing RECURRING schedule for this slot
-                    saveButton.textContent = 'Save';
+                    saveButton.textContent = 'Save'; // Default to Save (could be recurring or specific)
                      saveButton.onclick = (e) => {
                         e.preventDefault();
-                        handleFormSubmit(null);
+                        handleFormSubmit(null); // Pass null ID for saving new
                     };
                     // No dynamic buttons needed if creating new
                 }
@@ -486,47 +578,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    const makeRecurringAvailableForWeek = async (recurringSchedule, weekStartDateString, adminUser) => {
+    // --- MODIFIED: Renamed and uses specific date ---
+    const makeRecurringAvailableForDate = async (recurringSchedule, targetDateString, adminUser) => {
         try {
-            // 1. Determine the target date within the week
-            const weekStart = new Date(weekStartDateString + 'T00:00:00'); // Parse week start in local time
-            const recurringDayString = recurringSchedule.day;
-            const recurringDayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(recurringDayString);
-
-            if (recurringDayIndex === -1) {
-                throw new Error(`Invalid day name found in recurring schedule: ${recurringDayString}`);
-            }
-
-            let targetDate = new Date(weekStart); // Create a mutable copy
-            const weekStartDayIndex = weekStart.getDay();
-
-            // Calculate the difference in days, handling wrap-around
-            let daysToAdd = recurringDayIndex - weekStartDayIndex;
-            if (daysToAdd < 0) {
-                daysToAdd += 7;
-            }
-
-            console.log(`Calculating target date: weekStart=${weekStart.toDateString()}, recurringDay=${recurringDayString}(${recurringDayIndex}), weekStartDayIndex=${weekStartDayIndex}, daysToAdd=${daysToAdd}`);
-
-            // Apply the calculated difference
-            targetDate.setDate(targetDate.getDate() + daysToAdd); // Modify the targetDate object
-
-            // --- FIX: Format using local date components ---
-            const year = targetDate.getFullYear();
-            const month = (targetDate.getMonth() + 1).toString().padStart(2, '0'); // getMonth is 0-indexed, pad with '0'
-            const day = targetDate.getDate().toString().padStart(2, '0'); // pad with '0'
-            const targetDateString = `${year}-${month}-${day}`; // Correct YYYY-MM-DD based on local date
-            // --- End of FIX ---
-
-            console.log(`Calculated targetDateString (local): ${targetDateString}`); // Updated log
-
-            // 2. Prepare data for the backend
+            // 1. Prepare data for the backend
             const overrideData = {
-                recurringDay: recurringDayString,
+                recurringDay: recurringSchedule.day, // Still useful context for backend
                 time: recurringSchedule.time,
                 department: recurringSchedule.department,
-                year: recurringSchedule.year, // Keep the recurring year or use targetDate.getFullYear()? Decide based on backend logic. Using recurring year for now.
-                targetDate: targetDateString, // Use the correctly formatted local date string
+                year: recurringSchedule.year,
+                targetDate: targetDateString, // The specific date to make available
                 // Pass admin details
                 lastName: adminUser.lastName,
                 firstName: adminUser.firstName,
@@ -534,11 +595,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 suffix: adminUser.suffix
             };
 
-            console.log('Sending override data:', overrideData);
+            console.log('Sending availability override data:', overrideData);
 
 
-            // 3. Call the new backend endpoint
-            const response = await fetch('/admin/schedule-override/make-available', {
+            // 2. Call the backend endpoint to create an 'available' override
+            const response = await fetch('/admin/schedule-override/make-available', { // Endpoint remains the same
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(overrideData),
@@ -550,16 +611,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const result = await response.json();
-            alert(result.message || 'Slot successfully marked as available for the specified date.');
+            alert(result.message || `Slot successfully marked as available for ${targetDateString}.`);
 
         } catch (error) {
-            console.error('Error in makeRecurringAvailableForWeek:', error);
+            console.error('Error in makeRecurringAvailableForDate:', error);
             alert(`Error: ${error.message}`);
         }
     };
 
     // --- Define Form Handlers ---
-    const saveNewSchedule = async (modal, formData) => { // Accept formData
+    const saveNewSchedule = async (modal, formData) => { // Handles NEW RECURRING
         // formData already validated in handleFormSubmit
         try {
             const response = await fetch('/admin/schedule', { // Endpoint for RECURRING
@@ -567,19 +628,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-            if (!response.ok) throw new Error('Failed to save recurring schedule');
+            if (!response.ok) {
+                 const errorData = await response.json(); // Try to get error message
+                 throw new Error(errorData.error || 'Failed to save recurring schedule');
+            }
             alert('Recurring schedule saved successfully!');
             modal.style.display = 'none';
-            // Refresh schedule display
-            const schedules = await fetchSchedules(formData.year, formData.department);
-            displaySchedules(schedules);
+            // Refresh view
+            await handleWeekChange();
         } catch (error) {
             console.error('Error saving recurring schedule:', error);
             alert(`Error: ${error.message}`);
         }
     };
 
-    const editSchedule = async (id, modal, formData) => { // Accept formData
+    const editSchedule = async (id, modal, formData) => { // Handles EDIT RECURRING
          // formData already validated in handleFormSubmit
         try {
             // Only send fields that can be edited for recurring (cys, subject, roomNum)
@@ -593,12 +656,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData),
             });
-            if (!response.ok) throw new Error('Failed to update recurring schedule');
+            if (!response.ok) {
+                 const errorData = await response.json(); // Try to get error message
+                 throw new Error(errorData.error || 'Failed to update recurring schedule');
+            }
             alert('Recurring schedule updated successfully!');
             modal.style.display = 'none';
-            // Refresh schedule display
-            const schedules = await fetchSchedules(new Date().getFullYear(), formData.department);
-            displaySchedules(schedules);
+            // Refresh view
+            await handleWeekChange();
         } catch (error) {
             console.error('Error updating recurring schedule:', error);
             alert(`Error: ${error.message}`);
@@ -606,39 +671,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // deleteSchedule remains largely the same for recurring, using the ID
-    const deleteSchedule = async (id) => { // Assuming this is the correct delete function needed
+    const deleteSchedule = async (id) => { // Handles DELETE RECURRING
         try {
-            const response = await fetch(`/admin/schedule/${id}`, {
+            const response = await fetch(`/admin/schedule/${id}`, { // Endpoint for RECURRING
                 method: 'DELETE',
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete schedule');
+                const errorData = await response.json(); // Try to get error message
+                throw new Error(errorData.error || 'Failed to delete recurring schedule');
             }
 
-            alert('Schedule deleted successfully!');
+            alert('Recurring schedule deleted successfully!');
 
-            // Refresh schedule display after deletion
-            const currentYear = new Date().getFullYear();
-            const currentDepartment = departmentFilter.value;
-            const schedules = await fetchSchedules(currentYear, currentDepartment);
-            displaySchedules(schedules);
+            // Refresh view after deletion
+            await handleWeekChange();
 
         } catch (error) {
-            console.error('Error deleting schedule:', error);
-            alert('Failed to delete schedule.');
+            console.error('Error deleting recurring schedule:', error);
+            alert(`Error: ${error.message}`);
         }
     };
 
 
     // --- NEW Function for Saving/Updating Overrides ---
-    const saveOrUpdateOverride = async (overrideData, modal) => {
-        // This function assumes your backend endpoint can handle create/update (upsert)
-        // Or you might need separate logic/endpoints for create vs update vs delete override
+    const saveOrUpdateOverride = async (overrideData, modal) => { // Handles SPECIFIC DATE save/update
         try {
-            // *** IMPORTANT: Use a DIFFERENT endpoint for overrides ***
-            const response = await fetch('/admin/schedule-override', {
-                method: 'POST', // Or PUT if your backend prefers for upsert/update
+            const response = await fetch('/admin/schedule-override', { // Endpoint for OVERRIDES
+                method: 'POST', // Uses upsert logic on backend
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(overrideData),
             });
@@ -651,14 +711,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert(`Schedule override for ${overrideData.date} at ${overrideData.time} saved successfully!`);
             modal.style.display = 'none';
 
-            // ** How to refresh display? **
-            // This is the tricky part. The main grid shows recurring.
-            // You might need to fetch BOTH recurring and overrides and combine them
-            // in displaySchedules, or just accept that the grid won't immediately reflect
-            // the specific date override without a more complex display logic update.
-            console.warn("Override saved. Refreshing recurring schedule display, but it may not show specific date changes.");
-            const schedules = await fetchSchedules(overrideData.year, overrideData.department);
-            displaySchedules(schedules); // Refresh recurring view
+            // Refresh view using handleWeekChange
+            await handleWeekChange();
 
         } catch (error) {
             console.error('Error saving schedule override:', error);
@@ -667,13 +721,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Centralized Form Submit Handler ---
-    const handleFormSubmit = async (scheduleId) => {
+    const handleFormSubmit = async (scheduleId) => { // scheduleId is only relevant for EDITING recurring
         const isRecurring = recurringCheckbox.checked;
-        const originalDay = document.getElementById('day').value;
-        const originalTime = document.getElementById('time').value;
-        const specificDate = specificDateDropdown.value;
+        const originalDay = document.getElementById('day').value; // Day name from button
+        const originalTime = document.getElementById('time').value; // Time from button
+        const specificDate = document.getElementById('specificDateValue').value; // Specific date (if !isRecurring)
         const currentDepartment = departmentFilter.value;
-        const currentYear = new Date().getFullYear();
+        const currentYear = new Date().getFullYear(); // Year for recurring
 
         const commonFormData = {
             cys: document.getElementById('cys').value,
@@ -699,26 +753,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...commonFormData,
                 day: originalDay,
                 time: originalTime,
-                year: currentYear,
+                year: currentYear.toString(), // Ensure year is string
             };
 
             if (scheduleId) { // Editing existing recurring
-                await editSchedule(scheduleId, modal, recurringData); // Pass data to edit function
+                await editSchedule(scheduleId, modal, recurringData);
             } else { // Saving new recurring
-                await saveNewSchedule(modal, recurringData); // Pass data to save function
+                await saveNewSchedule(modal, recurringData);
             }
         } else {
             // --- Handle SPECIFIC DATE Override (Create/Update) ---
             if (!specificDate) {
-                alert('Please select a specific date when "Recurring Schedule" is unchecked.');
+                alert('Could not determine the specific date for this slot. Please ensure a week is selected and re-open the modal.');
                 return;
             }
             const overrideData = {
                 ...commonFormData,
-                date: specificDate,
+                date: specificDate, // Use the calculated specific date
                 time: originalTime, // Use the time slot originally clicked
-                year: new Date(specificDate).getFullYear(), // Year from the specific date
-                status: 'unavailable' // Assuming saving an override marks it as unavailable
+                year: new Date(specificDate).getFullYear().toString(), // Year from the specific date
+                status: 'unavailable' // Saving an override via this form marks it as booked
             };
             // Use a dedicated function/endpoint for overrides
             await saveOrUpdateOverride(overrideData, modal);
@@ -902,5 +956,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }*/
+
+    // --- SUBMISSIONS TAB ---
+    
 });
 

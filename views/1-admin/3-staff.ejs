@@ -120,12 +120,13 @@
                 <label for="recurringCheckbox">Recurring Weekly Schedule</label>
             </div>
 
-            <!-- Container for Specific Date Dropdown (Initially Hidden) -->
+            <!-- Container for Specific Date Display (Initially Hidden) -->
             <div id="specificDateContainer" style="display: none; margin-bottom: 15px;">
-                <label for="specificDateDropdown">Select Specific Date:</label>
-                <select id="specificDateDropdown" name="specificDate" required>
-                    <!-- Options will be populated by JavaScript -->
-                </select>
+                <label for="specificDateDisplay">Specific Date:</label>
+                <!-- Changed from select to input type="text" readonly -->
+                <input type="text" id="specificDateDisplay" readonly style="background-color: #eee; border: 1px solid #ccc; padding: 5px;">
+                <!-- Hidden input to store the actual date value -->
+                <input type="hidden" id="specificDateValue" name="specificDate">
             </div>
 
             <label for="cys">Course, Year & Section:</label>

@@ -79,7 +79,7 @@ const ApplyStaffSchema = new mongoose.Schema({
   },
   result: {
     type: String,
-    default: ''
+    default: 'Pending'
   },
 }, { timestamps: true });
 
