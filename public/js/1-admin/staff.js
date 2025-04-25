@@ -803,7 +803,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
         const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Normalize current date
+        // --- Normalize currentDate to the START of its day (local time) ---
+        const currentDayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
 
         if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
              alert('Invalid date format provided.');
@@ -816,126 +817,130 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const targetYear = startDateTime.getFullYear();
 
-        // --- Pre-submission Checks ---
+        // --- Frontend Pre-submission Checks ---
         try {
-            // Fetch the current settings to check status
-            const existingPeriod = await fetchApplicationPeriod(key);
+            // Fetch the LATEST settings by key to check status
+            const latestPeriod = await fetchApplicationPeriod(key); // Gets the most recently saved/updated
 
-            if (existingPeriod) {
-                const existingStartDate = new Date(existingPeriod.startDate);
-                const existingEndDate = new Date(existingPeriod.endDate);
-                existingEndDate.setHours(23, 59, 59, 999); // Include whole end day
+            // --- Helper for frontend date comparison (ignoring time) ---
+            const isSameOrAfterLocal = (date1, date2Str) => {
+                if (!date2Str) return false;
+                const d2 = new Date(date2Str); // Parse string
+                // Handle potential invalid date string from DB
+                if (isNaN(d2.getTime())) return false;
+                const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+                return date1 >= d2Start;
+            };
+            const isSameOrBeforeLocal = (date1, date2Str) => {
+                 if (!date2Str) return false;
+                 const d2 = new Date(date2Str); // Parse string
+                 // Handle potential invalid date string from DB
+                 if (isNaN(d2.getTime())) return false;
+                 const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+                 return date1 <= d2Start;
+            };
+            // --- End Helper ---
 
-                // Check 1: Is the current date within the existing active period?
-                if (currentDate >= existingStartDate && currentDate <= existingEndDate) {
-                    alert('Cannot add application period during an active application period. Please wait until the period ends.');
-                    return; // Stop submission
+            if (latestPeriod) {
+                // --- FIX 1: Perform Active Period Check BEFORE Confirmation ---
+                if (isSameOrAfterLocal(currentDayStart, latestPeriod.startDate) && isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate)) {
+                    alert('Cannot add/modify application period during an active application period. Please wait until the period ends.');
+                    return; // Stop submission BEFORE confirmation
                 }
+                // --- End FIX 1 ---
 
-                // Check 2: Is the target year's period already finished?
-                const existingPeriodYear = existingStartDate.getFullYear();
-                if (targetYear === existingPeriodYear && currentDate > existingEndDate) {
-                     alert(`An application period for ${targetYear} has already concluded. You cannot set a new period for this year.`);
-                     return; // Stop submission
+                // --- FIX 2: Perform Concluded Period Check BEFORE Confirmation ---
+                const latestStartDate = new Date(latestPeriod.startDate);
+                // Check if latestStartDate is valid before getting year
+                if (!isNaN(latestStartDate.getTime())) {
+                    const latestPeriodYear = latestStartDate.getFullYear();
+                    // Check if the latest period is for the target year AND it has already ended
+                    if (targetYear === latestPeriodYear && isSameOrAfterLocal(currentDayStart, latestPeriod.endDate) && !isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate) /* Check if strictly after */) {
+                         alert(`An application period for ${targetYear} has already concluded. You cannot set a new period for this year.`);
+                         return; // Stop submission BEFORE confirmation
+                    }
+                } else {
+                    console.warn("Could not parse latestPeriod.startDate for concluded check:", latestPeriod.startDate);
                 }
+                // --- End FIX 2 ---
             }
 
-            // --- If checks pass, proceed with confirmation and submission ---
+            // --- If basic checks pass (active & concluded), proceed with confirmation ---
 
-            // Format the dates for confirmation message
             const formatDate = (dateStr) => {
                 const options = { year: 'numeric', month: 'long', day: '2-digit' };
-                // Adjust for potential timezone issues by parsing as UTC if needed, or ensure input is treated consistently
-                const dateObj = new Date(dateStr + 'T00:00:00'); // Treat input as local time start of day
+                // Ensure parsing considers local timezone if input is just YYYY-MM-DD
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const dateObj = new Date(year, month - 1, day); // Use local constructor
                 return new Intl.DateTimeFormat('en-US', options).format(dateObj);
             };
-
             const formattedStartDate = formatDate(startDate);
             const formattedEndDate = formatDate(endDate);
 
-            // Ask for confirmation (initial attempt, no force flag)
             let confirmation = confirm(
-                `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period?`
+                `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period for ${targetYear}?`
             );
 
             if (!confirmation) {
-                // Clear the fields if the user cancels initially
                 startDateInput.value = '';
                 endDateInput.value = '';
                 return;
             }
 
-            // --- Attempt to Save (potentially triggering backend confirmation) ---
+            // --- Attempt to Save (backend decides create/update/conflict) ---
             await saveApplicationPeriod(key, startDate, endDate, false); // Initial attempt with force = false
 
         } catch (error) {
-            // Handle errors during pre-check fetch (less likely)
-            console.error('Error during pre-submission checks:', error);
-            alert('An error occurred while checking existing settings. Please try again.');
+            console.error('Error during pre-submission checks or save:', error);
+            // Display specific error if available, otherwise generic
+            alert(error.message || 'An error occurred. Please try again.');
         }
     });
 
-    // --- Separate function to handle saving and potential confirmation ---
+    // --- saveApplicationPeriod function remains the same ---
+    // It correctly handles the 409 conflict response from the backend
     const saveApplicationPeriod = async (key, startDate, endDate, force) => {
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
-
-        // Disable form fields during submission attempt
         routeSettingsFields.forEach(field => { field.disabled = true; });
 
         try {
             const response = await fetch('/admin/application-period', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key, startDate, endDate, force }), // Include force flag
+                body: JSON.stringify({ key, startDate, endDate, force }),
             });
 
-            const data = await response.json(); // Always try to parse JSON
+            const data = await response.json();
 
-            if (response.ok) { // Status 200-299
+            if (response.ok) {
                 alert(data.message || 'GFM Application Period saved successfully!');
-
-                // --- FIX: Re-fetch and update UI ---
-                // Re-fetch the latest data from the backend to update currentApplicationPeriod
-                await fetchAndStoreApplicationPeriod();
-                // fetchAndStoreApplicationPeriod now handles calling:
-                // - displayExistingApplicationPeriod()
-                // - populateWeekDropdown()
-                // --- End of FIX ---
-
-                // Optionally clear fields or keep them disabled until period ends
-                // startDateInput.value = ''; // Decide if you want to clear on success
-                // endDateInput.value = '';
-
-                // Re-enable fields
-                 routeSettingsFields.forEach(field => { field.disabled = false; });
-
+                await fetchAndStoreApplicationPeriod(); // Re-fetch latest and update UI
+                routeSettingsFields.forEach(field => { field.disabled = false; });
 
             } else if (response.status === 409 && data.conflict) {
-                // Backend detected conflict, ask for confirmation again
                 console.warn('Backend detected conflict:', data.message);
-                const forceConfirmation = confirm(data.message + "\n\nDo you want to overwrite?"); // Show backend message
+                const forceConfirmation = confirm(data.message + "\n\nDo you want to overwrite?");
 
                 if (forceConfirmation) {
-                    // Resend with force = true
-                    await saveApplicationPeriod(key, startDate, endDate, true);
+                    await saveApplicationPeriod(key, startDate, endDate, true); // Resend with force = true
                 } else {
-                    // User cancelled overwrite
                     alert('Operation cancelled.');
-                    startDateInput.value = ''; // Clear fields on cancellation
+                    startDateInput.value = '';
                     endDateInput.value = '';
-                    routeSettingsFields.forEach(field => { field.disabled = false; }); // Re-enable fields
+                    routeSettingsFields.forEach(field => { field.disabled = false; });
                 }
             } else {
                  // Handle other errors (400, 403, 500 etc.)
+                 // Throwing error here will be caught by the outer catch block
                  throw new Error(data.error || data.message || `Failed to save settings (Status: ${response.status})`);
             }
 
         } catch (error) {
-            console.error('Error saving application period:', error);
-            alert(`Error: ${error.message}`);
-            // Re-enable fields on error
+            // Re-enable fields even if save fails after confirmation
             routeSettingsFields.forEach(field => { field.disabled = false; });
+            // Re-throw the error to be caught by the outer handler which shows the alert
+            throw error;
         }
     };
 

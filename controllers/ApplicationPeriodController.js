@@ -2,110 +2,130 @@ const ApplicationPeriod = require('../models/ApplicationPeriod');
 
 module.exports.saveApplicationPeriod = async (req, res) => {
     try {
-        // Check if the user is an admin
+        // ... (user auth, body parsing, basic date validation remain the same) ...
         if (!req.user || req.user.roles !== 'Admin') {
             return res.status(403).json({ error: 'You do not have permission to perform this action.' });
         }
-
-        // Get data and force flag from body
         const { key, startDate: newStartDateStr, endDate: newEndDateStr, force } = req.body;
-
-        // Validate the input
         if (!key || !newStartDateStr || !newEndDateStr) {
             return res.status(400).json({ error: 'Key, start date, and end date are required.' });
         }
-
-        // Parse dates
         const newStartDate = new Date(newStartDateStr);
         const newEndDate = new Date(newEndDateStr);
-        const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Normalize current date for comparison
+        const currentDate = new Date(); // Get current date/time
+        // --- Normalize currentDate to the START of its day (local time) for comparison ---
+        const currentDayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
 
-        // Basic date validation
         if (isNaN(newStartDate.getTime()) || isNaN(newEndDate.getTime())) {
              return res.status(400).json({ error: 'Invalid date format provided.' });
         }
         if (newEndDate < newStartDate) {
             return res.status(400).json({ error: 'End date cannot be before start date.' });
         }
-
         const targetYear = newStartDate.getFullYear();
 
-        // Find existing settings for the specific key (used for active check and potential update)
-        let existingSettings = await ApplicationPeriod.findOne({ key });
-
-        // --- Check 1: Prevent modification if current date is within the EXISTING active period ---
-        if (existingSettings) {
-            const existingStartDate = new Date(existingSettings.startDate);
-            const existingEndDate = new Date(existingSettings.endDate);
-            existingEndDate.setHours(23, 59, 59, 999); // Adjust end date for comparison
-
-            if (currentDate >= existingStartDate && currentDate <= existingEndDate) {
-                return res.status(403).json({ error: 'Cannot modify an active application period. Please wait until the period ends.' });
-            }
-        }
-
-        // --- Check 2: Find any period that overlaps with the TARGET year ---
-        const conflictSettings = await ApplicationPeriod.findOne({
+        // --- Find ANY period for the target year ---
+        const periodInTargetYear = await ApplicationPeriod.findOne({
             key: key,
             $or: [
-                { startDate: { $gte: new Date(targetYear, 0, 1), $lte: new Date(targetYear, 11, 31, 23, 59, 59, 999) } },
-                { endDate: { $gte: new Date(targetYear, 0, 1), $lte: new Date(targetYear, 11, 31, 23, 59, 59, 999) } }
+                { startDate: { $gte: new Date(targetYear, 0, 1), $lt: new Date(targetYear + 1, 0, 1) } },
+                { endDate: { $gte: new Date(targetYear, 0, 1), $lt: new Date(targetYear + 1, 0, 1) } }
             ]
         });
 
-        // --- NEW Check 3: Prevent saving if a period for the target year already exists and is finished ---
-        if (conflictSettings) {
-            const conflictEndDate = new Date(conflictSettings.endDate);
-            conflictEndDate.setHours(23, 59, 59, 999); // Ensure comparison includes the whole end day
+        // --- Find the latest period matching the key ---
+        let periodToUpdate = await ApplicationPeriod.findOne({ key }).sort({ updatedAt: -1 }); // Get latest
 
-            // Check if the current date is AFTER the end date of the conflicting period for the target year
-            if (currentDate > conflictEndDate) {
+        // --- Helper function for date comparison (ignoring time) ---
+        const isSameOrAfter = (date1, date2) => {
+            const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+            const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+            return d1 >= d2;
+        };
+        const isAfter = (date1, date2) => {
+            const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+            const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+            return d1 > d2;
+        };
+        const isSameOrBefore = (date1, date2) => {
+             const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+             const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+             return d1 <= d2;
+        };
+
+
+        // --- Check 1: Prevent modification if ANY period (the latest one) is currently active ---
+        if (periodToUpdate) {
+            const existingStartDate = new Date(periodToUpdate.startDate);
+            const existingEndDate = new Date(periodToUpdate.endDate);
+
+            // Compare using date parts only
+            if (isSameOrAfter(currentDayStart, existingStartDate) && isSameOrBefore(currentDayStart, existingEndDate)) {
+                return res.status(403).json({ error: 'Cannot modify settings during an active application period. Please wait until the period ends.' });
+            }
+        }
+
+        // --- Check 2: Prevent saving if a period for the target year already exists and is finished ---
+        if (periodInTargetYear) {
+            const conflictEndDate = new Date(periodInTargetYear.endDate);
+            // Compare using date parts only
+            if (isAfter(currentDayStart, conflictEndDate)) {
                 return res.status(403).json({ error: `An application period for ${targetYear} has already concluded. You cannot set a new period for this year.` });
             }
         }
 
-        // --- Check 4 (Previously Check 2): Handle confirmation for overwriting non-finished conflicting periods ---
-        // If a conflict exists AND it's different from the one we might be updating AND force flag is not set
-        if (conflictSettings && (!existingSettings || existingSettings._id.toString() !== conflictSettings._id.toString()) && !force) {
-             // Format existing dates for the message if overwriting a DIFFERENT record
-             const existingStartFormatted = new Date(conflictSettings.startDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-             const existingEndFormatted = new Date(conflictSettings.endDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+        // --- Determine Action: Create or Update ---
+        let action = 'create'; // Default action
+        if (periodToUpdate) {
+            const existingStartDate = new Date(periodToUpdate.startDate); // Get date object
+            if (existingStartDate.getFullYear() === targetYear) { // Compare year from date object
+                action = 'update';
+            }
+        }
+
+
+        // --- Check 3: If updating, prevent if the existing period has already started ---
+        if (action === 'update') {
+            const existingStartDate = new Date(periodToUpdate.startDate);
+            // Compare using date parts only
+            if (isSameOrAfter(currentDayStart, existingStartDate)) {
+                 return res.status(403).json({ error: `Cannot update the application period for ${targetYear} because it has already started or is active.` });
+            }
+        }
+
+        // --- Check 4: Handle confirmation for overwriting/modifying in the target year ---
+        // ... (rest of the conflict check logic remains the same) ...
+        if (periodInTargetYear && !force) {
+             const existingStartFormatted = new Date(periodInTargetYear.startDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+             const existingEndFormatted = new Date(periodInTargetYear.endDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
              const existingRange = `${existingStartFormatted}-${existingEndFormatted}`;
+             let message = '';
+
+             if (action === 'update' && periodToUpdate._id.toString() === periodInTargetYear._id.toString()) {
+                 message = `You are modifying the existing application period (${existingRange}) for ${targetYear}. Are you sure you want to proceed?`;
+             } else {
+                 message = `An application period (${existingRange}) already exists for ${targetYear}. Are you sure you want to overwrite it?`;
+             }
 
              return res.status(409).json({
                  conflict: true,
-                 message: `An application period (${existingRange}) already exists for ${targetYear}. Are you sure you want to overwrite it?`,
-                 existingPeriod: conflictSettings
+                 message: message,
+                 existingPeriod: periodInTargetYear
              });
         }
-        // Also handle the case where we are updating the *same* record but it falls in the target year, still might need confirmation if not forced
-         if (conflictSettings && existingSettings && existingSettings._id.toString() === conflictSettings._id.toString() && !force) {
-             // Format existing dates for the message when modifying the SAME record
-             const existingStartFormatted = new Date(existingSettings.startDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-             const existingEndFormatted = new Date(existingSettings.endDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-             const existingRange = `${existingStartFormatted}-${existingEndFormatted}`;
 
-             return res.status(409).json({
-                 conflict: true,
-                 // Updated message format
-                 message: `You are modifying the existing application period (${existingRange}) for ${targetYear}. Are you sure you want to proceed?`,
-                 existingPeriod: conflictSettings // or existingSettings, they are the same here
-             });
-         }
 
         // --- Proceed with Save/Update ---
-        if (existingSettings) {
-            // Update existing settings
-            existingSettings.startDate = newStartDate;
-            existingSettings.endDate = newEndDate;
-            await existingSettings.save();
-            res.status(200).json({ message: 'Application period updated successfully.' });
-        } else {
-            // Create new settings
+        // ... (save/update logic remains the same) ...
+        if (action === 'update') {
+            periodToUpdate.startDate = newStartDate;
+            periodToUpdate.endDate = newEndDate;
+            await periodToUpdate.save();
+            res.status(200).json({ message: `Application period for ${targetYear} updated successfully.` });
+        } else { // action === 'create'
             const newSettings = new ApplicationPeriod({ key, startDate: newStartDate, endDate: newEndDate });
             await newSettings.save();
-            res.status(201).json({ message: 'Application period created successfully.' });
+            res.status(201).json({ message: `Application period for ${targetYear} created successfully.` });
         }
 
     } catch (error) {
@@ -114,14 +134,15 @@ module.exports.saveApplicationPeriod = async (req, res) => {
     }
 };
 
+// --- getApplicationPeriod remains the same ---
+// ... (code for getApplicationPeriod) ...
 module.exports.getApplicationPeriod = async (req, res) => {
     const { key } = req.query;
     try {
         if (!key) {
             return res.status(400).json({ error: 'Key is required to fetch route settings.' });
         }
-
-        const applicationPeriod = await ApplicationPeriod.findOne({ key }); // Replace with your DB query
+        const applicationPeriod = await ApplicationPeriod.findOne({ key }).sort({ updatedAt: -1 });
         if (!applicationPeriod) {
             return res.status(404).json({ message: 'Application period not found' });
         }
