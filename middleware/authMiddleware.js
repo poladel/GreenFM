@@ -157,4 +157,11 @@ const checkRoles = (allowedRoles) => {
     };
 };
 
+module.exports.requireAuth = (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).send('Forbidden');
+    }
+    next();
+};
+
 module.exports = { requireAuth, checkUser, checkRoles };

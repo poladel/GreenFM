@@ -1,7 +1,9 @@
 const express = require('express');
 const { requireAuth, checkRoles } = require('../middleware/authMiddleware');
 const User = require('../models/User');
-const router = express.Router();  
+const Chat = require('../models/Chat');
+const router = express.Router();
+const { renderAdminView } = require('../controllers/adminController');
 
 // Define the routes for each 'user' section with dynamic titles
 const adminRoute = [
@@ -15,50 +17,48 @@ const adminRoute = [
 adminRoute.forEach(adminRoute => {
     router.get(adminRoute.path, requireAuth, checkRoles(adminRoute.roles), async (req, res, next) => {
         try {
-            if (adminRoute.auth) {
-                return requireAuth(req, res, async () => {
-                    // Delegate to controller if specified
-                    if (adminRoute.controller) {
-                        return adminRoute.controller(req, res, next);
-                    }
+            const user = res.locals.user;
 
-                    // Render the view if no controller is specified
-                    return res.render(adminRoute.view, {
-                        pageTitle: adminRoute.pageTitle,
-                        cssFile: adminRoute.cssFile,
-                        user: res.locals.user,
-                        headerTitle: adminRoute.headerTitle,
-                        redirectUrl: req.query.redirect || '/'
-                    });
+            // Restriction check
+            if (adminRoute.restricted && (!user || !adminRoute.roles.includes(user.roles))) {
+                return res.render('restricted', {
+                    message: 'Access Denied: Insufficient Permissions',
+                    redirectUrl: '/'
                 });
             }
 
-            // Handle restricted routes
-            if (adminRoute.restricted) {
-                const user = res.locals.user;
-                if (!user || (adminRoute.roles && !adminRoute.roles.includes(user.roles))) {
-                    return res.render('restricted', {
-                        message: 'Access Denied: Insufficient Permissions',
-                        redirectUrl: '/' // Redirect to Home or any other page
-                    });
-                }
-            }
+            // Special case: load chat data for Chat page
+            if (adminRoute.path === '/Chat') {
+                // Fetch existing chats for the logged-in user
+                const chats = await Chat.find({ users: user._id }).populate('users');
+                
+                // Find all Admin and Staff users except the current logged-in user
+                const users = await User.find({
+                    roles: { $in: ['Admin', 'Staff'] },
+                    _id: { $ne: user._id }
+                });
 
-            // Render the view if no authentication is required
-            if (!adminRoute.controller) {
+                // Now render the view and pass the 'users' and 'chats' data
                 return res.render(adminRoute.view, {
                     pageTitle: adminRoute.pageTitle,
                     cssFile: adminRoute.cssFile,
-                    user: res.locals.user,
+                    user,
                     headerTitle: adminRoute.headerTitle,
-                    currentPath: req.path
+                    currentPath: req.path,
+                    chats, // pass the list of chats
+                    users  // pass the list of users
                 });
             }
 
-            // Delegate to controller if specified
-            if (adminRoute.controller) {
-                return adminRoute.controller(req, res, next);
-            }
+            // Default rendering for other views
+            return res.render(adminRoute.view, {
+                pageTitle: adminRoute.pageTitle,
+                cssFile: adminRoute.cssFile,
+                user,
+                headerTitle: adminRoute.headerTitle,
+                currentPath: req.path
+            });
+
         } catch (error) {
             console.error(`Error handling route ${adminRoute.path}:`, error);
             res.status(500).send('Server Error');
