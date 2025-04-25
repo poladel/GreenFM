@@ -103,16 +103,8 @@ module.exports.joinGFM2_post = async (req, res) => {
         });
     }
 
-    const { lastName, firstName, middleInitial, suffix, studentNumber, dlsudEmail,
-        college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
-        preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
-        greenFmContribution } = req.session.joinGFM1Data;
-
+    const { lastName, firstName, /* ... */ preferredDepartment, /* ... */ } = req.session.joinGFM1Data;
     const { schoolYear, preferredSchedule } = req.body; // { date: 'YYYY-MM-DD', time: 'HH:MM-HH:MM' }
-
-    if (!req.user) {
-        return res.status(401).json({ error: 'User is not authenticated' });
-    }
 
     // --- Validate preferredSchedule ---
     if (!preferredSchedule || !preferredSchedule.date || !preferredSchedule.time) {
@@ -122,43 +114,83 @@ module.exports.joinGFM2_post = async (req, res) => {
 
     try {
         // --- Find the chosen assessment slot ---
+        // --- ADD LOGGING BEFORE FINDONE ---
+        console.log('--- Booking Attempt ---');
+        console.log('Finding AssessmentSlot with:');
+        console.log('  Date:', preferredSchedule.date);
+        console.log('  Time:', preferredSchedule.time);
+        console.log('  Department:', preferredDepartment);
+        console.log('  Year:', schoolYear, `(Type: ${typeof schoolYear})`); // Log type of year
+        // --- END LOGGING ---
+
         const slotToBook = await AssessmentSlot.findOne({
             date: preferredSchedule.date,
             time: preferredSchedule.time,
             department: preferredDepartment,
-            year: schoolYear // Assuming schoolYear matches the slot's year
+            year: schoolYear // Ensure type matches schema (String or Number?)
         });
 
+        // --- ADD LOGGING AFTER FINDONE ---
         if (!slotToBook) {
+            console.error('!!! AssessmentSlot.findOne FAILED to find a match.');
             return res.status(404).json({ error: 'Selected assessment slot not found or unavailable.' });
+        } else {
+            console.log('Found AssessmentSlot:', slotToBook._id);
+            console.log('  Slot current application field:', slotToBook.application); // Log current state
         }
+        // --- END LOGGING ---
 
         // --- Check if the slot is already booked ---
         if (slotToBook.application) {
+            console.warn('!!! Slot already booked by:', slotToBook.application);
             return res.status(409).json({ error: 'Selected assessment slot has already been booked. Please choose another.' });
         }
         // ---
 
-        // Create the application first
+        // --- Retrieve Step 1 data from session ---
+        const step1Data = req.session.joinGFM1Data;
+        if (!step1Data) {
+             // This should ideally be caught earlier, but double-check
+             console.error('!!! Session data from Step 1 is missing in joinGFM2_post.');
+             return res.status(400).json({ error: 'Session expired or Step 1 data missing. Please start over.', redirect: '/JoinGFM-Step1' });
+        }
+        // ---
+
+        // Create the application first, including data from Step 1
         const applyStaff = await ApplyStaff.create({
-            lastName, firstName, middleInitial, suffix, studentNumber, dlsudEmail,
-            college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
-            preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
-            greenFmContribution,
+            // --- SPREAD data from Step 1 session ---
+            ...step1Data,
+            // --- Add fields from Step 2 ---
             schoolYear,
             preferredSchedule
+            // --- Ensure 'result' defaults correctly in schema or set it here if needed ---
+            // result: 'Pending' // If not defaulted in schema
         });
 
         console.log('Staff Application Created:', applyStaff._id, applyStaff.lastName);
 
         // --- Now, link the application to the slot and update denormalized fields ---
-        slotToBook.application = applyStaff._id;
+        slotToBook.application = applyStaff._id; // Assign ObjectId
         const appMiddle = applyStaff.middleInitial ? ` ${applyStaff.middleInitial}.` : '';
         const appSuffix = applyStaff.suffix ? ` ${applyStaff.suffix}` : '';
         slotToBook.applicantName = `${applyStaff.lastName}, ${applyStaff.firstName}${appMiddle}${appSuffix}`;
         slotToBook.applicantSection = applyStaff.section;
-        await slotToBook.save();
-        console.log('Assessment Slot booked and updated:', slotToBook._id);
+
+        // --- ADD LOGGING BEFORE SAVE ---
+        console.log('Attempting to save AssessmentSlot:', slotToBook._id);
+        console.log('  With application field set to:', slotToBook.application);
+        // --- END LOGGING ---
+
+        try {
+            await slotToBook.save();
+            console.log('Assessment Slot successfully saved:', slotToBook._id); // Log success
+        } catch (saveError) {
+            // --- ADD SPECIFIC LOGGING FOR SAVE ERROR ---
+            console.error('!!! FAILED to save AssessmentSlot:', slotToBook._id, saveError);
+            // Optionally re-throw or handle differently if needed, but log it first
+            throw saveError; // Re-throw to be caught by the outer catch block
+            // --- END LOGGING ---
+        }
         // ---
 
         // Clear session data
@@ -184,15 +216,7 @@ module.exports.joinGFM2_post = async (req, res) => {
             }
             return res.status(400).json({ error: 'Validation Error', details: errorDetails });
         }
-        console.error('Error saving application or booking slot:', error);
-         // Basic check if it's a validation error from ApplyStaff
-         if (error.name === 'ValidationError' && error.errors) {
-             const errorDetails = {};
-             for (const field in error.errors) {
-                 errorDetails[field] = error.errors[field].message;
-             }
-             return res.status(400).json({ error: 'Validation Error', details: errorDetails });
-         }
+        console.error('Error in joinGFM2_post catch block:', error); // Ensure outer catch logs too
         res.status(500).json({ error: 'Failed to save application or book slot' });
     }
 };
