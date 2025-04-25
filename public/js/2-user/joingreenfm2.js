@@ -33,10 +33,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Fetch Assessment Period ---
-    const fetchAssessmentPeriod = async (key) => {
+    // --- FIX: Modify to accept and use year ---
+    const fetchAssessmentPeriod = async (year = null) => { // Accept optional year
         try {
-            // Use the assessment period endpoint
-            const response = await fetch(`/admin/assessment-period?key=${key}`);
+            let url = `/admin/assessment-period`;
+            if (year) {
+                url += `?year=${year}`; // Append year if provided
+            }
+            // Use the assessment period endpoint with the potentially modified URL
+            const response = await fetch(url);
             if (!response.ok) {
                 if (response.status === 404) return null;
                 throw new Error('Failed to fetch assessment period data');
@@ -47,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     };
+    // --- End FIX ---
 
     // --- Fetch Weekly Availability ---
     const fetchWeeklyAvailability = async (weekStartDate, department) => {
@@ -198,9 +204,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Hardcode 'today' for testing ---
-    const today = new Date(2025, 3, 27); // April 28, 2025 (Month is 0-indexed)
+    const today = new Date();
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()); // Midnight local time
-    console.log("TESTING: Hardcoded 'today' set to:", startOfToday.toDateString()); // Log the test date
 
     // --- Helper to parse date string YYYY-MM-DD to local midnight Date object ---
     const parseDateStringToLocalMidnight = (dateStr) => {
@@ -216,7 +221,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Main Logic ---
     try {
-        const assessmentPeriod = await fetchAssessmentPeriod('GFMAssessment');
+        // --- FIX: Pass currentYear to fetchAssessmentPeriod ---
+        const assessmentPeriod = await fetchAssessmentPeriod(currentYear); // Pass the target year
+        // --- End FIX ---
 
         if (!assessmentPeriod || !assessmentPeriod.startDate || !assessmentPeriod.endDate) {
             console.warn('No valid assessment period found or failed to fetch.');

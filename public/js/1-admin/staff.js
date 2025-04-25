@@ -4,13 +4,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const departmentFilter = document.getElementById('department-filter');
     const scheduleRows = document.querySelectorAll('#schedule-body tr');
     const scheduleButtons = document.querySelectorAll('.availablebtn'); // Ensure these exist or handle null
+    // --- Get references to modal elements ---
     const modal = document.getElementById('scheduleModal');
-    const closeModal = document.querySelector('.close');
-    const scheduleForm = document.getElementById('scheduleForm');
-    // --- REMOVE THESE LINES ---
-    // const routeSettingsForm = document.getElementById('routeSettingsForm');
-    // const routeSettingsFields = routeSettingsForm.querySelectorAll('input, button');
-    // --- END REMOVAL ---
+    const modalContent = modal.querySelector('.modal-content'); // Get the inner content area
+    const closeModalButton = modal.querySelector('.close'); // Keep the close button reference
+    // --- Remove references to specific divs/forms if rebuilding content ---
+    // const applicationDetailsDiv = ...
+    // const scheduleForm = ...
+    // const applicantNameInput = ... etc.
+
     const recurringCheckbox = document.getElementById('recurringCheckbox');
     const specificDateContainer = document.getElementById('specificDateContainer');
     const specificDateDropdown = document.getElementById('specificDateDropdown');
@@ -49,10 +51,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Define fetchApplicationPeriod function ---
-    const fetchApplicationPeriod = async (key) => {
+    const fetchApplicationPeriod = async (key, year = null) => { // Add optional year parameter
         try {
-            // Adjust the URL to match your actual backend route for getting the period
-            const response = await fetch(`/admin/application-period?key=${encodeURIComponent(key)}`);
+            let url = `/admin/application-period?key=${encodeURIComponent(key)}`;
+            if (year) {
+                url += `&year=${year}`; // Append year if provided
+            }
+            const response = await fetch(url); // Use modified URL
 
             if (response.status === 404) {
                 console.log(`Application period with key "${key}" not found.`);
@@ -72,9 +77,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- NEW: Define fetchAssessmentPeriod function ---
-    const fetchAssessmentPeriod = async (key) => {
+    const fetchAssessmentPeriod = async (year = null) => { // Add optional year parameter
         try {
-            const response = await fetch(`/admin/assessment-period`);
+            let url = `/admin/assessment-period`;
+            if (year) {
+                url += `?year=${year}`; // Append year if provided
+            }
+            const response = await fetch(url); // Use modified URL
             if (response.status === 404) {
                 console.log(`Assessment period not found.`);
                 return null;
@@ -92,21 +101,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Define Display Existing Application Period ---
     const displayExistingApplicationPeriod = () => {
         const currentYear = new Date().getFullYear();
-
         if (currentApplicationPeriod) {
             const { startDate, endDate } = currentApplicationPeriod;
-            // FIX: Pass the original ISO string directly to new Date()
             const startYear = new Date(startDate).getFullYear();
             const endYear = new Date(endDate).getFullYear();
 
-            // Check if the period falls within the current display year
+            // --- DEBUGGING ---
+            console.log("App Period Check:", { currentYear, startYear, endYear, condition: (startYear === currentYear || endYear === currentYear) });
+            // --- END DEBUGGING ---
+
             if (startYear === currentYear || endYear === currentYear) { // Show if start OR end is in current year
                 const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 // --- FIX: Use the correct variable name ---
                 existingApplicationPeriodElement.textContent = `${currentYear} Application Period: ${formattedStartDate} - ${formattedEndDate}`;
             } else {
-                // --- FIX: Use the correct variable name ---
+                // --- DEBUGGING ---
+                console.log("App Period: ELSE block executed!");
+                // --- END DEBUGGING ---
                 existingApplicationPeriodElement.textContent = `No application period set for ${currentYear}.`;
             }
         } else {
@@ -123,11 +135,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const startYear = new Date(startDate).getFullYear();
             const endYear = new Date(endDate).getFullYear();
 
+             // --- DEBUGGING ---
+             console.log("Assess Period Check:", { currentYear, startYear, endYear, condition: (startYear === currentYear || endYear === currentYear) });
+             // --- END DEBUGGING ---
+
             if (startYear === currentYear || endYear === currentYear) {
                 const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 existingAssessmentPeriodElement.textContent = `${currentYear} Assessment Period: ${formattedStartDate} - ${formattedEndDate}`;
             } else {
+                 // --- DEBUGGING ---
+                 console.log("Assess Period: ELSE block executed!");
+                 // --- END DEBUGGING ---
                 existingAssessmentPeriodElement.textContent = `No assessment period set for ${currentYear}.`;
             }
         } else {
@@ -244,13 +263,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // --- NEW: Define fetchApplicationsForWeek function ---
+    const fetchApplicationsForWeek = async (weekStartDate, department) => {
+        try {
+            const response = await fetch(`/admin/applications-for-week?weekStart=${weekStartDate}&department=${encodeURIComponent(department)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch applications for the week');
+            }
+            const data = await response.json();
+            console.log(`Fetched ${data.length} applications for week ${weekStartDate}:`, data);
+            return data; // Should be an array of application objects
+        } catch (error) {
+            console.error('Error fetching applications for week:', error);
+            return []; // Return empty array on error
+        }
+    };
+    // --- End NEW ---
+
     // --- Define displaySchedules function ---
-    // --- FIX: Rewritten to handle weeklyData OR just recurringData ---
-    const displaySchedules = (scheduleData, weekStartDateString = null) => {
+    // --- FIX: Accept applicationsData ---
+    const displaySchedules = (scheduleData, applicationsData = [], weekStartDateString = null) => {
         let recurring = [];
         let overrides = [];
         let overrideMap = new Map();
         let recurringMap = new Map();
+        // --- NEW: Application Map ---
+        let applicationMap = new Map();
+        // --- End NEW ---
+
         const isWeeklyView = weekStartDateString && scheduleData && typeof scheduleData === 'object' && 'recurring' in scheduleData;
 
         if (isWeeklyView) {
@@ -263,9 +303,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const key = `${override.date}_${override.time}`;
                 overrideMap.set(key, override);
             });
+
+            // --- NEW: Create lookup map for applications: "YYYY-MM-DD_HH:MM-HH:MM" -> application object ---
+            applicationsData.forEach(app => {
+                if (app.preferredSchedule && app.preferredSchedule.date && app.preferredSchedule.time) {
+                    const key = `${app.preferredSchedule.date}_${app.preferredSchedule.time}`;
+                    applicationMap.set(key, app);
+                }
+            });
+            // --- End NEW ---
+
         } else {
             console.log('Displaying only recurring schedules:', scheduleData);
             recurring = scheduleData; // Assume scheduleData is just the recurring array
+            // No applications to map in recurring-only view
         }
 
 
@@ -284,6 +335,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             let isAvailable = true;
             let buttonText = '';
             let scheduleDetails = null; // To hold either override or recurring details
+            let isApplicationSlot = false; // Flag
+            let buttonClass = 'availablebtn'; // Default class
 
             const recurringKey = `${dayName}_${time}`;
             const recurringSchedule = recurringMap.get(recurringKey);
@@ -305,43 +358,68 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const day = buttonDate.getDate().toString().padStart(2, '0');
                 const buttonDateString = `${year}-${month}-${day}`; // Correct YYYY-MM-DD based on local date
 
-                // Determine the status based on overrides first, then recurring
-                const overrideKey = `${buttonDateString}_${time}`; // Key uses local date string
-                const override = overrideMap.get(overrideKey); // Check map using local date string key
+                // --- Check for Application FIRST ---
+                const applicationKey = `${buttonDateString}_${time}`;
+                const application = applicationMap.get(applicationKey);
 
-                if (override) {
-                    // Override exists for this specific date and time
-                    scheduleDetails = override;
-                    if (override.status === 'available') {
-                        isAvailable = true;
-                        buttonText = ''; // Slot is available due to override
-                        // console.log(`Override found for ${overrideKey}: AVAILABLE`); // Debugging
-                    } else { // status === 'unavailable'
-                        isAvailable = false;
-                        buttonText = `${override.subject} (${override.roomNum})`; // Slot is booked by override
-                        // console.log(`Override found for ${overrideKey}: UNAVAILABLE`); // Debugging
-                    }
-                } else if (recurringSchedule) {
-                    // No override, but a recurring schedule exists for this day and time
-                    scheduleDetails = recurringSchedule;
-                    isAvailable = false;
-                    buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`; // Slot is booked by recurring rule
-                    // console.log(`No override for ${buttonDateString}_${time}, using recurring for ${recurringKey}`); // Debugging
-                } else {
-                    // No override and no recurring schedule
-                    isAvailable = true;
-                    buttonText = ''; // Slot is available by default
-                    // console.log(`No override or recurring for ${buttonDateString}_${time}`); // Debugging
+                if (application) {
+                    isApplicationSlot = true;
+                    isAvailable = false; // Occupied by an application
+                    // Format name: LastName, FirstName M. Suffix
+                    const middle = application.middleInitial ? ` ${application.middleInitial}.` : '';
+                    const suffix = application.suffix ? ` ${application.suffix}` : '';
+                    // --- FIX: Use section ---
+                    buttonText = `${application.lastName}, ${application.firstName}${middle}${suffix} (${application.section || 'N/A'})`; // Add section
+                    // --- End FIX ---
+                    scheduleDetails = application; // Store application details if needed
+                    // --- FIX: Set buttonClass ---
+                    buttonClass = 'applicationbtn'; // Set class for application
+                    // --- End FIX ---
+                    console.log(`Application found for ${applicationKey}: ${buttonText}`); // Debugging
                 }
+                // --- End Application Check ---
+                else { // --- Only check overrides/recurring if NO application ---
+                    // Determine the status based on overrides first, then recurring
+                    const overrideKey = `${buttonDateString}_${time}`; // Key uses local date string
+                    const override = overrideMap.get(overrideKey); // Check map using local date string key
+
+                    if (override) {
+                        // Override exists for this specific date and time
+                        scheduleDetails = override;
+                        if (override.status === 'available') {
+                            isAvailable = true;
+                            buttonText = ''; // Slot is available due to override
+                            buttonClass = 'availablebtn'; // Set class
+                        } else { // status === 'unavailable'
+                            isAvailable = false;
+                            buttonText = `${override.subject} (${override.roomNum})`; // Slot is booked by override
+                            buttonClass = 'schedulebtn'; // Set class
+                        }
+                    } else if (recurringSchedule) {
+                        // No override, but a recurring schedule exists for this day and time
+                        scheduleDetails = recurringSchedule;
+                        isAvailable = false;
+                        buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`; // Slot is booked by recurring rule
+                        buttonClass = 'schedulebtn'; // Set class
+                    } else {
+                        // No application, no override, and no recurring schedule
+                        isAvailable = true;
+                        buttonText = ''; // Slot is available by default
+                        buttonClass = 'availablebtn'; // Set class (already default, but explicit)
+                    }
+                } // --- End else block (no application) ---
+
             } else {
                  // Not a weekly view, just check recurring
                  if (recurringSchedule) {
                     scheduleDetails = recurringSchedule;
                     isAvailable = false;
-                    buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`;
+                    buttonText = `${recurringSchedule.subject} (${recurringSchedule.roomNum})`; // Slot is booked by recurring rule
+                    buttonClass = 'schedulebtn'; // Set class
                  } else {
                     isAvailable = true;
                     buttonText = '';
+                    buttonClass = 'availablebtn'; // Set class (already default, but explicit)
                  }
             }
 
@@ -351,18 +429,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             // --- Always enable buttons for interaction ---
             button.disabled = false;
             // --- ---
-            if (isAvailable) {
-                button.classList.remove('schedulebtn');
-                button.classList.add('availablebtn');
-            } else {
-                button.classList.remove('availablebtn');
-                button.classList.add('schedulebtn');
-            }
+            // --- FIX: Set class based on determined state ---
+            button.className = 'schedule-button ' + buttonClass; // Reset classes and apply the correct one
+            // --- End FIX ---
 
             // Optional: Store details on the button if needed for the modal later
             // button.dataset.scheduleDetails = JSON.stringify(scheduleDetails);
         });
-    };
+
+    }; // End displaySchedules
 
     // --- Define Function to Handle Week Change ---
     const handleWeekChange = async () => {
@@ -374,24 +449,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         scheduleButtons.forEach(button => button.disabled = false);
 
         if (selectedWeekStartDate && !weekFilterDropdown.disabled) {
-            // A valid week is selected for the current year, fetch weekly data
-            console.log(`Fetching weekly availability for week starting: ${selectedWeekStartDate}, Department: ${selectedDepartment}`);
+            // A valid week is selected for the current year, fetch weekly data AND applications
+            console.log(`Fetching weekly availability and applications for week starting: ${selectedWeekStartDate}, Department: ${selectedDepartment}`);
             try {
-                const response = await fetch(`/admin/weekly-schedule?weekStart=${selectedWeekStartDate}&department=${encodeURIComponent(selectedDepartment)}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch weekly availability');
-                }
-                const weeklyData = await response.json(); // Contains { recurring: [...], overrides: [...] }
-                displaySchedules(weeklyData, selectedWeekStartDate); // Pass combined data and week start
+                // Fetch both concurrently
+                const [weeklyDataResponse, applicationsResponse] = await Promise.all([
+                    fetch(`/admin/weekly-schedule?weekStart=${selectedWeekStartDate}&department=${encodeURIComponent(selectedDepartment)}`),
+                    fetch(`/admin/applications-for-week?weekStart=${selectedWeekStartDate}&department=${encodeURIComponent(selectedDepartment)}`)
+                ]);
+
+                if (!weeklyDataResponse.ok) throw new Error('Failed to fetch weekly availability');
+                if (!applicationsResponse.ok) throw new Error('Failed to fetch applications for week');
+
+                const weeklyData = await weeklyDataResponse.json(); // Contains { recurring: [...], overrides: [...] }
+                const applicationsData = await applicationsResponse.json(); // Contains [...]
+
+                // --- Pass both datasets to displaySchedules ---
+                displaySchedules(weeklyData, applicationsData, selectedWeekStartDate);
 
             } catch (error) {
-                console.error("Error fetching/displaying weekly schedule:", error);
+                console.error("Error fetching/displaying weekly schedule or applications:", error);
                  scheduleButtons.forEach(button => {
                     button.textContent = 'Error';
-                    button.classList.remove('schedulebtn');
+                    button.classList.remove('schedulebtn', 'applicationbtn'); // Remove both potential classes
                     button.classList.add('availablebtn');
-                    // Keep buttons enabled even on error for potential recurring edits
-                    // button.disabled = true;
+                    // Keep buttons enabled even on error
                 });
             }
         } else {
@@ -399,15 +481,15 @@ document.addEventListener('DOMContentLoaded', async () => {
              console.log(`No valid week selected. Fetching recurring schedules for year: ${currentYear}, Department: ${selectedDepartment}`);
              try {
                  const recurringData = await fetchRecurringSchedules(currentYear, selectedDepartment);
-                 displaySchedules(recurringData); // Pass only recurring data
+                 // --- Pass only recurring data (applicationsData is null/empty) ---
+                 displaySchedules(recurringData, [], null); // Pass empty array for applications
              } catch (error) {
                  console.error("Error fetching/displaying recurring schedules:", error);
                  scheduleButtons.forEach(button => {
                     button.textContent = 'Error';
-                    button.classList.remove('schedulebtn');
+                    button.classList.remove('schedulebtn', 'applicationbtn'); // Remove both potential classes
                     button.classList.add('availablebtn');
                     // Keep buttons enabled even on error
-                    // button.disabled = true;
                 });
              }
         }
@@ -416,35 +498,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Fetch Application Period ---
     // --- MODIFY: Fetch and Store Periods ---
     const fetchAndStorePeriods = async () => {
+        const currentYear = new Date().getFullYear(); // Get the current year
         try {
-            // Fetch both periods
-            currentApplicationPeriod = await fetchApplicationPeriod('JoinGFM');
-            currentAssessmentPeriod = await fetchAssessmentPeriod('GFMAssessment'); // Use the key
+            // Fetch periods specifically for the CURRENT year
+            currentApplicationPeriod = await fetchApplicationPeriod('JoinGFM', currentYear);
+            currentAssessmentPeriod = await fetchAssessmentPeriod(currentYear); // Pass current year
 
-            console.log("Fetched application period:", currentApplicationPeriod);
-            console.log("Fetched assessment period:", currentAssessmentPeriod);
+            console.log(`Fetched application period for ${currentYear}:`, currentApplicationPeriod);
+            console.log(`Fetched assessment period for ${currentYear}:`, currentAssessmentPeriod);
 
-            // Populate dropdown based on Assessment Period
-            const populated = populateWeekDropdown(); // Populates and returns true if successful for current year
-            // Display both existing periods
-            displayExistingApplicationPeriod(); // Display the text regardless
-            displayExistingAssessmentPeriod(); // Display the text regardless
+            // Populate dropdown based on Assessment Period for the current year
+            const populated = populateWeekDropdown(); // Uses currentAssessmentPeriod (now for current year)
+            // Display existing periods (will now use current year data if found)
+            displayExistingApplicationPeriod();
+            displayExistingAssessmentPeriod();
 
-            if (populated && weekFilterDropdown.value) {
-                 // Valid period for current year exists and a week is selected, load weekly view
-                 await handleWeekChange();
-            } else {
-                 // No valid period for current year or no week selected, load recurring view
-                 await handleWeekChange(); // Will fetch recurring based on dropdown state
-            }
+            // Load schedule view based on dropdown state
+            await handleWeekChange(); // Logic remains the same, relies on dropdown state
+
         } catch (error) {
-            console.error("Failed to fetch periods on load:", error);
+            console.error(`Failed to fetch periods for ${currentYear} on load:`, error);
+            // Fallback logic (try to display whatever might have been fetched, load recurring)
             weekFilterDropdown.innerHTML = '<option value="">Error Loading Periods</option>';
             weekFilterDropdown.disabled = true;
-            displayExistingApplicationPeriod(); // Still try to display
-            displayExistingAssessmentPeriod(); // Still try to display
-            // Attempt to load recurring view even on error
-            await handleWeekChange();
+            displayExistingApplicationPeriod(); // Display based on potentially null data
+            displayExistingAssessmentPeriod(); // Display based on potentially null data
+            await handleWeekChange(); // Attempt to load recurring view
         }
     };
 
@@ -511,15 +590,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Modal Opening Logic ---
     scheduleButtons.forEach(button => {
         button.addEventListener('click', async () => {
-            const dayName = button.getAttribute('data-day'); // e.g., "Friday"
-            const time = button.getAttribute('data-time'); // e.g., "7:00-8:00"
+            const dayName = button.getAttribute('data-day');
+            const time = button.getAttribute('data-time');
             const selectedWeekStartDate = weekFilterDropdown.value;
             const isWeekViewActive = selectedWeekStartDate && !weekFilterDropdown.disabled;
+            const isApplicationButton = button.classList.contains('applicationbtn');
 
-            // --- Calculate the specific date for this button (only if in week view) ---
-            clickedButtonDateString = ''; // Reset
-            formattedClickedButtonDate = ''; // Reset
-
+            // --- Calculate the specific date (keep this logic) ---
+            let clickedButtonDateString = '';
+            let formattedClickedButtonDate = '';
             if (isWeekViewActive) {
                 // Only calculate specific date if a valid week is selected
                 if (/^\d{4}-\d{2}-\d{2}$/.test(selectedWeekStartDate)) {
@@ -546,283 +625,310 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } catch (dateError) {
                         console.error("Error calculating specific date for button:", dateError);
                     }
-                } else {
-                     console.warn("Could not calculate specific date: Week dropdown value is invalid format.");
                 }
-            } else {
-                 console.log("Not in week view, specific date not calculated.");
             }
             // --- End date calculation ---
 
+            // 1. Clear previous modal content (keep the close button)
+            modalContent.innerHTML = ''; // Clear everything inside
+            modalContent.appendChild(closeModalButton); // Re-add the close button
 
-            // 1. Reset Modal State
-            recurringCheckbox.checked = true; // Default to recurring
-            specificDateContainer.style.display = 'none'; // Hide date container initially
-            specificDateDisplay.value = ''; // Clear display field
-            specificDateValue.value = ''; // Clear hidden value field
-            document.getElementById('scheduleForm').reset(); // Clear other form fields
-            document.getElementById('day').value = dayName; // Set hidden day field
-            document.getElementById('time').value = time; // Set hidden time field
+            // 2. Dynamically build content based on button type
+            if (isApplicationButton) {
+                // --- Build Application View ---
+                console.log("Application button clicked. Building application view.");
 
-            // --- FIX: Remove previously added dynamic buttons ---
-            const buttonContainer = scheduleForm.querySelector('.modal-buttons');
-            if (!buttonContainer) {
-                console.error("Modal button container not found!");
-                return; // Stop if container missing
-            }
-            const existingDeleteButton = buttonContainer.querySelector('.delete-button');
-            if (existingDeleteButton) existingDeleteButton.remove();
-            const existingMakeAvailableButton = buttonContainer.querySelector('.make-available-button');
-            if (existingMakeAvailableButton) existingMakeAvailableButton.remove();
-            // --- End of FIX ---
+                // Create Title
+                const title = document.createElement('h2');
+                title.textContent = 'Applicant Information';
+                modalContent.appendChild(title);
 
-            const saveButton = scheduleForm.querySelector('button[type="submit"]');
-            if (!saveButton) {
-                console.error("Modal save button not found!");
-                return; // Stop if save button missing
-            }
+                // Retrieve application data
+                const applicationKey = `${clickedButtonDateString}_${time}`;
+                const application = applicationMap.get(applicationKey);
 
+                if (application) {
+                    console.log("Populating modal with application data:", application);
 
-            try {
-                // 2. Fetch RECURRING schedule data for context (always needed)
-                const currentYear = new Date().getFullYear();
-                const currentDepartment = departmentFilter.value;
-                const response = await fetch(`/admin/schedule?day=${encodeURIComponent(dayName)}&time=${encodeURIComponent(time)}&year=${currentYear}&department=${encodeURIComponent(currentDepartment)}`);
-                if (!response.ok && response.status !== 404) throw new Error('Failed to fetch schedule data');
-                const schedule = response.status === 404 ? null : await response.json();
-
-
-                // 3. Populate Modal based on Recurring Data (or lack thereof)
-                document.getElementById('adminName').value = `${user.lastName}, ${user.firstName} ${user.middleInitial ?? ''} ${user.suffix ?? ''}`;
-
-
-                if (schedule) { // Existing RECURRING schedule found
-                    document.getElementById('cys').value = schedule.cys;
-                    document.getElementById('subject').value = schedule.subject;
-                    document.getElementById('roomNum').value = schedule.roomNum;
-
-                    saveButton.textContent = 'Edit Recurring';
-                    saveButton.onclick = (e) => {
-                        e.preventDefault();
-                        handleFormSubmit(schedule._id); // Pass ID for editing recurring
+                    // Function to create labeled read-only input
+                    const createReadOnlyField = (labelText, value) => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '10px'; // Add some spacing
+                        const label = document.createElement('label');
+                        label.textContent = labelText;
+                        label.style.display = 'block'; // Ensure label is on its own line
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = value || 'N/A';
+                        input.readOnly = true;
+                        input.style.width = '95%'; // Adjust width as needed
+                        div.appendChild(label);
+                        div.appendChild(input);
+                        return div;
                     };
 
-                    // Add Delete button for the RECURRING schedule
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete Recurring';
-                    deleteButton.classList.add('delete-button'); // Ensure class is present
-                    deleteButton.type = 'button';
-                    deleteButton.onclick = async () => {
-                        if (confirm('Are you sure you want to delete this recurring weekly schedule?')) {
-                            await deleteSchedule(schedule._id); // Uses recurring endpoint
-                            modal.style.display = 'none';
-                            // Refresh view (will fetch recurring or weekly based on state)
-                            await handleWeekChange();
+                    // Format name
+                    const middle = application.middleInitial ? ` ${application.middleInitial}.` : '';
+                    const suffix = application.suffix ? ` ${application.suffix}` : '';
+                    const fullName = `${application.lastName}, ${application.firstName}${middle}${suffix}`;
+
+                    // Append fields
+                    modalContent.appendChild(createReadOnlyField('Name:', fullName));
+                    modalContent.appendChild(createReadOnlyField('DLSU-D Email:', application.dlsudEmail));
+                    modalContent.appendChild(createReadOnlyField('Student Number:', application.studentNumber));
+                    modalContent.appendChild(createReadOnlyField('Section:', application.section));
+                    modalContent.appendChild(createReadOnlyField('Preferred Department:', application.preferredDepartment));
+
+                } else {
+                    console.error(`Could not find application data for key: ${applicationKey}`);
+                    const errorMsg = document.createElement('p');
+                    errorMsg.textContent = 'Error: Could not load applicant details.';
+                    errorMsg.style.color = 'red';
+                    modalContent.appendChild(errorMsg);
+                    // Optionally return here if you don't want to show the modal on error
+                    // return;
+                }
+
+            } else {
+                // --- Build Schedule Edit/Create View ---
+                console.log("Regular schedule button clicked. Building schedule form view.");
+
+                // Create Title
+                const title = document.createElement('h2');
+                title.textContent = 'Schedule Slot Details';
+                modalContent.appendChild(title);
+
+                // Create the form element dynamically (or clone a template if you prefer)
+                const form = document.createElement('form');
+                form.id = 'scheduleForm'; // Assign ID for potential later reference
+
+                // Add form fields (Admin Name, CYS, Subject, RoomNum, Recurring Checkbox, Specific Date)
+                // Example for Admin Name (read-only)
+                const adminDiv = document.createElement('div');
+                const adminLabel = document.createElement('label');
+                adminLabel.textContent = 'Admin:';
+                const adminInput = document.createElement('input');
+                adminInput.type = 'text';
+                adminInput.id = 'adminName'; // Keep IDs if needed
+                adminInput.name = 'adminName';
+                adminInput.readOnly = true;
+                adminInput.value = `${user.lastName}, ${user.firstName} ${user.middleInitial ?? ''} ${user.suffix ?? ''}`;
+                adminDiv.appendChild(adminLabel);
+                adminDiv.appendChild(adminInput);
+                form.appendChild(adminDiv);
+
+                // Example for CYS (editable)
+                const cysDiv = document.createElement('div');
+                const cysLabel = document.createElement('label');
+                cysLabel.textContent = 'CYS:';
+                const cysInput = document.createElement('input');
+                cysInput.type = 'text';
+                cysInput.id = 'cys';
+                cysInput.name = 'cys';
+                cysDiv.appendChild(cysLabel);
+                cysDiv.appendChild(cysInput);
+                form.appendChild(cysDiv);
+
+                // ... Add Subject, RoomNum fields similarly ...
+                 const subjectDiv = document.createElement('div');
+                 const subjectLabel = document.createElement('label');
+                 subjectLabel.textContent = 'Subject:';
+                 const subjectInput = document.createElement('input');
+                 subjectInput.type = 'text';
+                 subjectInput.id = 'subject';
+                 subjectInput.name = 'subject';
+                 subjectDiv.appendChild(subjectLabel);
+                 subjectDiv.appendChild(subjectInput);
+                 form.appendChild(subjectDiv);
+
+                 const roomNumDiv = document.createElement('div');
+                 const roomNumLabel = document.createElement('label');
+                 roomNumLabel.textContent = 'Room Number:';
+                 const roomNumInput = document.createElement('input');
+                 roomNumInput.type = 'text';
+                 roomNumInput.id = 'roomNum';
+                 roomNumInput.name = 'roomNum';
+                 roomNumDiv.appendChild(roomNumLabel);
+                 roomNumDiv.appendChild(roomNumInput);
+                 form.appendChild(roomNumDiv);
+
+
+                // Add Recurring Checkbox and Specific Date Container
+                // (This part is more complex to build dynamically, ensure IDs match event listeners)
+                const recurringDiv = document.createElement('div');
+                const recurringInput = document.createElement('input');
+                recurringInput.type = 'checkbox';
+                recurringInput.id = 'recurringCheckbox';
+                recurringInput.name = 'recurring';
+                recurringInput.checked = true; // Default checked
+                const recurringLabel = document.createElement('label');
+                recurringLabel.htmlFor = 'recurringCheckbox';
+                recurringLabel.textContent = ' Recurring Weekly Schedule';
+                recurringDiv.appendChild(recurringInput);
+                recurringDiv.appendChild(recurringLabel);
+                form.appendChild(recurringDiv);
+
+                const specificDateDiv = document.createElement('div');
+                specificDateDiv.id = 'specificDateContainer';
+                specificDateDiv.style.display = 'none'; // Initially hidden
+                const specificDateLabel = document.createElement('label');
+                specificDateLabel.textContent = 'Specific Date:';
+                const specificDateDisplayInput = document.createElement('input');
+                specificDateDisplayInput.type = 'text';
+                specificDateDisplayInput.id = 'specificDateDisplay';
+                specificDateDisplayInput.readOnly = true;
+                const specificDateValueInput = document.createElement('input'); // Hidden input
+                specificDateValueInput.type = 'hidden';
+                specificDateValueInput.id = 'specificDateValue';
+                specificDateValueInput.name = 'specificDateValue';
+                specificDateDiv.appendChild(specificDateLabel);
+                specificDateDiv.appendChild(specificDateDisplayInput);
+                specificDateDiv.appendChild(specificDateValueInput);
+                form.appendChild(specificDateDiv);
+
+
+                // Add hidden fields for day and time
+                const dayInput = document.createElement('input');
+                dayInput.type = 'hidden';
+                dayInput.id = 'day';
+                dayInput.name = 'day';
+                dayInput.value = dayName;
+                form.appendChild(dayInput);
+
+                const timeInput = document.createElement('input');
+                timeInput.type = 'hidden';
+                timeInput.id = 'time';
+                timeInput.name = 'time';
+                timeInput.value = time;
+                form.appendChild(timeInput);
+
+                // Add Button Container
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('modal-buttons');
+                form.appendChild(buttonContainer);
+
+                // Add Save Button (initial state)
+                const saveButton = document.createElement('button');
+                saveButton.type = 'submit';
+                saveButton.textContent = 'Save';
+                buttonContainer.appendChild(saveButton);
+
+                // Append the form to the modal content
+                modalContent.appendChild(form);
+
+                // --- Now, fetch recurring data and populate/adjust buttons ---
+                try {
+                    const currentYear = new Date().getFullYear();
+                    const currentDepartment = departmentFilter.value;
+                    const response = await fetch(`/admin/schedule?day=${encodeURIComponent(dayName)}&time=${encodeURIComponent(time)}&year=${currentYear}&department=${encodeURIComponent(currentDepartment)}`);
+                    if (!response.ok && response.status !== 404) throw new Error('Failed to fetch schedule data');
+                    const schedule = response.status === 404 ? null : await response.json();
+
+                    if (schedule) { // Existing RECURRING schedule found
+                        // Populate form fields
+                        form.querySelector('#cys').value = schedule.section;
+                        form.querySelector('#subject').value = schedule.subject;
+                        form.querySelector('#roomNum').value = schedule.roomNum;
+
+                        // Adjust Save button
+                        saveButton.textContent = 'Edit Recurring';
+                        saveButton.onclick = (e) => { e.preventDefault(); handleFormSubmit(schedule._id); }; // Pass ID for editing
+
+                        // Add Delete button
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete Recurring';
+                        deleteButton.classList.add('delete-button');
+                        deleteButton.type = 'button';
+                        deleteButton.onclick = async () => { /* ... delete logic ... */ };
+                        buttonContainer.appendChild(deleteButton);
+
+                        // Add "Make Available This Week" button
+                        if (isWeekViewActive && clickedButtonDateString) {
+                            const makeAvailableButton = document.createElement('button');
+                            makeAvailableButton.textContent = 'Make Available This Week';
+                            makeAvailableButton.classList.add('make-available-button');
+                            makeAvailableButton.type = 'button';
+                            makeAvailableButton.onclick = async () => { /* ... make available logic ... */ };
+                            buttonContainer.appendChild(makeAvailableButton);
                         }
-                    };
-                    buttonContainer.appendChild(deleteButton); // Append AFTER potential removal
+                    } else { // No existing RECURRING schedule
+                        saveButton.onclick = (e) => { e.preventDefault(); handleFormSubmit(null); }; // Pass null ID for saving new
+                    }
 
-                    // Add "Make Available This Week" button ONLY if in week view
-                    if (isWeekViewActive && clickedButtonDateString) {
-                        const makeAvailableButton = document.createElement('button');
-                        makeAvailableButton.textContent = 'Make Available This Week';
-                        makeAvailableButton.classList.add('make-available-button'); // Ensure class is present
-                        makeAvailableButton.type = 'button';
-                        makeAvailableButton.onclick = async () => {
-                            // --- DEBUGGING START ---
-                            console.log("--- Make Available Click ---");
-                            console.log("Selected Week Dropdown Value:", selectedWeekStartDate);
-                            console.log("Calculated Target Date:", clickedButtonDateString); // Use the date calculated for the modal
-                            console.log("Recurring Schedule Day:", schedule.day);
-                            console.log("Recurring Schedule Time:", schedule.time);
-                            console.log("Admin User:", user);
-                            // --- DEBUGGING END ---
+                    // Re-attach event listener for the dynamically created checkbox
+                    const newRecurringCheckbox = form.querySelector('#recurringCheckbox');
+                    if (newRecurringCheckbox) {
+                         newRecurringCheckbox.addEventListener('change', () => {
+                            // Copy the logic from the original recurringCheckbox listener
+                            const isChecked = newRecurringCheckbox.checked;
+                            const weekSelected = weekFilterDropdown.value && !weekFilterDropdown.disabled;
+                            const specificDateContainer = form.querySelector('#specificDateContainer'); // Find within this form
+                            const specificDateDisplay = form.querySelector('#specificDateDisplay');
+                            const specificDateValue = form.querySelector('#specificDateValue');
 
-                            if (confirm(`Are you sure you want to make the recurring slot (${schedule.day} ${schedule.time}) available specifically on ${formattedClickedButtonDate}? This creates an override.`)) {
-                                // Pass the specific date calculated when opening the modal
-                                await makeRecurringAvailableForDate(schedule, clickedButtonDateString, user); // Use specific date
-                                modal.style.display = 'none';
-                                await handleWeekChange(); // Refresh the view
+                            if (!isChecked) {
+                                if (!weekSelected) {
+                                    alert("Please select a valid week from the 'View Week' dropdown to set a specific date schedule.");
+                                    newRecurringCheckbox.checked = true; // Prevent unchecking
+                                    return;
+                                }
+
+                                // A valid week is selected, proceed to show specific date
+                                if (clickedButtonDateString) { // Ensure a date was calculated when modal opened
+                                    specificDateContainer.style.display = 'block';
+                                    specificDateDisplay.value = formattedClickedButtonDate; // Show formatted date
+                                    specificDateValue.value = clickedButtonDateString; // Set hidden input value
+                                } else {
+                                    console.error("Cannot set specific date - clicked button date not calculated.");
+                                    alert("Error: Could not determine the specific date for this slot. Please re-open the modal.");
+                                    newRecurringCheckbox.checked = true; // Re-check the box
+                                }
+                            } else {
+                                specificDateContainer.style.display = 'none';
+                                specificDateDisplay.value = '';
+                                specificDateValue.value = '';
                             }
-                        };
-                        buttonContainer.appendChild(makeAvailableButton); // Append AFTER potential removal
+                        });
                     }
 
 
-                } else { // No existing RECURRING schedule for this slot
-                    saveButton.textContent = 'Save'; // Default to Save (could be recurring or specific)
-                     saveButton.onclick = (e) => {
-                        e.preventDefault();
-                        handleFormSubmit(null); // Pass null ID for saving new
-                    };
-                    // No dynamic buttons needed if creating new
+                } catch (error) {
+                    console.error('Error fetching schedule data for modal:', error);
+                    const errorMsg = document.createElement('p');
+                    errorMsg.textContent = 'Error: Failed to load schedule details.';
+                    errorMsg.style.color = 'red';
+                    modalContent.appendChild(errorMsg);
+                    // Optionally return
+                    // return;
                 }
+            } // --- End else block (regular button) ---
 
-                // 4. Show the modal
-                modal.style.display = 'block';
+            // 3. Show the modal
+            modal.style.display = 'block';
 
-            } catch (error) {
-                console.error('Error opening modal or fetching schedule data:', error);
-                alert('Failed to load schedule data.');
-            }
-        });
-    });
+        }); // End button click listener
+    }); // End scheduleButtons.forEach
 
-    // --- MODIFIED: Renamed and uses specific date ---
-    const makeRecurringAvailableForDate = async (recurringSchedule, targetDateString, adminUser) => {
-        try {
-            // 1. Prepare data for the backend
-            const overrideData = {
-                recurringDay: recurringSchedule.day, // Still useful context for backend
-                time: recurringSchedule.time,
-                department: recurringSchedule.department,
-                year: recurringSchedule.year,
-                targetDate: targetDateString, // The specific date to make available
-                // Pass admin details
-                lastName: adminUser.lastName,
-                firstName: adminUser.firstName,
-                middleInitial: adminUser.middleInitial,
-                suffix: adminUser.suffix
-            };
-
-            console.log('Sending availability override data:', overrideData);
-
-
-            // 2. Call the backend endpoint to create an 'available' override
-            const response = await fetch('/admin/schedule-override/make-available', { // Endpoint remains the same
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(overrideData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to make slot available.');
-            }
-
-            const result = await response.json();
-            alert(result.message || `Slot successfully marked as available for ${targetDateString}.`);
-
-        } catch (error) {
-            console.error('Error in makeRecurringAvailableForDate:', error);
-            alert(`Error: ${error.message}`);
+    // --- IMPORTANT: Update handleFormSubmit to find elements within the dynamic form ---
+    const handleFormSubmit = async (scheduleId) => {
+        // Find the form within the currently displayed modal content
+        const form = modalContent.querySelector('#scheduleForm');
+        if (!form) {
+            console.error("Cannot submit, schedule form not found in modal.");
+            return;
         }
-    };
 
-    // --- Define Form Handlers ---
-    const saveNewSchedule = async (modal, formData) => { // Handles NEW RECURRING
-        // formData already validated in handleFormSubmit
-        try {
-            const response = await fetch('/admin/schedule', { // Endpoint for RECURRING
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-            if (!response.ok) {
-                 const errorData = await response.json(); // Try to get error message
-                 throw new Error(errorData.error || 'Failed to save recurring schedule');
-            }
-            alert('Recurring schedule saved successfully!');
-            modal.style.display = 'none';
-            // Refresh view
-            await handleWeekChange();
-        } catch (error) {
-            console.error('Error saving recurring schedule:', error);
-            alert(`Error: ${error.message}`);
-        }
-    };
-
-    const editSchedule = async (id, modal, formData) => { // Handles EDIT RECURRING
-         // formData already validated in handleFormSubmit
-        try {
-            // Only send fields that can be edited for recurring (cys, subject, roomNum)
-            const updateData = {
-                cys: formData.cys,
-                subject: formData.subject,
-                roomNum: formData.roomNum,
-            };
-            const response = await fetch(`/admin/schedule/${id}`, { // Endpoint for RECURRING
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData),
-            });
-            if (!response.ok) {
-                 const errorData = await response.json(); // Try to get error message
-                 throw new Error(errorData.error || 'Failed to update recurring schedule');
-            }
-            alert('Recurring schedule updated successfully!');
-            modal.style.display = 'none';
-            // Refresh view
-            await handleWeekChange();
-        } catch (error) {
-            console.error('Error updating recurring schedule:', error);
-            alert(`Error: ${error.message}`);
-        }
-    };
-
-    // deleteSchedule remains largely the same for recurring, using the ID
-    const deleteSchedule = async (id) => { // Handles DELETE RECURRING
-        try {
-            const response = await fetch(`/admin/schedule/${id}`, { // Endpoint for RECURRING
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json(); // Try to get error message
-                throw new Error(errorData.error || 'Failed to delete recurring schedule');
-            }
-
-            alert('Recurring schedule deleted successfully!');
-
-            // Refresh view after deletion
-            await handleWeekChange();
-
-        } catch (error) {
-            console.error('Error deleting recurring schedule:', error);
-            alert(`Error: ${error.message}`);
-        }
-    };
-
-
-    // --- NEW Function for Saving/Updating Overrides ---
-    const saveOrUpdateOverride = async (overrideData, modal) => { // Handles SPECIFIC DATE save/update
-        try {
-            const response = await fetch('/admin/schedule-override', { // Endpoint for OVERRIDES
-                method: 'POST', // Uses upsert logic on backend
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(overrideData),
-            });
-
-            if (!response.ok) {
-                 const errorData = await response.json();
-                 throw new Error(errorData.error || 'Failed to save schedule override');
-            }
-
-            alert(`Schedule override for ${overrideData.date} at ${overrideData.time} saved successfully!`);
-            modal.style.display = 'none';
-
-            // Refresh view using handleWeekChange
-            await handleWeekChange();
-
-        } catch (error) {
-            console.error('Error saving schedule override:', error);
-            alert(`Error: ${error.message}`);
-        }
-    };
-
-    // --- Centralized Form Submit Handler ---
-    const handleFormSubmit = async (scheduleId) => { // scheduleId is only relevant for EDITING recurring
-        const isRecurring = recurringCheckbox.checked;
-        const originalDay = document.getElementById('day').value; // Day name from button
-        const originalTime = document.getElementById('time').value; // Time from button
-        const specificDate = document.getElementById('specificDateValue').value; // Specific date (if !isRecurring)
+        const isRecurring = form.querySelector('#recurringCheckbox').checked;
+        const originalDay = form.querySelector('#day').value;
+        const originalTime = form.querySelector('#time').value;
+        const specificDate = form.querySelector('#specificDateValue').value;
         const currentDepartment = departmentFilter.value;
         const currentYear = new Date().getFullYear(); // Year for recurring
 
         const commonFormData = {
-            cys: document.getElementById('cys').value,
-            subject: document.getElementById('subject').value,
-            roomNum: document.getElementById('roomNum').value,
+            cys: form.querySelector('#cys').value, // Get value from dynamic form
+            subject: form.querySelector('#subject').value,
+            roomNum: form.querySelector('#roomNum').value,
             department: currentDepartment,
             // Include admin details if needed by backend consistently
             lastName: user.lastName,
@@ -832,7 +938,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         // Basic validation for common fields
-        if (!commonFormData.cys || !commonFormData.subject || !commonFormData.roomNum) {
+        if (!commonFormData.section || !commonFormData.subject || !commonFormData.roomNum) {
             alert('Please fill in CYS, Subject, and Room Number.');
             return;
         }
@@ -869,8 +975,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Close modal ---
-    closeModal.addEventListener('click', () => {
+    // --- Close modal listener remains the same ---
+    closeModalButton.addEventListener('click', () => {
         modal.style.display = 'none';
     });
 

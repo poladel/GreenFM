@@ -192,18 +192,27 @@ module.exports.saveApplicationPeriod = async (req, res) => {
     }
 };
 
-// --- getApplicationPeriod (Fetches the LATEST overall by update time) ---
+// --- getApplicationPeriod ---
 module.exports.getApplicationPeriod = async (req, res) => {
-    const { key } = req.query;
+    const { key = 'JoinGFM', year } = req.query; // Add year query param
     try {
-        if (!key) {
-            return res.status(400).json({ error: 'Key is required.' });
+        let query = { key };
+        let sort = { updatedAt: -1 }; // Default sort (latest overall)
+
+        if (year) {
+            // If year is provided, filter by year and don't sort by update time
+            query.year = parseInt(year, 10);
+            sort = {}; // Remove default sort when filtering by year
+            console.log(`Fetching ApplicationPeriod for key: ${key}, year: ${year}`); // Log
+        } else {
+            console.log(`Fetching latest ApplicationPeriod for key: ${key}`); // Log
         }
-        // Fetch the single most recently updated/created document for this key
-        const applicationPeriod = await ApplicationPeriod.findOne({ key }).sort({ updatedAt: -1 });
+
+        const applicationPeriod = await ApplicationPeriod.findOne(query).sort(sort);
+
         if (!applicationPeriod) {
-            // It's okay if not found initially, frontend handles null
-            return res.status(404).json({ message: 'Application period not found' });
+            const message = year ? `Application period not found for key ${key} and year ${year}` : `Application period not found for key ${key}`;
+            return res.status(404).json({ message });
         }
         res.json(applicationPeriod);
     } catch (error) {

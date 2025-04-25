@@ -157,3 +157,45 @@ module.exports.joinGFM2_post = async (req, res) => {
         res.status(500).json({ error: 'Failed to save user information' });
     }
 };
+
+// --- NEW: Get Applications for a Specific Week and Department ---
+module.exports.getApplicationsForWeek = async (req, res) => {
+    const { weekStart, department } = req.query;
+
+    if (!weekStart || !department) {
+        return res.status(400).json({ error: 'Missing weekStart or department query parameter.' });
+    }
+
+    try {
+        // Calculate the start and end dates of the week (Monday to Friday)
+        const startDate = new Date(weekStart + 'T00:00:00'); // Assuming weekStart is YYYY-MM-DD for Monday
+        if (isNaN(startDate.getTime())) {
+            return res.status(400).json({ error: 'Invalid weekStart date format.' });
+        }
+
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 4); // Monday + 4 days = Friday
+
+        const startDateString = startDate.toISOString().split('T')[0];
+        const endDateString = endDate.toISOString().split('T')[0];
+
+        console.log(`Fetching applications for Dept: ${department}, Week: ${startDateString} to ${endDateString}`);
+
+        // Find applications within the date range and matching the department
+        const applications = await ApplyStaff.find({
+            preferredDepartment: department,
+            'preferredSchedule.date': {
+                $gte: startDateString,
+                $lte: endDateString,
+            }
+        }).select('lastName firstName middleInitial suffix section preferredSchedule'); // Select only needed fields
+
+        console.log(`Found ${applications.length} applications.`);
+        res.json(applications);
+
+    } catch (error) {
+        console.error('Error fetching applications for week:', error);
+        res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+};
+// --- End NEW ---
