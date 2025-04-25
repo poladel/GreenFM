@@ -1,22 +1,24 @@
-const AssessmentPeriod = require('../models/AssessmentPeriod');
+const AssessmentPeriod = require("../models/AssessmentPeriod");
 
-// getAssessmentPeriod remains the same
+// --- Fetch the LATEST assessment period overall by update time ---
 module.exports.getAssessmentPeriod = async (req, res) => {
-    const { key = 'GFMAssessment' } = req.query; // Use default key
+    // const { key = "GFMAssessment" } = req.query; // REMOVED key query param
     try {
-        if (!key) {
-            return res.status(400).json({ error: 'Key is required to fetch assessment period.' });
-        }
-
-        const assessmentPeriod = await AssessmentPeriod.findOne({ key });
+        // Find the single most recently updated document in the collection
+        const assessmentPeriod = await AssessmentPeriod.findOne({}) // Empty filter
+                                                     .sort({ updatedAt: -1 }); // Sort by updatedAt descending
 
         if (!assessmentPeriod) {
-            // It's okay if not found, frontend should handle null
-            return res.status(404).json({ message: 'Assessment period not found' });
+            return res
+                .status(404)
+                .json({ message: "Assessment period not found" });
         }
         res.json(assessmentPeriod);
     } catch (error) {
-        console.error('Error fetching assessment period:', error);
-        res.status(500).json({ message: 'Server error fetching assessment period' });
+        console.error("Error fetching assessment period:", error);
+        res.status(500).json({
+            message: "Server error fetching assessment period",
+        });
     }
 };
+// --- End Change ---

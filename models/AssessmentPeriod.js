@@ -1,21 +1,13 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const assessmentPeriodSchema = new mongoose.Schema({
-    // Using a key allows fetching settings without knowing the ID, useful if only one setting exists
-    key: {
-        type: String,
-        required: true,
-        unique: true, // Ensure only one assessment period setting exists per key
-        default: 'GFMAssessment' // Default key for the main assessment period
-    },
-    startDate: {
-        type: Date,
-        required: true,
-    },
-    endDate: {
-        type: Date,
-        required: true,
-    },
-}, { timestamps: true }); // Add timestamps (createdAt, updatedAt)
+const AssessmentPeriodSchema = new Schema({
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    year: { type: Number, required: true, unique: true } // Make year unique
+}, { timestamps: true });
 
-module.exports = mongoose.model('AssessmentPeriod', assessmentPeriodSchema);
+// Remove specific index definition if it only involved 'key'
+// AssessmentPeriodSchema.index({ key: 1, year: 1 }, { unique: true }); // REMOVED or ensure it's just { year: 1 } if needed
+
+module.exports = mongoose.model('AssessmentPeriod', AssessmentPeriodSchema);

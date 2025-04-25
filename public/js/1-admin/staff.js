@@ -74,9 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- NEW: Define fetchAssessmentPeriod function ---
     const fetchAssessmentPeriod = async (key) => {
         try {
-            const response = await fetch(`/admin/assessment-period?key=${encodeURIComponent(key)}`);
+            const response = await fetch(`/admin/assessment-period`);
             if (response.status === 404) {
-                console.log(`Assessment period with key "${key}" not found.`);
+                console.log(`Assessment period not found.`);
                 return null;
             }
             if (!response.ok) {
