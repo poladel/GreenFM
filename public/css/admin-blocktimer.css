@@ -1,3 +1,12 @@
+/*--- GENERAL TAB VISIBILITY ---*/
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
 /*--- TABS CONTAINER ---*/
 .tabs-container {
   display: flex;
@@ -34,7 +43,8 @@
 #schedule-tab {
   margin-left: 5vw;
   margin-right: 5vw;
-  margin-bottom: 3vh;
+  margin-top: 3vh;
+  margin-bottom: 1vh;
 }
 
 .school-year-config {
@@ -368,15 +378,6 @@ body.modal-open {
 #deleteButton:hover {
   background-color: #005e23;
   transform: scale(1.03);
-}
-
-/*--- GENERAL TAB VISIBILITY ---*/
-.tab-pane {
-  display: none;
-}
-
-.tab-pane.active {
-  display: block;
 }
 
 /*--- SUBMISSIONS TAB ---*/

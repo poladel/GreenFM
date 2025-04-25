@@ -1,62 +1,267 @@
+/*--- GENERAL TAB VISIBILITY ---*/
 .tab-pane {
     display: none;
-}
-
-.tab-pane.active {
+  }
+  
+  .tab-pane.active {
     display: block;
-}
+  }
 
-/* Style for disabled buttons */
-button.availablebtn:disabled {
-    background-color: #e9ecef; /* Light gray background */
-    color: #6c757d; /* Gray text */
-    cursor: not-allowed; /* Show "not allowed" cursor */
-    opacity: 0.65; /* Slightly transparent */
-    border: 1px solid #ced4da; /* Optional: Add a border */
-}
-
-/* Modal container */
-.modal {
-    display: none; /* Hidden by default */
+/*--- TABS CONTAINER ---*/
+  .tabs-container {
+    display: flex;
+    justify-content: flex-start;
+    margin: 2vh 0 1vh 5vw;
+    gap: 1vw;
+  }
+  
+  .tab-button {
+    background-color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #272525;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, transform 0.2s;
+    cursor: pointer;
+  }
+  
+  .tab-button:hover {
+    background-color: #00722A;
+    color: white;
+    transform: scale(1.03);
+  }
+  
+  .tab-button.active {
+    background-color: #00722A;
+    color: white;
+  }
+  
+  /*--- SCHEDULE TAB ---*/
+  #schedule-tab {
+    margin-left: 5vw;
+    margin-right: 5vw;
+    margin-top: 3vh;
+    margin-bottom: 1vh;
+  }
+  
+  /*--- ROUTE SETTINGS FORM ---*/
+  .route-settings {
+    background-color: white;
+    padding: 2vw;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3vh;
+  }
+  
+  .route-settings h3 {
+    color: #00722A;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-top: 0;
+  }
+  
+  .route-settings label {
+    display: block;
+    margin-top: 1vh;
+    font-weight: 550;
+    color: #333;
+  }
+  
+  .route-settings input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 0.5vh;
+    margin-bottom: 1vh;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+    box-sizing: border-box;
+  }
+  
+  .route-settings button {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+  }
+  
+  .route-settings button:hover {
+    background-color: #005e23;
+    transform: scale(1.03);
+  }
+  
+  #existingApplicationPeriod {
+    font-weight: bold;
+    margin-top: 10px;
+    color: #444;
+  }
+  
+  /*--- FILTER DROPDOWN ---*/
+  #department-filter {
+    margin: 1vw 0;
+    padding: 10px;
+    font-size: 0.95em;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  /*--- SCHEDULE TABLE ---*/
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    background-color: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .schedule-table th,
+  .schedule-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-size: 0.9em;
+    color: #333;
+  }
+  
+  .schedule-table th {
+    background-color: #f6f6f6;
+    font-weight: 600;
+    color: #00722A;
+  }
+  
+  .schedule-table td.time {
+    font-weight: 600;
+    background-color: #f9f9f9;
+  }
+  
+  .availablebtn {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #00722A;
+    border-radius: 10px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+  
+  .availablebtn:hover {
+    background-color: #00722A;
+    color: white;
+    transform: scale(1.03);
+  }
+  
+  .availablebtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /*--- MODAL ---*/
+  .modal {
     position: fixed;
-    z-index: 1000; /* Ensure it appears above other elements */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Enable scrolling if needed */
-    background-color: rgba(0, 0, 0, 0.4); /* Black background with opacity */
-}
-
-/* Modal content */
-.modal-content {
-    background-color: #fff;
-    margin: 15% auto; /* Center the modal vertically */
-    padding: 20px;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-content {
+    background-color: white;
+    margin: 10vh auto;
+    padding: 2vw;
     border: 1px solid #888;
-    width: 50%; /* Adjust width as needed */
-    border-radius: 8px; /* Optional: Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
-}
-
-/* Close button */
-.close {
-    color: #aaa;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .modal-content h3 {
+    color: #00722A;
+    margin-top: 0;
+    margin-bottom: 1vh;
+    font-size: 1.2em;
+  }
+  
+  .modal-content label {
+    display: block;
+    margin: 1vh 0 0.5vh;
+    font-weight: 550;
+    color: #333;
+  }
+  
+  .modal-content input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 1vh;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+  }
+  
+  .modal-content button[type="submit"] {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    margin-top: 1vh;
+  }
+  
+  .modal-content button[type="submit"]:hover {
+    background-color: #005e23;
+    transform: scale(1.03);
+  }
+  
+  .close {
     float: right;
-    font-size: 28px;
+    font-size: 1.5em;
     font-weight: bold;
+    color: #aaa;
     cursor: pointer;
-}
-
-.close:hover,
-.close:focus {
+    margin-top: -10px;
+  }
+  
+  .close:hover {
     color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
-.schedulebtn {
-    background-color: #d4edda; /* Light green background */
-    color: #155724; /* Dark green text */
-    border: 1px solid #c3e6cb; /* Green border */
-    cursor: pointer; /* Pointer cursor */
-}
+  }
+  
+  /*--- SUBMISSIONS TAB ---*/
+  #submissions-tab {
+    margin-left: 5vw;
+    margin-right: 5vw;
+    background-color: white;
+    padding: 2vw;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
