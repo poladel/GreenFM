@@ -27,7 +27,7 @@ html, body {
 
 /*---SIDEBARS---*/
 .sidebars {
-    z-index: 9999;
+    z-index: 100;
     position: fixed;
     top: 2vh;
     left: 1vw;
@@ -167,7 +167,7 @@ html, body {
 .header-container {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 99;
     display: flex;
     align-items: center;
     margin-right: 2vh;

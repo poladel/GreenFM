@@ -94,7 +94,7 @@
                 <!-- Right Column (Live Now + Schedule) -->
                 <div class="right-sidebar">
                     <!-- Live Now! -->
-                    <div class="live-now-container" style="position: relative;">
+                    <div class="live-now-container">
                         <!-- Top-right status button for Admin/Staff only -->
                         <% if (user && (user.roles === 'Admin' || user.roles.includes('Admin') || user.roles === 'Staff' || user.roles.includes('Staff'))) { %>
                             <button onclick="openStatusModal()" class="status-btn">Status</button>
@@ -106,17 +106,7 @@
                             <p id="live-now-subtext">No live broadcast available.</p>
                         </div>
                         <a id="live-now-link" href="/live" class="go-live-button" style="display: none;">GO TO LIVE</a>
-                    </div>
-                    
-                    <!-- Modal -->
-                    <div id="status-modal" class="modal-overlay" style="display: none;">
-                        <div class="modal-content">
-                            <h3>Set Live Status</h3>
-                            <button onclick="setStatus(true)" class="modal-button live">Set Live</button>
-                            <button onclick="setStatus(false)" class="modal-button offline">Set Offline</button>
-                            <button onclick="closeStatusModal()" class="modal-close">Cancel</button>
-                        </div>
-                    </div>                                                          
+                    </div>                                                      
 
                     <!-- Schedule -->
                     <div class="schedule-container">
@@ -142,6 +132,7 @@
                     </form>
                 </div>  -->
 
+                <!-- Modal -->
                 <div id="media-modal" class="media-modal">
                     <span class="close-modal">&times;</span>
                     <div class="modal-content">
@@ -151,6 +142,15 @@
                         <button class="nav-arrow right-arrow">&#10095;</button>
                     </div>
                 </div>
+
+                <div id="status-modal" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3>Set Live Status</h3>
+                        <button onclick="setStatus(true)" class="modal-button live">Set Live</button>
+                        <button onclick="setStatus(false)" class="modal-button offline">Set Offline</button>
+                        <button onclick="closeStatusModal()" class="modal-close">Cancel</button>
+                    </div>
+                </div>  
     
             </div>
         </div>
