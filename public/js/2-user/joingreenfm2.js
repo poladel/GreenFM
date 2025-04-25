@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- NEW: Fetch Assessment Period ---
+    // --- Fetch Assessment Period ---
     const fetchAssessmentPeriod = async (key) => {
         try {
             // Use the assessment period endpoint
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- NEW: Fetch Weekly Availability ---
+    // --- Fetch Weekly Availability ---
     const fetchWeeklyAvailability = async (weekStartDate, department) => {
         // Check cache first
         const cacheKey = `${weekStartDate}_${department}`;
@@ -75,17 +75,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Helper Function to get Dates within Period (Keep as is) ---
-    const getDatesInPeriod = (startDate, endDate, targetYear) => {
+    // --- Helper Function to get Dates within Period ---
+    const getDatesInPeriod = (startDateStr, endDateStr, targetYear) => {
         const dates = [];
-        let currentDate = new Date(startDate);
-        const lastDate = new Date(endDate);
+        let currentDate = new Date(startDateStr);
+        const lastDate = new Date(endDateStr);
         lastDate.setHours(23, 59, 59, 999);
         while (currentDate <= lastDate) {
             if (currentDate.getFullYear() === targetYear) {
                 const dayOfWeek = currentDate.getDay();
                 if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday to Friday
-                    dates.push(new Date(currentDate));
+                    dates.push(new Date(currentDate).toISOString().split('T')[0]); // Store as YYYY-MM-DD
                 }
             }
             if (currentDate.getFullYear() > targetYear) break;
@@ -94,27 +94,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         return dates;
     };
 
-    // --- Populate Day Dropdown (Keep as is) ---
+    // --- Populate Day Dropdown ---
     const populateDayDropdown = (dates) => {
-        dayDropdown.innerHTML = '<option value="" disabled selected>Select Date</option>';
-        if (dates.length === 0) {
-            dayDropdown.innerHTML = `<option value="" disabled selected>No available dates found for ${currentYear}</option>`;
+        dayDropdown.innerHTML = '<option value="" disabled selected>Select Assessment Day</option>'; // Clear previous options
+
+        if (!dates || dates.length === 0) {
+            dayDropdown.innerHTML = '<option value="" disabled selected>No available dates</option>';
             dayDropdown.disabled = true;
             return;
         }
-        dayDropdown.disabled = false;
-        dates.forEach(date => {
+
+        dates.forEach(dateStr => {
+            const dateObj = parseDateStringToLocalMidnight(dateStr);
             const option = document.createElement('option');
-            const dateString = date.toISOString().split('T')[0];
-            const dayOfWeek = daysOfWeek[date.getDay()];
-            option.value = dateString;
-            option.textContent = `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} - ${dayOfWeek}`;
-            option.dataset.dayOfWeek = dayOfWeek;
+            option.value = dateStr; // Value is YYYY-MM-DD
+            // Format for display (e.g., "Monday, April 28")
+            option.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
             dayDropdown.appendChild(option);
         });
+        dayDropdown.disabled = false;
     };
 
-    // --- REWRITE: Populate Time Dropdown ---
+    // --- Populate Time Dropdown ---
     const populateTimeDropdown = (selectedDateString, weeklyData) => {
         timeDropdown.innerHTML = '<option value="" disabled selected>Select Time</option>';
         timeDropdown.disabled = false;
@@ -196,31 +197,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         return d.toISOString().split('T')[0]; // Return YYYY-MM-DD
     };
 
+    // --- Hardcode 'today' for testing ---
+    const today = new Date(2025, 3, 27); // April 28, 2025 (Month is 0-indexed)
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()); // Midnight local time
+    console.log("TESTING: Hardcoded 'today' set to:", startOfToday.toDateString()); // Log the test date
+
+    // --- Helper to parse date string YYYY-MM-DD to local midnight Date object ---
+    const parseDateStringToLocalMidnight = (dateStr) => {
+        if (!dateStr) return new Date(NaN);
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return new Date(NaN);
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const day = parseInt(parts[2], 10);
+        if (isNaN(year) || isNaN(month) || isNaN(day)) return new Date(NaN);
+        return new Date(year, month, day);
+    };
+
     // --- Main Logic ---
     try {
-        // --- FIX: Fetch Assessment Period instead of Application Period ---
-        const assessmentPeriod = await fetchAssessmentPeriod('GFMAssessment'); // Use assessment key
+        const assessmentPeriod = await fetchAssessmentPeriod('GFMAssessment');
 
-        if (!assessmentPeriod) {
-            console.warn('No assessment period found or failed to fetch.');
-            // Update error message
+        if (!assessmentPeriod || !assessmentPeriod.startDate || !assessmentPeriod.endDate) {
+            console.warn('No valid assessment period found or failed to fetch.');
             dayDropdown.innerHTML = '<option value="" disabled selected>Assessment period not set</option>';
             dayDropdown.disabled = true;
             timeDropdown.disabled = true;
             return;
         }
+
+        // Generate all dates within the assessment period
+        let allAssessmentDates = getDatesInPeriod(assessmentPeriod.startDate, assessmentPeriod.endDate, currentYear);
+        console.log("Initial assessment dates:", allAssessmentDates); // Log initial dates
+
+        // --- FIX: Filter out 'today' if it falls within the assessment period ---
+        const assessmentStart = parseDateStringToLocalMidnight(assessmentPeriod.startDate);
+        const assessmentEnd = parseDateStringToLocalMidnight(assessmentPeriod.endDate);
+        let filteredAssessmentDates = allAssessmentDates; // Start with all dates
+
+        if (!isNaN(assessmentStart.getTime()) && !isNaN(assessmentEnd.getTime()) &&
+            startOfToday >= assessmentStart && startOfToday <= assessmentEnd)
+        {
+            console.log(`Filtering: Today (${startOfToday.toDateString()}) is within the assessment period [${assessmentStart.toDateString()} - ${assessmentEnd.toDateString()}]. Removing dates <= today.`);
+            // Filter out today and any past dates within the period
+            filteredAssessmentDates = allAssessmentDates.filter(dateStr => {
+                const dateObj = parseDateStringToLocalMidnight(dateStr);
+                return dateObj > startOfToday; // Keep only dates strictly after today
+            });
+            console.log("Filtered assessment dates:", filteredAssessmentDates); // Log filtered dates
+        } else {
+             console.log(`Not filtering: Today (${startOfToday.toDateString()}) is NOT within the assessment period [${assessmentStart.toDateString()} - ${assessmentEnd.toDateString()}].`);
+        }
         // --- End FIX ---
 
-        // --- FIX: Use assessmentPeriod dates ---
-        const assessmentDates = getDatesInPeriod(assessmentPeriod.startDate, assessmentPeriod.endDate, currentYear);
-        populateDayDropdown(assessmentDates);
-        // --- End FIX ---
+        // Populate the dropdown with the filtered dates
+        populateDayDropdown(filteredAssessmentDates); // Use the filtered list
 
         if (dayDropdown.disabled) {
             timeDropdown.disabled = true;
         }
 
-        // --- MODIFY: Handle Day Selection Change (Keep as is) ---
+        // --- Handle Day Selection Change ---
         dayDropdown.addEventListener('change', async () => {
              const selectedDateString = dayDropdown.value;
 
@@ -247,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         timeDropdown.disabled = true;
     }
 
-    // --- Form Submission Logic (Keep as is) ---
+    // --- Form Submission Logic ---
     const form2 = document.getElementById('joingreenfmForm2');
     form2.addEventListener('submit', async (event) => {
         event.preventDefault();
