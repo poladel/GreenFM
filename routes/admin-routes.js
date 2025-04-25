@@ -65,28 +65,4 @@ adminRoute.forEach(adminRoute => {
     });
 });
 
-const Chat = require('../models/Chat');
-
-// Custom handler for Chat route (with DB data)
-router.get('/Chat', requireAuth, checkRoles(['Admin', 'Staff']), async (req, res) => {
-    try {
-        const userId = res.locals.user._id;
-
-        const chats = await Chat.find({ members: userId }).lean();
-
-        res.render('1-admin/4-chat', {
-            pageTitle: 'Chat',
-            cssFile: 'css/chat.css',
-            user: res.locals.user,
-            headerTitle: 'CHAT',
-            currentPath: '/Chat',
-            chats,
-            selectedChat: null
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
 module.exports = router;
