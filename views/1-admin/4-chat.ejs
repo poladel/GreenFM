@@ -9,36 +9,6 @@
                 <%- include('../partials/menu.ejs') %>
 
                 <!-------------------- CONTENTS START --------------------> 
-                <div class="chat-wrapper">
-                    <div class="chat-sidebar">
-                        <h4>CHATS</h4>
-                        <ul>
-                            <% chats.forEach(chat => { %>
-                                <li><a href="/chat/<%= chat._id %>"><%= chat.name %></a></li>
-                            <% }) %>
-                        </ul>
-                    </div>
-    
-                    <div class="chat-main">
-                        <% if (selectedChat) { %>
-                            <h5><%= selectedChat.name %></h5>
-                            <div class="chat-messages">
-                                <% selectedChat.messages.forEach(msg => { %>
-                                    <div class="message <%= msg.sender === user.username ? 'me' : 'them' %>">
-                                        <p><%= msg.text %></p>
-                                    </div>
-                                <% }) %>
-                            </div>
-    
-                            <form action="/chat/send/<%= selectedChat._id %>" method="POST">
-                                <input type="text" name="message" required placeholder="Aa">
-                                <button type="submit">Send</button>
-                            </form>
-                        <% } else { %>
-                            <p>Select a chat</p>
-                        <% } %>
-                    </div>
-                </div>
     
             </div>
         </div>
