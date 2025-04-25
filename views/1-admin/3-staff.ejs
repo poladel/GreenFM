@@ -1,92 +1,84 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
 
-                    <!-------------------- HEADER MENUS -------------------->
-                    <%- include('../partials/menu.ejs') %>
+                <!-------------------- HEADER MENUS -------------------->
+                <%- include('../partials/menu.ejs') %>
 
-                        <!-------------------- CONTENTS START -------------------->
-                        <!-- Tabs for Submissions and Schedule -->
-                        <div class="tabs-container">
-                            <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                            <button class="tab-button" data-tab="submissions-tab">Submissions</button>
-                        </div>
+                    <!-------------------- CONTENTS START -------------------->
+                    <!-- Tabs for Submissions and Schedule -->
+                    <div class="tabs-container">
+                        <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
+                        <button class="tab-button" data-tab="submissions-tab">Submissions</button>
+                    </div>
 
-                        <div class="tab-content">
-                            <!-- Schedule Tab -->
-                            <div id="schedule-tab" class="tab-pane active">
-                                <div class="settings-container">
-                                    <div class="route-settings">
-                                        <!-- Combined Form -->
-                                        <h3>GFM Application & Assessment Periods</h3>
-                                        <form id="periodSettingsForm"> <!-- Changed ID -->
-                                            <h4>Application Period</h4>
-                                            <input type="hidden" name="appKey" value="JoinGFM">
-                                            <div>
-                                                <label for="appStartDate">Start Date:</label>
-                                                <input type="date" id="appStartDate" name="appStartDate" required>
-                                            </div>
-                                            <div>
-                                                <label for="appEndDate">End Date:</label>
-                                                <input type="date" id="appEndDate" name="appEndDate" required>
-                                            </div>
-
-                                            <hr style="margin: 20px 0;">
-
-                                            <h4>Assessment Period</h4>
-                                            <input type="hidden" name="assessKey" value="GFMAssessment">
-                                            <div>
-                                                <label for="assessStartDate">Start Date:</label>
-                                                <input type="date" id="assessStartDate" name="assessStartDate" required>
-                                            </div>
-                                            <div>
-                                                <label for="assessEndDate">End Date:</label>
-                                                <input type="date" id="assessEndDate" name="assessEndDate" required>
-                                            </div>
-
-                                            <button type="submit">Save Periods</button>
-                                        </form>
-                                        <div id="existingApplicationPeriod"
-                                            style="margin-top: 10px; font-weight: bold;">
-                                            <!-- Dynamically updated -->
-                                        </div>
-                                        <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
-                                            <!-- Dynamically updated -->
-                                        </div>
-                                        <!-- End NEW Section -->
-                                    </div>
-
-                                    <!-- Filters Section -->
-                                    <div class="filters"
-                                        style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <div class="tab-content">
+                        <!-- Schedule Tab -->
+                        <div id="schedule-tab" class="tab-pane active">
+                            <div class="settings-container">
+                                <div class="route-settings">
+                                    <!-- Combined Form -->
+                                    <h3>GFM Application & Assessment Periods</h3>
+                                    <form id="periodSettingsForm"> <!-- Changed ID -->
+                                        <h4>Application Period</h4>
+                                        <input type="hidden" name="appKey" value="JoinGFM">
                                         <div>
-                                            <label for="department-filter">Department:</label>
-                                            <select id="department-filter">
-                                                <option value="News and Public Affairs">News and Public Affairs</option>
-                                                <option value="Music and Entertainment">Music and Entertainment</option>
-                                                <option value="Operations and Logistics">Operations and Logistics
-                                                </option>
-                                                <option value="Creatives and Promotions">Creatives and Promotions
-                                                </option>
-                                            </select>
+                                            <label for="appStartDate">Start Date:</label>
+                                            <input type="date" id="appStartDate" name="appStartDate" required>
                                         </div>
-
-                                        <!-- View Week Dropdown (Now based on Assessment Period) -->
                                         <div>
-                                            <label for="week-filter">View Assessment Week:</label>
-                                            <!-- Changed Label -->
-                                            <select id="week-filter" disabled>
-                                                <option value="">Set Assessment Period First</option>
-                                                <!-- Changed Text -->
-                                                <!-- Options will be populated by JavaScript -->
-                                            </select>
+                                            <label for="appEndDate">End Date:</label>
+                                            <input type="date" id="appEndDate" name="appEndDate" required>
                                         </div>
+
+                                        <hr style="margin: 20px 0;">
+
+                                        <h4>Assessment Period</h4>
+                                        <input type="hidden" name="assessKey" value="GFMAssessment">
+                                        <div>
+                                            <label for="assessStartDate">Start Date:</label>
+                                            <input type="date" id="assessStartDate" name="assessStartDate" required>
+                                        </div>
+                                        <div>
+                                            <label for="assessEndDate">End Date:</label>
+                                            <input type="date" id="assessEndDate" name="assessEndDate" required>
+                                        </div>
+
+                                        <button type="submit">Save Periods</button>
+                                    </form>
+                                    <div id="existingApplicationPeriod"
+                                        style="margin-top: 10px; font-weight: bold;">
+                                        <!-- Dynamically updated -->
                                     </div>
+                                    <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
+                                        <!-- Dynamically updated -->
+                                    </div>
+                                    <!-- End NEW Section -->
+                                </div>
 
+                                <div class="filters-container">
+                                    <label for="departmentFilter">Department:</label>
+                                    <select id="departmentFilter"> <!-- MUST HAVE id="departmentFilter" -->
+                                        <option value="News and Public Affairs">News and Public Affairs</option>
+                                        <option value="Music and Entertainment">Music and Entertainment</option>
+                                        <option value="Operations and Logistics">Operations and Logistics
+                                        </option>
+                                        <option value="Creatives and Promotions">Creatives and Promotions
+                                        </option>
+                                    </select>
 
+                                    <label for="weekFilter">View Week:</label>
+                                    <select id="weekFilter" disabled> <!-- MUST HAVE id="weekFilter" -->
+                                        <option value="">Set Assessment Period First</option>
+                                        <!-- Changed Text -->
+                                        <!-- Options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div id="scheduleGrid" class="schedule-grid">
                                     <table class="schedule-table">
                                         <thead>
                                             <tr>
@@ -112,10 +104,10 @@
                                                             </td>
                                                             <% days.forEach(day=> { %>
                                                                 <td>
-                                                                    <!-- Added type="button" to prevent accidental form submission if nested -->
-                                                                    <button type="button" class="availablebtn"
-                                                                        data-day="<%= day %>" data-time="<%= time %>"
-                                                                        disabled></button>
+                                                                    <!-- Add 'schedule-button' class -->
+                                                                    <button type="button" class="schedule-button availablebtn"
+                                                                            data-day="<%= day %>" data-time="<%= time %>"
+                                                                            disabled></button>
                                                                 </td>
                                                                 <% }); %>
                                                         </tr>
@@ -123,68 +115,62 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
 
-                                <!-- Submissions Tab -->
-                                <div id="submissions-tab" class="tab-pane">
-                                    <p>Submissions content goes here.</p>
-                                    <!-- You would likely have a table or list here populated with submission data -->
-                                </div>
+                            <!-- Submissions Tab -->
+                            <div id="submissions-tab" class="tab-pane">
+                                <p>Submissions content goes here.</p>
+                                <!-- You would likely have a table or list here populated with submission data -->
                             </div>
                         </div>
-            </div>
-            <%- include('../partials/footer.ejs') %> <!-- Include footer -->
+                    </div>
         </div>
+        <%- include('../partials/footer.ejs') %> <!-- Include footer -->
+    </div>
+</div> <!-- End page-container -->
 
-        <!-- Schedule Modal -->
-        <div id="scheduleModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Schedule Details</h2>
-                <form id="scheduleForm">
-                    <!-- Keep hidden fields to store the original day/time clicked -->
-                    <input type="hidden" id="day" name="day">
-                    <input type="hidden" id="time" name="time">
+<!-- Schedule Modal -->
+<div id="scheduleModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span> <!-- Keep the close button -->
 
-                    <label for="adminName">Admin:</label>
-                    <input type="text" id="adminName" name="adminName" readonly><br>
-
-                    <!-- Checkbox for Recurring vs Specific Date -->
-                    <div style="margin-bottom: 15px;">
-                        <input type="checkbox" id="recurringCheckbox" name="recurring" checked
-                            style="margin-right: 5px;">
-                        <label for="recurringCheckbox">Recurring Weekly Schedule</label>
-                    </div>
-
-                    <!-- Container for Specific Date Display (Initially Hidden) -->
-                    <div id="specificDateContainer" style="display: none; margin-bottom: 15px;">
-                        <label for="specificDateDisplay">Specific Date:</label>
-                        <!-- Changed from select to input type="text" readonly -->
-                        <input type="text" id="specificDateDisplay" readonly
-                            style="background-color: #eee; border: 1px solid #ccc; padding: 5px;">
-                        <!-- Hidden input to store the actual date value -->
-                        <input type="hidden" id="specificDateValue" name="specificDate">
-                    </div>
-
-                    <label for="cys">Course, Year & Section:</label>
-                    <input type="text" id="cys" name="cys" required><br>
-
-                    <label for="subject">Subject:</label>
-                    <input type="text" id="subject" name="subject" required><br>
-
-                    <label for="roomNum">Room Number:</label>
-                    <input type="text" id="roomNum" name="roomNum" required><br>
-
-                    <div class="modal-buttons">
-                        <button type="submit">Save</button> <!-- Text changes dynamically -->
-                        <!-- Delete button will be added dynamically here -->
-                    </div>
-                </form>
+        <!-- NEW: Container for Application Details View (Initially Hidden) -->
+        <div id="applicationDetailsView" style="display: none;">
+            <h2>Applicant Information</h2>
+            <div>
+                <label>Name:</label>
+                <input type="text" id="appName" readonly>
             </div>
+            <div>
+                <label>DLSU-D Email:</label>
+                <input type="text" id="appEmail" readonly>
+            </div>
+            <div>
+                <label>Student Number:</label>
+                <input type="text" id="appStudentNum" readonly>
+            </div>
+            <div>
+                <label>Section:</label>
+                <input type="text" id="appSection" readonly>
+            </div>
+            <div>
+                <label>Preferred Department:</label>
+                <input type="text" id="appDepartment" readonly>
+            </div>
+            <!-- NEW: Add field for preferred schedule -->
+            <div>
+                <label>Booked Schedule:</label>
+                <input type="text" id="appPreferredSchedule" readonly>
+            </div>
+            <!-- End NEW -->
         </div>
+        <!-- End Application Details View -->
 
-        <!-- Include necessary JS files -->
-        <script src="/js/1-admin/staff.js"></script>
+    </div> <!-- End modal-content -->
+</div> <!-- End scheduleModal -->
 
-        </body> <!-- Closing body tag from header.ejs -->
+<!-- SCRIPT TAG AT THE END -->
+<script src="/js/1-admin/staff.js"></script>
 
-        </html> <!-- Closing html tag from header.ejs -->
+</body>
+</html>

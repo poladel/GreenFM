@@ -1,5 +1,6 @@
 const ApplyStaff = require('../models/ApplyStaff');
 const User = require('../models/User');
+const AssessmentSlot = require('../models/AssessmentSlot'); // <-- Add AssessmentSlot model
 
 module.exports.joinGFM1_post = async (req, res) => {
     const {
@@ -88,7 +89,6 @@ module.exports.joinGFM2_get = async (req, res) => {
 };
 
 module.exports.joinGFM2_post = async (req, res) => {
-    // Check if registrationData exists in session
     if (!req.session.joinGFM1Data) {
         if (req.user) {
             req.user.completedJoinGFMStep1 = false; // Set the field to false
@@ -103,44 +103,75 @@ module.exports.joinGFM2_post = async (req, res) => {
         });
     }
 
-    // Retrieve initial data from session
     const { lastName, firstName, middleInitial, suffix, studentNumber, dlsudEmail,
         college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
         preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
         greenFmContribution } = req.session.joinGFM1Data;
 
-    // Retrieve data from the Step 2 form submission (req.body)
-    const { schoolYear, preferredSchedule } = req.body; // <-- Add this line
+    const { schoolYear, preferredSchedule } = req.body; // { date: 'YYYY-MM-DD', time: 'HH:MM-HH:MM' }
 
-    // Check if user is authenticated via middleware
     if (!req.user) {
         return res.status(401).json({ error: 'User is not authenticated' });
     }
 
+    // --- Validate preferredSchedule ---
+    if (!preferredSchedule || !preferredSchedule.date || !preferredSchedule.time) {
+        return res.status(400).json({ error: 'Preferred schedule (date and time) is required.' });
+    }
+    // ---
+
     try {
-        // Create the user with all data from Step 1 (session) and Step 2 (body)
+        // --- Find the chosen assessment slot ---
+        const slotToBook = await AssessmentSlot.findOne({
+            date: preferredSchedule.date,
+            time: preferredSchedule.time,
+            department: preferredDepartment,
+            year: schoolYear // Assuming schoolYear matches the slot's year
+        });
+
+        if (!slotToBook) {
+            return res.status(404).json({ error: 'Selected assessment slot not found or unavailable.' });
+        }
+
+        // --- Check if the slot is already booked ---
+        if (slotToBook.application) {
+            return res.status(409).json({ error: 'Selected assessment slot has already been booked. Please choose another.' });
+        }
+        // ---
+
+        // Create the application first
         const applyStaff = await ApplyStaff.create({
             lastName, firstName, middleInitial, suffix, studentNumber, dlsudEmail,
             college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
             preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
             greenFmContribution,
-            schoolYear, // <-- Add schoolYear
-            preferredSchedule // <-- Add preferredSchedule
+            schoolYear,
+            preferredSchedule
         });
 
-        console.log('Staff Application Created:', applyStaff.lastName);
+        console.log('Staff Application Created:', applyStaff._id, applyStaff.lastName);
+
+        // --- Now, link the application to the slot and update denormalized fields ---
+        slotToBook.application = applyStaff._id;
+        const appMiddle = applyStaff.middleInitial ? ` ${applyStaff.middleInitial}.` : '';
+        const appSuffix = applyStaff.suffix ? ` ${applyStaff.suffix}` : '';
+        slotToBook.applicantName = `${applyStaff.lastName}, ${applyStaff.firstName}${appMiddle}${appSuffix}`;
+        slotToBook.applicantSection = applyStaff.section;
+        await slotToBook.save();
+        console.log('Assessment Slot booked and updated:', slotToBook._id);
+        // ---
 
         // Clear session data
         req.session.joinGFM1Data = null;
 
-        const user = req.user; // Access the authenticated user
+        // Update user progress
+        const user = req.user;
         user.completedJoinGFMStep2 = true;
         await user.save();
 
-        // Respond with success and redirectUrl
         res.json({
             success: true,
-            redirectUrl: '/JoinGFM-Step3' // Add redirectUrl
+            redirectUrl: '/JoinGFM-Step3'
         });
     } catch (error) {
         // Handle validation errors and other errors
@@ -153,8 +184,16 @@ module.exports.joinGFM2_post = async (req, res) => {
             }
             return res.status(400).json({ error: 'Validation Error', details: errorDetails });
         }
-        console.error('Error saving additional user information:', error);
-        res.status(500).json({ error: 'Failed to save user information' });
+        console.error('Error saving application or booking slot:', error);
+         // Basic check if it's a validation error from ApplyStaff
+         if (error.name === 'ValidationError' && error.errors) {
+             const errorDetails = {};
+             for (const field in error.errors) {
+                 errorDetails[field] = error.errors[field].message;
+             }
+             return res.status(400).json({ error: 'Validation Error', details: errorDetails });
+         }
+        res.status(500).json({ error: 'Failed to save application or book slot' });
     }
 };
 
@@ -188,7 +227,7 @@ module.exports.getApplicationsForWeek = async (req, res) => {
                 $gte: startDateString,
                 $lte: endDateString,
             }
-        }).select('lastName firstName middleInitial suffix section preferredSchedule'); // Select only needed fields
+        }).select('lastName firstName middleInitial suffix dlsudEmail studentNumber section preferredDepartment preferredSchedule'); // Select only needed fields
 
         console.log(`Found ${applications.length} applications.`);
         res.json(applications);
