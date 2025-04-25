@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const bcrypt = require('bcrypt'); // Ensure bcrypt is imported
+const bcrypt = require('bcryptjs'); // Ensure bcrypt is imported
 
 module.exports.userData_get = async (req, res) => {
     try {
