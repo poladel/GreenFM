@@ -109,18 +109,23 @@ module.exports.joinGFM2_post = async (req, res) => {
         preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
         greenFmContribution } = req.session.joinGFM1Data;
 
+    // Retrieve data from the Step 2 form submission (req.body)
+    const { schoolYear, preferredSchedule } = req.body; // <-- Add this line
+
     // Check if user is authenticated via middleware
     if (!req.user) {
         return res.status(401).json({ error: 'User is not authenticated' });
     }
 
     try {
-        // Create the user with all data
+        // Create the user with all data from Step 1 (session) and Step 2 (body)
         const applyStaff = await ApplyStaff.create({
             lastName, firstName, middleInitial, suffix, studentNumber, dlsudEmail,
             college, program, collegeYear, section, facebookUrl, affiliatedOrgsList,
             preferredDepartment, staffApplicationReasons, departmentApplicationReasons,
-            greenFmContribution
+            greenFmContribution,
+            schoolYear, // <-- Add schoolYear
+            preferredSchedule // <-- Add preferredSchedule
         });
 
         console.log('Staff Application Created:', applyStaff.lastName);
@@ -133,15 +138,20 @@ module.exports.joinGFM2_post = async (req, res) => {
         await user.save();
 
         // Respond with success and redirectUrl
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             redirectUrl: '/JoinGFM-Step3' // Add redirectUrl
         });
     } catch (error) {
         // Handle validation errors and other errors
         if (error.name === 'ValidationError') {
             console.error('Mongoose Validation Error:', error.errors);
-            return res.status(400).json({ error: 'Validation Error', details: error.errors });
+            // Extract specific error messages if needed
+            const errorDetails = {};
+            for (const field in error.errors) {
+                errorDetails[field] = error.errors[field].message;
+            }
+            return res.status(400).json({ error: 'Validation Error', details: errorDetails });
         }
         console.error('Error saving additional user information:', error);
         res.status(500).json({ error: 'Failed to save user information' });
