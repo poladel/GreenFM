@@ -5,149 +5,186 @@
             <div class="container">
                 <%- include('../partials/nav.ejs') %>
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
+                    <!-------------------- HEADER MENUS -------------------->
+                    <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- CONTENTS START --------------------> 
-                <!-- Tabs for Submissions and Schedule -->
-                <div class="tabs-container">
-                    <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                    <button class="tab-button" data-tab="submissions-tab">Submissions</button>
-                </div>
-
-            <div class="tab-content">
-                <!-- Schedule Tab -->
-                <div id="schedule-tab" class="tab-pane active">
-                    <div class="route-settings">
-                        <h3>GFM Application Period</h3>
-                        <form id="routeSettingsForm">
-                            <div>
-                                <label for="startDate">Start Date:</label>
-                                <input type="date" id="startDate" name="startDate" required>
-                            </div>
-                            <div>
-                                <label for="endDate">End Date:</label>
-                                <input type="date" id="endDate" name="endDate" required>
-                            </div>
-                            <button type="submit">Save</button>
-                        </form>
-                        <!-- Display the existing application period -->
-                        <div id="existingApplicationPeriod" style="margin-top: 10px; font-weight: bold;">
-                            <!-- This will be dynamically updated by JavaScript -->
+                        <!-------------------- CONTENTS START -------------------->
+                        <!-- Tabs for Submissions and Schedule -->
+                        <div class="tabs-container">
+                            <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
+                            <button class="tab-button" data-tab="submissions-tab">Submissions</button>
                         </div>
+
+                        <div class="tab-content">
+                            <!-- Schedule Tab -->
+                            <div id="schedule-tab" class="tab-pane active">
+                                <div class="settings-container">
+                                    <div class="route-settings">
+                                        <!-- Combined Form -->
+                                        <h3>GFM Application & Assessment Periods</h3>
+                                        <form id="periodSettingsForm"> <!-- Changed ID -->
+                                            <h4>Application Period</h4>
+                                            <input type="hidden" name="appKey" value="JoinGFM">
+                                            <div>
+                                                <label for="appStartDate">Start Date:</label>
+                                                <input type="date" id="appStartDate" name="appStartDate" required>
+                                            </div>
+                                            <div>
+                                                <label for="appEndDate">End Date:</label>
+                                                <input type="date" id="appEndDate" name="appEndDate" required>
+                                            </div>
+
+                                            <hr style="margin: 20px 0;">
+
+                                            <h4>Assessment Period</h4>
+                                            <input type="hidden" name="assessKey" value="GFMAssessment">
+                                            <div>
+                                                <label for="assessStartDate">Start Date:</label>
+                                                <input type="date" id="assessStartDate" name="assessStartDate" required>
+                                            </div>
+                                            <div>
+                                                <label for="assessEndDate">End Date:</label>
+                                                <input type="date" id="assessEndDate" name="assessEndDate" required>
+                                            </div>
+
+                                            <button type="submit">Save Periods</button>
+                                        </form>
+                                        <div id="existingApplicationPeriod"
+                                            style="margin-top: 10px; font-weight: bold;">
+                                            <!-- Dynamically updated -->
+                                        </div>
+                                        <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
+                                            <!-- Dynamically updated -->
+                                        </div>
+                                        <!-- End NEW Section -->
+                                    </div>
+
+                                    <!-- Filters Section -->
+                                    <div class="filters"
+                                        style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                                        <div>
+                                            <label for="department-filter">Department:</label>
+                                            <select id="department-filter">
+                                                <option value="News and Public Affairs">News and Public Affairs</option>
+                                                <option value="Music and Entertainment">Music and Entertainment</option>
+                                                <option value="Operations and Logistics">Operations and Logistics
+                                                </option>
+                                                <option value="Creatives and Promotions">Creatives and Promotions
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <!-- View Week Dropdown (Now based on Assessment Period) -->
+                                        <div>
+                                            <label for="week-filter">View Assessment Week:</label>
+                                            <!-- Changed Label -->
+                                            <select id="week-filter" disabled>
+                                                <option value="">Set Assessment Period First</option>
+                                                <!-- Changed Text -->
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+                                    <table class="schedule-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Monday</th>
+                                                <th>Tuesday</th>
+                                                <th>Wednesday</th>
+                                                <th>Thursday</th>
+                                                <th>Friday</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="schedule-body">
+                                            <!-- Rows generated by EJS or JS -->
+                                            <% const times=["7:00-8:00", "8:00-9:00" , "9:00-10:00" , "10:00-11:00"
+                                                , "11:00-12:00" , "12:00-1:00" , "1:00-2:00" , "2:00-3:00" , "3:00-4:00"
+                                                , "4:00-5:00" , "5:00-6:00" , "6:00-7:00" ]; %>
+                                                <% const days=["Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday"
+                                                    ]; %>
+                                                    <% times.forEach(time=> { %>
+                                                        <tr>
+                                                            <td class="time">
+                                                                <%= time %>
+                                                            </td>
+                                                            <% days.forEach(day=> { %>
+                                                                <td>
+                                                                    <!-- Added type="button" to prevent accidental form submission if nested -->
+                                                                    <button type="button" class="availablebtn"
+                                                                        data-day="<%= day %>" data-time="<%= time %>"
+                                                                        disabled></button>
+                                                                </td>
+                                                                <% }); %>
+                                                        </tr>
+                                                        <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Submissions Tab -->
+                                <div id="submissions-tab" class="tab-pane">
+                                    <p>Submissions content goes here.</p>
+                                    <!-- You would likely have a table or list here populated with submission data -->
+                                </div>
+                            </div>
+                        </div>
+            </div>
+            <%- include('../partials/footer.ejs') %> <!-- Include footer -->
+        </div>
+
+        <!-- Schedule Modal -->
+        <div id="scheduleModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Schedule Details</h2>
+                <form id="scheduleForm">
+                    <!-- Keep hidden fields to store the original day/time clicked -->
+                    <input type="hidden" id="day" name="day">
+                    <input type="hidden" id="time" name="time">
+
+                    <label for="adminName">Admin:</label>
+                    <input type="text" id="adminName" name="adminName" readonly><br>
+
+                    <!-- Checkbox for Recurring vs Specific Date -->
+                    <div style="margin-bottom: 15px;">
+                        <input type="checkbox" id="recurringCheckbox" name="recurring" checked
+                            style="margin-right: 5px;">
+                        <label for="recurringCheckbox">Recurring Weekly Schedule</label>
                     </div>
 
-                    <!-- Filters Section -->
-                    <div class="filters" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                        <div>
-                            <label for="department-filter">Department:</label>
-                            <select id="department-filter">
-                                <option value="News and Public Affairs">News and Public Affairs</option>
-                                <option value="Music and Entertainment">Music and Entertainment</option>
-                                <option value="Operations and Logistics">Operations and Logistics</option>
-                                <option value="Creatives and Promotions">Creatives and Promotions</option>
-                            </select>
-                        </div>
-
-                        <!-- NEW: Week Filter Dropdown -->
-                        <div>
-                            <label for="week-filter">View Week:</label>
-                            <select id="week-filter" disabled>
-                                <option value="">Select Application Period First</option>
-                                <!-- Options will be populated by JavaScript -->
-                            </select>
-                        </div>
+                    <!-- Container for Specific Date Display (Initially Hidden) -->
+                    <div id="specificDateContainer" style="display: none; margin-bottom: 15px;">
+                        <label for="specificDateDisplay">Specific Date:</label>
+                        <!-- Changed from select to input type="text" readonly -->
+                        <input type="text" id="specificDateDisplay" readonly
+                            style="background-color: #eee; border: 1px solid #ccc; padding: 5px;">
+                        <!-- Hidden input to store the actual date value -->
+                        <input type="hidden" id="specificDateValue" name="specificDate">
                     </div>
 
+                    <label for="cys">Course, Year & Section:</label>
+                    <input type="text" id="cys" name="cys" required><br>
 
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Monday</th>
-                                <th>Tuesday</th>
-                                <th>Wednesday</th>
-                                <th>Thursday</th>
-                                <th>Friday</th>
-                            </tr>
-                        </thead>
-                        <tbody id="schedule-body">
-                            <!-- Rows generated by EJS or JS -->
-                            <% const times = ["7:00-8:00", "8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-1:00", "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-5:00", "5:00-6:00", "6:00-7:00"]; %>
-                            <% const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; %>
-                            <% times.forEach(time => { %>
-                                <tr>
-                                    <td class="time"><%= time %></td>
-                                    <% days.forEach(day => { %>
-                                        <td>
-                                            <!-- Added type="button" to prevent accidental form submission if nested -->
-                                            <button type="button" class="availablebtn" data-day="<%= day %>" data-time="<%= time %>" disabled></button>
-                                        </td>
-                                    <% }); %>
-                                </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
-                </div>
+                    <label for="subject">Subject:</label>
+                    <input type="text" id="subject" name="subject" required><br>
 
-                <!-- Submissions Tab -->
-                <div id="submissions-tab" class="tab-pane">
-                    <p>Submissions content goes here.</p>
-                    <!-- You would likely have a table or list here populated with submission data -->
-                </div>
+                    <label for="roomNum">Room Number:</label>
+                    <input type="text" id="roomNum" name="roomNum" required><br>
+
+                    <div class="modal-buttons">
+                        <button type="submit">Save</button> <!-- Text changes dynamically -->
+                        <!-- Delete button will be added dynamically here -->
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
-    <%- include('../partials/footer.ejs') %> <!-- Include footer -->
-</div>
 
-<!-- Schedule Modal -->
-<div id="scheduleModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Schedule Details</h2>
-        <form id="scheduleForm">
-            <!-- Keep hidden fields to store the original day/time clicked -->
-            <input type="hidden" id="day" name="day">
-            <input type="hidden" id="time" name="time">
+        <!-- Include necessary JS files -->
+        <script src="/js/1-admin/staff.js"></script>
 
-            <label for="adminName">Admin:</label>
-            <input type="text" id="adminName" name="adminName" readonly><br>
+        </body> <!-- Closing body tag from header.ejs -->
 
-            <!-- Checkbox for Recurring vs Specific Date -->
-            <div style="margin-bottom: 15px;">
-                <input type="checkbox" id="recurringCheckbox" name="recurring" checked style="margin-right: 5px;">
-                <label for="recurringCheckbox">Recurring Weekly Schedule</label>
-            </div>
-
-            <!-- Container for Specific Date Display (Initially Hidden) -->
-            <div id="specificDateContainer" style="display: none; margin-bottom: 15px;">
-                <label for="specificDateDisplay">Specific Date:</label>
-                <!-- Changed from select to input type="text" readonly -->
-                <input type="text" id="specificDateDisplay" readonly style="background-color: #eee; border: 1px solid #ccc; padding: 5px;">
-                <!-- Hidden input to store the actual date value -->
-                <input type="hidden" id="specificDateValue" name="specificDate">
-            </div>
-
-            <label for="cys">Course, Year & Section:</label>
-            <input type="text" id="cys" name="cys" required><br>
-
-            <label for="subject">Subject:</label>
-            <input type="text" id="subject" name="subject" required><br>
-
-            <label for="roomNum">Room Number:</label>
-            <input type="text" id="roomNum" name="roomNum" required><br>
-
-            <div class="modal-buttons">
-                 <button type="submit">Save</button> <!-- Text changes dynamically -->
-                 <!-- Delete button will be added dynamically here -->
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Include necessary JS files -->
-<script src="/js/1-admin/staff.js"></script>
-
-</body> <!-- Closing body tag from header.ejs -->
-</html> <!-- Closing html tag from header.ejs -->
+        </html> <!-- Closing html tag from header.ejs -->

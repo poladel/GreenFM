@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Cache for weekly availability data ---
     const weeklyAvailabilityCache = new Map();
 
-    // --- Fetch Application Period (Keep as is) ---
+    // --- Fetch Application Period (Keep for potential future use, but not used for dates now) ---
     const fetchApplicationPeriod = async (key) => {
         try {
             const response = await fetch(`/admin/application-period?key=${key}`);
@@ -28,6 +28,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return await response.json();
         } catch (error) {
             console.error('Error fetching application period data:', error);
+            return null;
+        }
+    };
+
+    // --- NEW: Fetch Assessment Period ---
+    const fetchAssessmentPeriod = async (key) => {
+        try {
+            // Use the assessment period endpoint
+            const response = await fetch(`/admin/assessment-period?key=${key}`);
+            if (!response.ok) {
+                if (response.status === 404) return null;
+                throw new Error('Failed to fetch assessment period data');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching assessment period data:', error);
             return null;
         }
     };
@@ -58,7 +74,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return { recurring: [], overrides: [] }; // Return empty structure on error
         }
     };
-
 
     // --- Helper Function to get Dates within Period (Keep as is) ---
     const getDatesInPeriod = (startDate, endDate, targetYear) => {
@@ -183,25 +198,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Main Logic ---
     try {
-        const applicationPeriod = await fetchApplicationPeriod('JoinGFM');
+        // --- FIX: Fetch Assessment Period instead of Application Period ---
+        const assessmentPeriod = await fetchAssessmentPeriod('GFMAssessment'); // Use assessment key
 
-        if (!applicationPeriod) {
-            console.warn('No application period found or failed to fetch.');
-            dayDropdown.innerHTML = '<option value="" disabled selected>Application period not set</option>';
+        if (!assessmentPeriod) {
+            console.warn('No assessment period found or failed to fetch.');
+            // Update error message
+            dayDropdown.innerHTML = '<option value="" disabled selected>Assessment period not set</option>';
             dayDropdown.disabled = true;
             timeDropdown.disabled = true;
             return;
         }
+        // --- End FIX ---
 
-        const applicationDates = getDatesInPeriod(applicationPeriod.startDate, applicationPeriod.endDate, currentYear);
-        populateDayDropdown(applicationDates);
+        // --- FIX: Use assessmentPeriod dates ---
+        const assessmentDates = getDatesInPeriod(assessmentPeriod.startDate, assessmentPeriod.endDate, currentYear);
+        populateDayDropdown(assessmentDates);
+        // --- End FIX ---
 
         if (dayDropdown.disabled) {
             timeDropdown.disabled = true;
         }
 
-        // --- MODIFY: Handle Day Selection Change ---
-        dayDropdown.addEventListener('change', async () => { // Make listener async
+        // --- MODIFY: Handle Day Selection Change (Keep as is) ---
+        dayDropdown.addEventListener('change', async () => {
              const selectedDateString = dayDropdown.value;
 
              if (selectedDateString) {

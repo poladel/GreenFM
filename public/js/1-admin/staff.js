@@ -3,21 +3,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabPanes = document.querySelectorAll('.tab-pane');
     const departmentFilter = document.getElementById('department-filter');
     const scheduleRows = document.querySelectorAll('#schedule-body tr');
-    const scheduleButtons = document.querySelectorAll('.availablebtn');
+    const scheduleButtons = document.querySelectorAll('.availablebtn'); // Ensure these exist or handle null
     const modal = document.getElementById('scheduleModal');
     const closeModal = document.querySelector('.close');
     const scheduleForm = document.getElementById('scheduleForm');
-    const routeSettingsForm = document.getElementById('routeSettingsForm');
-    const routeSettingsFields = routeSettingsForm.querySelectorAll('input, button'); 
+    // --- REMOVE THESE LINES ---
+    // const routeSettingsForm = document.getElementById('routeSettingsForm');
+    // const routeSettingsFields = routeSettingsForm.querySelectorAll('input, button');
+    // --- END REMOVAL ---
     const recurringCheckbox = document.getElementById('recurringCheckbox');
     const specificDateContainer = document.getElementById('specificDateContainer');
     const specificDateDropdown = document.getElementById('specificDateDropdown');
     const weekFilterDropdown = document.getElementById('week-filter');
-    const specificDateDisplay = document.getElementById('specificDateDisplay'); // Get the new display input
-    const specificDateValue = document.getElementById('specificDateValue'); // Get the new hidden input
+    const specificDateDisplay = document.getElementById('specificDateDisplay');
+    const specificDateValue = document.getElementById('specificDateValue');
+    const periodSettingsForm = document.getElementById('periodSettingsForm'); // Use this ID
+
+    // Keep existing display elements
+    const existingApplicationPeriodElement = document.getElementById('existingApplicationPeriod');
+    const existingAssessmentPeriodElement = document.getElementById('existingAssessmentPeriod');
+
+    // Keep period variables
     let currentApplicationPeriod = null;
-    let clickedButtonDateString = ''; // Variable to store the calculated date for the clicked button
-    let formattedClickedButtonDate = ''; // Variable for display format
+    let currentAssessmentPeriod = null;
+
+    // --- NEW: Define Helpers in Outer Scope ---
+    const isSameOrAfterLocal = (date1, date2Str) => {
+        if (!date1 || !date2Str) return false; // Add check for date1 validity
+        const d2 = new Date(date2Str);
+        if (isNaN(d2.getTime())) return false;
+        const d1Start = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate()); // Compare start of day
+        const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+        return d1Start >= d2Start;
+    };
+
+    const isSameOrBeforeLocal = (date1, date2Str) => {
+         if (!date1 || !date2Str) return false; // Add check for date1 validity
+         const d2 = new Date(date2Str);
+         if (isNaN(d2.getTime())) return false;
+         const d1Start = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate()); // Compare start of day
+         const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+         return d1Start <= d2Start;
+    };
+    // --- End Helper Definitions ---
+
 
     // --- Define fetchApplicationPeriod function ---
     const fetchApplicationPeriod = async (key) => {
@@ -42,9 +71,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // --- NEW: Define fetchAssessmentPeriod function ---
+    const fetchAssessmentPeriod = async (key) => {
+        try {
+            const response = await fetch(`/admin/assessment-period?key=${encodeURIComponent(key)}`);
+            if (response.status === 404) {
+                console.log(`Assessment period with key "${key}" not found.`);
+                return null;
+            }
+            if (!response.ok) {
+                throw new Error(`Failed to fetch assessment period: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error in fetchAssessmentPeriod:', error);
+            return null;
+        }
+    };
+
     // --- Define Display Existing Application Period ---
     const displayExistingApplicationPeriod = () => {
-        const existingPeriodElement = document.getElementById('existingApplicationPeriod');
         const currentYear = new Date().getFullYear();
 
         if (currentApplicationPeriod) {
@@ -57,38 +103,72 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (startYear === currentYear || endYear === currentYear) { // Show if start OR end is in current year
                 const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                existingPeriodElement.textContent = `${currentYear} Application Period: ${formattedStartDate} - ${formattedEndDate}`;
+                // --- FIX: Use the correct variable name ---
+                existingApplicationPeriodElement.textContent = `${currentYear} Application Period: ${formattedStartDate} - ${formattedEndDate}`;
             } else {
-                existingPeriodElement.textContent = `No application period set for ${currentYear}.`;
+                // --- FIX: Use the correct variable name ---
+                existingApplicationPeriodElement.textContent = `No application period set for ${currentYear}.`;
             }
         } else {
-            existingPeriodElement.textContent = `No application period set for ${currentYear}.`;
+            // --- FIX: Use the correct variable name ---
+            existingApplicationPeriodElement.textContent = `No application period set for ${currentYear}.`;
         }
     };
 
-    // --- Define Function to Populate Week Dropdown ---
+    // --- NEW: Define Display Existing Assessment Period ---
+    const displayExistingAssessmentPeriod = () => {
+        const currentYear = new Date().getFullYear();
+        if (currentAssessmentPeriod) {
+            const { startDate, endDate } = currentAssessmentPeriod;
+            const startYear = new Date(startDate).getFullYear();
+            const endYear = new Date(endDate).getFullYear();
+
+            if (startYear === currentYear || endYear === currentYear) {
+                const formattedStartDate = new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const formattedEndDate = new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                existingAssessmentPeriodElement.textContent = `${currentYear} Assessment Period: ${formattedStartDate} - ${formattedEndDate}`;
+            } else {
+                existingAssessmentPeriodElement.textContent = `No assessment period set for ${currentYear}.`;
+            }
+        } else {
+            existingAssessmentPeriodElement.textContent = `No assessment period set for ${currentYear}.`;
+        }
+    };
+
+    // --- MODIFY: Populate Week Dropdown ---
     const populateWeekDropdown = () => {
         weekFilterDropdown.innerHTML = ''; // Clear previous options
         const currentYear = new Date().getFullYear();
 
-        // ... (keep existing checks for currentApplicationPeriod and date validity) ...
-        if (!currentApplicationPeriod || !currentApplicationPeriod.startDate || !currentApplicationPeriod.endDate) {
-            weekFilterDropdown.innerHTML = '<option value="">Period Not Set</option>';
+        // --- Use currentAssessmentPeriod ---
+        if (!currentAssessmentPeriod || !currentAssessmentPeriod.startDate || !currentAssessmentPeriod.endDate) {
+            weekFilterDropdown.innerHTML = '<option value="">Assessment Period Not Set</option>';
             weekFilterDropdown.disabled = true;
             return false; // Indicate no valid period for current year
         }
-        const startDate = new Date(currentApplicationPeriod.startDate);
-        const endDate = new Date(currentApplicationPeriod.endDate);
+
+        const startDate = new Date(currentAssessmentPeriod.startDate);
+        const originalEndDate = new Date(currentAssessmentPeriod.endDate); // Original end date of assessment
+
+        // Calculate Effective End Date (Friday of the week containing original end date)
+        let effectiveEndDate = new Date(originalEndDate);
+        const endDayOfWeekOriginal = originalEndDate.getDay();
+        const daysToAddForFriday = 5 - endDayOfWeekOriginal;
+        effectiveEndDate.setDate(originalEndDate.getDate() + daysToAddForFriday);
+        effectiveEndDate.setHours(23, 59, 59, 999);
+        // --- End Calculation ---
+
         const startYear = startDate.getFullYear();
-        const endYear = endDate.getFullYear();
-        if (startYear !== currentYear && endYear !== currentYear) {
-             weekFilterDropdown.innerHTML = `<option value="">No Period Set for ${currentYear}</option>`;
+        const effectiveEndYear = effectiveEndDate.getFullYear();
+
+        if (startYear !== currentYear && effectiveEndYear !== currentYear) {
+             weekFilterDropdown.innerHTML = `<option value="">No Assessment Period Set for ${currentYear}</option>`;
              weekFilterDropdown.disabled = true;
              return false; // Indicate no valid period for current year
         }
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-             console.error("Invalid start or end date parsed in populateWeekDropdown:", currentApplicationPeriod.startDate, currentApplicationPeriod.endDate);
-             weekFilterDropdown.innerHTML = '<option value="">Invalid Period Dates</option>';
+        if (isNaN(startDate.getTime()) || isNaN(originalEndDate.getTime())) {
+             console.error("Invalid assessment period dates:", currentAssessmentPeriod.startDate, currentAssessmentPeriod.endDate);
+             weekFilterDropdown.innerHTML = '<option value="">Invalid Assessment Dates</option>';
              weekFilterDropdown.disabled = true;
              return false; // Indicate invalid dates
         }
@@ -97,13 +177,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         let currentWeekStart = new Date(startDate);
 
         // Adjust currentWeekStart to the beginning of its week (Monday)
-        const dayOfWeek = currentWeekStart.getDay(); // 0=Sun, 1=Mon, ...
-        const diff = currentWeekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust to Monday
+        const dayOfWeekStart = currentWeekStart.getDay(); // 0=Sun, 1=Mon, ...
+        const diff = currentWeekStart.getDate() - dayOfWeekStart + (dayOfWeekStart === 0 ? -6 : 1); // Adjust to Monday
         currentWeekStart.setDate(diff);
         currentWeekStart.setHours(0, 0, 0, 0); // Normalize time
 
         let weekIndex = 0;
-        while (currentWeekStart <= endDate) {
+        while (currentWeekStart <= effectiveEndDate) { // Loop using effective end date
             // --- Calculate Friday for display ---
             const weekFriday = new Date(currentWeekStart);
             weekFriday.setDate(currentWeekStart.getDate() + 4); // Monday + 4 days = Friday
@@ -114,13 +194,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             weekEndSunday.setDate(currentWeekStart.getDate() + 6);
 
             // Ensure the week start is not after the overall period end date before adding
-            if (currentWeekStart > endDate) break;
+            if (currentWeekStart > effectiveEndDate) break;
 
             // Only add weeks that are relevant to the current year
             // Use weekEndSunday for the relevance check to include weeks ending in the current year
             if (currentWeekStart.getFullYear() === currentYear || weekEndSunday.getFullYear() === currentYear) {
                 // --- Adjust display end date if Friday goes past the period end ---
-                const displayEndDate = weekFriday > endDate ? endDate : weekFriday;
+                const displayEndDateText = weekFriday > effectiveEndDate ? effectiveEndDate : weekFriday;
                 // --- End adjustment ---
 
                 const option = document.createElement('option');
@@ -129,8 +209,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const formatOptions = { month: 'short', day: 'numeric' };
                 const startText = currentWeekStart.toLocaleDateString('en-US', formatOptions);
-                // --- Use displayEndDate (Friday or period end) for text ---
-                const endText = displayEndDate.toLocaleDateString('en-US', formatOptions);
+                // --- Use displayEndDateText (Friday or period end) for text ---
+                const endText = displayEndDateText.toLocaleDateString('en-US', formatOptions);
                 option.textContent = `Week of ${startText} - ${endText}`; // Display Mon - Fri (or end date)
                 // --- End text change ---
 
@@ -144,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         weekFilterDropdown.disabled = weekIndex === 0;
         if (weekIndex === 0) {
-             weekFilterDropdown.innerHTML = `<option value="">No Weeks Available for ${currentYear}</option>`;
+             weekFilterDropdown.innerHTML = `<option value="">No Assessment Weeks Available for ${currentYear}</option>`;
         }
         return weekIndex > 0; // Return true if weeks were populated
     };
@@ -334,12 +414,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Fetch Application Period ---
-    const fetchAndStoreApplicationPeriod = async () => {
+    // --- MODIFY: Fetch and Store Periods ---
+    const fetchAndStorePeriods = async () => {
         try {
+            // Fetch both periods
             currentApplicationPeriod = await fetchApplicationPeriod('JoinGFM');
+            currentAssessmentPeriod = await fetchAssessmentPeriod('GFMAssessment'); // Use the key
+
             console.log("Fetched application period:", currentApplicationPeriod);
+            console.log("Fetched assessment period:", currentAssessmentPeriod);
+
+            // Populate dropdown based on Assessment Period
             const populated = populateWeekDropdown(); // Populates and returns true if successful for current year
+            // Display both existing periods
             displayExistingApplicationPeriod(); // Display the text regardless
+            displayExistingAssessmentPeriod(); // Display the text regardless
 
             if (populated && weekFilterDropdown.value) {
                  // Valid period for current year exists and a week is selected, load weekly view
@@ -349,10 +438,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                  await handleWeekChange(); // Will fetch recurring based on dropdown state
             }
         } catch (error) {
-            console.error("Failed to fetch application period on load:", error);
-            weekFilterDropdown.innerHTML = '<option value="">Error Loading Period</option>';
+            console.error("Failed to fetch periods on load:", error);
+            weekFilterDropdown.innerHTML = '<option value="">Error Loading Periods</option>';
             weekFilterDropdown.disabled = true;
-            displayExistingApplicationPeriod();
+            displayExistingApplicationPeriod(); // Still try to display
+            displayExistingAssessmentPeriod(); // Still try to display
             // Attempt to load recurring view even on error
             await handleWeekChange();
         }
@@ -371,19 +461,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Execute Initial Fetch ---
-    await fetchAndStoreApplicationPeriod(); // Fetch on initial load
-
-    // --- Get User Data ---
+    await fetchAndStorePeriods();
     const user = await fetchUserData();
 
     // --- Initial Setup based on User/Data ---
+    // Use periodSettingsForm here
+    const periodSettingsFields = periodSettingsForm ? periodSettingsForm.querySelectorAll('input, button') : [];
     if (user && user.roles === 'Admin') {
-        routeSettingsFields.forEach(field => {
-            field.disabled = false;
-        });
+        periodSettingsFields.forEach(field => field.disabled = false);
+    } else if (periodSettingsFields.length > 0) {
+        periodSettingsFields.forEach(field => field.disabled = true);
     }
 
-    // --- Add Event Listeners ---
+    // --- Add Event Listeners (Keep schedule/modal related) ---
     departmentFilter.addEventListener('change', handleWeekChange);
     weekFilterDropdown.addEventListener('change', handleWeekChange);
 
@@ -784,167 +874,193 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.style.display = 'none';
     });
 
-    // --- Route settings form submission ---
-    routeSettingsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // --- Modify Combined Period Settings Form Submission ---
+    if (periodSettingsForm) {
+        periodSettingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            periodSettingsFields.forEach(field => field.disabled = true); // Disable form during submission
 
-        const key = 'JoinGFM';
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        const startDate = startDateInput.value;
-        const endDate = endDateInput.value;
+            const appKey = 'JoinGFM';
+            const assessKey = 'GFMAssessment';
+            const appStartDateInput = document.getElementById('appStartDate');
+            const appEndDateInput = document.getElementById('appEndDate');
+            const assessStartDateInput = document.getElementById('assessStartDate');
+            const assessEndDateInput = document.getElementById('assessEndDate');
 
-        if (!key || !startDate || !endDate) {
-            alert('Please fill in all fields (start date and end date).');
-            return;
-        }
+            const appStartDate = appStartDateInput.value;
+            const appEndDate = appEndDateInput.value;
+            const assessStartDate = assessStartDateInput.value;
+            const assessEndDate = assessEndDateInput.value;
 
-        // --- Date Validation ---
-        const startDateTime = new Date(startDate);
-        const endDateTime = new Date(endDate);
-        const currentDate = new Date();
-        // --- Normalize currentDate to the START of its day (local time) ---
-        const currentDayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-
-        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-             alert('Invalid date format provided.');
-             return;
-        }
-        if (endDateTime < startDateTime) {
-            alert('End Date must be after Start Date.');
-            return;
-        }
-
-        const targetYear = startDateTime.getFullYear();
-
-        // --- Frontend Pre-submission Checks ---
-        try {
-            // Fetch the LATEST settings by key to check status
-            const latestPeriod = await fetchApplicationPeriod(key); // Gets the most recently saved/updated
-
-            // --- Helper for frontend date comparison (ignoring time) ---
-            const isSameOrAfterLocal = (date1, date2Str) => {
-                if (!date2Str) return false;
-                const d2 = new Date(date2Str); // Parse string
-                // Handle potential invalid date string from DB
-                if (isNaN(d2.getTime())) return false;
-                const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
-                return date1 >= d2Start;
-            };
-            const isSameOrBeforeLocal = (date1, date2Str) => {
-                 if (!date2Str) return false;
-                 const d2 = new Date(date2Str); // Parse string
-                 // Handle potential invalid date string from DB
-                 if (isNaN(d2.getTime())) return false;
-                 const d2Start = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
-                 return date1 <= d2Start;
-            };
-            // --- End Helper ---
-
-            if (latestPeriod) {
-                // --- FIX 1: Perform Active Period Check BEFORE Confirmation ---
-                if (isSameOrAfterLocal(currentDayStart, latestPeriod.startDate) && isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate)) {
-                    alert('Cannot add/modify application period during an active application period. Please wait until the period ends.');
-                    return; // Stop submission BEFORE confirmation
-                }
-                // --- End FIX 1 ---
-
-                // --- FIX 2: Perform Concluded Period Check BEFORE Confirmation ---
-                const latestStartDate = new Date(latestPeriod.startDate);
-                // Check if latestStartDate is valid before getting year
-                if (!isNaN(latestStartDate.getTime())) {
-                    const latestPeriodYear = latestStartDate.getFullYear();
-                    // Check if the latest period is for the target year AND it has already ended
-                    if (targetYear === latestPeriodYear && isSameOrAfterLocal(currentDayStart, latestPeriod.endDate) && !isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate) /* Check if strictly after */) {
-                         alert(`An application period for ${targetYear} has already concluded. You cannot set a new period for this year.`);
-                         return; // Stop submission BEFORE confirmation
-                    }
-                } else {
-                    console.warn("Could not parse latestPeriod.startDate for concluded check:", latestPeriod.startDate);
-                }
-                // --- End FIX 2 ---
-            }
-
-            // --- If basic checks pass (active & concluded), proceed with confirmation ---
-
-            const formatDate = (dateStr) => {
-                const options = { year: 'numeric', month: 'long', day: '2-digit' };
-                // Ensure parsing considers local timezone if input is just YYYY-MM-DD
-                const [year, month, day] = dateStr.split('-').map(Number);
-                const dateObj = new Date(year, month - 1, day); // Use local constructor
-                return new Intl.DateTimeFormat('en-US', options).format(dateObj);
-            };
-            const formattedStartDate = formatDate(startDate);
-            const formattedEndDate = formatDate(endDate);
-
-            let confirmation = confirm(
-                `Do you want to set ${formattedStartDate} - ${formattedEndDate} as the GFM Application Period for ${targetYear}?`
-            );
-
-            if (!confirmation) {
-                startDateInput.value = '';
-                endDateInput.value = '';
+            // --- Combined Validation ---
+            if (!appStartDate || !appEndDate || !assessStartDate || !assessEndDate) {
+                alert('Please fill in all start and end dates for both periods.');
+                periodSettingsFields.forEach(field => field.disabled = false);
                 return;
             }
 
-            // --- Attempt to Save (backend decides create/update/conflict) ---
-            await saveApplicationPeriod(key, startDate, endDate, false); // Initial attempt with force = false
+            // --- Date Validation ---
+            const appStartDateTime = new Date(appStartDate); // Renamed for clarity
+            const appEndDateTime = new Date(appEndDate);     // Renamed for clarity
+            const assessStartDateTime = new Date(assessStartDate);
+            const assessEndDateTime = new Date(assessEndDate);
+            const currentDate = new Date();
+            const currentDayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()); // Start of today
 
-        } catch (error) {
-            console.error('Error during pre-submission checks or save:', error);
-            // Display specific error if available, otherwise generic
-            alert(error.message || 'An error occurred. Please try again.');
-        }
-    });
+            if (isNaN(appStartDateTime.getTime()) || isNaN(appEndDateTime.getTime()) || isNaN(assessStartDateTime.getTime()) || isNaN(assessEndDateTime.getTime())) {
+                 alert('Invalid date format provided.');
+                 periodSettingsFields.forEach(field => field.disabled = false);
+                 return;
+            }
 
-    // --- saveApplicationPeriod function remains the same ---
-    // It correctly handles the 409 conflict response from the backend
-    const saveApplicationPeriod = async (key, startDate, endDate, force) => {
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        routeSettingsFields.forEach(field => { field.disabled = true; });
+            // --- NEW: Check Application Start Date vs Current Date ---
+            if (appStartDateTime < currentDayStart) {
+                 alert('Application Period start date cannot be set before the current date.');
+                 periodSettingsFields.forEach(field => field.disabled = false);
+                 return; // Stop if invalid
+            }
+            // --- End NEW ---
 
+            if (appEndDateTime < appStartDateTime) {
+                alert('Application End Date must be on or after Application Start Date.');
+                periodSettingsFields.forEach(field => field.disabled = false);
+                return;
+            }
+             if (assessEndDateTime < assessStartDateTime) {
+                alert('Assessment End Date must be on or after Assessment Start Date.');
+                periodSettingsFields.forEach(field => field.disabled = false);
+                return;
+            }
+            // --- FIX: Moved Assessment Start Date Check Higher ---
+            if (assessStartDateTime < appStartDateTime) {
+                 alert('Assessment Period start date must be on or after the Application Period start date.');
+                 periodSettingsFields.forEach(field => field.disabled = false);
+                 return; // Stop if invalid
+            }
+            // --- End FIX ---
+
+            // --- NEW: Check Assessment End Date vs Application End Date ---
+            if (assessEndDateTime < appEndDateTime) {
+                 alert('Assessment Period end date must be on or after the Application Period end date.');
+                 periodSettingsFields.forEach(field => field.disabled = false);
+                 return; // Stop if invalid
+            }
+            // --- End NEW ---
+
+            const targetYear = appStartDateTime.getFullYear(); // Use app start date year as target
+
+            // --- Frontend Pre-submission Checks (Active/Concluded) ---
+            try {
+                // Fetch the LATEST settings by key to check status
+                const latestPeriod = await fetchApplicationPeriod(appKey); // Gets the most recently saved/updated
+
+                if (latestPeriod) {
+                    // Active Check
+                    if (isSameOrAfterLocal(currentDayStart, latestPeriod.startDate) && isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate)) {
+                        alert('Cannot add/modify application period during an active application period. Please wait until the period ends.');
+                        periodSettingsFields.forEach(field => field.disabled = false); // Re-enable form
+                        return; // Stop submission
+                    }
+
+                    // Concluded Check
+                    const latestStartDate = new Date(latestPeriod.startDate);
+                    if (!isNaN(latestStartDate.getTime())) {
+                        const latestPeriodYear = latestStartDate.getFullYear();
+                        if (targetYear === latestPeriodYear && isSameOrAfterLocal(currentDayStart, latestPeriod.endDate) && !isSameOrBeforeLocal(currentDayStart, latestPeriod.endDate)) {
+                             alert(`An application period for ${targetYear} has already concluded. You cannot set a new period for this year.`);
+                             periodSettingsFields.forEach(field => field.disabled = false); // Re-enable form
+                             return; // Stop submission
+                        }
+                    } else {
+                        console.warn("Could not parse latestPeriod.startDate for concluded check:", latestPeriod.startDate);
+                    }
+                }
+
+                // --- If ALL checks pass, proceed with confirmation ---
+
+                const formatDate = (dateStr) => {
+                    const options = { year: 'numeric', month: 'long', day: '2-digit' };
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const dateObj = new Date(year, month - 1, day);
+                    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+                };
+                const formattedAppStart = formatDate(appStartDate);
+                const formattedAppEnd = formatDate(appEndDate);
+                const formattedAssessStart = formatDate(assessStartDate);
+                const formattedAssessEnd = formatDate(assessEndDate);
+
+                // --- FIX: Updated Confirmation Message ---
+                let confirmationMessage = `You want to set Application and Assessment Period for ${targetYear}:\n\n` +
+                                          `Application: ${formattedAppStart} - ${formattedAppEnd}\n` +
+                                          `Assessment: ${formattedAssessStart} - ${formattedAssessEnd}\n\n` +
+                                          `Proceed?`;
+                // --- End FIX ---
+
+                let confirmation = confirm(confirmationMessage);
+
+                if (!confirmation) {
+                    // Don't clear inputs, just re-enable
+                    periodSettingsFields.forEach(field => field.disabled = false);
+                    return; // Stop if user cancels
+                }
+
+                // --- Attempt to Save (backend decides create/update/conflict) ---
+                await saveCombinedPeriods({ appKey, appStartDate, appEndDate, assessKey, assessStartDate, assessEndDate, force: false }); // Initial attempt with force = false
+
+            } catch (error) {
+                console.error('Error during pre-submission checks or save:', error);
+                alert(error.message || 'An error occurred. Please try again.');
+                periodSettingsFields.forEach(field => field.disabled = false); // Re-enable form on error
+            }
+        });
+    } else {
+        console.warn("Period Settings Form not found.");
+    }
+
+    // --- Function to Save Combined Periods ---
+    const saveCombinedPeriods = async (periodData) => {
+        // periodData contains: appKey, appStartDate, appEndDate, assessKey, assessStartDate, assessEndDate, force
         try {
+            // Use the Application Period POST endpoint, modified to accept assessment data
             const response = await fetch('/admin/application-period', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key, startDate, endDate, force }),
+                body: JSON.stringify(periodData), // Send all data
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message || 'GFM Application Period saved successfully!');
-                await fetchAndStoreApplicationPeriod(); // Re-fetch latest and update UI
-                routeSettingsFields.forEach(field => { field.disabled = false; });
+                alert(data.message || 'Application and Assessment Periods saved successfully!');
+                await fetchAndStorePeriods(); // Re-fetch latest and update UI
+                periodSettingsFields.forEach(field => field.disabled = false); // Re-enable form
 
-            } else if (response.status === 409 && data.conflict) {
+            } else if (response.status === 409 && data.conflict) { // Handle potential overwrite conflict from backend
                 console.warn('Backend detected conflict:', data.message);
                 const forceConfirmation = confirm(data.message + "\n\nDo you want to overwrite?");
 
                 if (forceConfirmation) {
-                    await saveApplicationPeriod(key, startDate, endDate, true); // Resend with force = true
+                    // Resend with force = true
+                    await saveCombinedPeriods({ ...periodData, force: true });
                 } else {
                     alert('Operation cancelled.');
-                    startDateInput.value = '';
-                    endDateInput.value = '';
-                    routeSettingsFields.forEach(field => { field.disabled = false; });
+                    // Don't clear inputs, just re-enable
+                    periodSettingsFields.forEach(field => field.disabled = false);
                 }
             } else {
                  // Handle other errors (400, 403, 500 etc.)
-                 // Throwing error here will be caught by the outer catch block
-                 throw new Error(data.error || data.message || `Failed to save settings (Status: ${response.status})`);
+                 throw new Error(data.error || data.message || `Failed to save periods (Status: ${response.status})`);
             }
 
         } catch (error) {
-            // Re-enable fields even if save fails after confirmation
-            routeSettingsFields.forEach(field => { field.disabled = false; });
+            // Re-enable fields if save fails after confirmation
+            periodSettingsFields.forEach(field => field.disabled = false);
             // Re-throw the error to be caught by the outer handler which shows the alert
             throw error;
         }
     };
 
-    // Tab functionality
+    // --- Tab functionality ---
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -965,4 +1081,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- SUBMISSIONS TAB ---
     
 });
-

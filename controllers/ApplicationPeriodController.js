@@ -1,141 +1,108 @@
 const ApplicationPeriod = require('../models/ApplicationPeriod');
+const AssessmentPeriod = require('../models/AssessmentPeriod'); // Import AssessmentPeriod model
 
+// Helper function for date comparison (ignoring time)
+const isSameOrAfter = (date1, date2) => {
+    if (!date1 || !date2) return false;
+    const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+    const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+    return d1 >= d2;
+};
+
+// --- Modified to save BOTH periods ---
 module.exports.saveApplicationPeriod = async (req, res) => {
     try {
-        // ... (user auth, body parsing, basic date validation remain the same) ...
-        if (!req.user || req.user.roles !== 'Admin') {
+        if (!req.user || !req.user.roles.includes('Admin')) { // Check if roles array includes 'Admin'
             return res.status(403).json({ error: 'You do not have permission to perform this action.' });
         }
-        const { key, startDate: newStartDateStr, endDate: newEndDateStr, force } = req.body;
-        if (!key || !newStartDateStr || !newEndDateStr) {
-            return res.status(400).json({ error: 'Key, start date, and end date are required.' });
-        }
-        const newStartDate = new Date(newStartDateStr);
-        const newEndDate = new Date(newEndDateStr);
-        const currentDate = new Date(); // Get current date/time
-        // --- Normalize currentDate to the START of its day (local time) for comparison ---
-        const currentDayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
 
-        if (isNaN(newStartDate.getTime()) || isNaN(newEndDate.getTime())) {
+        const {
+            appKey = 'JoinGFM', appStartDate: appStartDateStr, appEndDate: appEndDateStr,
+            assessKey = 'GFMAssessment', assessStartDate: assessStartDateStr, assessEndDate: assessEndDateStr,
+            force = false // Get force flag
+        } = req.body;
+
+        // --- Validate Input Dates ---
+        if (!appStartDateStr || !appEndDateStr || !assessStartDateStr || !assessEndDateStr) {
+            return res.status(400).json({ error: 'All start and end dates for both periods are required.' });
+        }
+
+        const appStartDate = new Date(appStartDateStr);
+        const appEndDate = new Date(appEndDateStr);
+        const assessStartDate = new Date(assessStartDateStr);
+        const assessEndDate = new Date(assessEndDateStr);
+
+        if (isNaN(appStartDate.getTime()) || isNaN(appEndDate.getTime()) || isNaN(assessStartDate.getTime()) || isNaN(assessEndDate.getTime())) {
              return res.status(400).json({ error: 'Invalid date format provided.' });
         }
-        if (newEndDate < newStartDate) {
-            return res.status(400).json({ error: 'End date cannot be before start date.' });
+        if (appEndDate < appStartDate) {
+            return res.status(400).json({ error: 'Application End Date cannot be before Application Start Date.' });
         }
-        const targetYear = newStartDate.getFullYear();
+        if (assessEndDate < assessStartDate) {
+            return res.status(400).json({ error: 'Assessment End Date cannot be before Assessment Start Date.' });
+        }
+        // *** The Core Check ***
+        if (assessStartDate < appStartDate) {
+             return res.status(400).json({ error: 'Assessment Period start date must be on or after the Application Period start date.' });
+        }
 
-        // --- Find ANY period for the target year ---
-        const periodInTargetYear = await ApplicationPeriod.findOne({
-            key: key,
-            $or: [
-                { startDate: { $gte: new Date(targetYear, 0, 1), $lt: new Date(targetYear + 1, 0, 1) } },
-                { endDate: { $gte: new Date(targetYear, 0, 1), $lt: new Date(targetYear + 1, 0, 1) } }
-            ]
-        });
+        // --- Conflict/Overwrite Checks (Focus on Application Period for now) ---
+        const existingAppPeriod = await ApplicationPeriod.findOne({ key: appKey });
+        const currentDateTime = new Date();
 
-        // --- Find the latest period matching the key ---
-        let periodToUpdate = await ApplicationPeriod.findOne({ key }).sort({ updatedAt: -1 }); // Get latest
+        if (!force && existingAppPeriod) {
+            const existingAppStart = new Date(existingAppPeriod.startDate);
+            const existingAppEnd = new Date(existingAppPeriod.endDate);
 
-        // --- Helper function for date comparison (ignoring time) ---
-        const isSameOrAfter = (date1, date2) => {
-            const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
-            const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
-            return d1 >= d2;
-        };
-        const isAfter = (date1, date2) => {
-            const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
-            const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
-            return d1 > d2;
-        };
-        const isSameOrBefore = (date1, date2) => {
-             const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
-             const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
-             return d1 <= d2;
-        };
-
-
-        // --- Check 1: Prevent modification if ANY period (the latest one) is currently active ---
-        if (periodToUpdate) {
-            const existingStartDate = new Date(periodToUpdate.startDate);
-            const existingEndDate = new Date(periodToUpdate.endDate);
-
-            // Compare using date parts only
-            if (isSameOrAfter(currentDayStart, existingStartDate) && isSameOrBefore(currentDayStart, existingEndDate)) {
-                return res.status(403).json({ error: 'Cannot modify settings during an active application period. Please wait until the period ends.' });
+            // Check if trying to set a period for a year that already has a concluded period
+            if (appStartDate.getFullYear() === existingAppStart.getFullYear() && currentDateTime > existingAppEnd) {
+                 return res.status(409).json({
+                     conflict: true,
+                     message: `An application period for ${appStartDate.getFullYear()} has already concluded. Overwriting is generally not recommended.`
+                 });
             }
-        }
-
-        // --- Check 2: Prevent saving if a period for the target year already exists and is finished ---
-        if (periodInTargetYear) {
-            const conflictEndDate = new Date(periodInTargetYear.endDate);
-            // Compare using date parts only
-            if (isAfter(currentDayStart, conflictEndDate)) {
-                return res.status(403).json({ error: `An application period for ${targetYear} has already concluded. You cannot set a new period for this year.` });
+            // Check if trying to modify during an active period
+            if (currentDateTime >= existingAppStart && currentDateTime <= existingAppEnd) {
+                 return res.status(409).json({ // Use 409 Conflict
+                     conflict: true, // Indicate it's a conflict the user might override
+                     message: 'Cannot modify period settings during an active application period.'
+                 });
             }
+            // Add more specific overlap checks if needed
+        }
+        // --- End Conflict Checks ---
+
+        // --- Save/Update Application Period ---
+        const appUpdateResult = await ApplicationPeriod.updateOne(
+            { key: appKey },
+            { $set: { startDate: appStartDate, endDate: appEndDate, key: appKey } },
+            { upsert: true }
+        );
+
+        // --- Save/Update Assessment Period ---
+        const assessUpdateResult = await AssessmentPeriod.updateOne(
+            { key: assessKey },
+            { $set: { startDate: assessStartDate, endDate: assessEndDate, key: assessKey } },
+            { upsert: true }
+        );
+
+        // --- Determine Response Message ---
+        let message = "Application and Assessment Periods saved successfully.";
+        if (appUpdateResult.upsertedCount > 0 || assessUpdateResult.upsertedCount > 0) {
+            message = "Application and Assessment Periods created successfully.";
+        } else if (appUpdateResult.modifiedCount > 0 || assessUpdateResult.modifiedCount > 0) {
+            message = "Application and Assessment Periods updated successfully.";
         }
 
-        // --- Determine Action: Create or Update ---
-        let action = 'create'; // Default action
-        if (periodToUpdate) {
-            const existingStartDate = new Date(periodToUpdate.startDate); // Get date object
-            if (existingStartDate.getFullYear() === targetYear) { // Compare year from date object
-                action = 'update';
-            }
-        }
-
-
-        // --- Check 3: If updating, prevent if the existing period has already started ---
-        if (action === 'update') {
-            const existingStartDate = new Date(periodToUpdate.startDate);
-            // Compare using date parts only
-            if (isSameOrAfter(currentDayStart, existingStartDate)) {
-                 return res.status(403).json({ error: `Cannot update the application period for ${targetYear} because it has already started or is active.` });
-            }
-        }
-
-        // --- Check 4: Handle confirmation for overwriting/modifying in the target year ---
-        // ... (rest of the conflict check logic remains the same) ...
-        if (periodInTargetYear && !force) {
-             const existingStartFormatted = new Date(periodInTargetYear.startDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-             const existingEndFormatted = new Date(periodInTargetYear.endDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-             const existingRange = `${existingStartFormatted}-${existingEndFormatted}`;
-             let message = '';
-
-             if (action === 'update' && periodToUpdate._id.toString() === periodInTargetYear._id.toString()) {
-                 message = `You are modifying the existing application period (${existingRange}) for ${targetYear}. Are you sure you want to proceed?`;
-             } else {
-                 message = `An application period (${existingRange}) already exists for ${targetYear}. Are you sure you want to overwrite it?`;
-             }
-
-             return res.status(409).json({
-                 conflict: true,
-                 message: message,
-                 existingPeriod: periodInTargetYear
-             });
-        }
-
-
-        // --- Proceed with Save/Update ---
-        // ... (save/update logic remains the same) ...
-        if (action === 'update') {
-            periodToUpdate.startDate = newStartDate;
-            periodToUpdate.endDate = newEndDate;
-            await periodToUpdate.save();
-            res.status(200).json({ message: `Application period for ${targetYear} updated successfully.` });
-        } else { // action === 'create'
-            const newSettings = new ApplicationPeriod({ key, startDate: newStartDate, endDate: newEndDate });
-            await newSettings.save();
-            res.status(201).json({ message: `Application period for ${targetYear} created successfully.` });
-        }
+        res.status(appUpdateResult.upsertedCount > 0 || assessUpdateResult.upsertedCount > 0 ? 201 : 200).json({ message });
 
     } catch (error) {
-        console.error('Error saving application period:', error);
-        res.status(500).json({ error: 'Failed to save application period.' });
+        console.error('Error saving periods:', error);
+        res.status(500).json({ error: 'Failed to save periods.' });
     }
 };
 
-// --- getApplicationPeriod remains the same ---
-// ... (code for getApplicationPeriod) ...
+// getApplicationPeriod remains the same
 module.exports.getApplicationPeriod = async (req, res) => {
     const { key } = req.query;
     try {
