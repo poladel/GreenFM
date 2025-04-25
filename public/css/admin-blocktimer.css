@@ -104,6 +104,7 @@
   padding: 2vw;
   border-radius: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2vw;
 }
 
 .schedule-container label {
@@ -185,11 +186,6 @@
   height: 100%;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
-}
-
-/* Prevent background scroll when modal is open */
-body.modal-open {
-  overflow: hidden;
 }
 
 /* Modal Content Box */

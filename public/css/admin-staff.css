@@ -124,6 +124,7 @@
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2vw;
   }
   
   .schedule-table th,
@@ -169,7 +170,7 @@
   /*--- MODAL ---*/
   .modal {
     position: fixed;
-    z-index: 1000;
+    z-index: 9999;
     left: 0;
     top: 0;
     width: 100%;
@@ -190,17 +191,6 @@
     animation: fadeIn 0.3s ease;
   }
   
-  @keyframes fadeIn {
-    from {
-      transform: translateY(-10px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-  
   .modal-content h3 {
     color: #00722A;
     margin-top: 0;
@@ -216,7 +206,7 @@
   }
   
   .modal-content input[type="text"] {
-    width: 100%;
+    width: 96%;
     padding: 10px;
     margin-bottom: 1vh;
     border-radius: 10px;
@@ -241,6 +231,24 @@
     background-color: #005e23;
     transform: scale(1.03);
   }
+
+  .delete-button {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    margin-top: 1vh;
+  }
+
+  .delete-button :hover{
+    background-color: #005e23;
+    transform: scale(1.03);
+  }
   
   .close {
     float: right;
@@ -253,12 +261,14 @@
   
   .close:hover {
     color: #000;
-  }
+  } 
   
   /*--- SUBMISSIONS TAB ---*/
   #submissions-tab {
     margin-left: 5vw;
     margin-right: 5vw;
+    margin-top: 1.5vw;
+    margin-bottom: 2vw;
     background-color: white;
     padding: 2vw;
     border-radius: 15px;
