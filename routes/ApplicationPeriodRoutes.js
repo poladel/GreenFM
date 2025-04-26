@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ApplicationPeriodController = require('../controllers/applicationPeriodController');
+const ApplicationPeriodController = require('../controllers/ApplicationPeriodController');
 const AssessmentPeriodController = require('../controllers/assessmentPeriodController'); // Keep for GET
 const joinGFMController = require('../controllers/joinGFMController'); // Add if not already present
 const { requireAuth, checkRoles } = require('../middleware/authMiddleware');
