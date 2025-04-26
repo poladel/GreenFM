@@ -2,26 +2,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Element References ---
     const scheduleGrid = document.getElementById('scheduleGrid');
     const scheduleButtons = scheduleGrid ? Array.from(scheduleGrid.querySelectorAll('.schedule-button')) : [];
-    const weekFilterDropdown = document.getElementById('weekFilter'); // Ensure this ID matches your EJS
-    const departmentFilter = document.getElementById('departmentFilter'); // Ensure this ID matches your EJS
-    const modal = document.getElementById('scheduleModal');
-    const closeModalButton = modal?.querySelector('.close'); // Use optional chaining
-    const applicationDetailsView = document.getElementById('applicationDetailsView');
-    // const scheduleFormView = document.getElementById('scheduleFormView'); // Remove if form view is gone
-
-    // Keep existing display elements for periods if they exist in your EJS
+    const weekFilterDropdown = document.getElementById('weekFilter');
+    const departmentFilter = document.getElementById('departmentFilter'); // Used by both tabs
+    const scheduleModal = document.getElementById('scheduleModal'); // Existing modal for schedule details
+    const scheduleModalCloseButton = scheduleModal?.querySelector('.close'); // Close button for schedule modal
+    const applicationDetailsView = document.getElementById('applicationDetailsView'); // Content within schedule modal
     const existingApplicationPeriodElement = document.getElementById('existingApplicationPeriod');
     const existingAssessmentPeriodElement = document.getElementById('existingAssessmentPeriod');
+    const periodSettingsForm = document.getElementById('periodSettingsForm'); // Form for setting periods
+
+    // --- Submission Tab Element References ---
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    const submissionYearFilter = document.getElementById('submissionYearFilter');
+    const submissionStatusFilter = document.getElementById('submissionStatusFilter');
+    const submissionDepartmentFilter = document.getElementById('submissionDepartmentFilter'); // Filter for submissions tab
+    const submissionsTableBody = document.getElementById('submissionsTableBody');
+    // --- MODIFIED/NEW References ---
+    const submissionDetailView = document.getElementById('submissionDetailView'); // The container div (always visible)
+    const submissionDetailContentInline = document.getElementById('submissionDetailContentInline'); // Content within the div
+    // --- REMOVED closeSubmissionDetailBtn ---
+    const submissionResultUpdate = document.getElementById('submissionResultUpdate'); // Dropdown (keep)
+    const saveSubmissionResultBtn = document.getElementById('saveSubmissionResultBtn'); // Save button (keep)
 
     // --- State Variables ---
     let currentApplicationPeriod = null;
     let currentAssessmentPeriod = null;
-    let currentYear = new Date().getFullYear();
+    let currentYear = new Date().getFullYear().toString(); // Use string for consistency
+    let currentSelectedSubmissionId = null; // To store ID for saving result
 
     // --- Helper Functions ---
-
-    // Helper to parse YYYY-MM-DD to local midnight Date object
     const parseDateStringToLocalMidnight = (dateStr) => {
+        // Helper to parse YYYY-MM-DD to local midnight Date object
         if (!dateStr) return new Date(NaN);
         const parts = dateStr.split('-');
         if (parts.length !== 3) return new Date(NaN);
@@ -33,57 +45,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Period Fetching and Display ---
-
-    // Fetch Application Period (Keep if needed for display or validation)
     const fetchApplicationPeriod = async (key = 'JoinGFM', year = null) => {
         try {
-            let url = `/admin/application-period?key=${key}`;
+            let url = `/admin/application-period?key=${key}`; // FIX: Use singular 'application-period'
             if (year) url += `&year=${year}`;
+            console.log("Fetching application period from:", url);
             const response = await fetch(url);
-            if (!response.ok) {
-                if (response.status === 404) return null;
-                throw new Error(`Failed to fetch application period: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching application period:', error);
-            return null;
-        }
-    };
+            console.log(`[fetchApplicationPeriod] Response Status: ${response.status}`); // More specific log
 
-    // Fetch Assessment Period (Crucial for week dropdown)
-    const fetchAssessmentPeriod = async (year = null) => {
-        try {
-            let url = `/admin/assessment-period`; // Base URL
-            if (year) {
-                // --- FIX: Use '?' to start query string ---
-                url += `?year=${year}`;
-                // --- END FIX ---
-            }
-            console.log("Fetching assessment period from URL:", url); // Add log to verify
-            const response = await fetch(url);
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.warn(`Assessment period not found for year ${year}`);
-                    return null; // Not found is okay, handle it later
+                    console.warn(`[fetchApplicationPeriod] Application period not found for key=${key}, year=${year}`);
+                    return null; // Explicitly return null on 404
                 }
-                // Log error details for other statuses
-                const errorText = await response.text();
-                console.error(`Failed to fetch assessment period (${response.status}): ${errorText}`);
-                throw new Error(`Failed to fetch assessment period: ${response.statusText}`);
+                let errorText = `Status: ${response.statusText}`;
+                try {
+                    errorText = await response.text();
+                } catch (textError) {
+                    console.error("[fetchApplicationPeriod] Could not read error response text:", textError);
+                }
+                console.error(`[fetchApplicationPeriod] Failed (${response.status}): ${errorText}`);
+                throw new Error(`Failed to fetch application period: ${response.statusText}`);
             }
-            return await response.json();
+
+            const data = await response.json();
+            console.log("[fetchApplicationPeriod] Data received:", data); // Log the parsed data
+            if (typeof data === 'undefined') {
+                console.warn("[fetchApplicationPeriod] response.json() resulted in undefined. Returning null.");
+                return null;
+            }
+            return data;
+
         } catch (error) {
-            console.error('Error fetching assessment period:', error);
-            return null;
+            console.error('[fetchApplicationPeriod] Error caught:', error);
+            return null; // Explicitly return null on any error
         }
     };
 
-    // Display Existing Application Period (Keep if element exists)
+    const fetchAssessmentPeriod = async (year = null) => {
+         try {
+            let url = `/admin/assessment-period`; // FIX: Use singular 'assessment-period'
+            if (year) url += `?year=${year}`;
+            console.log("Fetching assessment period from URL:", url);
+            const response = await fetch(url);
+            console.log(`[fetchAssessmentPeriod] Response Status: ${response.status}`); // More specific log
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.warn(`[fetchAssessmentPeriod] Assessment period not found for year ${year}`);
+                    return null; // Explicitly return null on 404
+                }
+                let errorText = `Status: ${response.statusText}`;
+                try {
+                    errorText = await response.text();
+                } catch (textError) {
+                     console.error("[fetchAssessmentPeriod] Could not read error response text:", textError);
+                }
+                console.error(`[fetchAssessmentPeriod] Failed (${response.status}): ${errorText}`);
+                throw new Error(`Failed to fetch assessment period: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("[fetchAssessmentPeriod] Data received:", data); // Log the parsed data
+            if (typeof data === 'undefined') {
+                console.warn("[fetchAssessmentPeriod] response.json() resulted in undefined. Returning null.");
+                return null;
+            }
+            return data;
+
+        } catch (error) {
+            console.error('[fetchAssessmentPeriod] Error caught:', error);
+            return null; // Explicitly return null on any error
+        }
+    };
+
     const displayExistingApplicationPeriod = () => {
         if (!existingApplicationPeriodElement) return;
-        if (currentApplicationPeriod) {
-            const start = currentApplicationPeriod.startDate ? new Date(currentApplicationPeriod.startDate).toLocaleDateString() : 'N/A';
+        if (currentApplicationPeriod && currentApplicationPeriod.startDate) {
+            const start = new Date(currentApplicationPeriod.startDate).toLocaleDateString();
             const end = currentApplicationPeriod.endDate ? new Date(currentApplicationPeriod.endDate).toLocaleDateString() : 'N/A';
             existingApplicationPeriodElement.textContent = `Current Application Period (${currentApplicationPeriod.year}): ${start} - ${end}`;
         } else {
@@ -91,11 +130,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Display Existing Assessment Period (Keep if element exists)
     const displayExistingAssessmentPeriod = () => {
         if (!existingAssessmentPeriodElement) return;
-        if (currentAssessmentPeriod) {
-            const start = currentAssessmentPeriod.startDate ? new Date(currentAssessmentPeriod.startDate).toLocaleDateString() : 'N/A';
+        if (currentAssessmentPeriod && currentAssessmentPeriod.startDate) {
+            const start = new Date(currentAssessmentPeriod.startDate).toLocaleDateString();
             const end = currentAssessmentPeriod.endDate ? new Date(currentAssessmentPeriod.endDate).toLocaleDateString() : 'N/A';
             existingAssessmentPeriodElement.textContent = `Current Assessment Period (${currentAssessmentPeriod.year}): ${start} - ${end}`;
         } else {
@@ -103,14 +141,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Populate Week Dropdown based on Assessment Period
     const populateWeekDropdown = () => {
         if (!weekFilterDropdown) {
              console.error("Week filter dropdown not found.");
              return false;
         }
-        weekFilterDropdown.innerHTML = '<option value="" disabled selected>Select Week</option>'; // Reset
-        weekFilterDropdown.disabled = true; // Disable initially
+        weekFilterDropdown.innerHTML = '<option value="" disabled selected>Select Week</option>';
+        weekFilterDropdown.disabled = true;
 
         if (!currentAssessmentPeriod || !currentAssessmentPeriod.startDate || !currentAssessmentPeriod.endDate) {
             weekFilterDropdown.innerHTML = '<option value="" disabled selected>Set Assessment Period</option>';
@@ -173,7 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
              return false;
         }
     };
-
 
     // --- Schedule Display and Interaction ---
 
@@ -309,7 +345,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         button.style.whiteSpace = 'pre-line';
                         button.style.fontSize = '0.7em';
                         button.style.lineHeight = '1.2';
-                        const detailsForModal = { /* ... */ };
+                        const detailsForModal = {
+                            lastName: slotData.application.lastName,
+                            firstName: slotData.application.firstName,
+                            middleInitial: slotData.application.middleInitial,
+                            suffix: slotData.application.suffix,
+                            section: slotData.application.section,
+                            dlsudEmail: slotData.application.dlsudEmail,
+                            studentNumber: slotData.application.studentNumber,
+                            preferredDepartment: slotData.application.preferredDepartment,
+                            preferredSchedule: `${slotData.date} (${slotData.time})`
+                        };
                         button.dataset.applicationDetails = JSON.stringify(detailsForModal);
 
                     } else {
@@ -332,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 button.disabled = true;
             }
         }); // End scheduleButtons.forEach
-    }; // End displaySchedules
+    };
 
     // Function to mark a slot as available via API call
     const makeSlotAvailableForAssessment = async (date, time, department, year) => {
@@ -394,244 +440,412 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Event Listeners ---
+    // --- Submission Tab Functions ---
+    const fetchDistinctSubmissionYears = async () => {
+        try {
+            const response = await fetch('/admin/submission-years'); // Ensure this route exists and is mounted correctly
+            if (!response.ok) {
+                throw new Error(`Failed to fetch submission years: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching submission years:', error);
+            return [currentYear]; // Fallback
+        }
+    };
 
-    // Listen for changes on the week and department filters
-    if (weekFilterDropdown) {
-        weekFilterDropdown.addEventListener('change', handleWeekChange);
-    } else {
-        console.error("Week filter dropdown element not found.");
-    }
-    if (departmentFilter) {
-        departmentFilter.addEventListener('change', handleWeekChange);
-    } else {
-        console.error("Department filter element not found.");
-    }
+    const populateSubmissionYearFilter = (years) => {
+        if (!submissionYearFilter) return;
+        submissionYearFilter.innerHTML = '';
+        let currentYearExists = false;
+        years.forEach(year => {
+            const option = new Option(year, year);
+            submissionYearFilter.add(option);
+            if (year === currentYear) {
+                currentYearExists = true;
+            }
+        });
+        if (currentYearExists) {
+            submissionYearFilter.value = currentYear;
+        } else if (years.length > 0) {
+            submissionYearFilter.value = years[0];
+            // currentYear = years[0]; // Don't change the global currentYear based on submissions only
+        } else {
+             submissionYearFilter.innerHTML = '<option value="">No Data</option>';
+             submissionYearFilter.disabled = true;
+        }
+    };
 
+    const fetchSubmissions = async () => {
+        if (!submissionYearFilter || !submissionStatusFilter || !submissionDepartmentFilter) {
+            console.error("Submission filter elements not found.");
+            return [];
+        }
+        const year = submissionYearFilter.value;
+        const status = submissionStatusFilter.value;
+        const department = submissionDepartmentFilter.value;
 
-    // Add click listeners to schedule buttons
-    scheduleButtons.forEach(button => {
-        // --- ENSURE 'async' IS PRESENT HERE ---
-        button.addEventListener('click', async () => {
-            const isBookedButton = button.classList.contains('bookedbtn');
-            const isMarkedAvailableButton = button.classList.contains('marked-available');
-            const isAvailableButton = button.classList.contains('availablebtn');
+        if (!year) {
+            console.log("Submission year not selected.");
+            if (submissionsTableBody) submissionsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">Please select a year.</td></tr>`;
+            return [];
+        }
 
-            if (isBookedButton) {
-                // --- Handle Booked Button Click (Show Applicant Modal) ---
-                console.log("Booked slot clicked.");
-                const appDataString = button.dataset.applicationDetails;
-                if (appDataString && applicationDetailsView && modal) {
-                    try {
-                        const appDetails = JSON.parse(appDataString);
-                        console.log("Populating modal with:", appDetails);
+        try {
+            const url = `/admin/submissions?year=${year}&status=${status}&department=${encodeURIComponent(department)}`;
+            console.log("Fetching submissions from:", url);
+            const response = await fetch(url); // Ensure this route exists and is mounted correctly
+            if (!response.ok) {
+                throw new Error(`Failed to fetch submissions: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching submissions:', error);
+            if (submissionsTableBody) {
+                submissionsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red; padding: 15px;">Error loading submissions.</td></tr>`;
+            }
+            return [];
+        }
+    };
 
-                        // --- Populate modal fields with required details ---
-                        const fullName = `${appDetails.lastName}, ${appDetails.firstName}${appDetails.middleInitial ? ' ' + appDetails.middleInitial + '.' : ''}${appDetails.suffix ? ' ' + appDetails.suffix : ''}`;
+    const renderSubmissionsTable = (submissions) => {
+        if (!submissionsTableBody) return;
+        submissionsTableBody.innerHTML = '';
 
-                        applicationDetailsView.querySelector('#appName').value = fullName; // Use constructed full name
-                        applicationDetailsView.querySelector('#appSection').value = appDetails.section;
-                        applicationDetailsView.querySelector('#appEmail').value = appDetails.dlsudEmail;
-                        applicationDetailsView.querySelector('#appStudentNum').value = appDetails.studentNumber;
-                        applicationDetailsView.querySelector('#appDepartment').value = appDetails.preferredDepartment;
-                        applicationDetailsView.querySelector('#appPreferredSchedule').value = appDetails.preferredSchedule; // Use combined schedule string
-                        // ---
+        if (!submissions || submissions.length === 0) {
+            submissionsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">No submissions found matching the criteria.</td></tr>`;
+            return;
+        }
 
-                        // Show the applicant details view and the modal
-                        applicationDetailsView.style.display = 'block';
-                        modal.style.display = 'block';
+        submissions.forEach(sub => {
+            const row = submissionsTableBody.insertRow();
+            const name = `${sub.lastName}, ${sub.firstName}${sub.middleInitial ? ' ' + sub.middleInitial + '.' : ''}${sub.suffix ? ' ' + sub.suffix : ''}`;
+            row.insertCell().textContent = name;
+            row.insertCell().textContent = sub.studentNumber;
+            row.insertCell().textContent = sub.preferredDepartment;
+            row.insertCell().textContent = sub.result;
+            const actionCell = row.insertCell();
+            actionCell.style.textAlign = 'center';
+            const selectButton = document.createElement('button');
+            selectButton.textContent = 'Select';
+            selectButton.classList.add('select-submission-btn');
+            selectButton.dataset.id = sub._id;
+            selectButton.addEventListener('click', handleSelectSubmission);
+            actionCell.appendChild(selectButton);
+        });
+    };
 
-                    } catch (e) {
-                        console.error("Error parsing/displaying application details:", e);
-                        alert("Could not display applicant details.");
-                    }
-                } else {
-                    console.error("Could not retrieve application details from button dataset or modal elements not found.");
-                    if (!applicationDetailsView) console.error("applicationDetailsView element not found");
-                    if (!modal) console.error("scheduleModal element not found");
-                    alert("Could not retrieve applicant details.");
-                }
-            } else if (isMarkedAvailableButton) {
-                // --- Handle Marked Available Button Click (Confirm Unmarking) ---
-                const dayName = button.getAttribute('data-day');
-                const time = button.getAttribute('data-time');
-                const selectedWeekStartDate = weekFilterDropdown.value;
-                const isWeekViewActive = selectedWeekStartDate && !weekFilterDropdown.disabled;
-                const currentDepartment = departmentFilter.value;
-                const slotId = button.dataset.slotId; // Get slot ID
+    // --- NEW: Function to clear/reset the detail view ---
+    const clearSubmissionDetailView = () => {
+        if (submissionDetailContentInline) {
+            // Find elements by data-field attribute
+            const fullNameField = submissionDetailContentInline.querySelector('[data-field="fullName"]');
+            const otherFields = submissionDetailContentInline.querySelectorAll('[data-field]:not([data-field="fullName"])');
 
-                if (!isWeekViewActive || !slotId) { // Check slotId too
-                    alert("Please select a specific week and ensure the slot ID is available.");
-                    return;
-                }
-                if (!currentDepartment) {
-                    alert("Please select a department.");
-                    return;
-                }
+            if (fullNameField) {
+                fullNameField.value = '--- Select a submission ---'; // Set value for input/textarea
+            }
+            otherFields.forEach(field => {
+                field.value = '---'; // Set value for input/textarea
+            });
+        }
+        if (submissionResultUpdate) {
+            submissionResultUpdate.value = 'Pending'; // Reset dropdown
+            submissionResultUpdate.disabled = true; // Disable dropdown
+        }
+        if (saveSubmissionResultBtn) {
+            saveSubmissionResultBtn.disabled = true; // Disable save button
+        }
+        currentSelectedSubmissionId = null; // Clear selection ID
+        // De-highlight selected row (optional)
+        if (submissionsTableBody) {
+            submissionsTableBody.querySelectorAll('tr.selected-row').forEach(row => row.classList.remove('selected-row'));
+        }
+    };
 
-                // Calculate the specific date for the clicked button
-                let buttonDate; // Keep Date object for comparison
-                let clickedButtonDateString = '';
-                let formattedClickedButtonDate = '';
-                let clickedButtonYear = '';
-                try {
-                    // ... (date calculation logic - keep as is) ...
-                    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
-                    if (dayIndex === -1) throw new Error(`Invalid day name: ${dayName}`);
-                    buttonDate = parseDateStringToLocalMidnight(selectedWeekStartDate); // Assign to buttonDate
-                    if (isNaN(buttonDate.getTime())) throw new Error(`Invalid week start date: ${selectedWeekStartDate}`);
-                    const weekStartDayIndex = buttonDate.getDay();
-                    let daysToAdd = dayIndex - weekStartDayIndex;
-                    buttonDate.setDate(buttonDate.getDate() + daysToAdd);
-                    clickedButtonYear = buttonDate.getFullYear().toString();
-                    const month = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
-                    const day = buttonDate.getDate().toString().padStart(2, '0');
-                    clickedButtonDateString = `${clickedButtonYear}-${month}-${day}`;
-                    // Use a format that includes the day name if desired, or keep existing format
-                    formattedClickedButtonDate = buttonDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    // --- MODIFIED: Clear detail view when filters change ---
+    const handleSubmissionFilterChange = async () => {
+        clearSubmissionDetailView(); // Clear details first
+        const submissions = await fetchSubmissions();
+        renderSubmissionsTable(submissions);
+    };
 
-                } catch (dateError) {
-                    console.error("Error calculating specific date for button click:", dateError);
-                    alert("Error determining the date for this slot.");
-                    return;
-                }
+    // --- MODIFIED: Populate the always-visible view ---
+    const handleSelectSubmission = async (event) => {
+        const button = event.target;
+        const submissionId = button.dataset.id;
+        if (!submissionId) return;
 
-                // --- Compare dates for deletion condition ---
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Set today to midnight for fair comparison
+        // Highlight selected row (optional)
+        if (submissionsTableBody) {
+            submissionsTableBody.querySelectorAll('tr.selected-row').forEach(row => row.classList.remove('selected-row'));
+            button.closest('tr')?.classList.add('selected-row');
+        }
 
-                if (today < buttonDate) {
-                    // Current date is BEFORE the slot date - Allow deletion (unmarking)
-                    // --- UPDATED Confirmation Message ---
-                    const confirmationMessage = `${formattedClickedButtonDate} (${dayName}) ${time} is currently marked as available. Do you want to unmark it?`;
-                    // --- END UPDATED ---
-                    const confirmation = confirm(confirmationMessage);
+        currentSelectedSubmissionId = submissionId;
 
-                    if (confirmation) {
-                        // Call function to delete the slot in DB
-                        await deleteAvailableSlot(slotId);
+        console.log("Fetching details for submission:", submissionId);
+        try {
+            const response = await fetch(`/admin/submissions?id=${submissionId}`);
+            if (!response.ok) throw new Error(`Failed to fetch submission details: ${response.statusText}`);
+            const submissions = await response.json();
+            if (!submissions || submissions.length === 0) throw new Error('Submission details not found.');
+            const details = submissions[0];
+
+            // Populate the inline view using input/textarea values
+            if (submissionDetailContentInline) {
+                // Helper function to set value safely
+                const setFieldValue = (fieldName, value) => {
+                    const field = submissionDetailContentInline.querySelector(`[data-field="${fieldName}"]`);
+                    if (field) {
+                        field.value = value || 'N/A'; // Set value, fallback to 'N/A'
                     } else {
-                        console.log("Operation cancelled by admin.");
+                        console.warn(`Field with data-field="${fieldName}" not found.`);
                     }
-                } else {
-                     // Current date is ON or AFTER the slot date - Prevent deletion
-                     alert(`Cannot unmark an available schedule on or after its date (${formattedClickedButtonDate}).`);
+                };
+
+                // Populate fields using data-field attributes
+                setFieldValue('fullName', `${details.lastName}, ${details.firstName}${details.middleInitial ? ' ' + details.middleInitial + '.' : ''}${details.suffix ? ' ' + details.suffix : ''}`);
+                setFieldValue('studentNumber', details.studentNumber);
+                setFieldValue('dlsudEmail', details.dlsudEmail);
+                setFieldValue('college', details.college);
+                setFieldValue('program', details.program);
+                setFieldValue('collegeYearSection', details.collegeYear && details.section ? `${details.collegeYear} / ${details.section}` : 'N/A');
+                setFieldValue('facebookUrl', details.facebookUrl);
+                setFieldValue('affiliatedOrgsList', details.affiliatedOrgsList?.notApplicable ? 'N/A' : details.affiliatedOrgsList?.listInput);
+                setFieldValue('preferredDepartment', details.preferredDepartment);
+                setFieldValue('preferredSchedule', details.preferredSchedule ? `${details.preferredSchedule.date} (${details.preferredSchedule.time})` : 'N/A');
+                setFieldValue('schoolYear', details.schoolYear);
+                setFieldValue('staffApplicationReasons', details.staffApplicationReasons);
+                setFieldValue('departmentApplicationReasons', details.departmentApplicationReasons);
+                setFieldValue('greenFmContribution', details.greenFmContribution);
+
+                // Set and enable the result dropdown and save button
+                if (submissionResultUpdate) {
+                    submissionResultUpdate.value = details.result;
+                    submissionResultUpdate.disabled = false; // Enable
                 }
-
-            } else if (isAvailableButton) {
-                // --- Handle Available Button Click (Mark as Available) ---
-                const dayName = button.getAttribute('data-day');
-                const time = button.getAttribute('data-time');
-                const selectedWeekStartDate = weekFilterDropdown.value;
-                const isWeekViewActive = selectedWeekStartDate && !weekFilterDropdown.disabled;
-                const currentDepartment = departmentFilter.value;
-
-                if (!isWeekViewActive) {
-                    alert("Please select a specific week from the 'View Week' dropdown to modify slot availability.");
-                    return;
-                }
-                if (!currentDepartment) {
-                    alert("Please select a department.");
-                    return;
-                }
-
-                // Calculate the specific date for the clicked button
-                let clickedButtonDateString = '';
-                let formattedClickedButtonDate = '';
-                let clickedButtonYear = '';
-                try {
-                    // ... (date calculation logic - keep as is) ...
-                    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
-                    if (dayIndex === -1) throw new Error(`Invalid day name: ${dayName}`);
-                    let buttonDate = parseDateStringToLocalMidnight(selectedWeekStartDate);
-                    if (isNaN(buttonDate.getTime())) throw new Error(`Invalid week start date: ${selectedWeekStartDate}`);
-                    const weekStartDayIndex = buttonDate.getDay();
-                    let daysToAdd = dayIndex - weekStartDayIndex;
-                    buttonDate.setDate(buttonDate.getDate() + daysToAdd);
-                    clickedButtonYear = buttonDate.getFullYear().toString();
-                    const month = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
-                    const day = buttonDate.getDate().toString().padStart(2, '0');
-                    clickedButtonDateString = `${clickedButtonYear}-${month}-${day}`;
-                    formattedClickedButtonDate = buttonDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-                } catch (dateError) {
-                    console.error("Error calculating specific date for button click:", dateError);
-                    alert("Error determining the date for this slot.");
-                    return;
-                }
-
-                // Confirmation Alert - Adjust message based on current state if needed
-                let confirmationMessage = `Make ${formattedClickedButtonDate} (${time}) available for assessment in the ${currentDepartment} department?`;
-                const confirmation = confirm(confirmationMessage);
-
-                if (confirmation) {
-                    // Call function to save/update slot in DB
-                    await makeSlotAvailableForAssessment(clickedButtonDateString, time, currentDepartment, clickedButtonYear);
-                } else {
-                    console.log("Operation cancelled by admin.");
+                 if (saveSubmissionResultBtn) {
+                    saveSubmissionResultBtn.disabled = false; // Enable
                 }
             }
-        }); // --- END of async arrow function ---
-    }); // End scheduleButtons.forEach
 
-    // --- Modal Close Logic ---
-    if (closeModalButton) {
-        closeModalButton.addEventListener('click', () => {
-            if (modal) modal.style.display = 'none';
-            if (applicationDetailsView) applicationDetailsView.style.display = 'none';
-            // if (scheduleFormView) scheduleFormView.style.display = 'none'; // Hide if exists
+        } catch (error) {
+            console.error("Error handling submission selection:", error);
+            alert(`Error loading submission details: ${error.message}`);
+            clearSubmissionDetailView(); // Clear view on error
+        }
+    };
+
+    // --- MODIFIED: Clear view after saving ---
+    const handleSaveSubmissionResult = async () => {
+        if (!currentSelectedSubmissionId || !submissionResultUpdate) return;
+        const newResult = submissionResultUpdate.value;
+        console.log(`Saving result for ${currentSelectedSubmissionId}: ${newResult}`);
+        try {
+            const response = await fetch(`/admin/submissions/${currentSelectedSubmissionId}/result`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ result: newResult }),
+            });
+            const resultData = await response.json();
+            if (!response.ok) throw new Error(resultData.message || `Failed to update status: ${response.statusText}`);
+
+            alert(resultData.message || 'Status updated successfully!');
+
+            // Clear detail view and refresh table
+            clearSubmissionDetailView();
+            await handleSubmissionFilterChange(); // Refresh the table
+
+        } catch (error) {
+            console.error("Error saving submission result:", error);
+            alert(`Error updating status: ${error.message}`);
+        }
+    };
+
+    // --- Tab Switching Logic ---
+    // --- MODIFIED: Clear detail view when switching tabs ---
+    const handleTabSwitch = (event) => {
+        const clickedTab = event.target;
+        const targetTabId = clickedTab.dataset.tab;
+        if (!targetTabId) return;
+
+        // Clear submission details when switching tabs
+        clearSubmissionDetailView();
+
+        tabButtons.forEach(button => button.classList.toggle('active', button === clickedTab));
+        tabPanes.forEach(pane => pane.classList.toggle('active', pane.id === targetTabId));
+
+        if (targetTabId === 'submissions-tab' && submissionsTableBody && submissionsTableBody.innerHTML.includes('Loading')) {
+             handleSubmissionFilterChange();
+        } else if (targetTabId === 'schedule-tab') {
+            // handleWeekChange(); // Optionally refresh schedule
+        }
+    };
+
+    // --- Event Listeners ---
+
+    // Schedule Tab Listeners
+    if (weekFilterDropdown) weekFilterDropdown.addEventListener('change', handleWeekChange);
+    if (departmentFilter) departmentFilter.addEventListener('change', handleWeekChange);
+    scheduleButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const btn = event.target;
+            const detailsJson = btn.dataset.applicationDetails;
+            const slotId = btn.dataset.slotId;
+
+            if (detailsJson) {
+                // Booked Slot - Show Modal with Details
+                try {
+                    const details = JSON.parse(detailsJson);
+                    if (applicationDetailsView && scheduleModal) {
+                        // Clear previous details
+                        applicationDetailsView.innerHTML = ''; // Clear previous content
+
+                        // Populate modal with details using input fields
+                        applicationDetailsView.innerHTML = `
+                            <h3>Applicant Details</h3>
+                            <div style="margin-bottom: 8px;"><label>Name:</label> <input type="text" value="${details.lastName}, ${details.firstName}${details.middleInitial ? ' ' + details.middleInitial + '.' : ''}${details.suffix ? ' ' + details.suffix : ''}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                            <div style="margin-bottom: 8px;"><label>Student Number:</label> <input type="text" value="${details.studentNumber || 'N/A'}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                            <div style="margin-bottom: 8px;"><label>Section:</label> <input type="text" value="${details.section || 'N/A'}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                            <div style="margin-bottom: 8px;"><label>DLSU-D Email:</label> <input type="email" value="${details.dlsudEmail || 'N/A'}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                            <div style="margin-bottom: 8px;"><label>Preferred Department:</label> <input type="text" value="${details.preferredDepartment || 'N/A'}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                            <div style="margin-bottom: 8px;"><label>Booked Schedule:</label> <input type="text" value="${details.preferredSchedule || 'N/A'}" readonly style="width: 90%; padding: 4px; border: 1px solid #ddd; background-color: #eee;"></div>
+                        `;
+                        applicationDetailsView.style.display = 'block';
+                        scheduleModal.style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error("Error parsing application details JSON:", e);
+                    alert("Could not load applicant details.");
+                }
+            } else if (slotId) {
+                // Marked Available Slot - Confirm Deletion
+                if (confirm('This slot is marked as available. Do you want to make it unavailable again?')) {
+                    await deleteAvailableSlot(slotId);
+                }
+            } else {
+                // Implicitly Available Slot - Confirm Marking Available
+                const day = btn.getAttribute('data-day');
+                const time = btn.getAttribute('data-time');
+                const selectedWeekStartDate = weekFilterDropdown.value;
+                const currentDept = departmentFilter.value;
+                const year = currentAssessmentPeriod ? currentAssessmentPeriod.year.toString() : new Date().getFullYear().toString();
+
+                if (!selectedWeekStartDate) {
+                    alert("Please select a week first.");
+                    return;
+                }
+
+                let buttonDate;
+                let buttonDateString = '';
+                try {
+                    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(day);
+                    buttonDate = parseDateStringToLocalMidnight(selectedWeekStartDate);
+                    const weekStartDayIndex = buttonDate.getDay();
+                    let daysToAdd = dayIndex - weekStartDayIndex;
+                    buttonDate.setDate(buttonDate.getDate() + daysToAdd);
+                    const y = buttonDate.getFullYear();
+                    const m = (buttonDate.getMonth() + 1).toString().padStart(2, '0');
+                    const d = buttonDate.getDate().toString().padStart(2, '0');
+                    buttonDateString = `${y}-${m}-${d}`;
+                } catch (e) {
+                    console.error("Error calculating date for marking available:", e);
+                    alert("Could not determine the date for this slot.");
+                    return;
+                }
+
+                if (confirm(`Mark ${day}, ${time} (${buttonDateString}) as available for assessment in ${currentDept}?`)) {
+                    await makeSlotAvailableForAssessment(buttonDateString, time, currentDept, year);
+                }
+            }
         });
-    } else {
-        console.warn("Modal close button not found.");
-    }
-    // Close modal if clicking outside the content
+    });
+    if (scheduleModalCloseButton) scheduleModalCloseButton.addEventListener('click', () => { if (scheduleModal) scheduleModal.style.display = 'none'; if (applicationDetailsView) applicationDetailsView.style.display = 'none'; });
+
+    // Period Settings Form Listener
+    if (periodSettingsForm) {
+        periodSettingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log("Period settings form submitted - SAVE LOGIC NEEDED");
+            alert("Saving period settings - Backend logic required.");
+            // Example: await savePeriods(); await initializeAdminPage(); // Refresh after save
+        });
+     }
+
+    // Submission Tab Listeners
+    if (submissionYearFilter) submissionYearFilter.addEventListener('change', handleSubmissionFilterChange);
+    if (submissionStatusFilter) submissionStatusFilter.addEventListener('change', handleSubmissionFilterChange);
+    if (submissionDepartmentFilter) submissionDepartmentFilter.addEventListener('change', handleSubmissionFilterChange);
+    if (saveSubmissionResultBtn) saveSubmissionResultBtn.addEventListener('click', handleSaveSubmissionResult);
+
+    // Tab Button Listeners
+    tabButtons.forEach(button => button.addEventListener('click', handleTabSwitch));
+
+    // Modal Close Logic (Only for schedule modal now)
     window.addEventListener('click', (event) => {
-        if (event.target == modal) {
-            if (modal) modal.style.display = 'none';
+        if (event.target == scheduleModal) {
+            if (scheduleModal) scheduleModal.style.display = 'none';
             if (applicationDetailsView) applicationDetailsView.style.display = 'none';
-            // if (scheduleFormView) scheduleFormView.style.display = 'none'; // Hide if exists
         }
     });
 
     // --- Initial Setup Function ---
-    const fetchAndStorePeriods = async () => {
-        currentYear = new Date().getFullYear(); // Ensure current year is up-to-date
+    const initializeAdminPage = async () => {
+        currentYear = new Date().getFullYear().toString();
         try {
-            // Fetch periods specifically for the CURRENT year
+            // Assign results and then log
             currentApplicationPeriod = await fetchApplicationPeriod('JoinGFM', currentYear);
             currentAssessmentPeriod = await fetchAssessmentPeriod(currentYear);
 
-            console.log(`Fetched application period for ${currentYear}:`, currentApplicationPeriod);
-            console.log(`Fetched assessment period for ${currentYear}:`, currentAssessmentPeriod);
+            // Log the values *after* assignment to see what was actually stored
+            console.log(`Assigned application period for ${currentYear}:`, currentApplicationPeriod);
+            console.log(`Assigned assessment period for ${currentYear}:`, currentAssessmentPeriod);
 
-            // Populate dropdown based on Assessment Period for the current year
-            const populated = populateWeekDropdown(); // This now selects the first week if available
+            const populated = populateWeekDropdown(); // Depends on currentAssessmentPeriod
+            displayExistingApplicationPeriod(); // Depends on currentApplicationPeriod
+            displayExistingAssessmentPeriod(); // Depends on currentAssessmentPeriod
 
-            // Display existing periods (if elements exist)
-            displayExistingApplicationPeriod();
-            displayExistingAssessmentPeriod();
+            const submissionYears = await fetchDistinctSubmissionYears();
+            populateSubmissionYearFilter(submissionYears);
 
-            // If dropdown was populated (and first week selected) AND a department is selected, trigger initial load
-            // Otherwise, ensure the grid is cleared/disabled
-            if (populated && departmentFilter.value) { // Check departmentFilter.value here
-                console.log("Initial load: Populated and department selected. Calling handleWeekChange."); // Add log
-                await handleWeekChange(); // This will use the automatically selected first week
-            } else {
-                 console.log("Initial load: Not populated or department not selected. Clearing grid."); // Add log
-                 displaySchedules([]); // Ensure grid is cleared/disabled initially
+            // Clear details view on initial load
+            clearSubmissionDetailView();
+
+            if (document.querySelector('#schedule-tab.active')) {
+                if (populated && departmentFilter.value) {
+                    console.log("Initial load: Schedule tab active. Calling handleWeekChange.");
+                    await handleWeekChange();
+                } else {
+                    console.log("Initial load: Schedule tab active but not ready. Clearing grid.");
+                    displaySchedules([]);
+                }
+            } else if (document.querySelector('#submissions-tab.active')) {
+                 console.log("Initial load: Submissions tab active. Calling handleSubmissionFilterChange.");
+                 if (submissionYearFilter.value) { // Check if year filter has a value
+                    await handleSubmissionFilterChange(); // This will also clear details
+                 } else {
+                    console.log("Initial load: Submissions tab active but year filter not ready.");
+                    if(submissionsTableBody) submissionsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">Loading...</td></tr>`;
+                 }
             }
 
         } catch (error) {
-            console.error("Error during initial period fetching:", error);
+            console.error("Error during initial page setup:", error);
+            clearSubmissionDetailView(); // Also clear on error
+            // Ensure variables are null on error
+            currentApplicationPeriod = null;
+            currentAssessmentPeriod = null;
             if (weekFilterDropdown) {
                 weekFilterDropdown.innerHTML = '<option value="" disabled selected>Error loading periods</option>';
                 weekFilterDropdown.disabled = true;
             }
              displaySchedules([]); // Clear grid on error
+             if(submissionsTableBody) submissionsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red; padding: 15px;">Error during page setup.</td></tr>`; // Show error in submissions table too
         }
     };
 
     // --- Initial Load ---
-    fetchAndStorePeriods(); // Fetch periods and potentially trigger initial schedule load
+    initializeAdminPage(); // Run the setup
 
 }); // End DOMContentLoaded
