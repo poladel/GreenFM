@@ -1,5 +1,5 @@
 const ApplyBlocktimer = require('../models/ApplyBlocktimer');
-const User = require('../models/User');
+const User = require('../models/User'); // Keep if needed elsewhere, otherwise remove
 
 module.exports.getSubmissions = async (req, res) => {
     try {
@@ -10,7 +10,11 @@ module.exports.getSubmissions = async (req, res) => {
         }
 
         const query = { schoolYear };
-        if (result) query.result = result;
+        // Adjust result query to handle lowercase if schema uses lowercase
+        if (result && result !== 'All') {
+             // Assuming schema enum uses lowercase: 'pending', 'accepted', 'rejected'
+             query.result = result.toLowerCase();
+        }
 
         const submissions = await ApplyBlocktimer.find(query).sort({ createdAt: -1 });
         res.json(submissions);
@@ -40,13 +44,37 @@ module.exports.getSubmissionById = async (req, res) => {
 module.exports.patchSubmission = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        // Extract both result and preferredSchedule from the body
+        const { result, preferredSchedule } = req.body; // <-- Extract preferredSchedule too
+
+        // Validate the result value (check against lowercase)
+        // Ensure these match your Mongoose schema enum values if applicable
+        if (!result || !['pending', 'accepted', 'rejected'].includes(result)) { // <-- Change to lowercase check
+             return res.status(400).json({ error: 'Invalid result value provided.' });
+        }
+
+        // Optional: Add basic validation for preferredSchedule
+        if (!preferredSchedule || typeof preferredSchedule.day !== 'string' || typeof preferredSchedule.time !== 'string' || preferredSchedule.day.trim() === '' || preferredSchedule.time.trim() === '') {
+            return res.status(400).json({ error: 'Invalid or missing preferredSchedule data.' });
+        }
+
 
         console.log('ID:', id);
-        console.log('Updates:', updates);
+        console.log('Updating result to:', result);
+        console.log('Updating preferredSchedule to:', preferredSchedule); // <-- Log preferredSchedule
 
-        // Update the submission
-        const updatedSubmission = await ApplyBlocktimer.findByIdAndUpdate(id, updates, { new: true });
+        // Update both result and preferredSchedule fields
+        const updatedSubmission = await ApplyBlocktimer.findByIdAndUpdate(
+            id,
+            {
+                result: result, // Use the validated lowercase result
+                preferredSchedule: { // Update preferredSchedule subdocument
+                    day: preferredSchedule.day,
+                    time: preferredSchedule.time
+                }
+            },
+            { new: true, runValidators: true } // Return the updated document and run validators
+        );
 
         if (!updatedSubmission) {
             return res.status(404).json({ error: 'Submission not found' });
@@ -54,30 +82,15 @@ module.exports.patchSubmission = async (req, res) => {
 
         console.log('Updated Submission:', updatedSubmission);
 
-        // If the result is patched to "Accepted" or "Rejected" or "Accept", update the user's fields
-        if (updates.result === 'Accept' || updates.result === 'Reject') {
-            const email = updatedSubmission.submittedBy; // Assuming `submittedBy` contains the user's email
-            console.log('Updating user with email:', email);
-
-            const userUpdate = await User.findOneAndUpdate(
-                { email }, // Query by email
-                {
-                    completedBlocktimerStep1: false,
-                    completedBlocktimerStep2: false,
-                }
-            );
-
-            if (!userUpdate) {
-                console.error('User not found for email:', email);
-                return res.status(404).json({ error: 'User not found' });
-            }
-
-            console.log('User updated successfully:', userUpdate);
-        }
-
-        res.json(updatedSubmission);
+        res.json({ message: 'Submission updated successfully.', submission: updatedSubmission });
     } catch (error) {
         console.error('Error updating submission:', error.message, error.stack);
+        // Check for specific validation errors from Mongoose
+        if (error.name === 'ValidationError') {
+            // Extract a more specific message if possible
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ error: messages.join(', ') || 'Validation failed.' });
+        }
         res.status(500).json({ error: 'Failed to update submission' });
     }
 };

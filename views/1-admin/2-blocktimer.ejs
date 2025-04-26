@@ -63,6 +63,10 @@
 
                                     <button type="submit">Save Configuration</button>
                                 </form>
+                                <!-- Display Current Configuration -->
+                                <div id="currentSchoolYearConfigDisplay" style="margin-top: 10px; font-weight: bold;">
+                                    <!-- Configuration will be loaded here by JS -->
+                                </div>
                             </div>
                             <div class="schedule-container">
                                 <label for="schoolYear">School Year:</label>
@@ -347,8 +351,8 @@
                                 <select id="resultFilter">
                                     <option value="">All</option>
                                     <option value="Pending">Pending</option>
-                                    <option value="Accept">Accepted</option>
-                                    <option value="Reject">Rejected</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Rejected">Rejected</option>
                                 </select>
                                 <table class="submissions-table">
                                     <thead>
@@ -496,8 +500,8 @@
                                         <select id="result" name="result" disabled>
                                             <option value="Pending" disabled selected>Pending</option>
                                             <!-- Default unselectable value -->
-                                            <option value="Accept">Accept</option>
-                                            <option value="Reject">Reject</option>
+                                            <option value="Accepted">Accepted</option>
+                                            <option value="Rejected">Rejected</option>
                                         </select>
                                         <div class="result-error"></div>
                                     </div>
