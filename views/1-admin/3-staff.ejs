@@ -4,132 +4,254 @@
     <div class="content-wrap">
         <div class="container">
             <%- include('../partials/nav.ejs') %>
+            <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- HEADER MENUS -------------------->
-                <%- include('../partials/menu.ejs') %>
+            <div class="tabs-container">
+                <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
+                <button class="tab-button" data-tab="submissions-tab">Submissions</button>
+            </div>
 
-                    <!-------------------- CONTENTS START -------------------->
-                    <!-- Tabs for Submissions and Schedule -->
-                    <div class="tabs-container">
-                        <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                        <button class="tab-button" data-tab="submissions-tab">Submissions</button>
+            <div class="tab-content">
+                <!-- Schedule Tab (Existing Content) -->
+                <div id="schedule-tab" class="tab-pane active">
+                    <div class="settings-container">
+                        <div class="route-settings">
+                            <!-- Combined Form -->
+                            <h3>GFM Application & Assessment Periods</h3>
+                            <form id="periodSettingsForm"> <!-- Changed ID -->
+                                <h4>Application Period</h4>
+                                <input type="hidden" name="appKey" value="JoinGFM">
+                                <div>
+                                    <label for="appStartDate">Start Date:</label>
+                                    <input type="date" id="appStartDate" name="appStartDate" required>
+                                </div>
+                                <div>
+                                    <label for="appEndDate">End Date:</label>
+                                    <input type="date" id="appEndDate" name="appEndDate" required>
+                                </div>
+
+                                <hr style="margin: 20px 0;">
+
+                                <h4>Assessment Period</h4>
+                                <input type="hidden" name="assessKey" value="GFMAssessment">
+                                <div>
+                                    <label for="assessStartDate">Start Date:</label>
+                                    <input type="date" id="assessStartDate" name="assessStartDate" required>
+                                </div>
+                                <div>
+                                    <label for="assessEndDate">End Date:</label>
+                                    <input type="date" id="assessEndDate" name="assessEndDate" required>
+                                </div>
+
+                                <button type="submit">Save Periods</button>
+                            </form>
+                            <div id="existingApplicationPeriod"
+                                style="margin-top: 10px; font-weight: bold;">
+                                <!-- Dynamically updated -->
+                            </div>
+                            <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
+                                <!-- Dynamically updated -->
+                            </div>
+                            <!-- End NEW Section -->
+                        </div>
+
+                        <div class="filters-container">
+                            <label for="departmentFilter">Department:</label>
+                            <select id="departmentFilter"> <!-- MUST HAVE id="departmentFilter" -->
+                                <option value="News and Public Affairs">News and Public Affairs</option>
+                                <option value="Music and Entertainment">Music and Entertainment</option>
+                                <option value="Operations and Logistics">Operations and Logistics
+                                </option>
+                                <option value="Creatives and Promotions">Creatives and Promotions
+                                </option>
+                            </select>
+
+                            <label for="weekFilter">View Week:</label>
+                            <select id="weekFilter" disabled> <!-- MUST HAVE id="weekFilter" -->
+                                <option value="">Set Assessment Period First</option>
+                                <!-- Changed Text -->
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+
+                        <div id="scheduleGrid" class="schedule-grid">
+                            <table class="schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Monday</th>
+                                        <th>Tuesday</th>
+                                        <th>Wednesday</th>
+                                        <th>Thursday</th>
+                                        <th>Friday</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedule-body">
+                                    <!-- Rows generated by EJS or JS -->
+                                    <% const times=["7:00-8:00", "8:00-9:00" , "9:00-10:00" , "10:00-11:00"
+                                        , "11:00-12:00" , "12:00-1:00" , "1:00-2:00" , "2:00-3:00" , "3:00-4:00"
+                                        , "4:00-5:00" , "5:00-6:00" , "6:00-7:00" ]; %>
+                                        <% const days=["Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday"
+                                            ]; %>
+                                            <% times.forEach(time=> { %>
+                                                <tr>
+                                                    <td class="time">
+                                                        <%= time %>
+                                                    </td>
+                                                    <% days.forEach(day=> { %>
+                                                        <td>
+                                                            <!-- Add 'schedule-button' class -->
+                                                            <button type="button" class="schedule-button availablebtn"
+                                                                    data-day="<%= day %>" data-time="<%= time %>"
+                                                                    disabled></button>
+                                                        </td>
+                                                        <% }); %>
+                                                </tr>
+                                                <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submissions Tab -->
+                <div id="submissions-tab" class="tab-pane">
+                    <h3>Staff Application Submissions</h3>
+
+                    <!-- Filters -->
+                    <div class="submissions-filters" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+                        <div>
+                            <label for="submissionYearFilter">Year:</label>
+                            <select id="submissionYearFilter">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="submissionStatusFilter">Status:</label>
+                            <select id="submissionStatusFilter">
+                                <option value="All">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="submissionDepartmentFilter">Department:</label>
+                            <select id="submissionDepartmentFilter">
+                                <option value="All">All</option>
+                                <option value="News and Public Affairs">News and Public Affairs</option>
+                                <option value="Music and Entertainment">Music and Entertainment</option>
+                                <option value="Operations and Logistics">Operations and Logistics</option>
+                                <option value="Creatives and Promotions">Creatives and Promotions</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="tab-content">
-                        <!-- Schedule Tab -->
-                        <div id="schedule-tab" class="tab-pane active">
-                            <div class="settings-container">
-                                <div class="route-settings">
-                                    <!-- Combined Form -->
-                                    <h3>GFM Application & Assessment Periods</h3>
-                                    <form id="periodSettingsForm"> <!-- Changed ID -->
-                                        <h4>Application Period</h4>
-                                        <input type="hidden" name="appKey" value="JoinGFM">
-                                        <div>
-                                            <label for="appStartDate">Start Date:</label>
-                                            <input type="date" id="appStartDate" name="appStartDate" required>
-                                        </div>
-                                        <div>
-                                            <label for="appEndDate">End Date:</label>
-                                            <input type="date" id="appEndDate" name="appEndDate" required>
-                                        </div>
+                    <!-- Submissions Table -->
+                    <div class="submissions-table-container">
+                        <table id="submissionsTable" class="submissions-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Number</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Department</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsTableBody">
+                                <!-- Rows populated by JS -->
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 15px;">Loading submissions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                                        <hr style="margin: 20px 0;">
-
-                                        <h4>Assessment Period</h4>
-                                        <input type="hidden" name="assessKey" value="GFMAssessment">
-                                        <div>
-                                            <label for="assessStartDate">Start Date:</label>
-                                            <input type="date" id="assessStartDate" name="assessStartDate" required>
-                                        </div>
-                                        <div>
-                                            <label for="assessEndDate">End Date:</label>
-                                            <input type="date" id="assessEndDate" name="assessEndDate" required>
-                                        </div>
-
-                                        <button type="submit">Save Periods</button>
-                                    </form>
-                                    <div id="existingApplicationPeriod"
-                                        style="margin-top: 10px; font-weight: bold;">
-                                        <!-- Dynamically updated -->
-                                    </div>
-                                    <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
-                                        <!-- Dynamically updated -->
-                                    </div>
-                                    <!-- End NEW Section -->
-                                </div>
-
-                                <div class="filters-container">
-                                    <label for="departmentFilter">Department:</label>
-                                    <select id="departmentFilter"> <!-- MUST HAVE id="departmentFilter" -->
-                                        <option value="News and Public Affairs">News and Public Affairs</option>
-                                        <option value="Music and Entertainment">Music and Entertainment</option>
-                                        <option value="Operations and Logistics">Operations and Logistics
-                                        </option>
-                                        <option value="Creatives and Promotions">Creatives and Promotions
-                                        </option>
-                                    </select>
-
-                                    <label for="weekFilter">View Week:</label>
-                                    <select id="weekFilter" disabled> <!-- MUST HAVE id="weekFilter" -->
-                                        <option value="">Set Assessment Period First</option>
-                                        <!-- Changed Text -->
-                                        <!-- Options will be populated by JavaScript -->
-                                    </select>
-                                </div>
-
-                                <div id="scheduleGrid" class="schedule-grid">
-                                    <table class="schedule-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Monday</th>
-                                                <th>Tuesday</th>
-                                                <th>Wednesday</th>
-                                                <th>Thursday</th>
-                                                <th>Friday</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="schedule-body">
-                                            <!-- Rows generated by EJS or JS -->
-                                            <% const times=["7:00-8:00", "8:00-9:00" , "9:00-10:00" , "10:00-11:00"
-                                                , "11:00-12:00" , "12:00-1:00" , "1:00-2:00" , "2:00-3:00" , "3:00-4:00"
-                                                , "4:00-5:00" , "5:00-6:00" , "6:00-7:00" ]; %>
-                                                <% const days=["Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday"
-                                                    ]; %>
-                                                    <% times.forEach(time=> { %>
-                                                        <tr>
-                                                            <td class="time">
-                                                                <%= time %>
-                                                            </td>
-                                                            <% days.forEach(day=> { %>
-                                                                <td>
-                                                                    <!-- Add 'schedule-button' class -->
-                                                                    <button type="button" class="schedule-button availablebtn"
-                                                                            data-day="<%= day %>" data-time="<%= time %>"
-                                                                            disabled></button>
-                                                                </td>
-                                                                <% }); %>
-                                                        </tr>
-                                                        <% }); %>
-                                        </tbody>
-                                    </table>
-                                </div>
+                    <!-- ALWAYS VISIBLE: Submission Detail View -->
+                    <div id="submissionDetailView" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; background-color: #f9f9f9;">
+                        <h2>Applicant Submission Details</h2>
+                        <div id="submissionDetailContentInline">
+                            <!-- Changed to input fields -->
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailFullName"><strong>Name:</strong></label>
+                                <input type="text" id="detailFullName" data-field="fullName" readonly value="--- Select a submission ---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
                             </div>
-
-                            <!-- Submissions Tab -->
-                            <div id="submissions-tab" class="tab-pane">
-                                <p>Submissions content goes here.</p>
-                                <!-- You would likely have a table or list here populated with submission data -->
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailStudentNumber"><strong>Student Number:</strong></label>
+                                <input type="text" id="detailStudentNumber" data-field="studentNumber" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailDlsudEmail"><strong>DLSU-D Email:</strong></label>
+                                <input type="email" id="detailDlsudEmail" data-field="dlsudEmail" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailCollege"><strong>College:</strong></label>
+                                <input type="text" id="detailCollege" data-field="college" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailProgram"><strong>Program:</strong></label>
+                                <input type="text" id="detailProgram" data-field="program" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailCollegeYearSection"><strong>Year & Section:</strong></label>
+                                <input type="text" id="detailCollegeYearSection" data-field="collegeYearSection" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailFacebookUrl"><strong>Facebook URL:</strong></label>
+                                <input type="text" id="detailFacebookUrl" data-field="facebookUrl" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailAffiliatedOrgsList"><strong>Affiliated Orgs:</strong></label>
+                                <input type="text" id="detailAffiliatedOrgsList" data-field="affiliatedOrgsList" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailPreferredDepartment"><strong>Preferred Department:</strong></label>
+                                <input type="text" id="detailPreferredDepartment" data-field="preferredDepartment" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailPreferredSchedule"><strong>Preferred Schedule:</strong></label>
+                                <input type="text" id="detailPreferredSchedule" data-field="preferredSchedule" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailSchoolYear"><strong>School Year Applied:</strong></label>
+                                <input type="text" id="detailSchoolYear" data-field="schoolYear" readonly value="---" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
+                            </div>
+                            <hr>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailStaffApplicationReasons"><strong>Why Apply for Staff?</strong></label>
+                                <textarea id="detailStaffApplicationReasons" data-field="staffApplicationReasons" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;">---</textarea>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailDepartmentApplicationReasons"><strong>Why Apply for Department?</strong></label>
+                                <textarea id="detailDepartmentApplicationReasons" data-field="departmentApplicationReasons" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;">---</textarea>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <label for="detailGreenFmContribution"><strong>How Can You Contribute?</strong></label>
+                                <textarea id="detailGreenFmContribution" data-field="greenFmContribution" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;">---</textarea>
+                            </div>
+                            <hr>
+                            <div>
+                                <label for="submissionResultUpdate"><strong>Update Status:</strong></label>
+                                <select id="submissionResultUpdate" disabled> <!-- Disable initially -->
+                                    <option value="Pending">Pending</option>
+                                    <option value="Accepted">Accept</option>
+                                    <option value="Rejected">Reject</option>
+                                </select>
+                                <button id="saveSubmissionResultBtn" style="margin-left: 10px;" disabled>Save Status</button> <!-- Disable initially -->
                             </div>
                         </div>
                     </div>
-        </div>
-        <%- include('../partials/footer.ejs') %> <!-- Include footer -->
-    </div>
+                    <!-- End Submission Detail View -->
+
+                </div> <!-- End submissions-tab -->
+            </div> <!-- End tab-content -->
+        </div> <!-- End container -->
+        <%- include('../partials/footer.ejs') %>
+    </div> <!-- End content-wrap -->
 </div> <!-- End page-container -->
 
-<!-- Schedule Modal -->
+<!-- Schedule Modal (Existing) -->
 <div id="scheduleModal" class="modal" style="display: none;">
     <div class="modal-content">
         <span class="close">&times;</span> <!-- Keep the close button -->
@@ -169,7 +291,6 @@
     </div> <!-- End modal-content -->
 </div> <!-- End scheduleModal -->
 
-<!-- SCRIPT TAG AT THE END -->
 <script src="/js/1-admin/staff.js"></script>
 
 </body>
