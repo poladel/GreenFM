@@ -91,11 +91,10 @@ messagesDiv.addEventListener('scroll', () => {
     scrollTimeout = setTimeout(async () => {
         scrollTimeout = null;
 
-        // Trigger loading if near the top (not just exactly 0)
         if (messagesDiv.scrollTop < 50 && !loadingMore && !allMessagesLoaded) {
             await loadMoreMessages();
         }
-    }, 150); // Delay to prevent rapid repeat firing
+    }, 150);
 });
 
 // Send new message
@@ -174,12 +173,18 @@ document.getElementById('close-modal').addEventListener('click', () => {
     document.getElementById('new-chat-modal').style.display = 'none';
 });
 
-// Start new chat
+// Start new chat (group or single)
 document.getElementById('new-chat-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const select = e.target.userIds;
+
+    const checkboxes = document.querySelectorAll('#user-list input[name="userIds"]:checked');
+    const userIds = Array.from(checkboxes).map(cb => cb.value);
     const groupName = document.getElementById('group-name').value.trim();
-    const userIds = Array.from(select.selectedOptions).map(option => option.value);
+
+    if (userIds.length === 0) {
+        alert('Please select at least one user.');
+        return;
+    }
 
     try {
         const res = await fetch('/chat/new', {
@@ -199,6 +204,18 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
     }
 });
 
+// User search inside modal
+document.getElementById('user-search').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const userCheckboxes = document.querySelectorAll('#user-list .user-checkbox');
+
+    userCheckboxes.forEach(checkboxDiv => {
+        const label = checkboxDiv.querySelector('label');
+        const text = label.textContent.toLowerCase();
+        checkboxDiv.style.display = text.includes(query) ? '' : 'none';
+    });
+});
+
 // Auto-load first chat
 window.addEventListener('DOMContentLoaded', () => {
     const savedChatId = localStorage.getItem('activeChatId');
@@ -214,16 +231,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// User search in modal
-document.getElementById('user-search').addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    const options = document.querySelectorAll('#user-select option');
-    options.forEach(option => {
-        const text = option.textContent.toLowerCase();
-        option.style.display = text.includes(query) ? '' : 'none';
-    });
-});
-
+// Loading spinner
 const spinner = document.getElementById('loading-spinner');
 if (spinner) spinner.style.display = 'block';
 // after loading:

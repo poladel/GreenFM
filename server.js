@@ -1,39 +1,66 @@
+// Load environment variables
 require('dotenv').config();
+
+// Core modules
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
+const cookieParser = require('cookie-parser');
 
+// Custom modules
 const connectDB = require('./config/dbConn');
 const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
-const cookieParser = require('cookie-parser');
 const sessionMiddleware = require('./middleware/session');
 const { checkUser } = require('./middleware/authMiddleware');
 
+// Route imports
+const root = require('./routes/root');
+const applicationPeriodRoutes = require('./routes/applicationPeriodRoutes');
+const userRoutes = require('./routes/user-routes');
+const adminRoutes = require('./routes/admin-routes');
+const authRoutes = require('./routes/authRoutes');
+const postRoutes = require('./routes/postRoutes');
+const joinGFMRoutes = require('./routes/joinGFMRoutes');
+const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
+const accountRoutes = require('./routes/accountRoutes');
+const blocktimerRoutes = require('./routes/blocktimerRoutes');
+const schoolYearRoutes = require('./routes/schoolYearRoutes');
+const schedRoutes = require('./routes/scheduleRoutes');
+const assessmentSlotRoutes = require('./routes/assessmentSlotRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+const manageRoutes = require('./routes/manageRoutes');
+const liveRoutes = require('./routes/liveRoutes');
+const statusRoutes = require('./routes/statusRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+
+// App setup
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 🧠 MongoDB
+// MongoDB connection
 mongoose.set('strictQuery', false);
 connectDB();
 mongoose.connection.on('error', err => console.error('MongoDB connection error:', err));
 
-// ✅ Create HTTP server and attach Socket.IO
+// HTTP server and Socket.IO setup
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: '*' }
 });
 
-// ✅ Share io with all routes/controllers
+// Share io instance across all requests
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
-// ✅ Socket.IO setup
+// Socket.IO connection handling
 io.on('connection', socket => {
     console.log('🟢 Socket connected:', socket.id);
 
@@ -47,63 +74,42 @@ io.on('connection', socket => {
     });
 });
 
-// ✅ Middleware
-app.use(credentials);
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(sessionMiddleware);
-app.use(express.static(path.join(__dirname, '/public')));
-app.set('view engine', 'ejs');
+// Middleware
+app.use(credentials); // Handle credentials for CORS
+app.use(cors(corsOptions)); // Enable CORS with options
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: false })); // Parse URL-encoded bodies
+app.use(cookieParser()); // Parse cookies
+app.use(sessionMiddleware); // Session management
+app.use(express.static(path.join(__dirname, '/public'))); // Serve static files
+app.set('view engine', 'ejs'); // Set EJS as view engine
 
-// Define your routes
-const root = require('./routes/root');
-const ApplicationPeriodRoutes = require('./routes/applicationPeriodRoutes');
-const userRoutes = require('./routes/user-routes');
-const adminRoutes = require('./routes/admin-routes');
-const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/postRoutes');
-const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
-const joinGFMRoutes = require('./routes/joinGFMRoutes');
-const staffSubmissionRoutes = require('./routes/staffSubmissionRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const playlistRoutes = require('./routes/playlistRoutes');
-const accountRoutes = require('./routes/accountRoutes');
-const blocktimerRoutes = require('./routes/blocktimerRoutes');
-const schoolYearRoutes = require('./routes/schoolYearRoutes');
-const schedRoutes = require('./routes/scheduleRoutes');
-const assessmentSlotRoutes = require('./routes/assessmentSlotRoutes');
-//const adminSchedRoutes = require('./routes/adminSchedRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-const manageRoutes = require('./routes/manageRoutes');
-const liveRoutes = require('./routes/liveRoutes');
-const statusRoutes = require('./routes/statusRoutes');
+// Auth Middleware applied globally
+app.use(checkUser);
 
-app.get('*', checkUser);
+// Routes
 app.use(root);
-app.use(ApplicationPeriodRoutes);
+app.use(applicationPeriodRoutes);
 app.use(userRoutes);
 app.use(adminRoutes);
 app.use(authRoutes);
 app.use(postRoutes);
-app.use(joinBlocktimerRoutes);
-app.use(staffSubmissionRoutes);
 app.use(joinGFMRoutes);
+app.use(joinBlocktimerRoutes);
 app.use(uploadRoutes);
 app.use('/playlist', playlistRoutes);
 app.use(accountRoutes);
 app.use(blocktimerRoutes);
 app.use(schoolYearRoutes);
+app.use(schedRoutes);
 app.use(assessmentSlotRoutes);
-//app.use(adminSchedRoutes);
 app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
-app.use(schedRoutes);
 app.use('/', statusRoutes);
+app.use('/chat', chatRoutes);
 
-// ✅ 404 Fallback
+// 404 Fallback
 app.all('*', (req, res) => {
     res.status(404);
     if (req.accepts('html')) {
@@ -115,7 +121,7 @@ app.all('*', (req, res) => {
     }
 });
 
-// ✅ Start server after DB is ready
+// Start server after MongoDB is ready
 mongoose.connection.once('open', () => {
     console.log('✅ Connected to MongoDB');
     server.listen(PORT, () => {

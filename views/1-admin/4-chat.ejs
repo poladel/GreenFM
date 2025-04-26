@@ -10,11 +10,9 @@
 
                 <!-------------------- CONTENTS START -------------------->
                 <div class="chat-wrapper">
-                    
                     <!-- Sidebar -->
                     <div class="chat-sidebar">
                         <h4><button id="open-new-chat" type="button">Start New Chat</button></h4>
-
                         <h2>Inbox</h2>
                         <% chats.forEach(chat => { %>
                             <div class="chat-room" data-id="<%= chat._id %>">
@@ -29,11 +27,7 @@
 
                     <!-- Chat Area -->
                     <div class="chat-area">
-                        <div id="messages" style="overflow-y: auto; height: 400px;">
-                            <!-- Messages will be populated here dynamically -->
-                        </div>
-
-                        <!-- Message Form -->
+                        <div id="messages" style="overflow-y: auto; height: 400px;"></div>
                         <form id="message-form">
                             <input id="message-input" type="text" placeholder="Type your message..." />
                             <button type="submit">Send</button>
@@ -42,26 +36,28 @@
                 </div>
 
                 <!-- Start New Chat Modal -->
-                <div id="new-chat-modal">
-                        <h3>Start New Chat</h3>
-                        <input type="text" id="user-search" placeholder="Search users..."/>
+                <div id="new-chat-modal" style="display:none; flex-direction: column; background: #fff; padding: 20px; border-radius: 8px; position:fixed; top:10%; left:50%; transform:translateX(-50%); box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+                    <h3>Start New Chat / Group Chat</h3>
 
-                        <select name="userIds" id="user-select" multiple>
-                        <% users.forEach(u => { %>
-                            <option value="<%= u._id %>"><%= u.username %> (<%= u.roles %>)</option>
-                        <% }) %>
-                        </select>
-                        <form id="new-chat-form">
-                            <input type="text" id="group-name" placeholder="Group Name (optional)" style="width:100%; margin-bottom:10px;" />
-                            <select name="userIds" multiple required style="width:100%; height: 150px; margin-bottom:10px;">
-                                <% users.forEach(u => { %>
-                                    <option value="<%= u._id %>"><%= u.username %> (<%= u.roles %>)</option>
-                                <% }) %>
-                            </select>
-                            <button type="submit">Start</button>
-                        </form>
-                        <button id="close-modal">Cancel</button>
-                    </div>
+                    <form id="new-chat-form">
+                        <input type="text" id="group-name" placeholder="Group Name (optional)" style="width:100%; margin-bottom:10px;" />
+
+                        <input type="text" id="user-search" placeholder="Search users..." style="width:100%; margin-bottom:10px;" />
+
+                        <div id="user-list" style="max-height:200px; overflow-y:auto; margin-bottom:10px; border:1px solid #ccc; padding:10px;">
+                            <% users.forEach(u => { %>
+                                <div class="user-checkbox">
+                                    <label>
+                                        <input type="checkbox" name="userIds" value="<%= u._id %>">
+                                        <%= u.username %> (<%= u.roles %>)
+                                    </label>
+                                </div>
+                            <% }) %>
+                        </div>
+
+                        <button type="submit">Start Chat</button>
+                        <button type="button" id="close-modal">Cancel</button>
+                    </form>
                 </div>
 
             </div>
