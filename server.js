@@ -57,30 +57,50 @@ app.use(sessionMiddleware);
 app.use(express.static(path.join(__dirname, '/public')));
 app.set('view engine', 'ejs');
 
-// ✅ Auth Middleware
-app.use(checkUser);
+// Define your routes
+const root = require('./routes/root');
+const ApplicationPeriodRoutes = require('./routes/applicationPeriodRoutes');
+const userRoutes = require('./routes/user-routes');
+const adminRoutes = require('./routes/admin-routes');
+const authRoutes = require('./routes/authRoutes');
+const { checkUser } = require('./middleware/authMiddleware');
+const postRoutes = require('./routes/postRoutes');
+const joinGFMRoutes = require('./routes/joinGFMRoutes');
+const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
+const accountRoutes = require('./routes/accountRoutes');
+const blocktimerRoutes = require('./routes/blocktimerRoutes');
+const schoolYearRoutes = require('./routes/schoolYearRoutes');
+const schedRoutes = require('./routes/scheduleRoutes');
+const assessmentSlotRoutes = require('./routes/assessmentSlotRoutes');
+//const adminSchedRoutes = require('./routes/adminSchedRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+const manageRoutes = require('./routes/manageRoutes');
+const liveRoutes = require('./routes/liveRoutes');
+const statusRoutes = require('./routes/statusRoutes');
 
-// ✅ Routes
-app.use(require('./routes/root'));
-app.use(require('./routes/applicationPeriodRoutes'));
-app.use(require('./routes/user-routes'));
-app.use(require('./routes/admin-routes'));
-app.use(require('./routes/authRoutes'));
-app.use(require('./routes/postRoutes'));
-app.use(require('./routes/joinGFMRoutes'));
-app.use(require('./routes/joinBlocktimerRoutes'));
-app.use(require('./routes/uploadRoutes'));
-app.use('/playlist', require('./routes/playlistRoutes'));
-app.use(require('./routes/accountRoutes'));
-app.use(require('./routes/blocktimerRoutes'));
-app.use(require('./routes/schoolYearRoutes'));
-app.use(require('./routes/scheduleRoutes'));
-app.use(require('./routes/assessmentSlotRoutes'));
-app.use(require('./routes/contactRoutes'));
-app.use(require('./routes/manageRoutes'));
-app.use('/live', require('./routes/liveRoutes'));
-app.use('/', require('./routes/statusRoutes'));
-app.use('/chat', require('./routes/chatRoutes'));
+app.get('*', checkUser);
+app.use(root);
+app.use(ApplicationPeriodRoutes);
+app.use(userRoutes);
+app.use(adminRoutes);
+app.use(authRoutes);
+app.use(postRoutes);
+app.use(joinGFMRoutes);
+app.use(joinBlocktimerRoutes);
+app.use(uploadRoutes);
+app.use('/playlist', playlistRoutes);
+app.use(accountRoutes);
+app.use(blocktimerRoutes);
+app.use(schoolYearRoutes);
+app.use(assessmentSlotRoutes);
+//app.use(adminSchedRoutes);
+app.use(contactRoutes);
+app.use(manageRoutes);
+app.use('/live', liveRoutes);
+app.use(schedRoutes);
+app.use('/', statusRoutes);
 
 // ✅ 404 Fallback
 app.all('*', (req, res) => {

@@ -1,75 +1,49 @@
 const AssessmentSlot = require('../models/AssessmentSlot');
-const { startOfWeek, endOfWeek, format } = require('date-fns');
+const AssessmentPeriod = require('../models/AssessmentPeriod');
+const ApplyStaff = require('../models/ApplyStaff');
+const { endOfWeek, format } = require('date-fns'); // <-- ADD THIS LINE
 
 // Controller for ADMIN to save a slot as available
 exports.saveAssessmentSlot = async (req, res) => {
-    const { date, time, department, year } = req.body;
-    // --- Get admin details from authenticated user ---
-    const adminUser = req.user; // Assuming middleware adds user object
-
-    if (!adminUser) {
-        return res.status(401).json({ message: 'Authentication required.' });
-    }
-    // --- ---
-
-    if (!date || !time || !department || !year) {
-        return res.status(400).json({ message: 'Missing required fields (date, time, department, year).' });
-    }
-
     try {
-        // Optional: Validate against the assessment period for the year
-        const period = await AssessmentPeriod.findOne({ year: parseInt(year, 10) });
-        if (period) {
-            const slotDate = new Date(date + 'T00:00:00'); // Treat date as local
-            const startDate = new Date(period.startDate);
-            const endDate = new Date(period.endDate);
-             startDate.setHours(0,0,0,0);
-             endDate.setHours(23,59,59,999);
+        const { date, time, department, year } = req.body;
 
-            if (slotDate < startDate || slotDate > endDate) {
-                return res.status(400).json({ message: `Slot date ${date} is outside the assessment period for ${year}.` });
+        // Basic validation
+        if (!date || !time || !department || !year) {
+            return res.status(400).json({ message: 'Missing required fields (date, time, department, year).' });
+        }
+
+        // Optional: Validate against existing AssessmentPeriod for the year
+        const period = await AssessmentPeriod.findOne({ year: parseInt(year, 10) });
+        if (!period) {
+             return res.status(400).json({ message: `No assessment period found for the year ${year}. Cannot save slot.` });
+        }
+
+        // Check if slot already exists
+        let existingSlot = await AssessmentSlot.findOne({ date, time, department, year });
+
+        if (existingSlot) {
+            if (!existingSlot.application) {
+                 return res.status(200).json({ message: 'Slot is already marked as available.' });
+            } else {
+                return res.status(409).json({ message: 'This slot is already booked by an applicant.' });
             }
         } else {
-             console.warn(`Assessment period for year ${year} not found for validation.`);
-             // Decide if you want to block saving or just warn
+            // Create and save the new slot
+            const newSlot = new AssessmentSlot({
+                date,
+                time,
+                department,
+                year: parseInt(year, 10),
+            });
+            await newSlot.save();
+            return res.status(201).json({ message: 'Slot marked as available successfully!', slot: newSlot });
         }
-
-
-        // --- Prepare admin name object ---
-        const adminNameData = {
-            lastName: adminUser.lastName,
-            firstName: adminUser.firstName,
-            middleInitial: adminUser.middleInitial || '', // Handle optional fields
-            suffix: adminUser.suffix || ''
-        };
-        // --- ---
-
-        // Use findOneAndUpdate with upsert to create or ensure existence
-        const query = { date, time, department, year };
-        // --- Include adminName in the data to be saved/updated ---
-        const updateData = {
-            date,
-            time,
-            department,
-            year,
-            adminName: adminNameData // Add the admin's name
-        };
-        // --- ---
-        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
-        const savedSlot = await AssessmentSlot.findOneAndUpdate(query, updateData, options);
-
-        res.status(200).json({ message: `Slot ${date} ${time} for ${department} marked as available by ${adminUser.firstName} ${adminUser.lastName}.`, slot: savedSlot });
 
     } catch (error) {
-        if (error.code === 11000) {
-            // If it already exists, maybe update the admin name? Or just confirm existence.
-            // Let's just confirm existence for now.
-             const existingSlot = await AssessmentSlot.findOne({ date, time, department, year });
-             return res.status(200).json({ message: `Slot ${date} ${time} for ${department} was already marked as available.`, slot: existingSlot });
-        }
         console.error('Error saving assessment slot:', error);
-        res.status(500).json({ message: 'Server error saving assessment slot.', error: error.message });
+        // Use the specific error message from the catch block
+        res.status(500).json({ message: `Server error saving assessment slot: ${error.message}` }); // <-- Include error.message
     }
 };
 
@@ -102,33 +76,90 @@ exports.getAssessmentSlotsForWeek = async (req, res) => {
     }
 
     try {
-        const weekStartDate = new Date(weekStart + 'T00:00:00');
-        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 0 });
-        const startDateString = format(weekStartDate, 'yyyy-MM-dd');
-        const endDateString = format(weekEndDate, 'yyyy-MM-dd');
+        // Ensure weekStart is treated as local date
+        const weekStartDate = new Date(weekStart + 'T00:00:00'); // Assuming weekStart is YYYY-MM-DD
+
+        // Calculate end of the week (Saturday, assuming week starts Sunday)
+        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 0 }); // Use imported function
+
+        // Format dates for DB query (ensure this matches your DB date format)
+        const startDateString = format(weekStartDate, 'yyyy-MM-dd'); // Use imported function
+        const endDateString = format(weekEndDate, 'yyyy-MM-dd'); // Use imported function
 
         console.log(`Querying AssessmentSlots for Dept: ${department}, Year: ${year}, Between: ${startDateString} and ${endDateString}`);
 
         const slots = await AssessmentSlot.find({
             department: department,
-            year: year,
+            year: parseInt(year, 10), // Ensure year is number for query
             date: { $gte: startDateString, $lte: endDateString }
         })
-        // --- Populate necessary application details if booked ---
         .populate({
-            path: 'application', // Field name in AssessmentSlot model
-            model: 'ApplyStaff', // Explicitly state the model to populate from
-            // Select fields needed for display and modal
+            path: 'application',
+            model: 'ApplyStaff',
             select: 'lastName firstName middleInitial suffix section dlsudEmail studentNumber preferredDepartment preferredSchedule'
         })
-        // --- End Populate ---
         .sort({ date: 1, time: 1 });
 
         res.status(200).json(slots);
 
     } catch (error) {
         console.error('Error fetching assessment slots for week:', error);
-        res.status(500).json({ message: 'Server error fetching assessment slots for week.', error: error.message });
+        // Use the specific error message from the catch block
+        res.status(500).json({ message: `Server error fetching assessment slots for week: ${error.message}` }); // <-- Include error.message
     }
 };
 // --- End NEW ---
+
+// --- ADD OR VERIFY THIS CONTROLLER FUNCTION ---
+exports.deleteAssessmentSlot = async (req, res) => {
+    try {
+        const slotId = req.params.id;
+        const slot = await AssessmentSlot.findById(slotId);
+
+        if (!slot) {
+            return res.status(404).json({ message: 'Available slot not found.' });
+        }
+
+        // IMPORTANT: Prevent deletion if the slot is actually booked
+        if (slot.application) {
+            return res.status(400).json({ message: 'Cannot delete a slot that is already booked.' });
+        }
+
+        // Delete the slot if it's not booked
+        await AssessmentSlot.findByIdAndDelete(slotId);
+
+        res.status(200).json({ message: 'Available slot deleted successfully.' });
+
+    } catch (error) {
+        console.error('Error deleting assessment slot:', error);
+        res.status(500).json({ message: `Server error deleting slot: ${error.message}` });
+    }
+};
+// --- END ---
+
+// --- NEW CONTROLLER FUNCTION ---
+exports.getBookedAssessmentSlots = async (req, res) => {
+    try {
+        const { department, year } = req.query;
+
+        if (!department || !year) {
+            return res.status(400).json({ message: 'Department and year query parameters are required.' });
+        }
+
+        console.log(`API: Fetching BOOKED slots for Dept: ${department}, Year: ${year}`);
+
+        const bookedSlots = await AssessmentSlot.find({
+            department: department,
+            year: year, // Ensure type matches schema (String or Number?)
+            application: { $ne: null } // Find slots WHERE application is NOT NULL
+        }).select('date time -_id'); // Select only date and time
+
+        console.log(`API: Found ${bookedSlots.length} booked slots.`);
+        res.status(200).json(bookedSlots);
+
+    } catch (error) {
+        console.error('Error fetching booked assessment slots:', error);
+        res.status(500).json({ message: 'Failed to fetch booked slots' });
+    }
+};
+// --- END NEW CONTROLLER FUNCTION ---

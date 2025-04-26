@@ -18,6 +18,12 @@
           </div>
 
           <form id="joingreenfmForm2" method="POST" action="/JoinGFM-Step2">
+
+            <!-- ADD HIDDEN INPUTS HERE -->
+            <input type="hidden" id="preferredDepartmentHidden" value="<%= applicationData?.preferredDepartment || '' %>">
+            <input type="hidden" id="currentYearHidden" value="<%= currentYear || '' %>">
+            <!-- END HIDDEN INPUTS -->
+             
             <div class="form-content">
               <!-- Summary Container -->
               <div class="summary-container">
@@ -74,15 +80,19 @@
               <div class="date-time-container">
                 <h4 class="date-time-title">Select Date & Time</h4>
                 <div class="date-time-fields">
-                  <label for="day">Preferred Date:</label>
-                  <select id="day" name="preferred-day" class="day-dropdown">
-                    <!--Populated backend-->
+                  <label for="preferredDate">Preferred Date:</label>
+                  <select id="preferredDate" name="preferredSchedule[date]" required>
+                      <!-- Options populated dynamically or statically -->
                   </select>
                 </div>
                 <div class="date-time-fields">
-                  <label for="time">Available Times:</label>
-                  <select id="time" name="preferred-time" class="time-dropdown">
-                    <option value="">Select a time</option>
+                  <label for="preferredTime">Preferred Time:</label>
+                  <select id="preferredTime" name="preferredSchedule[time]" required disabled>
+                      <!-- Options populated dynamically or statically -->
+                      <option value="" disabled selected>Select a date first</option>
+                      <option value="7:00-8:00">7:00 AM - 8:00 AM</option>
+                      <option value="8:00-9:00">8:00 AM - 9:00 AM</option>
+                      <!-- ... other time slots ... -->
                   </select>
                 </div>
                 <div class="summary-space"></div>
@@ -99,12 +109,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    const preferredDepartment = "<%= applicationData?.preferredDepartment || '' %>";
-    const currentYear = new Date().getFullYear();
-  </script>
   <script src="js/2-user/joingreenfm2.js"></script>
   </body>
-
-  </html>
+</html>
