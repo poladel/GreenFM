@@ -1,5 +1,5 @@
 const allowedOrigins = [
-    'https://www.site.com', 
+    'https://www.greenfm955.com', 
     'http://localhost:3001'
 ];
 
