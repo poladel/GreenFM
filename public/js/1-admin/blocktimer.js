@@ -1,7 +1,7 @@
 /*-----SCHEDULE TAB-----*/
 const modal = document.getElementById("scheduleModal");
 
-// Function to refresh schedule buttons
+// Function to refresh schedule buttons AND update the global schedule list
 async function refreshSchedule(selectedYear) {
     console.log("Refreshing schedule for year:", selectedYear); // Debugging log
     try {
@@ -11,16 +11,21 @@ async function refreshSchedule(selectedYear) {
         const schedules = await response.json();
         console.log(`Schedules for ${selectedYear}:`, schedules); // Debugging log
 
+        // --- Update the global variable ---
+        existingSchedules = schedules; // <<< ADD THIS LINE
+        // ---
+
         // Clear existing schedule buttons
         document.querySelectorAll(".availablebtn").forEach((button) => {
             button.textContent = ""; // Clear text
             button.classList.remove("schedulebtn"); // Remove booked class
             button.disabled = false; // Re-enable button
             delete button.dataset.scheduleId; // Remove schedule ID
+            delete button.dataset.scheduleSubmissionId; // Remove linked submission ID
         });
 
         // Populate buttons with updated schedule data
-        schedules.forEach((schedule) => {
+        schedules.forEach((schedule) => { // Use the locally fetched 'schedules' here
             const button = document.querySelector(
                 `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
             );
@@ -29,11 +34,15 @@ async function refreshSchedule(selectedYear) {
                 button.textContent = schedule.showDetails?.title || "Booked"; // Use title or default
                 button.classList.add("schedulebtn"); // Add booked class
                 button.dataset.scheduleId = schedule._id; // Add schedule ID
+                if (schedule.submissionId) {
+                    button.dataset.scheduleSubmissionId = schedule.submissionId; // Store linked submission ID
+                }
                 // Optionally disable booked buttons if needed: button.disabled = true;
             }
         });
     } catch (error) {
         console.error("Error updating schedule buttons:", error);
+        existingSchedules = []; // Clear global list on error too
     }
 }
 
@@ -65,15 +74,23 @@ function displayCurrentSchoolYearConfig(config) {
     displayElement.textContent = `Current School Year ${schoolYearText}: ${dateRangeText}`;
 }
 
-// Define availableTimes globally or pass it where needed
-const availableTimes = {
-    Monday: ["9:10-9:55", "10:00-10:55", "11:00-11:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"],
-    Tuesday: ["9:10-9:55", "10:00-10:55", "11:00-11:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"],
-    Wednesday: ["9:10-9:55", "10:00-10:55", "11:00-11:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"],
-    Thursday: ["9:10-9:55", "10:00-10:55", "11:00-11:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"],
-    Friday: ["9:10-9:55", "10:00-10:55", "11:00-11:55", "12:01-12:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"],
-};
-let existingSchedules = []; // Define globally or manage scope appropriately
+// Define all possible time slots (match your schedule table)
+const ALL_TIME_SLOTS = [
+    "9:10-9:55",
+    "10:00-10:55",
+    "11:00-11:55",
+    "12:01-12:55", // Note: Friday only in your example, handle accordingly if needed
+    "1:00-1:55",
+    "2:00-2:55",
+    "3:00-3:55",
+    "4:00-4:50"
+];
+
+// Store occupied slots globally or within the scope of submission selection
+let occupiedSlotsByDay = {};
+let currentSubmissionSchoolYear = null; // Store the school year of the selected submission
+let existingSchedules = []; // <<< Declare existingSchedules in a broader scope
+let originalSubmissionPreferredTime = null; // Store the original preferred time of the selected submission
 
 // Main setup on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => { // Made async
@@ -140,8 +157,27 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
     // --- Initial Population and Setup ---
     await populateDropdowns(); // This now handles fetching configs and displaying the current one
 
+    // --- Fetch initial schedules AFTER populating dropdowns and setting the year ---
+    const initialYear = schoolYearDropdown ? schoolYearDropdown.value : null;
+    if (initialYear) {
+        try {
+            const response = await fetch(`/schedule?schoolYear=${initialYear}`);
+            if (!response.ok) throw new Error("Failed to fetch initial schedules");
+            existingSchedules = await response.json(); // Populate global existingSchedules
+            console.log(`Fetched initial schedules for ${initialYear}:`, existingSchedules);
+            await refreshSchedule(initialYear); // Refresh the visual schedule grid
+        } catch (error) {
+            console.error("Error fetching initial schedules:", error);
+            existingSchedules = []; // Reset on error
+        }
+    } else {
+        console.warn("No initial school year selected, cannot fetch initial schedules.");
+    }
+    // --- End Fetch initial schedules ---
+
+
     if (submissionSchoolYearDropdown && submissionSchoolYearDropdown.value) {
-        await loadSubmissions();
+        await loadSubmissions(); // Now load submissions, existingSchedules should be populated
     } else {
         console.warn(
             "No school year selected in submissionSchoolYearDropdown initially."
@@ -212,12 +248,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
             }
         }
 
-        // Refresh schedule based on the initially selected/current year in the main dropdown
-        if (schoolYearDropdown && schoolYearDropdown.value) {
-            await refreshSchedule(schoolYearDropdown.value);
-        } else {
-            console.warn("Cannot refresh schedule, no year selected in main dropdown.");
-        }
+        // // Removed schedule refresh from here, moved to after initial schedule fetch
+        // if (schoolYearDropdown && schoolYearDropdown.value) {
+        //     await refreshSchedule(schoolYearDropdown.value);
+        // } else {
+        //     console.warn("Cannot refresh schedule, no year selected in main dropdown.");
+        // }
     }
 
     function populateDropdown(dropdown, schoolYears) {
@@ -256,8 +292,19 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
             // Update the modalSchoolYearDropdown to match the selected year
             if (modalSchoolYearDropdown) modalSchoolYearDropdown.value = selectedYear;
 
-            // Refresh the schedule for the selected year
-            await refreshSchedule(selectedYear);
+            // --- Refetch schedules for the new year and update global variable ---
+            try {
+                const response = await fetch(`/schedule?schoolYear=${selectedYear}`);
+                if (!response.ok) throw new Error("Failed to fetch schedules on year change");
+                existingSchedules = await response.json(); // Update global existingSchedules
+                console.log(`Fetched schedules for ${selectedYear} (main dropdown change):`, existingSchedules);
+                await refreshSchedule(selectedYear); // Refresh the visual schedule grid
+            } catch (error) {
+                console.error("Error fetching schedules on year change:", error);
+                existingSchedules = []; // Reset on error
+                await refreshSchedule(selectedYear); // Still try to refresh grid (might clear it)
+            }
+            // --- End Refetch ---
         });
     }
 
@@ -276,7 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
 
                 existingSchedules = await response.json(); // Update global existingSchedules
                 console.log(
-                    `Fetched schedules for ${selectedYear}:`,
+                    `Fetched schedules for ${selectedYear} (submission dropdown change):`,
                     existingSchedules
                 );
 
@@ -834,15 +881,14 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
     if (preferredDayDropdown && preferredTimeDropdown) {
         preferredDayDropdown.addEventListener("change", () => {
             const selectedDay = preferredDayDropdown.value;
-            const selectedYear = submissionSchoolYearDropdown ? submissionSchoolYearDropdown.value : null;
+            // Use the globally stored school year for the current submission
+            const selectedYear = currentSubmissionSchoolYear;
+            // Get the submission ID from the submit button's dataset
+            const submissionId = document.querySelector(".submit-button")?.dataset.submissionId;
 
             console.log("Preferred Day Changed:", selectedDay);
             console.log("Selected Year for Availability:", selectedYear);
             console.log("Existing Schedules for Availability:", existingSchedules);
-
-            // Define selectedTime (default to the current dropdown value or empty string)
-            const selectedTime = preferredTimeDropdown.value || "";
-            console.log("Current Preferred Time:", selectedTime);
 
             // Clear and enable the time dropdown
             preferredTimeDropdown.innerHTML =
@@ -851,52 +897,59 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
 
             if (!selectedDay || !selectedYear) {
                 console.warn("Day or Year not selected, cannot populate times.");
+                preferredTimeDropdown.disabled = true; // Ensure disabled
                 return;
             }
 
             // Filter out times that are already occupied for the selected day and year
+            // Make sure to exclude the schedule belonging to the *current* submission if submissionId is known
             const occupiedTimes = existingSchedules
                 .filter(
                     (schedule) =>
                         schedule.day === selectedDay &&
-                        schedule.schoolYear === selectedYear
+                        schedule.schoolYear === selectedYear &&
+                        (!submissionId || schedule.submissionId !== submissionId) // Exclude current submission's schedule
                 )
                 .map((schedule) => schedule.time.trim());
 
-            console.log("Occupied Times:", occupiedTimes, "For:", selectedYear);
+            console.log(`Occupied Times for ${selectedDay} in ${selectedYear} (excluding current submission if known):`, occupiedTimes);
 
-            // Populate the time dropdown with available times for the selected day
-            if (availableTimes[selectedDay]) {
-                let timeFound = false;
-                availableTimes[selectedDay].forEach((time) => {
-                    const normalizedTime = time.trim(); // Normalize time format
-                    const isOccupied = occupiedTimes.includes(normalizedTime);
-                    const isCurrentlySelected = normalizedTime === selectedTime;
-
-                    // Add the option if it's not occupied OR if it's the time currently selected for *this* submission
-                    // We need the submission ID here to be perfectly accurate, but for now, allow the currently selected time
-                    // A better approach might involve passing the current submission ID to this handler if possible
-                    if (!isOccupied || isCurrentlySelected) {
-                        const option = document.createElement("option");
-                        option.value = normalizedTime;
-                        option.textContent = normalizedTime;
-                        if (isCurrentlySelected) {
-                            option.selected = true; // Reselect the current time if it's available
-                            timeFound = true;
-                        }
-                        preferredTimeDropdown.appendChild(option);
-                    }
-                });
-                 // If the previously selected time is no longer available, reset selection
-                if (!timeFound && selectedTime) {
-                    preferredTimeDropdown.value = "";
-                } else if (!selectedTime) {
-                     preferredTimeDropdown.value = ""; // Ensure default is selected if no time was previously chosen
+            // Populate the time dropdown ONLY with available times
+            ALL_TIME_SLOTS.forEach((time) => {
+                // Special handling for Friday 12:01-12:55 if needed
+                if (selectedDay !== 'Friday' && time === '12:01-12:55') {
+                    return; // Skip this slot if not Friday
                 }
 
+                const normalizedTime = time.trim(); // Normalize time format
+                const isOccupied = occupiedTimes.includes(normalizedTime);
+
+                // Add the option ONLY if it's not occupied
+                if (!isOccupied) {
+                    const option = document.createElement("option");
+                    option.value = normalizedTime;
+                    option.textContent = normalizedTime;
+                    preferredTimeDropdown.appendChild(option);
+                } else {
+                    console.log(`Time slot ${normalizedTime} on ${selectedDay} is occupied.`);
+                }
+            });
+
+            // After populating with available slots, try to select the original preferred time
+            // Use the globally stored originalSubmissionPreferredTime
+            if (originalSubmissionPreferredTime && preferredTimeDropdown.querySelector(`option[value="${originalSubmissionPreferredTime}"]`)) {
+                 // Check if the original time exists among the *available* options we just added
+                 console.log(`Reselecting original preferred time: ${originalSubmissionPreferredTime}`);
+                 preferredTimeDropdown.value = originalSubmissionPreferredTime;
             } else {
-                console.warn("No available times defined for selected day:", selectedDay);
+                 // If the original time is not available for the new day, reset selection
+                 console.log(`Original preferred time ${originalSubmissionPreferredTime || 'N/A'} not available for ${selectedDay}. Resetting selection.`);
+                 preferredTimeDropdown.value = ""; // Reset to default "Select a time"
             }
+
+            // Re-disable if no valid options were added (only the default "Select a time" exists)
+            preferredTimeDropdown.disabled = preferredTimeDropdown.options.length <= 1;
+
         });
     }
 
@@ -1026,7 +1079,8 @@ async function loadSubmissions() {
             // Add event listeners to the newly created select buttons
             document.querySelectorAll("#submissions-table-body .select-btn").forEach((button) => {
                 button.addEventListener("click", () =>
-                    selectSubmission(button.dataset.id, existingSchedules) // Pass global existingSchedules
+                    // Use the globally scoped existingSchedules variable
+                    selectSubmission(button.dataset.id, existingSchedules) // <<< Use global variable
                 );
             });
         } else {
@@ -1058,6 +1112,10 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
         }
         const submission = await response.json();
 
+        // --- Store original preferred time ---
+        originalSubmissionPreferredTime = submission.preferredSchedule?.time || null; // <<< Store the original time
+        // ---
+
         // --- Store initial result ---
         initialSubmissionResult = submission.result || 'Pending';
         // ---
@@ -1084,7 +1142,6 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
             document.getElementById("facultyStaffDepartment").value = "N/A";
         } else {
             document.getElementById("facultyStaff").value = formatName(submission.facultyStaff);
-            // Assuming 'cys' field holds department for faculty/staff in submission schema
             document.getElementById("facultyStaffDepartment").value = submission.facultyStaff?.cys || "";
         }
 
@@ -1154,12 +1211,13 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
         }
 
         document.getElementById("show-title").value = submission.showDetails?.title || "";
-        // Assuming showType is a string or array; adjust if it's meant for checkboxes
         document.getElementById("showType").value = Array.isArray(submission.showDetails?.type)
-            ? submission.showDetails.type.join(', ') // Join if array
-            : (submission.showDetails?.type || ""); // Use directly if string
+            ? submission.showDetails.type.join(', ')
+            : (submission.showDetails?.type || "");
         document.getElementById("showDescription").value = submission.showDetails?.description || "";
         document.getElementById("show-objectives").value = submission.showDetails?.objectives || "";
+        // --- End Populate Read-only Fields ---
+
 
         // --- Populate Editable Fields (Preferred Schedule, Result) ---
         const preferredDayDropdown = document.getElementById("preferredDay");
@@ -1168,26 +1226,36 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
 
         const selectedDay = submission.preferredSchedule?.day || "";
         const selectedTime = submission.preferredSchedule?.time || "";
+        currentSubmissionSchoolYear = submission.schoolYear; // Store the school year
 
         preferredDayDropdown.value = selectedDay; // Set the day
 
         // Populate time dropdown based on selected day and availability
-        preferredTimeDropdown.innerHTML = '<option value="" disabled>Select a time</option>'; // Clear existing options
-        const selectedYear = document.getElementById("submissionSchoolYear").value; // Get the currently selected year
+        preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a time</option>'; // Clear existing options
+        const selectedYear = currentSubmissionSchoolYear; // Use the stored school year
 
-        if (selectedDay && selectedYear && availableTimes[selectedDay]) {
-            const occupiedTimes = schedulesForAvailability // Use the passed schedules
-                .filter(schedule => schedule.day === selectedDay && schedule.schoolYear === selectedYear)
+        // Check if selectedDay and selectedYear are valid before proceeding
+        if (selectedDay && selectedYear) {
+            // Filter schedulesForAvailability to get occupied times for the specific day and year
+            const occupiedTimes = schedulesForAvailability
+                .filter(schedule => schedule.day === selectedDay && schedule.schoolYear === selectedYear && schedule.submissionId !== submissionId) // Exclude schedule linked to this submission
                 .map(schedule => schedule.time.trim());
 
-            console.log(`Occupied times for ${selectedDay} in ${selectedYear}:`, occupiedTimes);
+            console.log(`Occupied times for ${selectedDay} in ${selectedYear} (excluding current submission):`, occupiedTimes);
 
-            availableTimes[selectedDay].forEach((time) => {
+            // Iterate through ALL defined time slots
+            ALL_TIME_SLOTS.forEach((time) => {
+                // Special handling for Friday 12:01-12:55 if needed (adjust condition based on your rules)
+                if (selectedDay !== 'Friday' && time === '12:01-12:55') {
+                    return; // Skip this slot if not Friday
+                }
+
                 const normalizedTime = time.trim();
                 const isOccupied = occupiedTimes.includes(normalizedTime);
-                // Allow the time if it's not occupied OR if it's the time currently saved for *this specific submission*
                 const isCurrentSubmissionTime = normalizedTime === selectedTime;
 
+                // Add the time slot if it's not occupied by *another* submission,
+                // OR if it's the time currently saved for *this* submission.
                 if (!isOccupied || isCurrentSubmissionTime) {
                     const option = document.createElement("option");
                     option.value = normalizedTime;
@@ -1197,26 +1265,33 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
                     }
                     preferredTimeDropdown.appendChild(option);
                 } else {
-                     console.log(`Time slot ${normalizedTime} is occupied.`);
+                     console.log(`Time slot ${normalizedTime} is occupied by another schedule.`);
                 }
             });
-             // If the selectedTime wasn't added (e.g., it became occupied by someone else), reset selection
-            if (!preferredTimeDropdown.querySelector(`option[value="${selectedTime}"]`)) {
-                 preferredTimeDropdown.value = "";
+
+            // If the selectedTime wasn't added (e.g., it became occupied by someone else), reset selection
+            // This check might be redundant if the logic above correctly adds the current time, but keep for safety.
+            if (selectedTime && !preferredTimeDropdown.querySelector(`option[value="${selectedTime}"]`)) {
+                 console.warn(`Previously selected time ${selectedTime} is no longer available.`);
+                 preferredTimeDropdown.value = ""; // Reset selection
+            } else if (!selectedTime) {
+                 preferredTimeDropdown.value = ""; // Ensure default is selected if no time was initially set
             }
 
         } else {
-            console.warn("Cannot populate times: Day, Year, or availableTimes definition missing.");
+            console.warn("Cannot populate times: Day or Year not selected/available.");
             preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select day first</option>';
+            preferredTimeDropdown.disabled = true; // Disable if day/year missing
         }
 
-        resultDropdown.value = submission.result || "Pending"; // Set result
+        resultDropdown.value = submission.result.charAt(0).toUpperCase() + submission.result.slice(1) || "Pending"; // Set result, capitalize first letter
 
         // --- Enable/Disable Form Elements Based on Result ---
         const isDecided = initialSubmissionResult !== 'Pending';
         resultDropdown.disabled = isDecided;
         preferredDayDropdown.disabled = isDecided;
-        preferredTimeDropdown.disabled = isDecided || !selectedDay; // Also disable if no day selected
+        // Disable time dropdown if decided, or if no day is selected, or if no options were populated
+        preferredTimeDropdown.disabled = isDecided || !selectedDay || preferredTimeDropdown.options.length <= 1;
         document.querySelector(".cancel-button").disabled = false; // Always enable cancel
         document.querySelector(".submit-button").disabled = isDecided; // Disable submit if decided
         document.querySelector(".submit-button").dataset.submissionId = submissionId; // Set ID for submit button
@@ -1231,7 +1306,17 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
 // Helper function to format names consistently
 function formatName(person) {
     if (!person) return "N/A";
-    return `${person.lastName || ""}, ${person.firstName || ""} ${person.middleInitial || person.mi || ""} ${person.suffix || ""}`.trim().replace(/, $/, ''); // Trim and remove trailing comma if only last name exists
+    // Ensure properties exist before accessing
+    const lastName = person.lastName || "";
+    const firstName = person.firstName || "";
+    const mi = person.middleInitial || person.mi || "";
+    const suffix = person.suffix || "";
+
+    let formattedName = `${lastName}, ${firstName}`;
+    if (mi) formattedName += ` ${mi}`;
+    if (suffix) formattedName += ` ${suffix}`;
+
+    return formattedName.trim().replace(/, $/, ''); // Trim and remove trailing comma if only last name exists
 }
 
 
@@ -1241,13 +1326,13 @@ async function updateSubmission(submissionId) {
     const newResult = resultDropdown.value; // e.g., "Accepted" or "Rejected"
     const preferredDay = document.getElementById("preferredDay").value;
     const preferredTime = document.getElementById("preferredTime").value;
-    const selectedYear = document.getElementById("submissionSchoolYear").value; // Get the selected school year
+    const selectedYear = currentSubmissionSchoolYear; // Use the stored school year
 
     // --- Confirmation Check for irreversible actions ---
     if (initialSubmissionResult === 'Pending' && (newResult === 'Accepted' || newResult === 'Rejected')) {
         const action = newResult === 'Accepted' ? 'Accept' : 'Reject';
         if (!confirm(`Are you sure you want to ${action} this submission? This action is irreversible.`)) {
-            resultDropdown.value = initialSubmissionResult; // Reset dropdown if cancelled
+            resultDropdown.value = initialSubmissionResult.charAt(0).toUpperCase() + initialSubmissionResult.slice(1); // Reset dropdown if cancelled
             return;
         }
     }
@@ -1482,6 +1567,7 @@ function clearFields() {
 
     // Reset initial state variable
     initialSubmissionResult = 'Pending';
+    originalSubmissionPreferredTime = null; // Reset original time
 
     // Disable the form elements that should be disabled when no submission is selected
     if (resultDropdown) resultDropdown.disabled = true;
