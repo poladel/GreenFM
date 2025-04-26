@@ -1,5 +1,5 @@
 <%- include('../partials/header.ejs') %>
-
+<body data-user-id="<%= user._id %>">
     <div class="page-container">
         <div class="content-wrap">
             <div class="container">
@@ -8,8 +8,58 @@
                 <!-------------------- HEADER MENUS -------------------->   
                 <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- CONTENTS START --------------------> 
-    
+                <!-------------------- CONTENTS START -------------------->
+                <div class="chat-wrapper">
+                    <!-- Sidebar -->
+                    <div class="chat-sidebar">
+                        <h4><button id="open-new-chat" type="button">Start New Chat</button></h4>
+                        <h2>Inbox</h2>
+                        <% chats.forEach(chat => { %>
+                            <div class="chat-room" data-id="<%= chat._id %>">
+                                <% if (chat.isGroupChat) { %>
+                                    <strong>[Group]</strong> <%= chat.groupName %>
+                                <% } else { %>
+                                    <%= chat.users.find(u => u._id.toString() !== user._id.toString())?.username %>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div class="chat-area">
+                        <div id="messages" style="overflow-y: auto; height: 400px;"></div>
+                        <form id="message-form">
+                            <input id="message-input" type="text" placeholder="Type your message..." />
+                            <button type="submit">Send</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Start New Chat Modal -->
+                <div id="new-chat-modal" style="display:none; flex-direction: column; background: #fff; padding: 20px; border-radius: 8px; position:fixed; top:10%; left:50%; transform:translateX(-50%); box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+                    <h3>Start New Chat / Group Chat</h3>
+
+                    <form id="new-chat-form">
+                        <input type="text" id="group-name" placeholder="Group Name (optional)" style="width:100%; margin-bottom:10px;" />
+
+                        <input type="text" id="user-search" placeholder="Search users..." style="width:100%; margin-bottom:10px;" />
+
+                        <div id="user-list" style="max-height:200px; overflow-y:auto; margin-bottom:10px; border:1px solid #ccc; padding:10px;">
+                            <% users.forEach(u => { %>
+                                <div class="user-checkbox">
+                                    <label>
+                                        <input type="checkbox" name="userIds" value="<%= u._id %>">
+                                        <%= u.username %> (<%= u.roles %>)
+                                    </label>
+                                </div>
+                            <% }) %>
+                        </div>
+
+                        <button type="submit">Start Chat</button>
+                        <button type="button" id="close-modal">Cancel</button>
+                    </form>
+                </div>
+
             </div>
         </div>
 
@@ -17,6 +67,7 @@
         <%- include('../partials/footer.ejs') %>
         
     </div>
-
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/1-admin/chat.js"></script>
 </body>
 </html>

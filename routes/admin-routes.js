@@ -1,7 +1,8 @@
 const express = require('express');
 const { requireAuth, checkRoles } = require('../middleware/authMiddleware');
 const User = require('../models/User');
-const router = express.Router();  
+const Chat = require('../models/Chat');
+const router = express.Router();
 
 // Define the routes for each 'user' section with dynamic titles
 const adminRoute = [
@@ -11,54 +12,51 @@ const adminRoute = [
     { path: '/Chat', view: '1-admin/4-chat', pageTitle: 'Chat', headerTitle: 'CHAT', cssFile: 'css/chat.css', roles: ['Admin', 'Staff'], restricted: true },
 ];
 
-// Define the routes and render views with dynamic titles
+// Define and handle the routes dynamically
 adminRoute.forEach(adminRoute => {
     router.get(adminRoute.path, requireAuth, checkRoles(adminRoute.roles), async (req, res, next) => {
         try {
-            if (adminRoute.auth) {
-                return requireAuth(req, res, async () => {
-                    // Delegate to controller if specified
-                    if (adminRoute.controller) {
-                        return adminRoute.controller(req, res, next);
-                    }
+            const user = res.locals.user;
 
-                    // Render the view if no controller is specified
-                    return res.render(adminRoute.view, {
-                        pageTitle: adminRoute.pageTitle,
-                        cssFile: adminRoute.cssFile,
-                        user: res.locals.user,
-                        headerTitle: adminRoute.headerTitle,
-                        redirectUrl: req.query.redirect || '/'
-                    });
+            // Restriction check
+            if (adminRoute.restricted && (!user || (adminRoute.roles && !adminRoute.roles.includes(user.roles)))) {
+                return res.render('restricted', {
+                    message: 'Access Denied: Insufficient Permissions',
+                    redirectUrl: '/'
                 });
             }
 
-            // Handle restricted routes
-            if (adminRoute.restricted) {
-                const user = res.locals.user;
-                if (!user || (adminRoute.roles && !adminRoute.roles.includes(user.roles))) {
-                    return res.render('restricted', {
-                        message: 'Access Denied: Insufficient Permissions',
-                        redirectUrl: '/' // Redirect to Home or any other page
-                    });
-                }
-            }
+            // Special case: if Chat page, load additional data
+            if (adminRoute.path === '/Chat') {
+                // Fetch existing chats for the logged-in user
+                const chats = await Chat.find({ users: user._id }).populate('users');
 
-            // Render the view if no authentication is required
-            if (!adminRoute.controller) {
+                // Fetch all Admin and Staff users except current user
+                const users = await User.find({
+                    roles: { $in: ['Admin', 'Staff'] },
+                    _id: { $ne: user._id }
+                });
+
                 return res.render(adminRoute.view, {
                     pageTitle: adminRoute.pageTitle,
                     cssFile: adminRoute.cssFile,
-                    user: res.locals.user,
+                    user,
                     headerTitle: adminRoute.headerTitle,
-                    currentPath: req.path
+                    currentPath: req.path,
+                    chats,   // List of chats
+                    users    // List of other users
                 });
             }
 
-            // Delegate to controller if specified
-            if (adminRoute.controller) {
-                return adminRoute.controller(req, res, next);
-            }
+            // Render normally if no controller is specified
+            return res.render(adminRoute.view, {
+                pageTitle: adminRoute.pageTitle,
+                cssFile: adminRoute.cssFile,
+                user,
+                headerTitle: adminRoute.headerTitle,
+                currentPath: req.path
+            });
+
         } catch (error) {
             console.error(`Error handling route ${adminRoute.path}:`, error);
             res.status(500).send('Server Error');
