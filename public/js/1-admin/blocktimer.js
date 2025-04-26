@@ -12,7 +12,7 @@ async function refreshSchedule(selectedYear) {
         console.log(`Schedules for ${selectedYear}:`, schedules); // Debugging log
 
         // --- Update the global variable ---
-        existingSchedules = schedules; // <<< ADD THIS LINE
+        existingSchedules = schedules; // <<< Update global list
         // ---
 
         // Clear existing schedule buttons
@@ -91,6 +91,7 @@ let occupiedSlotsByDay = {};
 let currentSubmissionSchoolYear = null; // Store the school year of the selected submission
 let existingSchedules = []; // <<< Declare existingSchedules in a broader scope
 let originalSubmissionPreferredTime = null; // Store the original preferred time of the selected submission
+let initialSubmissionResult = 'Pending'; // Store the initial result when a submission is selected (Capitalized)
 
 // Main setup on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => { // Made async
@@ -247,13 +248,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async
                 submissionSchoolYearDropdown.value = latestYearValue;
             }
         }
-
-        // // Removed schedule refresh from here, moved to after initial schedule fetch
-        // if (schoolYearDropdown && schoolYearDropdown.value) {
-        //     await refreshSchedule(schoolYearDropdown.value);
-        // } else {
-        //     console.warn("Cannot refresh schedule, no year selected in main dropdown.");
-        // }
     }
 
     function populateDropdown(dropdown, schoolYears) {
@@ -1060,15 +1054,19 @@ async function loadSubmissions() {
         if (Array.isArray(submissions) && submissions.length > 0) {
             submissions.forEach((submission) => {
                 const row = document.createElement("tr");
+                // Capitalize result for display
+                const displayResult = submission.result
+                    ? submission.result.charAt(0).toUpperCase() + submission.result.slice(1)
+                    : "Pending";
                 // Add a class based on result for potential styling
-                row.classList.add(`result-${(submission.result || 'Pending').toLowerCase()}`);
+                row.classList.add(`result-${(submission.result || 'Pending').toLowerCase()}`); // Keep class lowercase if needed for CSS
                 row.innerHTML = `
                     <td>${submission.showDetails?.title || "N/A"}</td>
                     <td>${submission.organizationName || "N/A"}</td>
                     <td>${submission.preferredSchedule?.day || "N/A"} ${
                     submission.preferredSchedule?.time || "N/A"
                 }</td>
-                    <td>${submission.result || "Pending"}</td>
+                    <td>${displayResult}</td> <!-- <<< Use capitalized result -->
                     <td><button type="button" class="select-btn" data-id="${
                         submission._id
                     }">Select</button></td>
@@ -1096,9 +1094,6 @@ async function loadSubmissions() {
     }
 }
 
-// Store the initial result when a submission is selected
-let initialSubmissionResult = 'Pending';
-
 // Populate the form with the selected submission's details
 async function selectSubmission(submissionId, schedulesForAvailability) {
     // Ensure schedulesForAvailability is the correct, up-to-date list for the selected year
@@ -1114,10 +1109,6 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
 
         // --- Store original preferred time ---
         originalSubmissionPreferredTime = submission.preferredSchedule?.time || null; // <<< Store the original time
-        // ---
-
-        // --- Store initial result ---
-        initialSubmissionResult = submission.result || 'Pending';
         // ---
 
         // --- Populate Read-only Fields ---
@@ -1284,9 +1275,12 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
             preferredTimeDropdown.disabled = true; // Disable if day/year missing
         }
 
-        resultDropdown.value = submission.result.charAt(0).toUpperCase() + submission.result.slice(1) || "Pending"; // Set result, capitalize first letter
+        // Capitalize result from DB for setting dropdown value
+        const dbResult = submission.result || "Pending";
+        resultDropdown.value = dbResult.charAt(0).toUpperCase() + dbResult.slice(1); // <<< Set capitalized value
 
         // --- Enable/Disable Form Elements Based on Result ---
+        initialSubmissionResult = resultDropdown.value; // Store the capitalized initial result
         const isDecided = initialSubmissionResult !== 'Pending';
         resultDropdown.disabled = isDecided;
         preferredDayDropdown.disabled = isDecided;
@@ -1323,7 +1317,7 @@ function formatName(person) {
 // Update submission result and potentially create/update/delete schedule
 async function updateSubmission(submissionId) {
     const resultDropdown = document.getElementById("result");
-    const newResult = resultDropdown.value; // e.g., "Accepted" or "Rejected"
+    const newResult = resultDropdown.value; // e.g., "Accepted" or "Rejected" (Capitalized)
     const preferredDay = document.getElementById("preferredDay").value;
     const preferredTime = document.getElementById("preferredTime").value;
     const selectedYear = currentSubmissionSchoolYear; // Use the stored school year
@@ -1332,7 +1326,7 @@ async function updateSubmission(submissionId) {
     if (initialSubmissionResult === 'Pending' && (newResult === 'Accepted' || newResult === 'Rejected')) {
         const action = newResult === 'Accepted' ? 'Accept' : 'Reject';
         if (!confirm(`Are you sure you want to ${action} this submission? This action is irreversible.`)) {
-            resultDropdown.value = initialSubmissionResult.charAt(0).toUpperCase() + initialSubmissionResult.slice(1); // Reset dropdown if cancelled
+            resultDropdown.value = initialSubmissionResult; // Reset dropdown if cancelled (already capitalized)
             return;
         }
     }
@@ -1383,21 +1377,20 @@ async function updateSubmission(submissionId) {
 
     // --- Prepare Update Payload ---
     const updates = {
-        // Convert result to lowercase to match potential backend enum expectations
-        result: newResult.toLowerCase(),
+        result: newResult.toLowerCase(), // <<< CONVERT TO LOWERCASE HERE
         preferredSchedule: { // Always send the selected schedule
             day: preferredDay,
             time: preferredTime
         }
     };
-    console.log("Sending updates:", updates); // Log the payload being sent
+    console.log("Sending updates:", updates); // Log the payload being sent (will now show lowercase result)
 
     // --- Update Submission ---
     try {
         const patchResponse = await fetch(`/submissions/${submissionId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updates),
+            body: JSON.stringify(updates), // Send the payload with lowercase result
         });
 
         const resultData = await patchResponse.json(); // Try parsing JSON
@@ -1409,10 +1402,10 @@ async function updateSubmission(submissionId) {
         }
 
         alert("Submission updated successfully!");
-        initialSubmissionResult = newResult; // Update the initial state for subsequent checks
+        initialSubmissionResult = newResult; // Update the initial state with the capitalized result
 
         // --- Disable form elements after successful irreversible update ---
-        if (newResult === 'Accepted' || newResult === 'Rejected') {
+        if (newResult === 'Accepted' || newResult === 'Rejected') { // <<< Compare with capitalized strings
             resultDropdown.disabled = true;
             document.getElementById("preferredDay").disabled = true;
             document.getElementById("preferredTime").disabled = true;
@@ -1563,10 +1556,10 @@ function clearFields() {
         preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a day first</option>';
         preferredTimeDropdown.disabled = true;
     }
-    if (resultDropdown) resultDropdown.value = "Pending";
+    if (resultDropdown) resultDropdown.value = "Pending"; // <<< Reset to capitalized "Pending"
 
     // Reset initial state variable
-    initialSubmissionResult = 'Pending';
+    initialSubmissionResult = 'Pending'; // <<< Reset to capitalized "Pending"
     originalSubmissionPreferredTime = null; // Reset original time
 
     // Disable the form elements that should be disabled when no submission is selected
