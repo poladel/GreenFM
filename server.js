@@ -33,7 +33,7 @@ app.set('view engine', 'ejs');
 
 // Define your routes
 const root = require('./routes/root');
-const applicationPeriodRoutes = require('./routes/applicationPeriodRoutes');
+const applicationPeriodRoutes = require('./routes/ApplicationPeriodRoutes');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
 const authRoutes = require('./routes/authRoutes');
