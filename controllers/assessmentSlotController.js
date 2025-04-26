@@ -136,3 +136,30 @@ exports.deleteAssessmentSlot = async (req, res) => {
     }
 };
 // --- END ---
+
+// --- NEW CONTROLLER FUNCTION ---
+exports.getBookedAssessmentSlots = async (req, res) => {
+    try {
+        const { department, year } = req.query;
+
+        if (!department || !year) {
+            return res.status(400).json({ message: 'Department and year query parameters are required.' });
+        }
+
+        console.log(`API: Fetching BOOKED slots for Dept: ${department}, Year: ${year}`);
+
+        const bookedSlots = await AssessmentSlot.find({
+            department: department,
+            year: year, // Ensure type matches schema (String or Number?)
+            application: { $ne: null } // Find slots WHERE application is NOT NULL
+        }).select('date time -_id'); // Select only date and time
+
+        console.log(`API: Found ${bookedSlots.length} booked slots.`);
+        res.status(200).json(bookedSlots);
+
+    } catch (error) {
+        console.error('Error fetching booked assessment slots:', error);
+        res.status(500).json({ message: 'Failed to fetch booked slots' });
+    }
+};
+// --- END NEW CONTROLLER FUNCTION ---

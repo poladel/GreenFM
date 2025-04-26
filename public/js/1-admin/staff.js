@@ -231,6 +231,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isWeeklyView = weekStartDateString;
         console.log("Is Weekly View:", isWeeklyView);
 
+        // --- Get Assessment Period End Date ---
+        let assessmentEndDate = null;
+        if (currentAssessmentPeriod && currentAssessmentPeriod.endDate) {
+            assessmentEndDate = parseDateStringToLocalMidnight(currentAssessmentPeriod.endDate);
+            if (isNaN(assessmentEndDate.getTime())) {
+                console.error("Invalid assessment end date found:", currentAssessmentPeriod.endDate);
+                assessmentEndDate = null; // Reset if invalid
+            }
+        }
+        // ---
 
         scheduleButtons.forEach(button => {
             const dayName = button.getAttribute('data-day');
@@ -241,14 +251,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             button.disabled = false;
             button.className = 'schedule-button availablebtn'; // Default to available
             button.dataset.applicationDetails = ''; // Clear previous data
+            delete button.dataset.slotId; // Clear slotId initially
 
             if (isWeeklyView) {
+                let buttonDate; // Keep the Date object
                 let buttonDateString = '';
                 try {
                     // ... (date calculation logic - keep as is) ...
                     const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
                     if (dayIndex === -1) throw new Error(`Invalid day name: ${dayName}`);
-                    let buttonDate = parseDateStringToLocalMidnight(weekStartDateString);
+                    buttonDate = parseDateStringToLocalMidnight(weekStartDateString); // Assign to buttonDate
                     if (isNaN(buttonDate.getTime())) throw new Error(`Invalid week start date: ${weekStartDateString}`);
                     const weekStartDayIndex = buttonDate.getDay();
                     let daysToAdd = dayIndex - weekStartDayIndex;
@@ -261,61 +273,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error("Error calculating date for button in displaySchedules", e);
                     button.disabled = true;
                     button.className = 'schedule-button';
-                    return;
+                    return; // Skip further processing for this button
                 }
+
+                // --- NEW: Check if button date is outside assessment period end date ---
+                if (assessmentEndDate && buttonDate > assessmentEndDate) {
+                    button.disabled = true;
+                    button.className = 'schedule-button disabled-outside-period'; // Add a specific class for styling
+                    button.textContent = 'Not Applicable'; // Indicate not applicable
+                    // console.log(`Disabling button for ${buttonDateString} as it's after assessment end date ${assessmentEndDate.toISOString().split('T')[0]}`);
+                    return; // Skip further processing for this button
+                }
+                // --- END NEW CHECK ---
+
 
                 const slotKey = `${buttonDateString}_${time}`;
                 const slotData = slotMap.get(slotKey);
 
                 if (slotData) {
                     // --- DEBUG: Log the found slotData and its application field ---
-                    console.log(`      MATCH FOUND for key: ${slotKey}`);
-                    console.log(`      slotData.application:`, slotData.application); // Log the value
-                    console.log(`      typeof slotData.application:`, typeof slotData.application); // Log the type
+                    // console.log(`      MATCH FOUND for key: ${slotKey}`);
+                    // console.log(`      slotData.application:`, slotData.application); // Log the value
+                    // console.log(`      typeof slotData.application:`, typeof slotData.application); // Log the type
                     // --- END DEBUG ---
 
                     // Check if the slot is BOOKED (has populated application data)
                     if (slotData.application && typeof slotData.application === 'object') {
-                        // This block executes for Paula's preferred slot IF populated
-                        console.log(`      >>> Condition TRUE: Treating as BOOKED.`); // Add confirmation log
+                        // ... (existing booked slot logic - keep as is) ...
+                        console.log(`      >>> Condition TRUE: Treating as BOOKED.`);
                         button.classList.remove('availablebtn', 'marked-available');
                         button.classList.add('bookedbtn');
-
-                        // Construct name from the populated application object
                         const applicantName = `${slotData.application.lastName}, ${slotData.application.firstName}${slotData.application.middleInitial ? ' ' + slotData.application.middleInitial + '.' : ''}${slotData.application.suffix ? ' ' + slotData.application.suffix : ''}`;
                         const applicantSection = slotData.application.section;
-
                         button.textContent = `${applicantName}\n${applicantSection}`;
                         button.style.whiteSpace = 'pre-line';
                         button.style.fontSize = '0.7em';
                         button.style.lineHeight = '1.2';
-
-                        // Store details for the modal (ensure all needed fields are in slotData.application)
-                        const detailsForModal = {
-                            lastName: slotData.application.lastName,
-                            firstName: slotData.application.firstName,
-                            middleInitial: slotData.application.middleInitial,
-                            suffix: slotData.application.suffix,
-                            section: slotData.application.section,
-                            dlsudEmail: slotData.application.dlsudEmail,
-                            studentNumber: slotData.application.studentNumber,
-                            preferredDepartment: slotData.application.preferredDepartment,
-                            preferredSchedule: `${slotData.application.preferredSchedule?.date} (${slotData.application.preferredSchedule?.time})`
-                         };
+                        const detailsForModal = { /* ... */ };
                         button.dataset.applicationDetails = JSON.stringify(detailsForModal);
 
                     } else {
                         // Slot is marked available by admin OR population failed
-                        console.log(`      >>> Condition FALSE: Treating as MARKED AVAILABLE.`); // Add confirmation log
-                        button.classList.remove('availablebtn');
-                        button.classList.add('marked-available');
-                        button.textContent = 'Available';
-                        button.dataset.slotId = slotData._id; // Keep slotId for deletion
+                        // ... (existing marked-available slot logic - keep as is) ...
+                         console.log(`      >>> Condition FALSE: Treating as MARKED AVAILABLE.`);
+                         button.classList.remove('availablebtn');
+                         button.classList.add('marked-available');
+                         button.textContent = 'Available';
+                         button.dataset.slotId = slotData._id;
                     }
                 } else {
                     // Slot is implicitly available (not in DB)
-                    // console.log(`      No match for key: ${slotKey}`); // Optional: uncomment if needed
-                    delete button.dataset.slotId;
+                    // Button remains in its default 'availablebtn' state from the reset above
+                    // console.log(`      No match for key: ${slotKey}`);
                 }
             } else {
                 // Not in weekly view

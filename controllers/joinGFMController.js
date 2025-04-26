@@ -1,6 +1,7 @@
 const ApplyStaff = require('../models/ApplyStaff');
 const User = require('../models/User');
-const AssessmentSlot = require('../models/AssessmentSlot'); // <-- Add AssessmentSlot model
+const AssessmentSlot = require('../models/AssessmentSlot');
+const AssessmentPeriod = require('../models/AssessmentPeriod');
 
 module.exports.joinGFM1_post = async (req, res) => {
     const {
@@ -71,19 +72,51 @@ module.exports.joinGFM2_get = async (req, res) => {
 
         // Retrieve data from session
         const applicationData = req.session.joinGFM1Data;
+        if (!applicationData || !applicationData.preferredDepartment) {
+             console.error('Session data or preferredDepartment missing in joinGFM2_get.');
+             return res.redirect('/JoinGFM-Step1');
+        }
+
+        // --- DEFINE currentYear HERE ---
+        const currentYear = new Date().getFullYear(); // Define the variable
+        // ---
+
+        // --- Fetch Booked Slots ---
+        let bookedSlots = [];
+        try {
+            // Use the defined currentYear
+            const assessmentPeriod = await AssessmentPeriod.findOne({ year: currentYear });
+
+            if (assessmentPeriod) {
+                console.log(`Fetching booked slots for Dept: ${applicationData.preferredDepartment}, Year: ${currentYear}`);
+                bookedSlots = await AssessmentSlot.find({
+                    department: applicationData.preferredDepartment,
+                    year: currentYear, // Use the defined currentYear
+                    application: { $ne: null }
+                }).select('date time -_id');
+                console.log(`Found ${bookedSlots.length} booked slots.`);
+            } else {
+                console.warn(`No assessment period found for year ${currentYear}. Cannot fetch booked slots.`);
+            }
+        } catch (slotError) {
+            console.error("Error fetching booked slots:", slotError);
+        }
+        // --- End Fetch Booked Slots ---
 
         // Debugging: Log session data
-        console.log('Session Data in joinBlocktimer2_get:', applicationData);
+        console.log('Session Data in joinGFM2_get:', applicationData);
 
         // Render the EJS view and pass the data
         res.render('2-user/7-joingreenfm-2', {
             pageTitle: 'Join GFM - Step 2',
             cssFile: 'css/joingreenfm2.css',
             applicationData,
-            redirectUrl: req.query.redirect || '/' // Add redirectUrl
+            bookedSlots: JSON.stringify(bookedSlots),
+            currentYear: currentYear, // Pass the defined currentYear
+            redirectUrl: req.query.redirect || '/'
         });
     } catch (err) {
-        console.error('Error in joinGFM2_get:', err);
+        console.error('Error in joinGFM2_get:', err); // Log the actual error
         res.status(500).send('Server Error');
     }
 };
