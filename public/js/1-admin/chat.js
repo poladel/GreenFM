@@ -1,6 +1,7 @@
 let messagesPage = 1;
 let loadingMore = false;
 let allMessagesLoaded = false;
+let loadedMessageIds = new Set();
 
 const socket = io();
 let currentChatId = null;
@@ -27,14 +28,16 @@ async function loadMessages() {
         const res = await fetch(`/chat/messages/${currentChatId}?page=1`);
         const messages = await res.json();
         messagesDiv.innerHTML = '';
+        loadedMessageIds.clear();
 
         allMessagesLoaded = false;
         messagesPage = 1;
 
         const latestMessages = messages.slice(-10).reverse();
         latestMessages.forEach(msg => {
+            loadedMessageIds.add(msg._id);
             messagesDiv.insertAdjacentHTML('afterbegin', renderMessage(msg, currentUserId));
-        });
+        });        
 
         scrollToBottom();
     } catch (err) {
@@ -54,15 +57,22 @@ async function loadMoreMessages() {
         const res = await fetch(`/chat/messages/${currentChatId}?page=${messagesPage}`);
         const moreMessages = await res.json();
 
-        if (moreMessages.length > 0) {
-            moreMessages.reverse().forEach(msg => {
+        const newMessages = moreMessages
+            .filter(msg => !loadedMessageIds.has(msg._id));
+
+        if (newMessages.length > 0) {
+            newMessages.reverse().forEach(msg => {
+                loadedMessageIds.add(msg._id);
                 messagesDiv.insertAdjacentHTML('afterbegin', renderMessage(msg, currentUserId));
             });
 
             const newScrollHeight = messagesDiv.scrollHeight;
             messagesDiv.scrollTop = newScrollHeight - previousScrollHeight;
-        } else {
+        }
+
+        if (newMessages.length === 0) {
             allMessagesLoaded = true;
+            showNoMoreMessagesNotice();
         }
     } catch (err) {
         console.error('❌ Error loading more messages:', err);
@@ -73,10 +83,19 @@ async function loadMoreMessages() {
 }
 
 // Scroll detection for auto-load
-messagesDiv.addEventListener('scroll', async () => {
-    if (messagesDiv.scrollTop === 0 && !loadingMore && !allMessagesLoaded) {
-        await loadMoreMessages();
-    }
+let scrollTimeout = null;
+
+messagesDiv.addEventListener('scroll', () => {
+    if (scrollTimeout) return;
+
+    scrollTimeout = setTimeout(async () => {
+        scrollTimeout = null;
+
+        // Trigger loading if near the top (not just exactly 0)
+        if (messagesDiv.scrollTop < 50 && !loadingMore && !allMessagesLoaded) {
+            await loadMoreMessages();
+        }
+    }, 150); // Delay to prevent rapid repeat firing
 });
 
 // Send new message
@@ -130,6 +149,16 @@ function renderMessage(message, currentUserId) {
             </div>
         </div>
     `;
+}
+
+function showNoMoreMessagesNotice() {
+    const notice = document.createElement('div');
+    notice.textContent = 'You’ve reached the beginning of the conversation.';
+    notice.style.textAlign = 'center';
+    notice.style.color = '#888';
+    notice.style.margin = '10px 0';
+    notice.style.fontSize = '0.9em';
+    messagesDiv.insertAdjacentElement('afterbegin', notice);
 }
 
 // Scroll to bottom
