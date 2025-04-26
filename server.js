@@ -63,7 +63,6 @@ const ApplicationPeriodRoutes = require('./routes/applicationPeriodRoutes');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
 const authRoutes = require('./routes/authRoutes');
-const { checkUser } = require('./middleware/authMiddleware');
 const postRoutes = require('./routes/postRoutes');
 const joinGFMRoutes = require('./routes/joinGFMRoutes');
 const joinBlocktimerRoutes = require('./routes/joinBlocktimerRoutes');
