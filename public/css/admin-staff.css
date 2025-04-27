@@ -117,179 +117,137 @@
   
   /*--- SCHEDULE TABLE ---*/
   .schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-    background-color: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2vw;
-  }
-  
-  .schedule-table th,
-  .schedule-table td {
-    padding: 12px;
-    border: 1px solid #ddd;
-    font-size: 0.9em;
-    color: #333;
-  }
-  
-  .schedule-table th {
-    background-color: #f6f6f6;
-    font-weight: 600;
-    color: #00722A;
-  }
-  
-  .schedule-table td.time {
-    font-weight: 600;
-    background-color: #f9f9f9;
-  }
-  
-  .schedule-button.bookedbtn {
-    background-color: #ffcccb; /* Light red/pink */
-    color: #a52a2a; /* Brown */
-    border-color: #a52a2a;
-    font-weight: normal;
-    cursor: pointer;
-    font-size: 0.8em;
-    white-space: normal;
-    line-height: 1.2;
-    padding: 5px;
-    text-align: center;
-    height: 100%; /* Ensure it fills the cell */
-    box-sizing: border-box; /* Include padding/border in height */
-}
-.schedule-button.bookedbtn:hover {
-    background-color: #f08080; /* LightCoral */
-    color: #ffffff;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  background-color: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2vw;
 }
 
+.schedule-table th,
+.schedule-table td {
+  padding: 12px; /* Keep original padding */
+  border: 1px solid #ddd;
+  font-size: 0.9em;
+  color: #333;
+  vertical-align: middle; /* Keep vertical alignment */
+}
+
+.schedule-table th {
+  background-color: #f6f6f6;
+  font-weight: 600;
+  color: #00722A;
+}
+
+.schedule-table td.time {
+  font-weight: 600;
+  background-color: #f9f9f9;
+}
+
+/* Keep your original button styles (assuming .schedule-button is the base or use .availablebtn/.bookedbtn if those define the look) */
+.schedule-button {
+    /* Add any base styles common to ALL buttons if needed */
+    /* Example: */
+    width: 100%;
+    padding: 10px; /* Or original padding */
+    border: 1px solid #ccc; /* Or original border */
+    border-radius: 10px; /* Or original radius */
+    cursor: pointer;
+    transition: background-color 0.2s; /* Only transition background */
+    font-size: 0.85em;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: #ffffff; /* Default background */
+    color: #333; /* Default text color */
+}
+
+/* --- COLOR OVERRIDES BASED ON STATUS --- */
+
+/* Style for BOOKED slots (Background Color Only) */
+.schedule-button.booked {
+    background-color: #ffeaeb !important; /* Lighter red/pink */
+    /* Optionally set text color if needed for contrast */
+    /* color: #a52a2a !important; */
+}
+.schedule-button.booked:hover {
+    background-color: #ffcdd2 !important; /* Slightly darker pink on hover */
+}
+
+/* Style for AVAILABLE slots (marked by admin - Background Color Only) */
+.schedule-button.available {
+    background-color: #e8f5e9 !important; /* Light green */
+     /* Optionally set text color if needed for contrast */
+    /* color: #1b5e20 !important; */
+}
+.schedule-button.available:hover {
+    background-color: #c8e6c9 !important; /* Slightly darker green on hover */
+}
+
+/* Style for IMPLICITLY AVAILABLE slots (future, unbooked, unmarked - Background Color Only) */
+.schedule-button.implicitly-available {
+    background-color: #ffffff !important; /* White background (or very light grey like #f9f9f9) */
+     /* Optionally set text color if needed for contrast */
+    /* color: #00722A !important; */
+}
+.schedule-button.implicitly-available:hover {
+    background-color: #f0fdf4 !important; /* Very light green on hover */
+}
+
+/* Style for PAST slots (Background Color Only) */
+.schedule-button.past {
+    background-color: #f5f5f5 !important; /* Light grey */
+    cursor: not-allowed;
+     /* Optionally set text color if needed for contrast */
+    /* color: #9e9e9e !important; */
+}
+.schedule-button.past:hover {
+     background-color: #eeeeee !important; /* Slightly darker grey on hover */
+}
+
+/* Style for DISABLED buttons (general - Background Color Only) */
+.schedule-button:disabled:not(.past) { /* Don't apply to past if it has its own style */
+    background-color: #eeeeee !important; /* Different disabled background */
+    cursor: not-allowed;
+    opacity: 0.7; /* Keep opacity */
+     /* Optionally set text color if needed for contrast */
+    /* color: #757575 !important; */
+}
+.schedule-button:disabled:not(.past):hover {
+    background-color: #eeeeee !important; /* Keep disabled color on hover */
+}
+
+
+/* --- Keep original .availablebtn / .bookedbtn if they define layout --- */
+/* --- OR remove them if .schedule-button is the only base style needed --- */
+
+/* Example: If .availablebtn defined the main look */
+/*
 .availablebtn {
     width: 100%;
     padding: 10px;
     border: 1px solid #00722A;
     border-radius: 10px;
-    background-color: #fff;
+    background-color: #fff; // Default background overridden by status classes
     cursor: pointer;
     transition: background-color 0.2s, transform 0.2s;
-  }
-  
-  .availablebtn:hover {
-    background-color: #00722A;
-    color: white;
-    transform: scale(1.03);
-  }
-  
-  .availablebtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  /*--- MODAL ---*/
-  .modal {
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  
-  .modal-content {
-    background-color: white;
-    margin: 10vh auto;
-    padding: 2vw;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 600px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .modal-content h3 {
-    color: #00722A;
-    margin-top: 0;
-    margin-bottom: 1vh;
-    font-size: 1.2em;
-  }
-  
-  .modal-content label {
-    display: block;
-    margin: 1vh 0 0.5vh;
-    font-weight: 550;
-    color: #333;
-  }
-  
-  .modal-content input[type="text"] {
-    width: 96%;
-    padding: 10px;
-    margin-bottom: 1vh;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 0.95em;
-  }
-  
-  .modal-content button[type="submit"] {
-    background-color: #00722A;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.95em;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-    margin-top: 1vh;
-  }
-  
-  .modal-content button[type="submit"]:hover {
-    background-color: #005e23;
-    transform: scale(1.03);
-  }
+}
+.availablebtn:hover { ... } // Hover background overridden by status classes
+.availablebtn:disabled { ... } // Disabled background overridden by status classes
+*/
 
-  .delete-button {
-    background-color: #00722A;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.95em;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-    margin-top: 1vh;
-  }
+/* Example: If .bookedbtn defined the main look for booked buttons (less likely) */
+/*
+.schedule-button.bookedbtn {
+    // Original booked styles defining layout/font etc.
+    // Background/color will be overridden by .schedule-button.booked
+}
+*/
 
-  .delete-button :hover{
-    background-color: #005e23;
-    transform: scale(1.03);
-  }
-  
-  .close {
-    float: right;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #aaa;
-    cursor: pointer;
-    margin-top: -10px;
-  }
-  
-  .close:hover {
-    color: #000;
-  } 
-  
-  /*--- SUBMISSIONS TAB ---*/
-  #submissions-tab {
-    margin-left: 5vw;
-    margin-right: 5vw;
-    margin-top: 1.5vw;
-    margin-bottom: 2vw;
-    background-color: white;
-    padding: 2vw;
-    border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+
+/* ... rest of the CSS ... */

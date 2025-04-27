@@ -1,6 +1,6 @@
 const ApplyStaff = require('../models/ApplyStaff');
 const User = require('../models/User');
-const sendEmail = require('../config/mailer');
+const sendEmail = require('../config/mailer'); // <<< ADD THIS IMPORT (Adjust path if needed)
 
 // --- NEW Submission Controller Functions ---
 
@@ -67,7 +67,7 @@ exports.getSubmissions = async (req, res) => {
 // Update submission result, send email, and update role
 exports.updateSubmissionResult = async (req, res) => {
     const { id } = req.params;
-    const { result } = req.body; // Expecting { "result": "Accepted" | "Rejected" | "Pending" }
+    const { result } = req.body;
 
     if (!result || !['Pending', 'Accepted', 'Rejected'].includes(result)) {
         return res.status(400).json({ message: 'Invalid result value provided.' });
@@ -75,23 +75,22 @@ exports.updateSubmissionResult = async (req, res) => {
 
     try {
         const updatedSubmission = await ApplyStaff.findByIdAndUpdate(
-            id,
-            { result: result },
-            { new: true, runValidators: true } // Return updated doc, run schema validators
-        ).populate('userId', 'email'); // Populate the user's email
+            id, { result: result }, { new: true, runValidators: true }
+        ).populate('userId', 'email'); // <<< REMOVE roles from populate here if only needed for update logic
 
-        if (!updatedSubmission) {
-            return res.status(404).json({ message: 'Submission not found.' });
-        }
+        if (!updatedSubmission) return res.status(404).json({ message: 'Submission not found.' });
 
         console.log(`Submission ${id} status updated to ${result}`);
 
-        // --- Send Email and Update Role ---
+        // --- Send Email ---
         if (result === 'Accepted' || result === 'Rejected') {
-            if (updatedSubmission.userId && updatedSubmission.userId.email) {
-                // --- Construct Email Content ---
-                let subject = '';
-                let htmlContent = '';
+            // --- Construct Email Content ---
+            let subject = '';
+            let htmlContent = '';
+            // Ensure userId and email exist before trying to send
+            if (!updatedSubmission.userId || !updatedSubmission.userId.email) {
+                 console.warn(`Cannot send email for submission ${id}: User ID or email missing.`);
+            } else {
                 const recipientEmail = updatedSubmission.userId.email;
 
                 if (result === 'Accepted') {
@@ -126,37 +125,41 @@ exports.updateSubmissionResult = async (req, res) => {
                     console.log(`Result email sent to ${recipientEmail} for submission ${id}`);
                     // --- End Call Generic sendEmail ---
 
-                    // If accepted, update user role to Staff
-                    if (result === 'Accepted') {
-                        const user = await User.findById(updatedSubmission.userId._id);
-                        if (user && user.roles !== 'Admin') { // Don't downgrade Admins
-                            // Reset progress flags upon acceptance/rejection decision being made
-                            user.completedJoinGFMStep1 = true; // Mark step 1 as done (viewing result)
-                            user.completedJoinGFMStep2 = true; // Mark step 2 as done (viewing result)
-                            await user.save();
-                            console.log(`User role updated to Staff for ${recipientEmail}`);
-                        } else if (!user) {
-                             console.error(`User not found with ID ${updatedSubmission.userId._id} to update role.`);
-                        }
-                    } else if (result === 'Rejected') {
-                        // Also reset flags on rejection so they can potentially re-apply later
-                         const user = await User.findById(updatedSubmission.userId._id);
-                         if (user) {
-                            user.completedJoinGFMStep1 = true; // Mark step 1 as done (viewing result)
-                            user.completedJoinGFMStep2 = true; // Mark step 2 as done (viewing result)
-                            await user.save();
-                         }
-                    }
-
                 } catch (emailError) {
-                    console.error(`!!! Failed to send result email for submission ${id}:`, emailError);
-                    // Decide how to handle: maybe return a partial success? For now, log and continue.
+                    // Log error but continue, as the main submission update succeeded
+                    console.error(`!!! Error during email sending for submission ${id}:`, emailError);
                 }
-            } else {
-                console.error(`!!! Cannot send email: User ID or email missing for submission ${id}`);
             }
         }
-        // --- End Send Email and Update Role ---
+        // --- End Send Email ---
+
+        // <<< Emit Socket Events >>>
+        // 1. Targeted update to the specific user (using user ID room)
+        if (updatedSubmission.userId?._id) {
+            const targetUserId = updatedSubmission.userId._id.toString();
+            req.io.to(targetUserId).emit('staffSubmissionStatusUpdate', {
+                submissionId: updatedSubmission._id,
+                result: updatedSubmission.result,
+                preferredDepartment: updatedSubmission.preferredDepartment,
+                // Include any other data needed by joingreenfm3.js
+            });
+            console.log(`Emitted staffSubmissionStatusUpdate to user room ${targetUserId}`);
+        } else {
+             console.warn(`Could not emit targeted update for submission ${id}: User ID missing.`);
+        }
+
+        // 2. General update for admin table (to admin_room)
+        req.io.to('admin_room').emit('staffAdminSubmissionUpdate', {
+            _id: updatedSubmission._id,
+            result: updatedSubmission.result,
+            // Include other fields needed to update the admin table row
+            lastName: updatedSubmission.lastName,
+            firstName: updatedSubmission.firstName,
+            preferredDepartment: updatedSubmission.preferredDepartment,
+            schoolYear: updatedSubmission.schoolYear
+        });
+        console.log(`Emitted staffAdminSubmissionUpdate to admin_room`);
+        // <<< End Emit Socket Events >>>
 
         res.status(200).json({ message: 'Submission status updated successfully.', submission: updatedSubmission });
 
@@ -185,74 +188,89 @@ exports.getMyLatestStaffApplication = async (req, res) => {
 };
 
 // --- NEW: Acknowledge Staff Result ---
-exports.acknowledgeStaffResult = async (req, res) => {
-    const userId = req.user.id; // From requireAuth
+exports.acknowledgeResult = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
 
     try {
-        // Find the user
-        const user = await User.findById(userId);
-        if (!user) {
-            // Even if user not found, proceed to logout/clear cookie
-            res.clearCookie('jwt'); // Clear JWT cookie
-            return res.status(404).json({
-                message: "User not found, logging out.",
-                logout: true, // Signal frontend to handle logout/redirect
-                redirectUrl: '/login'
+        // 1. Find the specific submission by ID and ensure it belongs to the logged-in user
+        const submission = await ApplyStaff.findOne({ _id: id, userId: userId });
+
+        if (!submission) {
+            return res.status(404).json({ message: 'Application not found or does not belong to user.' });
+        }
+
+        // Check if the submission was actually accepted
+        if (submission.result !== 'Accepted') {
+            // Allow acknowledging rejection, but don't update role/department
+            submission.acknowledged = true;
+            await submission.save();
+            console.log(`User ${userId} acknowledged rejected submission ${id}`);
+            // Send response indicating acknowledgment but no role change
+             return res.status(200).json({
+                message: 'Rejection acknowledged.',
+                logout: false // Or true if you want logout on rejection ack
             });
         }
 
-        // Find the user's latest staff application to get the preferred department
-        // Only proceed with role/dept update if the application was actually accepted
-        const staffApplication = await ApplyStaff.findOne({ userId: userId, result: 'Accepted' }) // <<< Ensure it was accepted
-            .sort({ createdAt: -1 });
+        // --- Logic for ACCEPTED acknowledgment ---
+        submission.acknowledged = true;
+        await submission.save();
+        console.log(`User ${userId} acknowledged accepted submission ${id}`);
 
-        // --- Update Role and Department ---
-        if (staffApplication) {
-            // Update role only if current role is not Admin
-            if (user.roles !== 'Admin') {
-                user.roles = 'Staff'; // <<< Set role to Staff
-                console.log(`User ${userId} role updated to Staff.`);
-            } else {
-                 console.log(`User ${userId} is Admin. Role not changed.`);
-            }
-            // Update department
-            user.department = staffApplication.preferredDepartment; // <<< Set department
-            console.log(`User ${userId} department updated to ${staffApplication.preferredDepartment}.`);
-        } else {
-            // This case means the user acknowledged a rejected/pending application,
-            // or no application was found. Role/Department should not change.
-            console.log(`User ${userId} acknowledged result, but no accepted application found. Role/Department not updated.`);
+        // Find the associated User and update their role, department, and flags
+        const userToUpdate = await User.findById(userId);
+        if (!userToUpdate) {
+            // This shouldn't happen if the user is logged in, but handle defensively
+            console.error(`User ${userId} not found during acknowledgment of submission ${id}`);
+            return res.status(404).json({ message: 'User record not found.' });
         }
-        // --- End Update Role and Department ---
 
-        // --- Reset progress flags ---
-        user.completedJoinGFMStep1 = false;
-        user.completedJoinGFMStep2 = false;
-        // --- End Reset progress flags ---
+        console.log("User object before role/flag update:", JSON.stringify(userToUpdate, null, 2));
+        const oldRole = userToUpdate.roles; // Capture old role (string)
 
-        await user.save(); // Save changes (flags, potentially role and department)
+        // <<< UPDATE FLAGS AND ROLE HERE >>>
+        userToUpdate.completedJoinGFMStep1 = true;
+        userToUpdate.completedJoinGFMStep2 = true;
+        userToUpdate.roles = 'Staff'; // Assign the string 'Staff' (assuming single role schema)
+        userToUpdate.department = submission.preferredDepartment;
+        // <<< END UPDATE >>>
 
-        console.log(`User ${userId} acknowledged staff application result. Flags reset, user updated, logging out.`);
+        const updatedUser = await userToUpdate.save();
+        console.log(`User ${userId} flags updated, role updated to Staff, department to ${updatedUser.department}. Old role: ${oldRole}`);
 
-        // Log the user out by clearing the JWT cookie
-        res.clearCookie('jwt'); // Ensure the cookie name matches what you set during login
+        // <<< EMIT SOCKET EVENT TO ADMINS >>>
+        if (req.io) { // Check if io is attached to req
+             const userDataForEmit = {
+                _id: updatedUser._id.toString(), // Ensure ID is string
+                roles: updatedUser.roles,
+                department: updatedUser.department,
+                // Include other fields needed by the admin table if necessary
+                lastName: updatedUser.lastName,
+                firstName: updatedUser.firstName,
+                username: updatedUser.username,
+                email: updatedUser.email
+            };
+            req.io.to('admin_room').emit('userAccountUpdated', userDataForEmit);
+            console.log(`Emitted userAccountUpdated to admin_room for user ${updatedUser._id}`);
+        } else {
+            console.warn("Socket.IO instance (req.io) not found. Cannot emit userAccountUpdated event.");
+        }
+        // <<< END EMIT >>>
 
-        // Respond with success and redirect instruction
-        res.status(200).json({
-            message: "Result acknowledged and profile updated. Please log in again.", // Updated message
-            logout: true, // Signal frontend to handle logout/redirect
-            redirectUrl: '/login'
+        // Respond to the user - Force logout and redirect
+        res.clearCookie('jwt'); // Clear access token cookie
+        res.clearCookie('refreshToken'); // Clear refresh token cookie (if used)
+
+        return res.status(200).json({
+            message: 'Acceptance acknowledged! Your role has been updated. Please log in again.',
+            logout: true, // Flag for frontend to know logout happened
+            redirectUrl: '/LogIn' // URL for frontend to redirect to
         });
 
     } catch (error) {
-        console.error("Error acknowledging staff result:", error);
-        // Attempt to clear cookie even on error before sending response
-        res.clearCookie('jwt');
-        res.status(500).json({
-            message: "Server error acknowledging result. Logging out.",
-            logout: true, // Signal frontend to handle logout/redirect
-            redirectUrl: '/login'
-         });
+        console.error(`Error acknowledging result for submission ${id}:`, error);
+        res.status(500).json({ message: 'Failed to acknowledge result.' });
     }
 };
 

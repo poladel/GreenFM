@@ -2,6 +2,7 @@ const ApplyStaff = require('../models/ApplyStaff');
 const User = require('../models/User');
 const AssessmentSlot = require('../models/AssessmentSlot');
 const AssessmentPeriod = require('../models/AssessmentPeriod');
+const { endOfWeek, format } = require('date-fns'); // Ensure date-fns is installed
 
 module.exports.joinGFM1_post = async (req, res) => {
     const {
@@ -121,15 +122,16 @@ module.exports.joinGFM2_get = async (req, res) => {
     }
 };
 
+// --- Controller to handle Step 2 submission (Replaces previous joinGFM2_post) ---
 module.exports.joinGFM2_post = async (req, res) => {
-    // --- Check for user authentication first ---
+    // --- Authentication check ---
     if (!req.user || !req.user.id) {
-        console.error('User not authenticated or user ID missing in joinGFM2_post.');
-        return res.status(401).json({ error: 'Authentication required. Please log in.', redirect: '/login' }); // Redirect to login
+        return res.status(401).json({ success: false, message: 'Authentication required.', redirect: '/login' });
     }
-    // ---
 
-    if (!req.session.joinGFM1Data) {
+    // --- Session check ---
+    const step1Data = req.session.joinGFM1Data;
+    if (!step1Data) {
         // Reset progress flags if session is lost
         try {
             const user = await User.findById(req.user.id);
@@ -141,108 +143,134 @@ module.exports.joinGFM2_post = async (req, res) => {
         } catch (userError) {
             console.error("Error resetting user progress flags:", userError);
         }
-
-        // Display error and redirect
-        return res.status(400).json({
-            error: 'Session data missing. Please return and complete Step 1.',
-            redirect: '/JoinGFM-Step1'
-        });
+        return res.status(400).json({ success: false, message: 'Session expired or Step 1 data missing.', redirect: '/JoinGFM-Step1' });
     }
 
-    const { preferredDepartment } = req.session.joinGFM1Data; // Only need department for slot lookup here
-    const { schoolYear, preferredSchedule } = req.body; // { date: 'YYYY-MM-DD', time: 'HH:MM-HH:MM' }
+    const { schoolYear, preferredSchedule } = req.body; // Get schedule from req.body
 
-    // --- Validate preferredSchedule ---
-    if (!preferredSchedule || !preferredSchedule.date || !preferredSchedule.time) {
-        return res.status(400).json({ error: 'Preferred schedule (date and time) is required.' });
+    // --- Validation ---
+    if (!schoolYear || !preferredSchedule?.date || !preferredSchedule?.time) {
+        return res.status(400).json({ success: false, message: 'Missing required fields (school year, date, time).' });
     }
-    // ---
 
     try {
-        // --- Find the chosen assessment slot ---
-        console.log('--- Booking Attempt ---');
-        console.log('Finding AssessmentSlot with:');
-        console.log('  Date:', preferredSchedule.date);
-        console.log('  Time:', preferredSchedule.time);
-        console.log('  Department:', preferredDepartment);
-        console.log('  Year:', schoolYear);
+        // --- Find existing application ---
+        let application = await ApplyStaff.findOne({ userId: req.user.id, schoolYear: schoolYear }).sort({ createdAt: -1 });
 
-        const slotToBook = await AssessmentSlot.findOne({
-            date: preferredSchedule.date,
-            time: preferredSchedule.time,
-            department: preferredDepartment,
-            year: schoolYear
-        });
-
-        if (!slotToBook) {
-            console.error('!!! AssessmentSlot.findOne FAILED to find a match.');
-            return res.status(404).json({ error: 'Selected assessment slot not found or unavailable.' });
+        // <<< ADD DETAILED LOGGING >>>
+        console.log(`DEBUG: Checking existing application for user ${req.user.id}, year ${schoolYear}.`);
+        if (application) {
+            console.log(`DEBUG: Found application ID: ${application._id}`);
+            console.log(`DEBUG: Existing application preferredSchedule:`, JSON.stringify(application.preferredSchedule, null, 2));
+            console.log(`DEBUG: Does application.preferredSchedule?.date exist? :`, !!application.preferredSchedule?.date);
         } else {
-            console.log('Found AssessmentSlot:', slotToBook._id);
-            console.log('  Slot current application field:', slotToBook.application);
+            console.log(`DEBUG: No existing application found.`);
         }
+        // <<< END LOGGING >>>
 
-        // --- Check if the slot is already booked ---
-        if (slotToBook.application) {
-            console.warn('!!! Slot already booked by:', slotToBook.application);
-            return res.status(409).json({ error: 'Selected assessment slot has already been booked. Please choose another.' });
-        }
-        // ---
-
-        // --- Retrieve Step 1 data from session ---
-        const step1Data = req.session.joinGFM1Data;
-        if (!step1Data) {
-             console.error('!!! Session data from Step 1 is missing in joinGFM2_post.');
-             return res.status(400).json({ error: 'Session expired or Step 1 data missing. Please start over.', redirect: '/JoinGFM-Step1' });
+        // --- Check if schedule ALREADY successfully submitted ---
+        if (application && application.preferredSchedule?.date) {
+             return res.status(400).json({ success: false, message: 'You have already submitted a schedule for this school year.' });
         }
         // ---
 
-        // Create the application first, including data from Step 1 and the userId
-        const applyStaff = await ApplyStaff.create({
-            // --- SPREAD data from Step 1 session ---
-            ...step1Data,
-            // --- Add fields from Step 2 ---
-            schoolYear,
-            preferredSchedule,
-            // --- ADD THE USER ID ---
-            userId: req.user.id // Get the ID from the authenticated user
-            // --- END ADD ---
-        });
+        // --- Prepare applicant details ---
+        const appMiddle = step1Data.middleInitial ? ` ${step1Data.middleInitial}.` : '';
+        const appSuffix = step1Data.suffix ? ` ${step1Data.suffix}` : '';
+        const applicantNameString = `${step1Data.lastName}, ${step1Data.firstName}${appMiddle}${appSuffix}`;
 
-        console.log('Staff Application Created:', applyStaff._id, applyStaff.lastName, 'for User:', applyStaff.userId);
+        // --- Create or find application document ---
+        let isNewApplication = false; // Flag to know if we created it in this request
+        if (!application) {
+            console.log(`Creating new ApplyStaff document for user ${req.user.id}, year ${schoolYear} INCLUDING schedule.`);
+            isNewApplication = true;
+            application = await ApplyStaff.create({ // <<< INCLUDE preferredSchedule HERE
+                ...step1Data,
+                schoolYear,
+                preferredSchedule: preferredSchedule, // Pass schedule from req.body
+                result: 'Pending',
+                userId: req.user.id
+            });
+            console.log('New Staff Application Created (with schedule):', application._id);
+        } else {
+             console.log(`Found existing ApplyStaff document ${application._id} (schedule was previously empty)`);
+             // If the application existed but schedule was empty, we'll update it later *after* booking.
+             // If required:true is strict, this 'else' block might imply an inconsistent state.
+             // For now, we assume if it exists here, the schedule *was* empty.
+        }
 
-        // --- Now, link the application to the slot and update denormalized fields ---
-        slotToBook.application = applyStaff._id; // Assign ObjectId
-        const appMiddle = applyStaff.middleInitial ? ` ${applyStaff.middleInitial}.` : '';
-        const appSuffix = applyStaff.suffix ? ` ${applyStaff.suffix}` : '';
-        slotToBook.applicantName = `${applyStaff.lastName}, ${applyStaff.firstName}${appMiddle}${appSuffix}`;
-        slotToBook.applicantSection = applyStaff.section;
+        // --- Attempt to atomically book the slot ---
+        console.log('--- Booking Attempt ---');
+        console.log(`Attempting to book slot: ${preferredSchedule.date} ${preferredSchedule.time} for Dept: ${step1Data.preferredDepartment}, Year: ${schoolYear}`);
+        const updatedSlot = await AssessmentSlot.findOneAndUpdate(
+            {
+                date: preferredSchedule.date,
+                time: preferredSchedule.time,
+                department: step1Data.preferredDepartment,
+                year: schoolYear,
+                application: null // *** Condition: Only update if not booked ***
+            },
+            {
+                $set: {
+                    application: application._id, // Link to the application
+                    applicantName: applicantNameString,
+                    applicantSection: step1Data.section
+                }
+            },
+            { new: true } // Return the updated document if successful
+        );
 
-        console.log('Attempting to save AssessmentSlot:', slotToBook._id);
-        console.log('  With application field set to:', slotToBook.application);
+        // --- Handle Slot Booking Result ---
+        if (!updatedSlot) {
+            // Booking failed (conflict or slot not found)
+            console.warn('!!! Slot booking failed (findOneAndUpdate returned null).');
 
-        try {
-            await slotToBook.save();
-            console.log('Assessment Slot successfully saved:', slotToBook._id);
-        } catch (saveError) {
-            console.error('!!! FAILED to save AssessmentSlot:', slotToBook._id, saveError);
-            // If saving the slot fails, we should ideally delete the ApplyStaff document
-            // to avoid orphaned applications.
-            try {
-                await ApplyStaff.findByIdAndDelete(applyStaff._id);
-                console.log(`Cleaned up orphaned ApplyStaff document: ${applyStaff._id}`);
-            } catch (cleanupError) {
-                console.error(`!!! FAILED to cleanup orphaned ApplyStaff document ${applyStaff._id}:`, cleanupError);
+            // <<< *** ADD ROLLBACK/CLEANUP for ApplyStaff *** >>>
+            if (isNewApplication && application) {
+                // If we created the application in *this* request, clear its schedule
+                // because the booking failed. This allows the user to try again.
+                console.log(`Booking failed. Clearing schedule for newly created ApplyStaff ${application._id}`);
+                application.preferredSchedule = { date: null, time: null }; // Or just {}
+                await application.save(); // Save the cleared schedule
+            } else if (application) {
+                 // If application existed before, maybe log that booking failed but don't clear schedule?
+                 // Depends on desired behavior. Clearing might be safest.
+                 console.log(`Booking failed. Clearing schedule for existing ApplyStaff ${application._id}`);
+                 application.preferredSchedule = { date: null, time: null };
+                 await application.save();
             }
-            throw saveError; // Re-throw the original save error
-        }
-        // ---
+            // <<< *** END ROLLBACK/CLEANUP *** >>>
 
-        // Clear session data
+            // Check reason for failure and return appropriate error
+            const existingSlot = await AssessmentSlot.findOne({
+                 date: preferredSchedule.date, time: preferredSchedule.time, department: step1Data.preferredDepartment, year: schoolYear
+            });
+            if (existingSlot && existingSlot.application) {
+                console.error(`Slot was already booked by application ${existingSlot.application}.`);
+                return res.status(409).json({ success: false, message: 'Sorry, this slot was just booked. Please select another.' });
+            } else {
+                console.error('Selected assessment slot not found or unavailable.');
+                return res.status(404).json({ success: false, message: 'Selected assessment slot not found or unavailable.' });
+            }
+        }
+        // --- Slot Booking Succeeded ---
+        console.log('Assessment Slot successfully booked:', updatedSlot._id);
+
+        // --- If application existed before, update its schedule NOW ---
+        // (If it was a new application, schedule was already set during create)
+        if (!isNewApplication && application) {
+             console.log(`Updating existing ApplyStaff ${application._id} with confirmed schedule.`);
+             application.preferredSchedule = preferredSchedule; // Set schedule from req.body
+             await application.save();
+             console.log(`ApplyStaff ${application._id} saved with schedule.`);
+        }
+
+
+        // --- Clear session data ---
         req.session.joinGFM1Data = null;
 
-        // Update user progress
-        const user = await User.findById(req.user.id); // Re-fetch user to be safe
+        // --- Update user progress ---
+        const user = await User.findById(req.user.id);
         if (user) {
             user.completedJoinGFMStep2 = true;
             await user.save();
@@ -251,32 +279,64 @@ module.exports.joinGFM2_post = async (req, res) => {
             console.error(`User ${req.user.id} not found when trying to update Step 2 completion.`);
         }
 
+        // --- Emit Socket Events ---
+        const io = req.io; // Make sure io is attached to req (e.g., via middleware)
+        if (io) {
+            // 1. Slot booked update
+            io.emit('assessmentSlotUpdate', {
+                action: 'booked',
+                slot: {
+                    _id: updatedSlot._id, // Use updatedSlot which is guaranteed to exist if we reach here
+                    date: updatedSlot.date,
+                    time: updatedSlot.time,
+                    department: updatedSlot.department,
+                    year: updatedSlot.year,
+                    application: application._id,
+                    applicantName: updatedSlot.applicantName,
+                    applicantSection: updatedSlot.applicantSection
+                }
+            });
+            console.log(`Emitted assessmentSlotUpdate (booked) for ${updatedSlot.date} ${updatedSlot.time}`);
 
-        res.json({
-            success: true,
-            redirectUrl: '/JoinGFM-Step3'
-        });
+            // 2. New submission notification for admin
+            io.to('admin_room').emit('newStaffSubmission', {
+                _id: application._id,
+                lastName: application.lastName,
+                firstName: application.firstName,
+                preferredDepartment: application.preferredDepartment,
+                result: application.result,
+                schoolYear: application.schoolYear,
+                // Add other fields needed for the admin table row
+            });
+            console.log(`Emitted newStaffSubmission to admin_room, ID: ${application._id}`);
+        } else {
+            console.warn("Socket.IO instance (req.io) not found. Cannot emit updates.");
+        }
+
+        // --- Success Response ---
+        res.status(200).json({ success: true, message: 'Schedule selected successfully!', redirectUrl: '/JoinGFM-Step3' });
+
     } catch (error) {
-        // Handle validation errors and other errors
+        // Handle validation errors specifically if needed
         if (error.name === 'ValidationError') {
             console.error('Mongoose Validation Error:', error.errors);
             const errorDetails = {};
             for (const field in error.errors) {
                 errorDetails[field] = error.errors[field].message;
             }
-            return res.status(400).json({ error: 'Validation Error', details: errorDetails });
+            return res.status(400).json({ success: false, message: 'Validation Error', details: errorDetails });
         }
-        console.error('Error in joinGFM2_post catch block:', error);
-        res.status(500).json({ error: 'Failed to save application or book slot' });
+        console.error('Error submitting GFM Step 2:', error);
+        res.status(500).json({ success: false, message: 'Server error processing your request.' });
     }
 };
 
-// --- NEW: Get Applications for a Specific Week and Department ---
+// --- Get Applications for a Specific Week and Department ---
 module.exports.getApplicationsForWeek = async (req, res) => {
-    const { weekStart, department } = req.query;
+    const { weekStart, department, year } = req.query; // Add year filter
 
-    if (!weekStart || !department) {
-        return res.status(400).json({ error: 'Missing weekStart or department query parameter.' });
+    if (!weekStart || !department || !year) {
+        return res.status(400).json({ error: 'Missing weekStart, department, or year query parameter.' });
     }
 
     try {
@@ -292,23 +352,25 @@ module.exports.getApplicationsForWeek = async (req, res) => {
         const startDateString = startDate.toISOString().split('T')[0];
         const endDateString = endDate.toISOString().split('T')[0];
 
-        console.log(`Fetching applications for Dept: ${department}, Week: ${startDateString} to ${endDateString}`);
+        console.log(`Fetching applications for Dept: ${department}, Year: ${year}, Week: ${startDateString} to ${endDateString}`);
 
-        // Find applications within the date range and matching the department
-        const applications = await ApplyStaff.find({
-            preferredDepartment: department,
-            'preferredSchedule.date': {
+        // Find assessment slots within the date range, matching the department and year, AND that are booked
+        const bookedSlots = await AssessmentSlot.find({
+            department: department,
+            year: parseInt(year, 10), // Ensure year is a number
+            date: {
                 $gte: startDateString,
                 $lte: endDateString,
-            }
-        }).select('lastName firstName middleInitial suffix dlsudEmail studentNumber section preferredDepartment preferredSchedule'); // Select only needed fields
+            },
+            application: { $ne: null } // Only include booked slots
+        }).select('date time applicantName applicantSection application'); // Select needed fields from the slot
 
-        console.log(`Found ${applications.length} applications.`);
-        res.json(applications);
+        console.log(`Found ${bookedSlots.length} booked slots for the week.`);
+        res.json(bookedSlots); // Return the booked slot information
 
     } catch (error) {
-        console.error('Error fetching applications for week:', error);
-        res.status(500).json({ error: 'Failed to fetch applications' });
+        console.error('Error fetching booked slots for week:', error);
+        res.status(500).json({ error: 'Failed to fetch booked slots' });
     }
 };
-// --- End NEW ---
+// --- End ---

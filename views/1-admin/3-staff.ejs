@@ -1,5 +1,7 @@
 <%- include('../partials/header.ejs') %>
 
+<body data-admin-department="<%= typeof adminDepartment !== 'undefined' ? adminDepartment : '' %>">
+
 <div class="page-container">
     <div class="content-wrap">
         <div class="container">
@@ -18,32 +20,29 @@
                         <div class="route-settings">
                             <!-- Combined Form -->
                             <h3>GFM Application & Assessment Periods</h3>
-                            <form id="periodSettingsForm"> <!-- Changed ID -->
-                                <h4>Application Period</h4>
-                                <input type="hidden" name="appKey" value="JoinGFM">
-                                <div>
-                                    <label for="appStartDate">Start Date:</label>
-                                    <input type="date" id="appStartDate" name="appStartDate" required>
-                                </div>
-                                <div>
-                                    <label for="appEndDate">End Date:</label>
-                                    <input type="date" id="appEndDate" name="appEndDate" required>
-                                </div>
+                            <form id="periodSettingsForm">
 
-                                <hr style="margin: 20px 0;">
+                                <h4>Application Period</h4>
+                                <div class="form-group">
+                                    <label for="applicationStartDate">Start Date:</label>
+                                    <input type="date" id="applicationStartDate" name="applicationStartDate">
+                                </div>
+                                <div class="form-group">
+                                    <label for="applicationEndDate">End Date:</label>
+                                    <input type="date" id="applicationEndDate" name="applicationEndDate">
+                                </div>
 
                                 <h4>Assessment Period</h4>
-                                <input type="hidden" name="assessKey" value="GFMAssessment">
-                                <div>
-                                    <label for="assessStartDate">Start Date:</label>
-                                    <input type="date" id="assessStartDate" name="assessStartDate" required>
+                                <div class="form-group">
+                                    <label for="assessmentStartDate">Start Date:</label>
+                                    <input type="date" id="assessmentStartDate" name="assessmentStartDate">
                                 </div>
-                                <div>
-                                    <label for="assessEndDate">End Date:</label>
-                                    <input type="date" id="assessEndDate" name="assessEndDate" required>
+                                <div class="form-group">
+                                    <label for="assessmentEndDate">End Date:</label>
+                                    <input type="date" id="assessmentEndDate" name="assessmentEndDate">
                                 </div>
 
-                                <button type="submit">Save Periods</button>
+                                <button type="submit" class="btn btn-primary">Save Period Settings</button>
                             </form>
                             <div id="existingApplicationPeriod"
                                 style="margin-top: 10px; font-weight: bold;">
@@ -250,46 +249,6 @@
         <%- include('../partials/footer.ejs') %>
     </div> <!-- End content-wrap -->
 </div> <!-- End page-container -->
-
-<!-- Schedule Modal (Existing) -->
-<div id="scheduleModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close">&times;</span> <!-- Keep the close button -->
-
-        <!-- NEW: Container for Application Details View (Initially Hidden) -->
-        <div id="applicationDetailsView" style="display: none;">
-            <h2>Applicant Information</h2>
-            <div>
-                <label>Name:</label>
-                <input type="text" id="appName" readonly>
-            </div>
-            <div>
-                <label>DLSU-D Email:</label>
-                <input type="text" id="appEmail" readonly>
-            </div>
-            <div>
-                <label>Student Number:</label>
-                <input type="text" id="appStudentNum" readonly>
-            </div>
-            <div>
-                <label>Section:</label>
-                <input type="text" id="appSection" readonly>
-            </div>
-            <div>
-                <label>Preferred Department:</label>
-                <input type="text" id="appDepartment" readonly>
-            </div>
-            <!-- NEW: Add field for preferred schedule -->
-            <div>
-                <label>Booked Schedule:</label>
-                <input type="text" id="appPreferredSchedule" readonly>
-            </div>
-            <!-- End NEW -->
-        </div>
-        <!-- End Application Details View -->
-
-    </div> <!-- End modal-content -->
-</div> <!-- End scheduleModal -->
 
 <%- include('../partials/spinner.ejs') %> <%# Include the spinner partial %>
 <script src="/js/1-admin/staff.js"></script>

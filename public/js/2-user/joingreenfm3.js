@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const statusContainer = document.getElementById('staff-application-status');
+    let currentSubmissionId = null; // Store the ID of the submission being displayed
 
     // --- SPINNER FUNCTIONS ---
     function showSpinner() {
@@ -12,6 +13,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (spinner) spinner.style.display = 'none';
     }
     // --- END SPINNER FUNCTIONS ---
+
+    // <<< Initialize Socket.IO >>>
+    const socket = io({
+        auth: {
+            token: document.cookie.split('jwt=')[1]?.split(';')[0] // Send token
+        }
+    });
+
+    socket.on('connect', () => console.log('Join GFM Step 3 Socket Connected:', socket.id));
+    socket.on('disconnect', () => console.log('Join GFM Step 3 Socket Disconnected'));
+
+    // <<< Listen for Staff Submission Status Updates >>>
+    socket.on('staffSubmissionStatusUpdate', (data) => {
+        console.log('Received staffSubmissionStatusUpdate:', data);
+        // Check if the update is for the submission currently displayed
+        if (data.submissionId === currentSubmissionId) {
+            console.log(`Status update matches current submission (${currentSubmissionId}). Refreshing display.`);
+            // Re-render the status display with the new data
+            // We need the full submission object structure expected by displayStatus
+            // The event currently sends { submissionId, result, preferredDepartment }
+            // We might need to fetch the full details again, or enhance the event data
+            // Simple approach: Re-fetch
+            fetchStaffApplicationStatus();
+            // Alternative: Enhance event data and displayStatus to accept partial updates
+            // displayStatus(data); // If displayStatus can handle partial data
+        } else {
+            console.log("Status update ignored (different submission ID).");
+        }
+    });
+    // <<< End Listener >>>
 
     async function fetchStaffApplicationStatus() {
         if (!statusContainer) return;
@@ -33,6 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const submission = await response.json();
+            currentSubmissionId = submission._id; // <<< Store the ID
             displayStatus(submission);
             return submission; // Return for potential event listeners
 
@@ -47,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function displayStatus(submission) {
         if (!submission || !statusContainer) return;
+        currentSubmissionId = submission._id; // Ensure ID is set here too
 
         const { _id, result, preferredDepartment } = submission;
         const lowerResult = result ? result.toLowerCase() : 'pending';

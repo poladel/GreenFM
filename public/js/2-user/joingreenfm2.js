@@ -1,27 +1,128 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Get data from elements or data attributes if needed ---
     // Example: If department/year are stored in hidden inputs or data attributes
-    const departmentElement = document.getElementById('preferredDepartmentHidden'); // Assuming you add hidden input
-    const yearElement = document.getElementById('currentYearHidden'); // Assuming you add hidden input
+    const departmentElement = document.getElementById('preferredDepartmentHidden');
+    const yearElement = document.getElementById('currentYearHidden');
     const preferredDepartment = departmentElement ? departmentElement.value : null;
     const currentYear = yearElement ? yearElement.value : null;
-    // --- OR --- Get them some other way if available in the DOM
-
-    if (!preferredDepartment || !currentYear) {
-        console.error("Could not determine preferred department or current year from the page.");
-        // Handle error appropriately - maybe disable dropdowns
-        return;
-    }
-
-    console.log('Preferred Department:', preferredDepartment);
-    console.log('Current Year:', currentYear);
-
     const dayDropdown = document.getElementById('preferredDate');
     const timeDropdown = document.getElementById('preferredTime');
-    timeDropdown.disabled = true;
 
-    let availableSlotsCache = null;
-    let bookedSlotsSet = new Set();
+    let availableSlotsCache = null; // Store ALL potentially available slots
+    let bookedSlotsSet = new Set(); // Store keys ('YYYY-MM-DD_HH:MM-HH:MM') of booked slots
+
+    // <<< Initialize Socket.IO >>>
+    const socket = io({
+        auth: {
+            // Send JWT token if available for potential server-side user identification
+            token: document.cookie.split('jwt=')[1]?.split(';')[0]
+        }
+    });
+
+    socket.on('connect', () => console.log('Join GFM Step 2 Socket Connected:', socket.id));
+    socket.on('disconnect', () => console.log('Join GFM Step 2 Socket Disconnected'));
+
+    // <<< Listen for Assessment Slot Updates >>>
+    socket.on('assessmentSlotUpdate', async (data) => { // Make listener async if needed for fetches inside
+        console.log('Received assessmentSlotUpdate:', data);
+        const { action, slot } = data;
+
+        if (!slot || !slot.date || !slot.time || !slot.department || !slot.year) {
+            console.warn("Received incomplete slot update data:", data);
+            return;
+        }
+
+        // Only process updates relevant to the current view
+        if (slot.department !== preferredDepartment || slot.year.toString() !== currentYear) {
+            console.log("Slot update ignored (wrong dept/year).");
+            return;
+        }
+
+        const dateTimeKey = `${slot.date}_${slot.time}`;
+        let needsDayDropdownUpdate = false; // Flag to check if day dropdown needs refresh
+
+        // Update bookedSlotsSet and availableSlotsCache based on action
+        if (action === 'booked') {
+            bookedSlotsSet.add(dateTimeKey);
+            console.log(`Slot ${dateTimeKey} marked as booked.`);
+            if(availableSlotsCache) {
+                const cachedSlot = availableSlotsCache.find(s => s.date === slot.date && s.time === slot.time);
+                if(cachedSlot) cachedSlot.application = slot.application;
+            }
+            // Booking might make the last slot of a day unavailable, potentially needing day update
+            needsDayDropdownUpdate = true;
+
+        } else if (action === 'deleted') { // Admin deleted an *available* slot
+            bookedSlotsSet.delete(dateTimeKey);
+            if (availableSlotsCache) {
+                availableSlotsCache = availableSlotsCache.filter(s => !(s.date === slot.date && s.time === slot.time));
+            }
+            console.log(`Slot ${dateTimeKey} removed from available list.`);
+            needsDayDropdownUpdate = true; // Deleting a slot might make a day unavailable
+
+        } else if (action === 'created') { // Admin added a new available slot
+             bookedSlotsSet.delete(dateTimeKey);
+             if (availableSlotsCache && !availableSlotsCache.some(s => s.date === slot.date && s.time === slot.time)) {
+                 availableSlotsCache.push({ _id: slot._id, date: slot.date, time: slot.time, department: slot.department, year: slot.year, application: null }); // Add full slot if possible
+             }
+             console.log(`Slot ${dateTimeKey} added to available list.`);
+             needsDayDropdownUpdate = true; // Adding a slot might make a day available
+
+        } else if (action === 'unbooked') { // Handle case where admin makes a booked slot available again
+            bookedSlotsSet.delete(dateTimeKey);
+            console.log(`Slot ${dateTimeKey} marked as unbooked.`);
+            if(availableSlotsCache) {
+                const cachedSlot = availableSlotsCache.find(s => s.date === slot.date && s.time === slot.time);
+                if(cachedSlot) cachedSlot.application = null; // Mark as unbooked in cache
+                // If slot wasn't in cache (e.g., initial fetch failed), maybe add it? Or rely on full refresh.
+            }
+            needsDayDropdownUpdate = true; // Unbooking might make a day available again
+        }
+         // Add more actions if needed
+
+
+        // --- Refresh Dropdowns ---
+        const previouslySelectedDate = dayDropdown.value; // Store current selection
+
+        // 1. Refresh Day Dropdown if needed
+        if (needsDayDropdownUpdate) {
+            console.log("Slot update requires refreshing day dropdown.");
+            // Fetch the latest assessment period in case it changed (optional, depends on app logic)
+            // currentAssessmentPeriod = await fetchAssessmentPeriod(currentYear); // Uncomment if needed
+            if (!currentAssessmentPeriod) {
+                 console.error("Cannot refresh day dropdown, assessment period data missing.");
+                 return; // Or handle error appropriately
+            }
+            populateDayDropdown(availableSlotsCache, currentAssessmentPeriod, bookedSlotsSet);
+
+            // Attempt to restore previous selection if still valid
+            const newOptions = Array.from(dayDropdown.options);
+            const previousOption = newOptions.find(opt => opt.value === previouslySelectedDate);
+            if (previousOption && !previousOption.disabled) {
+                dayDropdown.value = previouslySelectedDate;
+                console.log(`Restored selected date: ${previouslySelectedDate}`);
+            } else if (previouslySelectedDate) {
+                console.log(`Previously selected date ${previouslySelectedDate} is no longer valid. Resetting time dropdown.`);
+                // If previous date is gone/disabled, clear time dropdown
+                 timeDropdown.innerHTML = '<option value="" disabled selected>Select a date first</option>';
+                 timeDropdown.disabled = true;
+            }
+        }
+
+        // 2. Refresh Time Dropdown based on the *final* selected date
+        const currentSelectedDate = dayDropdown.value; // Get value *after* potential day refresh
+        if (currentSelectedDate) {
+             console.log("Refreshing time dropdown for date:", currentSelectedDate);
+             populateTimeDropdown(currentSelectedDate, availableSlotsCache);
+        } else if (!needsDayDropdownUpdate && previouslySelectedDate === slot.date) {
+             // If day dropdown wasn't updated, but the update affected the selected date's times
+             console.log("Slot update affects selected date's times. Refreshing time dropdown.");
+             populateTimeDropdown(previouslySelectedDate, availableSlotsCache);
+        }
+        // --- End Refresh Dropdowns ---
+
+    });
+    // <<< End Listener >>>
 
     // --- fetchBookedSlots function (keep as is) ---
     const fetchBookedSlots = async (department, year) => {
@@ -105,118 +206,105 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- UPDATE: populateDayDropdown ---
-    const populateDayDropdown = (availableSlots, assessmentPeriod, bookedSlots) => { // Added bookedSlots parameter
-        dayDropdown.innerHTML = '<option value="" disabled selected>Select Assessment Day</option>';
-        dayDropdown.disabled = true;
+    const populateDayDropdown = (availableSlots, assessmentPeriod, currentBookedSlots) => { // Pass booked set
+         dayDropdown.innerHTML = '<option value="" disabled selected>Select Assessment Day</option>';
+         dayDropdown.disabled = true;
 
-        if (!assessmentPeriod) {
-            dayDropdown.innerHTML = '<option value="" disabled selected>Assessment period not defined</option>';
-            return;
-        }
-        if (!availableSlots) {
-            dayDropdown.innerHTML = '<option value="" disabled selected>No available slots</option>';
-            return; // Added check
-        }
-
-        // Get assessment period boundaries
-        const assessmentStart = parseDateStringToLocalMidnight(assessmentPeriod.startDate);
-        const assessmentEnd = parseDateStringToLocalMidnight(assessmentPeriod.endDate);
-
-        if (isNaN(assessmentStart.getTime()) || isNaN(assessmentEnd.getTime())) {
-             dayDropdown.innerHTML = '<option value="" disabled selected>Invalid assessment period dates</option>';
+         if (!assessmentPeriod?.startDate || !assessmentPeriod?.endDate) {
+             dayDropdown.innerHTML = '<option value="" disabled selected>Assessment period not defined</option>';
              return;
-        }
+         }
+         if (!Array.isArray(availableSlots)) { // Check if it's an array
+             dayDropdown.innerHTML = '<option value="" disabled selected>Error loading slots</option>';
+             return;
+         }
 
-        // Get today's date for filtering past dates
-        const today = new Date();
-        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+         // Get assessment period boundaries
+         const assessmentStart = parseDateStringToLocalMidnight(assessmentPeriod.startDate);
+         const assessmentEnd = parseDateStringToLocalMidnight(assessmentPeriod.endDate);
 
-        // Create a Map of dates (YYYY-MM-DD) to an array of available times for that date
-        const availableSlotsByDate = new Map();
-        availableSlots.forEach(slot => {
-            if (!availableSlotsByDate.has(slot.date)) {
-                availableSlotsByDate.set(slot.date, []);
-            }
-            availableSlotsByDate.get(slot.date).push(slot.time);
-        });
-        console.log("Available slots grouped by date:", availableSlotsByDate);
+         // Get today's date for filtering past dates
+         const today = new Date();
+         const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        let hasSelectableOptions = false;
-        let currentDate = new Date(assessmentStart);
+         if (isNaN(assessmentStart.getTime()) || isNaN(assessmentEnd.getTime())) {
+              dayDropdown.innerHTML = '<option value="" disabled selected>Invalid assessment period dates</option>';
+              return;
+         }
 
-        while (currentDate <= assessmentEnd) {
-            // Format date as YYYY-MM-DD
-            const year = currentDate.getFullYear();
-            const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-            const day = currentDate.getDate().toString().padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+         // Create a Map of dates (YYYY-MM-DD) to an array of available times for that date
+         const availableSlotsByDate = new Map();
+         availableSlots.forEach(slot => {
+             if (!availableSlotsByDate.has(slot.date)) {
+                 availableSlotsByDate.set(slot.date, []);
+             }
+             availableSlotsByDate.get(slot.date).push(slot.time);
+         });
+         console.log("Available slots grouped by date:", availableSlotsByDate);
 
-            const option = document.createElement('option');
-            option.value = dateStr;
-            option.textContent = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+         let hasSelectableOptions = false;
+         let currentDate = new Date(assessmentStart);
 
-            const isFuture = currentDate >= startOfToday;
-            const timesForThisDate = availableSlotsByDate.get(dateStr); // Get potential times for this date
+         while (currentDate <= assessmentEnd) {
+             // Format date as YYYY-MM-DD
+             const year = currentDate.getFullYear();
+             const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+             const day = currentDate.getDate().toString().padStart(2, '0');
+             const dateStr = `${year}-${month}-${day}`;
 
-            // --- Check if the date should be enabled ---
-            let isDateSelectable = false;
-            if (isFuture && timesForThisDate && timesForThisDate.length > 0) {
-                // Check if *at least one* time slot for this date is NOT booked
-                const hasUnbookedTime = timesForThisDate.some(time => {
-                    const dateTimeKey = `${dateStr}_${time}`;
-                    return !bookedSlots.has(dateTimeKey); // Check if it's NOT in the booked set
-                });
+             const option = document.createElement('option');
+             option.value = dateStr;
+             option.textContent = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-                if (hasUnbookedTime) {
-                    isDateSelectable = true; // Enable date if it's in the future and has at least one unbooked slot
-                }
-            }
-            // --- End Check ---
+             const isFuture = currentDate >= startOfToday;
+             const timesForThisDate = availableSlotsByDate.get(dateStr); // Get potential times for this date
 
-            if (isDateSelectable) {
-                // Date is valid, in the future (or today), and has slots -> ENABLED
-                option.disabled = false;
-                hasSelectableOptions = true;
-            } else {
-                // Date has no slots OR is in the past -> DISABLED
-                option.disabled = true;
-                // Optional: Add styling or text indication for disabled options
-                // option.textContent += " (No slots)";
-                // option.style.color = 'grey';
-            }
+             // --- Check if the date should be enabled ---
+             let isDateSelectable = false;
+             if (isFuture && timesForThisDate && timesForThisDate.length > 0) {
+                 // Check if *at least one* time slot for this date is NOT booked
+                 const hasUnbookedTime = timesForThisDate.some(time => !currentBookedSlots.has(`${dateStr}_${time}`));
+                 if (hasUnbookedTime) {
+                     isDateSelectable = true; // Enable date if it's in the future and has at least one unbooked slot
+                 }
+             }
+             // --- End Check ---
 
-            dayDropdown.appendChild(option);
+             option.disabled = !isDateSelectable;
+             if (isDateSelectable) hasSelectableOptions = true;
 
-            // Move to the next day
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
+             dayDropdown.appendChild(option);
 
-        // Final check and enable/disable dropdown
-        if (hasSelectableOptions) {
-            dayDropdown.disabled = false;
-        } else {
-            dayDropdown.innerHTML = '<option value="" disabled selected>No upcoming assessment slots available</option>';
-            dayDropdown.disabled = true;
-        }
+             // Move to the next day
+             currentDate.setDate(currentDate.getDate() + 1);
+         }
+
+         // Final check and enable/disable dropdown
+         if (hasSelectableOptions) {
+             dayDropdown.disabled = false;
+         } else {
+             dayDropdown.innerHTML = '<option value="" disabled selected>No upcoming assessment slots available</option>';
+             dayDropdown.disabled = true;
+         }
     };
     // --- End UPDATE ---
 
     // --- populateTimeDropdown function (keep as is) ---
     // This function correctly handles disabling booked times based on bookedSlotsSet
-    const populateTimeDropdown = (selectedDateString, availableSlots) => {
+    const populateTimeDropdown = (selectedDateString, availableSlots) => { // Pass available slots
         timeDropdown.innerHTML = '<option value="" disabled selected>Select Time</option>';
         timeDropdown.disabled = true; // Disable initially
 
-        if (!selectedDateString || !availableSlots) return;
+        if (!selectedDateString || !Array.isArray(availableSlots)) return; // Check array
 
         const timesForDate = availableSlots
             .filter(slot => slot.date === selectedDateString)
             .map(slot => slot.time)
-            .sort();
+            .sort(); // Sort for consistent order
 
         if (timesForDate.length === 0) {
-            timeDropdown.innerHTML = '<option value="" disabled selected>No times available for this date</option>';
-            return; // Keep disabled
+            timeDropdown.innerHTML = '<option value="" disabled selected>No times listed for this date</option>';
+            return;
         }
 
         let hasEnabledOptions = false;
@@ -224,16 +312,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         timesForDate.forEach(time => {
             const option = document.createElement('option');
             option.value = time;
-            option.textContent = time; // Display the time
+            option.textContent = time; // Display format HH:MM-HH:MM
 
             // --- Check against the fetched bookedSlotsSet ---
             const dateTimeKey = `${selectedDateString}_${time}`;
-            if (bookedSlotsSet.has(dateTimeKey)) { // Use the Set fetched earlier
+            if (bookedSlotsSet.has(dateTimeKey)) { // Check global set
                 option.disabled = true;
+                option.textContent += " (Booked)";
                 option.style.color = 'grey';
             } else {
                 option.disabled = false;
-                option.style.color = '';
                 hasEnabledOptions = true;
             }
             // --- End Check ---
@@ -249,52 +337,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Main Logic ---
+    // --- UPDATE: Main Logic - Ensure currentAssessmentPeriod is stored globally ---
+    let currentAssessmentPeriod = null; // Define globally within DOMContentLoaded scope
+
     try {
-        // Fetch assessment period, available slots, AND booked slots
-        // Use Promise.all to fetch concurrently
-        const [assessmentPeriod, availableSlots, fetchedBookedSlotsSet] = await Promise.all([
+        // Fetch concurrently
+        const [fetchedPeriod, fetchedAvailableSlots, fetchedBookedSlotsSet] = await Promise.all([
             fetchAssessmentPeriod(currentYear),
-            fetchAvailableAssessmentSlots(preferredDepartment, currentYear), // Ensure this fetches ALL potentially available slots
+            fetchAvailableAssessmentSlots(preferredDepartment, currentYear),
             fetchBookedSlots(preferredDepartment, currentYear)
         ]);
 
-        // Assign the fetched booked slots set
+        currentAssessmentPeriod = fetchedPeriod; // Store fetched period globally
+        availableSlotsCache = fetchedAvailableSlots;
         bookedSlotsSet = fetchedBookedSlotsSet;
-        console.log('Booked Slots Set:', bookedSlotsSet); // Log the booked slots
 
-        if (!assessmentPeriod) {
-            console.error(`Assessment period for ${currentYear} not found or failed to load.`);
-            dayDropdown.innerHTML = '<option value="" disabled selected>Error loading assessment period</option>';
-            dayDropdown.disabled = true;
-            timeDropdown.disabled = true;
-            return; // Stop execution if period is missing
-        }
+        if (!currentAssessmentPeriod) throw new Error(`Assessment period for ${currentYear} not found.`);
 
-        // --- UPDATE Call Site ---
-        // Pass availableSlots AND bookedSlotsSet to populateDayDropdown
-        populateDayDropdown(availableSlots, assessmentPeriod, bookedSlotsSet);
-        // --- End UPDATE ---
+        populateDayDropdown(availableSlotsCache, currentAssessmentPeriod, bookedSlotsSet);
 
-        if (dayDropdown.disabled) {
-            timeDropdown.disabled = true;
-        }
+        if (dayDropdown.disabled) timeDropdown.disabled = true;
 
         // --- Handle Day Selection Change ---
         dayDropdown.addEventListener('change', () => {
              const selectedDateString = dayDropdown.value;
              if (selectedDateString) {
                  // Pass availableSlotsCache (or availableSlots) to populateTimeDropdown
-                 populateTimeDropdown(selectedDateString, availableSlotsCache || availableSlots);
+                 populateTimeDropdown(selectedDateString, availableSlotsCache); // Use cache
              } else {
-                 timeDropdown.innerHTML = '<option value="" disabled selected>Select Time</option>';
+                 timeDropdown.innerHTML = '<option value="" disabled selected>Select a date first</option>';
                  timeDropdown.disabled = true;
              }
         });
 
     } catch (error) {
         console.error('Error initializing schedule selection:', error);
-        dayDropdown.innerHTML = '<option value="" disabled selected>Error loading schedule data</option>';
+        dayDropdown.innerHTML = `<option value="" disabled selected>Error: ${error.message}</option>`;
         dayDropdown.disabled = true;
         timeDropdown.disabled = true;
     }
@@ -305,38 +383,53 @@ document.addEventListener('DOMContentLoaded', async () => {
         event.preventDefault();
         const selectedDate = dayDropdown.value;
         const selectedTime = timeDropdown.value;
-        if (!selectedDate) { alert('Please select a preferred date.'); return; }
-        if (!selectedTime) { alert('Please select a preferred time.'); return; }
+        const submitButton = form2.querySelector('button[type="submit"]');
+
+        if (!selectedDate || dayDropdown.selectedIndex <= 0 || dayDropdown.options[dayDropdown.selectedIndex]?.disabled) {
+             alert('Please select an available assessment date.'); return;
+        }
+        if (!selectedTime || timeDropdown.selectedIndex <= 0 || timeDropdown.options[timeDropdown.selectedIndex]?.disabled) {
+             alert('Please select an available assessment time.'); return;
+        }
+
         const payload = {
             schoolYear: currentYear,
             preferredSchedule: { date: selectedDate, time: selectedTime }
         };
         console.log('Submitting payload:', payload);
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+
         try {
-            const response = await fetch('/JoinGFM-Step2', {
+            const response = await fetch('/JoinGFM-Step2', { // Ensure route matches backend
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
-            const result = await response.json();
-            if (response.ok) {
-                alert('Successfully submitted your application!');
-                window.location.href = '/JoinGFM-Step3';
-            } else if (result.redirect) {
-                alert(`Error: ${result.error}`);
-                window.location.href = result.redirect;
+            const result = await response.json(); // Expect { success: boolean, message: string, redirectUrl?: string }
+
+            if (result.success) {
+                alert(result.message || 'Schedule selected successfully!');
+                window.location.href = result.redirectUrl || '/JoinGFM-Step3'; // Redirect on success
             } else {
-                 let errorMessage = `Error: ${result.error || 'Something went wrong'}`;
-                 if (result.details) {
-                     errorMessage += '\nDetails:\n' + Object.entries(result.details)
-                         .map(([field, message]) => `- ${field}: ${message}`)
-                         .join('\n');
-                 }
-                 alert(errorMessage);
+                // Handle specific errors like 409 Conflict (slot booked)
+                if (response.status === 409) {
+                    alert(result.message || 'This slot was just booked. Please select another.');
+                    // Refresh available slots to reflect the conflict
+                    bookedSlotsSet.add(`${selectedDate}_${selectedTime}`); // Manually mark as booked
+                    populateTimeDropdown(selectedDate, availableSlotsCache); // Refresh time dropdown
+                } else {
+                    alert(`Error: ${result.message || 'An unknown error occurred.'}`);
+                }
+                submitButton.disabled = false; // Re-enable button on failure
+                submitButton.textContent = 'NEXT';
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            alert('There was a problem with the submission. Please check the console and try again.');
+            alert('There was a network problem submitting your selection. Please try again.');
+            submitButton.disabled = false; // Re-enable button on network error
+            submitButton.textContent = 'NEXT';
         }
     });
 

@@ -11,7 +11,7 @@ router.patch('/admin/submissions/:id/result', requireAuth, checkRoles(['Admin'])
 
 // --- User Routes ---
 router.get('/my-latest-staff-application', requireAuth, staffSubmissionController.getMyLatestStaffApplication);
-router.post('/staff-applications/:id/acknowledge', requireAuth, staffSubmissionController.acknowledgeStaffResult);
+router.post('/staff-applications/:id/acknowledge', requireAuth, staffSubmissionController.acknowledgeResult);
 
 
 module.exports = router;

@@ -48,6 +48,19 @@ adminRoute.forEach(adminRoute => {
                 });
             }
 
+            if (adminRoute.path === '/Staff') {
+                const adminDepartment = user?.department; // Get department from user object (adjust 'department' if field name differs)
+                console.log(`Rendering Staff page for user ${user?.email}, department: ${adminDepartment}`); // Debug log
+                return res.render(adminRoute.view, {
+                    pageTitle: adminRoute.pageTitle,
+                    cssFile: adminRoute.cssFile,
+                    user,
+                    headerTitle: adminRoute.headerTitle,
+                    currentPath: req.path,
+                    adminDepartment: adminDepartment // Pass the department to the template
+                });
+            }
+
             // Render normally if no controller is specified
             return res.render(adminRoute.view, {
                 pageTitle: adminRoute.pageTitle,

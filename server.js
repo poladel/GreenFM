@@ -9,6 +9,8 @@ const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 // Custom modules
 const connectDB = require('./config/dbConn');
@@ -33,6 +35,7 @@ const accountRoutes = require('./routes/accountRoutes');
 const blocktimerRoutes = require('./routes/blocktimerRoutes');
 const schoolYearRoutes = require('./routes/schoolYearRoutes');
 const schedRoutes = require('./routes/scheduleRoutes');
+const assessmentPeriodRoutes = require('./routes/assessmentPeriodRoutes');
 const assessmentSlotRoutes = require('./routes/assessmentSlotRoutes');
 // const adminSchedRoutes = require('./routes/adminSchedRoutes'); // Uncomment if needed
 const contactRoutes = require('./routes/contactRoutes');
@@ -54,7 +57,7 @@ mongoose.connection.on('error', err => console.error('MongoDB connection error:'
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: '*' }
+    cors: { origin: '*' } // Adjust for production
 });
 
 // Share io instance across all requests
@@ -64,18 +67,55 @@ app.use((req, res, next) => {
 });
 
 // Socket.IO connection handling
-io.on('connection', socket => {
+io.on('connection', async (socket) => {
     console.log('🟢 Socket connected:', socket.id);
 
+    // --- NEW: Join user-specific room based on JWT ---
+    // Attempt to get token from auth payload or cookie
+    const token = socket.handshake.auth?.token || socket.handshake.headers.cookie?.split('jwt=')[1]?.split(';')[0];
+    let userEmail = null;
+    let userId = null;
+    let userRoles = [];
+
+    if (token && process.env.ACCESS_TOKEN_SECRET) { // Check if token and secret exist
+        try {
+            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            userId = decoded.id;
+            // Fetch user details to get email and roles
+            const user = await User.findById(userId).select('email roles').lean(); // Use lean for performance
+            if (user) {
+                userEmail = user.email;
+                userRoles = user.roles || []; // Ensure roles is an array
+                socket.join(userId); // Join room based on user ID (requires user ID to be string)
+                console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) joined room ${userId}`);
+
+                // Join admin room if user is admin
+                if (userRoles.includes('Admin')) {
+                    socket.join('admin_room');
+                    console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) joined admin_room`);
+                }
+            } else {
+                console.log(`⚠️ Socket ${socket.id}: User not found for token ID ${userId}`);
+            }
+        } catch (err) {
+            console.log(`⚠️ Socket ${socket.id}: Invalid token - ${err.message}`);
+        }
+    } else {
+        console.log(`⚠️ Socket ${socket.id}: No token or ACCESS_TOKEN_SECRET found.`);
+    }
+    // --- END NEW ---
+
+    // Existing joinRoom logic (can be kept for other purposes)
     socket.on('joinRoom', roomId => {
         socket.join(roomId);
-        console.log(`🔗 Socket ${socket.id} joined room ${roomId}`);
+        console.log(`🔗 Socket ${socket.id} joined generic room ${roomId}`);
     });
 
     socket.on('disconnect', () => {
         console.log('🔌 Socket disconnected:', socket.id);
     });
 
+    // Existing newComment logic
     socket.on('newComment', async (data) => {
         const { text, username } = data;
         try {
@@ -91,8 +131,8 @@ io.on('connection', socket => {
         } catch (err) {
             console.error('Error saving comment:', err.message);
         }
-    });    
-    
+    });
+
 });
 
 // Conditionally trust the proxy only in production
@@ -135,6 +175,7 @@ app.use(accountRoutes);
 app.use(blocktimerRoutes);
 app.use(schoolYearRoutes);
 app.use(schedRoutes);
+app.use(assessmentPeriodRoutes);
 app.use(assessmentSlotRoutes);
 // app.use(adminSchedRoutes); // Uncomment if needed
 app.use(contactRoutes);

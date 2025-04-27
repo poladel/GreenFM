@@ -1,5 +1,81 @@
+console.log("accounts.js script started."); // Check if script runs
+
+// Check if io function exists
+if (typeof io === 'undefined') {
+    console.error("Socket.IO client library (io) not found. Check script inclusion.");
+} else {
+    console.log("Socket.IO client library (io) found. Attempting connection...");
+
+    try {
+        // <<< Initialize Socket.IO >>>
+        const socket = io(); // Connect to the server hosting the page
+
+        socket.on('connect', () => {
+            console.log('Admin Accounts Socket Connected:', socket.id); // <<< SUCCESS LOG
+        });
+
+        socket.on('connect_error', (err) => {
+            // Log detailed connection errors
+            console.error('Admin Accounts Socket Connection Error:', { /* ... */ });
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log('Admin Accounts Socket Disconnected:', reason);
+            // ... (reconnect logic) ...
+        });
+
+        // <<< MOVE LISTENER INSIDE THE TRY BLOCK >>>
+        socket.on('userAccountUpdated', (updatedUserData) => {
+            console.log('Received userAccountUpdated:', updatedUserData);
+
+            // 1. Update the user in the global allUsers array
+            const userIndex = allUsers.findIndex(user => user._id === updatedUserData._id);
+            if (userIndex !== -1) {
+                // Merge updated data into the existing user object
+                allUsers[userIndex] = { ...allUsers[userIndex], ...updatedUserData };
+                console.log(`Updated user ${updatedUserData._id} in local array.`);
+
+                // 2. Re-render the table to reflect the change
+                const searchTerm = document.getElementById('user-search').value.trim();
+                if (searchTerm) {
+                    filterUsers(searchTerm);
+                } else {
+                    renderUserTable(allUsers);
+                }
+
+                // 3. Optional: Update the form if this user is currently selected
+                const selectedUserId = document.querySelector('.submit-button').dataset.userId;
+                if (selectedUserId === updatedUserData._id) {
+                    console.log(`Updated user ${updatedUserData._id} is currently selected. Refreshing form.`);
+                    // Re-populate the form directly
+                    document.getElementById('roles').value = updatedUserData.roles; // Assuming roles is now a string
+                    document.getElementById('department').value = updatedUserData.department || '';
+                    // Re-apply disabled logic for department based on new role
+                    if (updatedUserData.roles === 'User') {
+                         document.getElementById('department').value = '';
+                         document.getElementById('department').disabled = true;
+                    } else {
+                         document.getElementById('department').disabled = false;
+                    }
+                }
+            } else {
+                console.log(`Received update for user ${updatedUserData._id} not found in local array. Fetching fresh list.`);
+                fetchUsers();
+            }
+        });
+        // <<< END MOVE LISTENER >>>
+
+        console.log("Socket.IO event listeners attached.");
+
+    } catch (error) {
+        console.error("Error during Socket.IO initialization:", error);
+    }
+}
+
+
 // Fetch all users and populate the table
 let allUsers = []; // Store all users globally for filtering
+
 
 async function fetchUsers() {
     try {
@@ -158,7 +234,10 @@ document.getElementById('roles').addEventListener('change', () => {
 });
 
 // Fetch users on page load
-document.addEventListener('DOMContentLoaded', fetchUsers);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded.");
+    fetchUsers();
+});
 
 function clearFormFields() {
     // Clear the form fields
