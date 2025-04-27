@@ -2,14 +2,22 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const nameSchema = new Schema({
-    lastName: { type: String, required: true },
-    firstName: { type: String, required: true },
+    lastName: {
+        type: String,
+        // Make required only if notApplicable is false or undefined
+        required: function() { return !this.notApplicable; }
+    },
+    firstName: {
+        type: String,
+        // Make required only if notApplicable is false or undefined
+        required: function() { return !this.notApplicable; }
+    },
     mi: String,
     suffix: String,
     cys: String, // Course, Year, Section or Department for Faculty
     department: String, // Only for Faculty/Staff
     notApplicable: { type: Boolean, default: false }
-}, { _id: false }); // No separate _id for subdocuments unless needed
+}, { _id: false });
 
 const showDetailsSchema = new Schema({
     title: { type: String, required: true },
@@ -26,9 +34,10 @@ const contactInfoSchema = new Schema({
     fbLink: String // Optional FB link if crossposting is Yes
 }, { _id: false });
 
+// Define the preferred schedule structure ONCE
 const preferredScheduleSchema = new Schema({
-    day: { type: String }, // Removed required: true temporarily if needed
-    time: { type: String }  // Removed required: true temporarily if needed
+    day: { type: String }, // Optional day
+    time: { type: String }  // Optional time
 }, { _id: false });
 
 
@@ -36,39 +45,35 @@ const applyBlocktimerSchema = new Schema({
     organizationType: { type: String, required: true },
     organizationName: { type: String, required: true },
     proponent: { type: nameSchema, required: true },
-    coProponent: nameSchema, // Not strictly required
+    coProponent: nameSchema,
     showDetails: { type: showDetailsSchema, required: true },
     executiveProducer: { type: nameSchema, required: true },
-    facultyStaff: nameSchema, // Not strictly required
-    hosts: [{ type: nameSchema, required: true }], // Array of hosts
-    technicalStaff: [{ type: nameSchema, required: true }], // Array of technical staff
+    facultyStaff: nameSchema,
+    hosts: [{ type: nameSchema, required: true }],
+    technicalStaff: [{ type: nameSchema, required: true }],
     creativeStaff: { type: nameSchema, required: true },
     contactInfo: { type: contactInfoSchema, required: true },
-    preferredSchedule: { type: preferredScheduleSchema }, // Optional initially
+    // Use the defined schema here
+    preferredSchedule: { type: preferredScheduleSchema },
     agreement: { type: String, enum: ['Agree'], required: true },
-    proponentSignature: { type: String, required: true }, // URL from Cloudinary
-    submittedBy: { type: String, required: true }, // User's email
+    proponentSignature: { type: String, required: true },
+    submittedBy: { type: String, required: true },
     submittedOn: { type: Date, default: Date.now },
-    schoolYear: { type: String, required: true }, // e.g., "2024-2025"
+    schoolYear: { type: String, required: true },
     result: {
         type: String,
-        enum: ['Pending', 'Accepted', 'Rejected', 'pending', 'accepted', 'rejected'], // Allow both cases initially, normalize later if needed
+        enum: ['Pending', 'Accepted', 'Rejected', 'pending', 'accepted', 'rejected'],
         default: 'Pending'
     },
-    // Add requiresAcknowledgement if needed for user flow
-    // requiresAcknowledgement: { type: Boolean, default: false }
 }, {
-    timestamps: true, // Adds createdAt and updatedAt automatically
-    // --- ADD THESE OPTIONS FOR VIRTUALS ---
+    timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
-    // --- END ADD ---
 });
 
-// --- ADD VIRTUAL POPULATE ---
 applyBlocktimerSchema.virtual('schedule', {
     ref: 'Schedule', // The model to use
-    localField: '_id', // Find Schedule where `localField`
+    localField: '_id', // Find schedules where `submissionId` (foreign field) is equal to `ApplyBlocktimer`'s `_id`
     foreignField: 'submissionId', // is equal to `foreignField`
     justOne: true // We expect to find one schedule per submission
 });
