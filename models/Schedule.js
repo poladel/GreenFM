@@ -38,6 +38,18 @@ const scheduleSchema = new mongoose.Schema({
         suffix: String,
         cys: String,
     },
+    submissionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ApplyBlocktimer', // Link to the submission
+        required: true,
+        index: true // Good for lookups
+    },
+    confirmationStatus: { // NEW FIELD
+        type: String,
+        enum: ['Accepted', 'Pending Confirmation'],
+        default: 'Accepted',
+        required: true
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Schedule', scheduleSchema);

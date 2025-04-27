@@ -322,15 +322,15 @@ module.exports.forgot_password_post = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'Gmail', // Use your email service (e.g., Gmail, Outlook)
             auth: {
-                user: process.env.GMAIL_USER, // Your email address
-                pass: process.env.GMAIL_PASS  // Your email password or app password
+                user: process.env.EMAIL_USER, // Your email address
+                pass: process.env.EMAIL_PASS  // Your email password or app password
             }
         });
 
         // Email content
         const resetUrl = `${req.protocol}://${req.get('host')}/LogIn/ResetPassword/${resetToken}`;
         const mailOptions = {
-            from: process.env.GMAIL_USER,
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Password Reset Request',
             html: `

@@ -25,22 +25,40 @@ const MAX_HOSTS = 4; // Example limit
 const MAX_TECHNICAL = 2; // Example limit
 // --- END GLOBAL STATE VARIABLES ---
 
+// --- SPINNER FUNCTIONS ---
+function showSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'block';
+    }
+}
+
+function hideSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}
+// --- END SPINNER FUNCTIONS ---
+
+
 // --- GLOBAL HELPER FUNCTIONS ---
 
 // Function to refresh schedule buttons AND update the global schedule list
 async function refreshSchedule(selectedYear) {
     console.log("Refreshing schedule for year:", selectedYear);
     try {
-        // --- Fetch ACCEPTED Schedules ---
+        // --- Fetch Schedules (including confirmation status) ---
+        // Fetch schedules once, this will include the confirmationStatus if the backend sends it
         const scheduleResponse = await fetch(`/schedule?schoolYear=${selectedYear}`);
-        if (!scheduleResponse.ok) throw new Error("Failed to fetch accepted schedules");
-        const acceptedSchedules = await scheduleResponse.json();
-        console.log(`Accepted Schedules for ${selectedYear}:`, acceptedSchedules);
+        if (!scheduleResponse.ok) throw new Error("Failed to fetch schedules");
+        // Read the body ONCE
+        const schedulesWithStatus = await scheduleResponse.json();
+        console.log(`Fetched Schedules for ${selectedYear}:`, schedulesWithStatus);
 
         // --- Fetch PENDING Submissions ---
         let pendingSubmissions = [];
         try {
-            // Fetch using capitalized "Pending" as backend expects it now
             const pendingResponse = await fetch(`/submissions?schoolYear=${selectedYear}&result=Pending`);
             if (!pendingResponse.ok) throw new Error("Failed to fetch pending submissions");
             pendingSubmissions = await pendingResponse.json();
@@ -50,54 +68,58 @@ async function refreshSchedule(selectedYear) {
             // Continue even if pending submissions fail to load
         }
 
-        // --- Update the global variable (using accepted schedules for availability checks) ---
-        existingSchedules = acceptedSchedules;
-        // ---
+        // --- Update the global variable ---
+        // Use the data fetched earlier
+        existingSchedules = schedulesWithStatus; // Update global list
 
         // --- Clear existing schedule buttons ---
         document.querySelectorAll(".availablebtn").forEach((button) => {
             button.textContent = "";
-            button.classList.remove("schedulebtn", "pendingbtn"); // Remove both classes
+            button.classList.remove("schedulebtn", "pendingbtn", "pending-confirmation-btn");
             button.disabled = false;
             delete button.dataset.scheduleId;
             delete button.dataset.scheduleSubmissionId;
-            delete button.dataset.pendingSubmissionId; // Remove pending ID
+            delete button.dataset.pendingSubmissionId;
         });
 
-        // --- Populate buttons with ACCEPTED schedule data ---
-        acceptedSchedules.forEach((schedule) => {
+        // --- Populate buttons with schedule data (using schedulesWithStatus) ---
+        schedulesWithStatus.forEach((schedule) => { // Use the correct variable here
             const button = document.querySelector(
                 `.availablebtn[data-day="${schedule.day}"][data-time="${schedule.time}"]`
             );
             if (button) {
-                console.log("Updating button for accepted schedule:", schedule);
                 button.textContent = schedule.showDetails?.title || "Booked";
-                button.classList.add("schedulebtn"); // Add accepted class
                 button.dataset.scheduleId = schedule._id;
                 if (schedule.submissionId) {
                     button.dataset.scheduleSubmissionId = schedule.submissionId;
+                }
+
+                // Apply class based on confirmationStatus
+                if (schedule.confirmationStatus === 'Pending Confirmation') {
+                    button.classList.add("pending-confirmation-btn");
+                    button.textContent = `CONFIRM?: ${button.textContent}`;
+                } else {
+                    button.classList.add("schedulebtn");
                 }
                 // Optionally disable: button.disabled = true;
             }
         });
 
-        // --- Populate buttons with PENDING submission data (only if not already booked) ---
+        // --- Populate buttons with PENDING submission data ---
         pendingSubmissions.forEach((submission) => {
-            if (submission.preferredSchedule?.day && submission.preferredSchedule?.time) {
+             if (submission.preferredSchedule?.day && submission.preferredSchedule?.time) {
                 const button = document.querySelector(
                     `.availablebtn[data-day="${submission.preferredSchedule.day}"][data-time="${submission.preferredSchedule.time}"]`
                 );
-                // Only update if the button exists AND is not already booked by an accepted schedule
-                if (button && !button.classList.contains('schedulebtn')) {
+                if (button && !button.classList.contains('schedulebtn') && !button.classList.contains('pending-confirmation-btn')) {
                     console.log("Updating button for pending submission:", submission);
                     button.textContent = `PENDING: ${submission.showDetails?.title || 'N/A'}`;
-                    button.classList.add("pendingbtn"); // Add pending class
-                    button.dataset.pendingSubmissionId = submission._id; // Store submission ID
-                    // Keep button enabled to allow clicking
-                } else if (button && button.classList.contains('schedulebtn')) {
-                    console.log(`Slot ${submission.preferredSchedule.day} ${submission.preferredSchedule.time} already booked by an accepted schedule. Cannot show pending: ${submission.showDetails?.title}`);
+                    button.classList.add("pendingbtn");
+                    button.dataset.pendingSubmissionId = submission._id;
+                } else if (button && (button.classList.contains('schedulebtn') || button.classList.contains('pending-confirmation-btn'))) {
+                    console.log(`Slot ${submission.preferredSchedule.day} ${submission.preferredSchedule.time} already booked/pending confirmation. Cannot show pending: ${submission.showDetails?.title}`);
                 } else if (!button) {
-                    console.log(`Button element not found for pending slot: ${submission.preferredSchedule.day} ${submission.preferredSchedule.time}`);
+                     console.log(`Button element not found for pending slot: ${submission.preferredSchedule.day} ${submission.preferredSchedule.time}`);
                 }
             }
         });
@@ -108,7 +130,8 @@ async function refreshSchedule(selectedYear) {
         // Clear buttons on error as well
          document.querySelectorAll(".availablebtn").forEach((button) => {
             button.textContent = "";
-            button.classList.remove("schedulebtn", "pendingbtn");
+            // Make sure to remove the new class here too on error
+            button.classList.remove("schedulebtn", "pendingbtn", "pending-confirmation-btn");
             button.disabled = false;
             delete button.dataset.scheduleId;
             delete button.dataset.scheduleSubmissionId;
@@ -1441,7 +1464,7 @@ async function updateSubmission(submissionId) {
 
     // --- Prepare Update Payload ---
     const updates = {
-        result: newResult, // Assuming backend expects Capitalized
+        result: newResult.toLowerCase(), // Convert to lowercase before sending
         preferredSchedule: {
             day: preferredDay,
             time: preferredTime
@@ -1449,8 +1472,11 @@ async function updateSubmission(submissionId) {
     };
     console.log("Sending updates:", updates);
 
-    // --- Update Submission ---
-    try {
+    showSpinner(); // <<< Show spinner before starting async operations
+
+    try { // <<< Start try block for async operations
+
+        // --- Update Submission ---
         const patchResponse = await fetch(`/submissions/${submissionId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -1461,12 +1487,15 @@ async function updateSubmission(submissionId) {
 
         if (!patchResponse.ok) {
             console.error("Backend Error updating submission:", resultData);
+            // Throw error to be caught by the outer catch block
             throw new Error(resultData.error || resultData.message || `Failed to update submission (Status: ${patchResponse.status})`);
         }
 
-        alert("Submission updated successfully!");
-        initialSubmissionResult = newResult;
+        // Don't alert success yet, wait until all operations are done
 
+        initialSubmissionResult = newResult; // Update state immediately after successful PATCH
+
+        // Disable form elements after successful PATCH
         if (newResult === 'Accepted' || newResult === 'Rejected') {
             resultDropdown.disabled = true;
             document.getElementById("preferredDay").disabled = true;
@@ -1475,88 +1504,26 @@ async function updateSubmission(submissionId) {
             if (submitBtn) submitBtn.disabled = true;
         }
 
-        // --- Handle Schedule Creation/Update/Deletion ---
+        // --- Handle Schedule Creation/Update/Deletion (Backend handles email now) ---
+        // We just need to wait for the PATCH to finish and then refresh the UI.
+        // The backend response (resultData) might contain info if needed, e.g., resultData.requiresConfirmation
+
+        // --- Refresh UI ---
         const scheduleDisplayYear = document.getElementById("schoolYear").value;
+        await loadSubmissions(); // Reload the submissions table
+        await refreshSchedule(scheduleDisplayYear); // Refresh grid for the current view
 
-        if (newResult === "Accepted") {
-            const submissionResponse = await fetch(`/submissions/${submissionId}`);
-            if (!submissionResponse.ok) throw new Error("Failed to re-fetch submission after update.");
-            const submission = await submissionResponse.json();
+        alert("Submission updated successfully!"); // Alert success after UI refresh
 
-            if (!submission.preferredSchedule?.day || !submission.preferredSchedule?.time) {
-                throw new Error("Updated submission is missing preferred schedule details.");
-            }
-
-            const scheduleData = {
-                day: submission.preferredSchedule.day,
-                time: submission.preferredSchedule.time,
-                showDetails: submission.showDetails || {},
-                executiveProducer: submission.executiveProducer || {},
-                hosts: submission.hosts || [],
-                technicalStaff: submission.technicalStaff || [],
-                creativeStaff: submission.creativeStaff || {},
-                schoolYear: selectedYear,
-                submissionId: submissionId
-            };
-            console.log("Schedule data being prepared:", scheduleData);
-
-            const checkScheduleResponse = await fetch(`/schedule/bySubmission/${submissionId}`);
-            let existingScheduleId = null;
-            if (checkScheduleResponse.ok) {
-                const existingSchedule = await checkScheduleResponse.json();
-                if (existingSchedule) existingScheduleId = existingSchedule._id;
-            } else if (checkScheduleResponse.status !== 404) {
-                console.error("Error checking for existing schedule:", await checkScheduleResponse.text());
-            }
-
-            const scheduleMethod = existingScheduleId ? 'PATCH' : 'POST';
-            const scheduleUrl = existingScheduleId ? `/schedule/${existingScheduleId}` : '/schedule';
-            console.log(`Attempting to ${scheduleMethod} schedule at ${scheduleUrl}`);
-
-            const scheduleResponse = await fetch(scheduleUrl, {
-                method: scheduleMethod,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(scheduleData),
-            });
-
-            const scheduleResultData = await scheduleResponse.json();
-            if (!scheduleResponse.ok) {
-                 console.error(`Failed to ${scheduleMethod} schedule:`, scheduleResultData);
-                 alert(`Submission accepted, but failed to ${existingScheduleId ? 'update' : 'save'} schedule. Error: ${scheduleResultData.error || 'Unknown error'}`);
-            } else {
-                alert(`Schedule ${existingScheduleId ? 'updated' : 'saved'} successfully!`);
-                await refreshSchedule(scheduleDisplayYear);
-            }
-
-        } else if (newResult === "Rejected") {
-            try {
-                const checkScheduleResponse = await fetch(`/schedule/bySubmission/${submissionId}`);
-                if (checkScheduleResponse.ok) {
-                    const existingSchedule = await checkScheduleResponse.json();
-                    if (existingSchedule?._id) {
-                        console.log(`Deleting existing schedule ${existingSchedule._id} for rejected submission...`);
-                        const deleteResponse = await fetch(`/schedule/${existingSchedule._id}`, { method: 'DELETE' });
-                        if (deleteResponse.ok) {
-                            alert("Associated schedule removed for rejected submission.");
-                            await refreshSchedule(scheduleDisplayYear);
-                        } else {
-                            console.error("Failed to delete associated schedule:", await deleteResponse.text());
-                            alert("Submission rejected, but failed to remove associated schedule.");
-                        }
-                    }
-                } else if (checkScheduleResponse.status !== 404) {
-                     console.error("Error checking for schedule to delete:", await checkScheduleResponse.text());
-                }
-            } catch (scheduleCheckError) {
-                console.error("Error checking/deleting schedule during rejection:", scheduleCheckError);
-            }
-        }
-
-        loadSubmissions(); // Reload the submissions table
-
-    } catch (error) {
+    } catch (error) { // <<< Catch errors from async operations
         console.error("Error during submission update process:", error);
         alert(`An error occurred: ${error.message}`);
+        // Optionally re-enable form elements on error if needed, or reset dropdowns
+        // resultDropdown.value = initialSubmissionResult; // Revert dropdown if desired
+        // resultDropdown.disabled = false;
+        // ... re-enable other elements ...
+    } finally { // <<< Finally block ensures spinner is hidden
+        hideSpinner(); // <<< Hide spinner regardless of success or error
     }
 }
 
