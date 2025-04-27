@@ -122,21 +122,34 @@ module.exports.joinGFM2_get = async (req, res) => {
 };
 
 module.exports.joinGFM2_post = async (req, res) => {
+    // --- Check for user authentication first ---
+    if (!req.user || !req.user.id) {
+        console.error('User not authenticated or user ID missing in joinGFM2_post.');
+        return res.status(401).json({ error: 'Authentication required. Please log in.', redirect: '/login' }); // Redirect to login
+    }
+    // ---
+
     if (!req.session.joinGFM1Data) {
-        if (req.user) {
-            req.user.completedJoinGFMStep1 = false; // Set the field to false
-            req.user.completedJoinGFMStep2 = false; // Set the field to false
-            await req.user.save(); // Save changes to the database
+        // Reset progress flags if session is lost
+        try {
+            const user = await User.findById(req.user.id);
+            if (user) {
+                user.completedJoinGFMStep1 = false;
+                user.completedJoinGFMStep2 = false;
+                await user.save();
+            }
+        } catch (userError) {
+            console.error("Error resetting user progress flags:", userError);
         }
-        
+
         // Display error and redirect
-        return res.status(400).json({ 
-            error: 'Please return and complete Step 1.',
+        return res.status(400).json({
+            error: 'Session data missing. Please return and complete Step 1.',
             redirect: '/JoinGFM-Step1'
         });
     }
 
-    const { lastName, firstName, /* ... */ preferredDepartment, /* ... */ } = req.session.joinGFM1Data;
+    const { preferredDepartment } = req.session.joinGFM1Data; // Only need department for slot lookup here
     const { schoolYear, preferredSchedule } = req.body; // { date: 'YYYY-MM-DD', time: 'HH:MM-HH:MM' }
 
     // --- Validate preferredSchedule ---
@@ -147,31 +160,27 @@ module.exports.joinGFM2_post = async (req, res) => {
 
     try {
         // --- Find the chosen assessment slot ---
-        // --- ADD LOGGING BEFORE FINDONE ---
         console.log('--- Booking Attempt ---');
         console.log('Finding AssessmentSlot with:');
         console.log('  Date:', preferredSchedule.date);
         console.log('  Time:', preferredSchedule.time);
         console.log('  Department:', preferredDepartment);
-        console.log('  Year:', schoolYear, `(Type: ${typeof schoolYear})`); // Log type of year
-        // --- END LOGGING ---
+        console.log('  Year:', schoolYear);
 
         const slotToBook = await AssessmentSlot.findOne({
             date: preferredSchedule.date,
             time: preferredSchedule.time,
             department: preferredDepartment,
-            year: schoolYear // Ensure type matches schema (String or Number?)
+            year: schoolYear
         });
 
-        // --- ADD LOGGING AFTER FINDONE ---
         if (!slotToBook) {
             console.error('!!! AssessmentSlot.findOne FAILED to find a match.');
             return res.status(404).json({ error: 'Selected assessment slot not found or unavailable.' });
         } else {
             console.log('Found AssessmentSlot:', slotToBook._id);
-            console.log('  Slot current application field:', slotToBook.application); // Log current state
+            console.log('  Slot current application field:', slotToBook.application);
         }
-        // --- END LOGGING ---
 
         // --- Check if the slot is already booked ---
         if (slotToBook.application) {
@@ -183,24 +192,24 @@ module.exports.joinGFM2_post = async (req, res) => {
         // --- Retrieve Step 1 data from session ---
         const step1Data = req.session.joinGFM1Data;
         if (!step1Data) {
-             // This should ideally be caught earlier, but double-check
              console.error('!!! Session data from Step 1 is missing in joinGFM2_post.');
              return res.status(400).json({ error: 'Session expired or Step 1 data missing. Please start over.', redirect: '/JoinGFM-Step1' });
         }
         // ---
 
-        // Create the application first, including data from Step 1
+        // Create the application first, including data from Step 1 and the userId
         const applyStaff = await ApplyStaff.create({
             // --- SPREAD data from Step 1 session ---
             ...step1Data,
             // --- Add fields from Step 2 ---
             schoolYear,
-            preferredSchedule
-            // --- Ensure 'result' defaults correctly in schema or set it here if needed ---
-            // result: 'Pending' // If not defaulted in schema
+            preferredSchedule,
+            // --- ADD THE USER ID ---
+            userId: req.user.id // Get the ID from the authenticated user
+            // --- END ADD ---
         });
 
-        console.log('Staff Application Created:', applyStaff._id, applyStaff.lastName);
+        console.log('Staff Application Created:', applyStaff._id, applyStaff.lastName, 'for User:', applyStaff.userId);
 
         // --- Now, link the application to the slot and update denormalized fields ---
         slotToBook.application = applyStaff._id; // Assign ObjectId
@@ -209,20 +218,23 @@ module.exports.joinGFM2_post = async (req, res) => {
         slotToBook.applicantName = `${applyStaff.lastName}, ${applyStaff.firstName}${appMiddle}${appSuffix}`;
         slotToBook.applicantSection = applyStaff.section;
 
-        // --- ADD LOGGING BEFORE SAVE ---
         console.log('Attempting to save AssessmentSlot:', slotToBook._id);
         console.log('  With application field set to:', slotToBook.application);
-        // --- END LOGGING ---
 
         try {
             await slotToBook.save();
-            console.log('Assessment Slot successfully saved:', slotToBook._id); // Log success
+            console.log('Assessment Slot successfully saved:', slotToBook._id);
         } catch (saveError) {
-            // --- ADD SPECIFIC LOGGING FOR SAVE ERROR ---
             console.error('!!! FAILED to save AssessmentSlot:', slotToBook._id, saveError);
-            // Optionally re-throw or handle differently if needed, but log it first
-            throw saveError; // Re-throw to be caught by the outer catch block
-            // --- END LOGGING ---
+            // If saving the slot fails, we should ideally delete the ApplyStaff document
+            // to avoid orphaned applications.
+            try {
+                await ApplyStaff.findByIdAndDelete(applyStaff._id);
+                console.log(`Cleaned up orphaned ApplyStaff document: ${applyStaff._id}`);
+            } catch (cleanupError) {
+                console.error(`!!! FAILED to cleanup orphaned ApplyStaff document ${applyStaff._id}:`, cleanupError);
+            }
+            throw saveError; // Re-throw the original save error
         }
         // ---
 
@@ -230,9 +242,15 @@ module.exports.joinGFM2_post = async (req, res) => {
         req.session.joinGFM1Data = null;
 
         // Update user progress
-        const user = req.user;
-        user.completedJoinGFMStep2 = true;
-        await user.save();
+        const user = await User.findById(req.user.id); // Re-fetch user to be safe
+        if (user) {
+            user.completedJoinGFMStep2 = true;
+            await user.save();
+            console.log(`User ${user.id} completed JoinGFM Step 2.`);
+        } else {
+            console.error(`User ${req.user.id} not found when trying to update Step 2 completion.`);
+        }
+
 
         res.json({
             success: true,
@@ -242,14 +260,13 @@ module.exports.joinGFM2_post = async (req, res) => {
         // Handle validation errors and other errors
         if (error.name === 'ValidationError') {
             console.error('Mongoose Validation Error:', error.errors);
-            // Extract specific error messages if needed
             const errorDetails = {};
             for (const field in error.errors) {
                 errorDetails[field] = error.errors[field].message;
             }
             return res.status(400).json({ error: 'Validation Error', details: errorDetails });
         }
-        console.error('Error in joinGFM2_post catch block:', error); // Ensure outer catch logs too
+        console.error('Error in joinGFM2_post catch block:', error);
         res.status(500).json({ error: 'Failed to save application or book slot' });
     }
 };
