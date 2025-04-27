@@ -169,6 +169,7 @@ document.getElementById('close-modal').addEventListener('click', () => {
 });
 
 // Start new chat (group or single)
+// Start new chat (group or single)
 document.getElementById('new-chat-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -190,7 +191,36 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
 
         const chat = await res.json();
         if (res.ok) {
-            window.location.reload();
+            document.getElementById('new-chat-modal').style.display = 'none';
+
+            // Set the new chat as the current chat
+            currentChatId = chat._id;
+            localStorage.setItem('activeChatId', currentChatId);
+            socket.emit('joinRoom', currentChatId);
+
+            // Clear previous messages and load the new chat messages
+            messagesDiv.innerHTML = '';
+            loadedMessageIds.clear();
+            loadMessages();
+
+            // Optional: dynamically add it to sidebar if you want
+            const chatSidebar = document.querySelector('.chat-sidebar');
+            const newChatDiv = document.createElement('div');
+            newChatDiv.classList.add('chat-room');
+            newChatDiv.dataset.id = chat._id;
+            newChatDiv.innerHTML = chat.isGroupChat ? `<strong>[Group]</strong> ${chat.groupName}` : chat.users.find(u => u._id !== currentUserId)?.username || 'New Chat';
+
+            newChatDiv.addEventListener('click', async () => {
+                currentChatId = newChatDiv.dataset.id;
+                localStorage.setItem('activeChatId', currentChatId);
+                socket.emit('joinRoom', currentChatId);
+                messagesPage = 1;
+                allMessagesLoaded = false;
+                loadMessages();
+            });
+
+            chatSidebar.appendChild(newChatDiv);
+
         } else {
             alert(chat.error || 'Failed to start chat.');
         }

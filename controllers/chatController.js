@@ -89,25 +89,47 @@ exports.renderAdminView = async (req, res) => {
 };
 
 exports.createNewChat = async (req, res) => {
-    const userId = req.body.userId;
+    const { userIds, groupName } = req.body;
     const currentUserId = res.locals.user._id;
 
-    try {
-        let chat = await Chat.findOne({
-            isGroupChat: false,
-            users: { $all: [currentUserId, userId], $size: 2 }
-        });
+    if (!userIds || userIds.length === 0) {
+        return res.status(400).json({ error: 'No users selected.' });
+    }
 
-        if (!chat) {
-            chat = await Chat.create({
+    try {
+        let chat;
+
+        if (userIds.length === 1 && !groupName) {
+            // Private one-on-one chat
+            const userId = userIds[0];
+
+            chat = await Chat.findOne({
                 isGroupChat: false,
-                users: [currentUserId, userId]
+                users: { $all: [currentUserId, userId], $size: 2 }
+            });
+
+            if (!chat) {
+                chat = await Chat.create({
+                    isGroupChat: false,
+                    users: [currentUserId, userId]
+                });
+            }
+        } else {
+            // Group chat
+            const allUserIds = [...userIds, currentUserId]; // add self
+
+            chat = await Chat.create({
+                isGroupChat: true,
+                users: allUserIds,
+                groupName: groupName || 'New Group'
             });
         }
 
-        res.redirect('/Chat');
+        const populatedChat = await chat.populate('users', 'username');
+        res.status(201).json(populatedChat);
+
     } catch (err) {
         console.error('Error creating chat:', err);
-        res.status(500).send('Failed to start chat');
+        res.status(500).json({ error: 'Failed to create chat' });
     }
 };
