@@ -13,8 +13,11 @@ module.exports.getSubmissions = async (req, res) => {
         // Adjust result query to handle lowercase if schema uses lowercase
         if (result && result !== 'All') {
              // Assuming schema enum uses lowercase: 'pending', 'accepted', 'rejected'
-             query.result = result.toLowerCase();
+             query.result = result;
         }
+
+        // Optional: Log the final query being used
+        console.log("Fetching submissions with query:", query);
 
         const submissions = await ApplyBlocktimer.find(query).sort({ createdAt: -1 });
         res.json(submissions);

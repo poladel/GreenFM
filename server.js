@@ -76,6 +76,13 @@ io.on('connection', socket => {
     });
 });
 
+// Conditionally trust the proxy only in production
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1); // Trust the first hop from the proxy
+    console.log("Trusting proxy in production environment.");
+}
+
+
 // Middleware
 app.use(credentials); // Handle credentials for CORS
 app.use(cors(corsOptions)); // Enable CORS with options
@@ -134,5 +141,6 @@ mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB');
     server.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
+        console.log(`Current NODE_ENV: ${process.env.NODE_ENV || 'development (default)'}`); // Log the environment
     });
 });

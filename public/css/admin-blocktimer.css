@@ -175,6 +175,33 @@
   cursor: default;
 }
 
+/* Example CSS for pending buttons */
+.schedule-table button.pendingbtn {
+    background-color: #ffc107; /* Yellow/Amber */
+    color: #333;
+    border-color: #ffc107;
+    /* Add other styles as needed */
+    cursor: pointer; /* Ensure it looks clickable */
+}
+
+.schedule-table button.pendingbtn:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+}
+
+/* Ensure text fits */
+.schedule-table button {
+    /* Might need adjustments for longer text */
+    font-size: 0.8em; /* Example: smaller font */
+    white-space: normal; /* Allow text wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis (...) */
+    padding: 2px 4px; /* Adjust padding */
+    line-height: 1.2;
+    min-height: 40px; /* Ensure minimum height */
+    word-break: break-word; /* Break long words if necessary */
+}
+
 /*--- MODAL STYLES ---*/
 .modal {
   display: none;

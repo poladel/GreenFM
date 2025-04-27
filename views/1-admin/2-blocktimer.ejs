@@ -246,8 +246,8 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="show-description">Brief Description of Show</label><br>
-                                            <textarea id="show-description" name="showDetails.description" rows="4"
+                                            <label for="showDescription">Brief Description of Show</label><br>
+                                            <textarea id="showDescription" name="showDetails.description" rows="4"
                                                 cols="130" placeholder="Enter your answer" required></textarea>
                                         </div>
 
@@ -277,20 +277,20 @@
 
                                         <!-- Container for hosts, necessary for dynamic addition -->
                                         <div id="hosts-container">
-                                            <div class="name-section host-input">
-                                                <input type="text" name="hosts[0].lastName" placeholder="Last Name"
+                                            <div class="name-section host-input-group">
+                                                <input type="text" name="hosts[0][lastName]" placeholder="Last Name"
                                                     required>
-                                                <input type="text" name="hosts[0].firstName" placeholder="First Name"
+                                                <input type="text" name="hosts[0][firstName]" placeholder="First Name"
                                                     required>
-                                                <input type="text" name="hosts[0].mi" class="middleinitial"
+                                                <input type="text" name="hosts[0][mi]" class="middleinitial"
                                                     placeholder="M.I.">
-                                                <input type="text" name="hosts[0].suffix" class="middleinitial"
+                                                <input type="text" name="hosts[0][suffix]" class="middleinitial"
                                                     placeholder="Suffix">
-                                                <input type="text" name="hosts[0].cys" placeholder="CYS">
+                                                <input type="text" name="hosts[0][cys]" placeholder="CYS">
+                                                <button type="button" class="remove-host-button" style="display: none; margin-left: 5px;">Remove</button>
                                             </div>
                                         </div>
-                                        <button type="button" id="add-host" class="addbutton" disabled>+ Add
-                                            Host</button><br><br>
+                                        <button type="button" id="addHost" class="addbutton" disabled>+ Add Host</button><br><br>
 
                                         <label>Name of Technical Staff/s</label>
                                         <p class="formnote">Each airing of an episode is to be organized by a maximum of
@@ -300,20 +300,20 @@
 
                                         <!-- Container for technical staff, necessary for dynamic addition -->
                                         <div id="technical-container">
-                                            <div class="name-section technical-input">
-                                                <input type="text" name="technicalStaff[0].lastName"
+                                            <div class="name-section technical-input-group">
+                                                <input type="text" name="technicalStaff[0][lastName]"
                                                     placeholder="Last Name" required>
-                                                <input type="text" name="technicalStaff[0].firstName"
+                                                <input type="text" name="technicalStaff[0][firstName]"
                                                     placeholder="First Name" required>
-                                                <input type="text" name="technicalStaff[0].mi" class="middleinitial"
+                                                <input type="text" name="technicalStaff[0][mi]" class="middleinitial"
                                                     placeholder="M.I.">
-                                                <input type="text" name="technicalStaff[0].suffix" class="middleinitial"
+                                                <input type="text" name="technicalStaff[0][suffix]" class="middleinitial"
                                                     placeholder="Suffix">
-                                                <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
+                                                <input type="text" name="technicalStaff[0][cys]" placeholder="CYS">
+                                                <button type="button" class="remove-technical-button" style="display: none; margin-left: 5px;">Remove</button>
                                             </div>
                                         </div>
-                                        <button type="button" id="add-technical" class="addbutton" disabled>+ Add
-                                            Technical Staff</button><br><br>
+                                        <button type="button" id="addTechnical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
 
                                         <label>Name of Creative Staff</label>
                                         <p class="formnote">The publicity materials for the promotion of the
