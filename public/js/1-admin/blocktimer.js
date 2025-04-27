@@ -13,14 +13,14 @@ const ALL_TIME_SLOTS = [
     "4:00-4:50"
 ];
 
-// --- GLOBAL STATE VARIABLES --- <<< VERIFY THESE ARE PRESENT AND AT TOP LEVEL
+// --- GLOBAL STATE VARIABLES ---
 let occupiedSlotsByDay = {};
 let currentSubmissionSchoolYear = null;
 let existingSchedules = [];
 let originalSubmissionPreferredTime = null;
 let initialSubmissionResult = 'Pending';
-let hostIndex = 1; // <<< ENSURE THIS LINE EXISTS GLOBALLY
-let technicalIndex = 1; // <<< ENSURE THIS LINE EXISTS GLOBALLY
+let hostIndex = 1;
+let technicalIndex = 1;
 const MAX_HOSTS = 4; // Example limit
 const MAX_TECHNICAL = 2; // Example limit
 // --- END GLOBAL STATE VARIABLES ---
@@ -155,67 +155,61 @@ function resetDynamicInputs(containerId, inputClass, addFunction) {
     if (firstInputGroup) {
         // Clear values in the template group
         firstInputGroup.querySelectorAll('input').forEach(input => input.value = '');
+        // Ensure remove button is hidden on template
+        const removeButton = firstInputGroup.querySelector('.remove-host-button, .remove-technical-button');
+        if (removeButton) removeButton.style.display = 'none';
         container.appendChild(firstInputGroup); // Add the cleared template back
     }
-    // Reset indices (assuming index variables are global or accessible)
-    // Make sure hostIndex and technicalIndex are defined globally if used here
+    // Reset indices
     if (typeof hostIndex !== 'undefined' && containerId === 'hosts-container') hostIndex = 1;
     if (typeof technicalIndex !== 'undefined' && containerId === 'technical-container') technicalIndex = 1;
-    // Call the add function once if needed to ensure one row is visible
-    // if (typeof addFunction === 'function') addFunction();
 }
 
 // --- Basic Implementation for Dynamic Row Addition ---
-// NOTE: Assumes your template group has class 'host-input-group' or 'technical-input-group'
-// NOTE: Assumes your container has id 'hosts-container' or 'technical-container'
-// NOTE: Assumes global hostIndex and technicalIndex variables exist and track the *next* index to use
-
 function addHost() {
     const container = document.getElementById('hosts-container');
     const template = container.querySelector('.host-input-group'); // Find the template row
     if (!template || !container) return null; // Exit if template or container not found
 
-    if (hostIndex >= MAX_HOSTS) return null; // Check limit
+    if (hostIndex >= MAX_HOSTS) {
+        alert(`Maximum number of hosts (${MAX_HOSTS}) reached.`);
+        return null; // Check limit
+    }
 
     const newRow = template.cloneNode(true); // Clone the template
 
     // Clear input values in the new row
     newRow.querySelectorAll('input').forEach(input => input.value = '');
 
-    // IMPORTANT: Update name attributes if they rely on index (e.g., hosts[0][lastName] -> hosts[1][lastName])
-    // This example assumes names might be like 'hosts[INDEX][fieldName]'
+    // Update name attributes
     newRow.querySelectorAll('input').forEach(input => {
         if (input.name) {
             input.name = input.name.replace(/\[\d+\]/, `[${hostIndex}]`);
         }
-        // Update IDs if necessary, e.g., id="host_0_lastName" -> id="host_1_lastName"
+        // Update IDs if necessary
         if (input.id) {
              input.id = input.id.replace(/_\d+_/, `_${hostIndex}_`);
         }
     });
-    // Update label 'for' attributes if necessary
+    // Update label 'for' attributes
      newRow.querySelectorAll('label').forEach(label => {
         if (label.htmlFor) {
              label.htmlFor = label.htmlFor.replace(/_\d+_/, `_${hostIndex}_`);
         }
     });
 
-
-    // Add remove button logic if needed for the new row
-    const removeButton = newRow.querySelector('.remove-host-button'); // Assuming a remove button exists
+    // Add remove button logic
+    const removeButton = newRow.querySelector('.remove-host-button');
     if (removeButton) {
         removeButton.style.display = 'inline-block'; // Make it visible
         removeButton.onclick = () => {
             newRow.remove();
-            // Decrement index? Update indices? Handle carefully.
-            // For simplicity here, we might just let updateIndices fix it later.
-            hostIndex--; // Basic decrement, might need more robust handling
+            hostIndex--; // Basic decrement
+            // After removing, re-evaluate indices of remaining rows if necessary for submission logic
+            // updateHostIndices(); // Call a function to re-index if needed
             toggleAddHostButton();
         };
-    } else {
-         // Optionally create and append a remove button dynamically
     }
-
 
     container.appendChild(newRow); // Add the new row to the container
     hostIndex++; // Increment the index for the *next* add operation
@@ -228,7 +222,10 @@ function addTechnical() {
     const template = container.querySelector('.technical-input-group');
     if (!template || !container) return null;
 
-    if (technicalIndex >= MAX_TECHNICAL) return null;
+    if (technicalIndex >= MAX_TECHNICAL) {
+        alert(`Maximum number of technical staff (${MAX_TECHNICAL}) reached.`);
+        return null; // Check limit
+    }
 
     const newRow = template.cloneNode(true);
     newRow.querySelectorAll('input').forEach(input => input.value = '');
@@ -242,14 +239,14 @@ function addTechnical() {
         if (label.htmlFor) label.htmlFor = label.htmlFor.replace(/_\d+_/, `_${technicalIndex}_`);
     });
 
-
-    // Add remove button logic if needed
+    // Add remove button logic
     const removeButton = newRow.querySelector('.remove-technical-button');
      if (removeButton) {
         removeButton.style.display = 'inline-block';
         removeButton.onclick = () => {
             newRow.remove();
             technicalIndex--;
+            // updateTechnicalIndices(); // Call a function to re-index if needed
             toggleAddTechnicalButton();
         };
     }
@@ -262,23 +259,22 @@ function addTechnical() {
 
 function toggleAddHostButton() {
     const button = document.getElementById('addHost');
-    // This line needs access to the global hostIndex
     if (button) button.disabled = hostIndex >= MAX_HOSTS;
 }
 function toggleAddTechnicalButton() {
     const button = document.getElementById('addTechnical');
-    // This line needs access to the global technicalIndex
     if (button) button.disabled = technicalIndex >= MAX_TECHNICAL;
 }
-function updateHostIndices() { console.warn("updateHostIndices function not fully implemented"); /* ... Add your logic ... */ }
-function updateTechnicalIndices() { console.warn("updateTechnicalIndices function not fully implemented"); /* ... Add your logic ... */ }
+// Placeholder for more complex index updates if needed after removal
+function updateHostIndices() { console.warn("updateHostIndices function not fully implemented"); }
+function updateTechnicalIndices() { console.warn("updateTechnicalIndices function not fully implemented"); }
 
 // Helper function to populate standard name fields (Last, First, MI, Suffix, CYS/Dept)
 function populateNameFields(prefix, person) {
     console.log(`Populating fields for prefix: ${prefix}`, person);
     if (!person) {
         // Clear fields if person data is missing
-        const fields = ['LastName', 'FirstName', 'MI', 'Suffix', 'CYS', 'Department']; // Add all relevant suffixes
+        const fields = ['LastName', 'FirstName', 'MI', 'Suffix', 'CYS', 'Department'];
         fields.forEach(fieldSuffix => {
             const el = document.getElementById(`${prefix}${fieldSuffix}`);
             if (el) el.value = "";
@@ -290,16 +286,15 @@ function populateNameFields(prefix, person) {
     const firstNameEl = document.getElementById(`${prefix}FirstName`);
     const miEl = document.getElementById(`${prefix}MI`);
     const suffixEl = document.getElementById(`${prefix}Suffix`);
-    // Handle CYS or Department based on prefix (adjust IDs as needed)
     const cysDeptEl = document.getElementById(`${prefix}CYS`) || document.getElementById(`${prefix}Department`);
 
     console.log(`Found elements for ${prefix}:`, { lastNameEl, firstNameEl, miEl, suffixEl, cysDeptEl });
 
     if (lastNameEl) lastNameEl.value = person.lastName || "";
     if (firstNameEl) firstNameEl.value = person.firstName || "";
-    if (miEl) miEl.value = person.mi || person.middleInitial || ""; // Check both possible keys
+    if (miEl) miEl.value = person.mi || person.middleInitial || "";
     if (suffixEl) suffixEl.value = person.suffix || "";
-    if (cysDeptEl) cysDeptEl.value = person.cys || person.department || ""; // Check both possible keys
+    if (cysDeptEl) cysDeptEl.value = person.cys || person.department || "";
 }
 
 // Helper function to populate dynamic name fields (like hosts, technical staff)
@@ -308,7 +303,6 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Find the template row (assuming the first group is the template)
     const template = container.querySelector(`.${inputClass}-group`);
     if (!template) {
         console.error(`Template row with class '${inputClass}-group' not found in container '${containerId}'`);
@@ -317,13 +311,11 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
 
     // Clear existing dynamic rows BUT KEEP the template structure in memory
     container.innerHTML = '';
-    container.appendChild(template); // Put template back (it will be populated or cleared)
+    container.appendChild(template); // Put template back
 
-    // Reset index before populating (start from 0 for the loop, 1 for adding new rows)
-    let currentIndex = 0;
-    if (containerId === 'hosts-container') hostIndex = 1; // Reset global index for adding
-    if (containerId === 'technical-container') technicalIndex = 1; // Reset global index for adding
-
+    // Reset index before populating
+    if (containerId === 'hosts-container') hostIndex = 1;
+    if (containerId === 'technical-container') technicalIndex = 1;
 
     if (Array.isArray(people) && people.length > 0) {
         people.forEach((person, loopIndex) => {
@@ -331,7 +323,7 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
             if (loopIndex === 0) {
                 // Populate the first person into the template row
                 targetRow = template;
-                // Ensure template inputs have correct index 0 names/ids if needed
+                // Ensure template inputs have correct index 0 names/ids
                 targetRow.querySelectorAll('input').forEach(input => {
                     if (input.name) input.name = input.name.replace(/\[\d+\]/, `[0]`);
                     if (input.id) input.id = input.id.replace(/_\d+_/, `_0_`);
@@ -339,19 +331,15 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
                  targetRow.querySelectorAll('label').forEach(label => {
                     if (label.htmlFor) label.htmlFor = label.htmlFor.replace(/_\d+_/, `_0_`);
                 });
-
             } else {
                 // Add a new row using the provided addFunction for subsequent people
                 if (typeof addFunction === 'function') {
-                    // addFunction should handle incrementing the global index (hostIndex/technicalIndex)
-                    // and return the newly added row
-                    targetRow = addFunction();
+                    targetRow = addFunction(); // addFunction increments the global index
                 }
             }
 
-            // Populate the target row (either template or newly added row)
+            // Populate the target row
             if (targetRow) {
-                // Use more specific selectors if possible, otherwise rely on structure
                 const lastNameInput = targetRow.querySelector(`input[name$="[lastName]"]`);
                 const firstNameInput = targetRow.querySelector(`input[name$="[firstName]"]`);
                 const miInput = targetRow.querySelector(`input[name$="[mi]"]`);
@@ -364,12 +352,11 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
                 if (suffixInput) suffixInput.value = person.suffix || "";
                 if (cysInput) cysInput.value = person.cys || "";
 
-                // Hide remove button on the first/template row if applicable
+                // Hide remove button on the first/template row
                 if (loopIndex === 0) {
                      const removeButton = targetRow.querySelector('.remove-host-button, .remove-technical-button');
                      if (removeButton) removeButton.style.display = 'none';
                 }
-
             } else {
                  console.warn(`Could not get target row for index ${loopIndex} in ${containerId}`);
             }
@@ -391,25 +378,25 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Get Element References ---
     const schoolYearConfigForm = document.getElementById("schoolYearConfigForm");
-    const schoolYearDropdown = document.getElementById("schoolYear"); // Schedule tab year dropdown
-    const modalSchoolYearDropdown = document.getElementById("modalSchoolYear"); // Modal year dropdown
-    const submissionSchoolYearDropdown = document.getElementById("submissionSchoolYear"); // Submission tab year dropdown
-    const scheduleButtons = document.querySelectorAll(".availablebtn"); // Initial buttons (might be empty)
-    const closeModal = document.querySelector(".close"); // Modal close button
-    const saveButton = document.getElementById("saveButton"); // Modal save button
-    const deleteButton = document.getElementById("deleteButton"); // Modal delete button
-    const scheduleForm = document.getElementById("scheduleForm"); // Modal form
-    const scheduleTableBody = document.querySelector(".schedule-table tbody"); // Schedule table body for delegation
-    const submissionsTableBody = document.getElementById("submissions-table-body"); // Submissions table body
-    const resultFilter = document.getElementById("resultFilter"); // Submission result filter dropdown
-    const submissionForm = document.getElementById("submission-form"); // Submission details form
-    const submissionSubmitButton = document.querySelector("#submission-form .submit-button"); // Submission form submit button
-    const submissionCancelButton = document.querySelector("#submission-form .cancel-button"); // Submission form cancel button
-    const tabsContainer = document.querySelector(".tabs-container"); // <<< ADD
-    const tabButtons = document.querySelectorAll(".tab-button"); // <<< ADD
-    const tabPanes = document.querySelectorAll(".tab-pane"); // <<< ADD
-    const addHostButton = document.getElementById("addHost"); // <<< ADD
-    const addTechnicalButton = document.getElementById("addTechnical"); // <<< ADD
+    const schoolYearDropdown = document.getElementById("schoolYear");
+    const modalSchoolYearDropdown = document.getElementById("modalSchoolYear");
+    const submissionSchoolYearDropdown = document.getElementById("submissionSchoolYear");
+    const scheduleButtons = document.querySelectorAll(".availablebtn");
+    const closeModal = document.querySelector(".close");
+    const saveButton = document.getElementById("saveButton");
+    const deleteButton = document.getElementById("deleteButton");
+    const scheduleForm = document.getElementById("scheduleForm");
+    const scheduleTableBody = document.querySelector(".schedule-table tbody");
+    const submissionsTableBody = document.getElementById("submissions-table-body");
+    const resultFilter = document.getElementById("resultFilter");
+    const submissionForm = document.getElementById("submission-form");
+    const submissionSubmitButton = document.querySelector("#submission-form .submit-button");
+    const submissionCancelButton = document.querySelector("#submission-form .cancel-button");
+    const tabsContainer = document.querySelector(".tabs-container");
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const tabPanes = document.querySelectorAll(".tab-pane");
+    const addHostButton = document.getElementById("addHost");
+    const addTechnicalButton = document.getElementById("addTechnical");
 
     // --- School Year Configuration Form Submission ---
     if (schoolYearConfigForm) {
@@ -421,11 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const endMonth = document.getElementById("endMonth").value;
             const endYear = document.getElementById("endYear").value;
 
-            if (
-                !confirm(
-                    `Are you sure you want to save the school year configuration?\nStart: ${startMonth}/${startYear}\nEnd: ${endMonth}/${endYear}`
-                )
-            ) {
+            if (!confirm(`Are you sure you want to save the school year configuration?\nStart: ${startMonth}/${startYear}\nEnd: ${endMonth}/${endYear}`)) {
                 alert("Submission canceled.");
                 return;
             }
@@ -434,20 +417,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const response = await fetch("/schoolYear/config", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        startMonth,
-                        startYear,
-                        endMonth,
-                        endYear,
-                    }),
+                    body: JSON.stringify({ startMonth, startYear, endMonth, endYear }),
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    alert(
-                        errorData.error ||
-                            "Failed to save school year configuration"
-                    );
+                    alert(errorData.error || "Failed to save school year configuration");
                     return;
                 }
 
@@ -468,17 +443,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const initialYear = schoolYearDropdown ? schoolYearDropdown.value : null;
     if (initialYear) {
         try {
-            // Fetch initial accepted schedules for the default/current year
             const response = await fetch(`/schedule?schoolYear=${initialYear}`);
             if (!response.ok) throw new Error("Failed to fetch initial schedules");
-            existingSchedules = await response.json(); // Populate global existingSchedules
+            existingSchedules = await response.json();
             console.log(`Fetched initial schedules for ${initialYear}:`, existingSchedules);
-            // Refresh the visual schedule grid (which also fetches pending)
             await refreshSchedule(initialYear);
         } catch (error) {
             console.error("Error fetching initial schedules:", error);
-            existingSchedules = []; // Reset on error
-            await refreshSchedule(initialYear); // Attempt refresh even on error (might clear grid)
+            existingSchedules = [];
+            await refreshSchedule(initialYear);
         }
     } else {
         console.warn("No initial school year selected, cannot fetch initial schedules.");
@@ -488,21 +461,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Initial Load for Submissions Tab ---
     if (submissionSchoolYearDropdown && submissionSchoolYearDropdown.value) {
-        await loadSubmissions(); // Load submissions for the initially selected year
+        await loadSubmissions();
     } else {
-        console.warn(
-            "No school year selected in submissionSchoolYearDropdown initially."
-        );
-        // Optionally load submissions for the default/latest year if needed
+        console.warn("No school year selected in submissionSchoolYearDropdown initially.");
     }
-    clearFields(); // Ensure submission form is initially clear
+    try {
+        clearFields(); // Ensure submission form is initially clear
+    } catch(err) {
+        console.error("Error during initial clearFields call:", err);
+    }
 
     // --- Helper Functions within DOMContentLoaded ---
 
-    // Fetches all school year configurations
     async function fetchSchoolYears() {
         try {
-            const response = await fetch("/schoolYear/all"); // Endpoint to get all configs
+            const response = await fetch("/schoolYear/all");
             if (!response.ok) throw new Error("Failed to fetch school years");
             const schoolYears = await response.json();
             console.log("Fetched school years:", schoolYears);
@@ -513,7 +486,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Finds the configuration matching the current date
     function getCurrentSchoolYear(schoolYears) {
         if (!Array.isArray(schoolYears)) return null;
         const currentDate = new Date();
@@ -522,31 +494,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.warn("Skipping invalid school year object:", year);
                 return false;
             }
-            const startDate = new Date(year.startYear, year.startMonth - 1, 1); // Start of the month
-            const endDate = new Date(year.endYear, year.endMonth, 0); // End of the month
+            const startDate = new Date(year.startYear, year.startMonth - 1, 1);
+            const endDate = new Date(year.endYear, year.endMonth, 0);
             return currentDate >= startDate && currentDate <= endDate;
         });
     }
 
-    // Populates all school year dropdowns and sets the current/latest year
     async function populateDropdowns() {
         const schoolYears = await fetchSchoolYears();
-
-        // Display Current Config
         const currentSchoolYearConfig = getCurrentSchoolYear(schoolYears);
         displayCurrentSchoolYearConfig(currentSchoolYearConfig);
 
-        // Populate Dropdowns
         populateDropdown(schoolYearDropdown, schoolYears);
         populateDropdown(modalSchoolYearDropdown, schoolYears);
         populateDropdown(submissionSchoolYearDropdown, schoolYears);
 
-        // Set Dropdown Values
         let yearToSelect = null;
         if (currentSchoolYearConfig) {
             yearToSelect = `${currentSchoolYearConfig.startYear}-${currentSchoolYearConfig.endYear}`;
         } else if (schoolYears.length > 0) {
-            // Fallback to the latest year if no current one matches
             const latestYear = schoolYears.sort((a, b) => b.startYear - a.startYear || b.startMonth - a.startMonth)[0];
             if (latestYear && typeof latestYear.startYear === 'number' && typeof latestYear.endYear === 'number') {
                  yearToSelect = `${latestYear.startYear}-${latestYear.endYear}`;
@@ -565,7 +531,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Generic function to populate a single dropdown
     function populateDropdown(dropdown, schoolYears) {
         if (!dropdown) return;
         dropdown.innerHTML = "";
@@ -589,20 +554,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Event Listeners ---
 
-    // --- ADD TAB SWITCHING LOGIC ---
+    // --- TAB SWITCHING LOGIC ---
     if (tabsContainer) {
         tabsContainer.addEventListener('click', (event) => {
             const clickedButton = event.target.closest('.tab-button');
-            if (!clickedButton) return; // Ignore clicks not on a button
+            if (!clickedButton) return;
 
             const targetTabId = clickedButton.dataset.tab;
-            if (!targetTabId) return; // Ignore buttons without data-tab
+            if (!targetTabId) return;
 
-            // Remove active class from all buttons and panes
             tabButtons.forEach(button => button.classList.remove('active'));
             tabPanes.forEach(pane => pane.classList.remove('active'));
 
-            // Add active class to the clicked button and corresponding pane
             clickedButton.classList.add('active');
             const targetPane = document.getElementById(targetTabId);
             if (targetPane) {
@@ -620,20 +583,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         schoolYearDropdown.addEventListener("change", async () => {
             const selectedYear = schoolYearDropdown.value;
             console.log("Selected schoolYearDropdown value (on change):", selectedYear);
-            if (modalSchoolYearDropdown) modalSchoolYearDropdown.value = selectedYear; // Sync modal dropdown
+            if (modalSchoolYearDropdown) modalSchoolYearDropdown.value = selectedYear;
 
             try {
-                // Refetch accepted schedules for the new year
                 const response = await fetch(`/schedule?schoolYear=${selectedYear}`);
                 if (!response.ok) throw new Error("Failed to fetch schedules on year change");
-                existingSchedules = await response.json(); // Update global accepted schedules
+                existingSchedules = await response.json();
                 console.log(`Fetched schedules for ${selectedYear} (main dropdown change):`, existingSchedules);
-                // Refresh the grid (which also fetches pending for the new year)
                 await refreshSchedule(selectedYear);
             } catch (error) {
                 console.error("Error fetching schedules on year change:", error);
-                existingSchedules = []; // Reset on error
-                await refreshSchedule(selectedYear); // Attempt refresh (might clear grid)
+                existingSchedules = [];
+                await refreshSchedule(selectedYear);
             }
         });
     }
@@ -645,19 +606,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Submission year changed. Refreshing schedules and submissions for year:", selectedYear);
 
             try {
-                // Refetch accepted schedules for the newly selected year to update availability checks
                 const response = await fetch(`/schedule?schoolYear=${selectedYear}`);
                 if (!response.ok) throw new Error("Failed to fetch schedules for submission year change");
-                existingSchedules = await response.json(); // Update global accepted schedules
+                existingSchedules = await response.json();
                 console.log(`Fetched schedules for ${selectedYear} (submission dropdown change):`, existingSchedules);
 
-                // Reload submissions table for the selected year/filter
                 await loadSubmissions();
-                clearFields(); // Clear detail form when year changes
+                clearFields();
             } catch (error) {
                 console.error("Error fetching schedules for submission year change:", error);
-                existingSchedules = []; // Clear schedules on error
-                await loadSubmissions(); // Still try to load submissions table
+                existingSchedules = [];
+                await loadSubmissions();
                 clearFields();
             }
         });
@@ -666,21 +625,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Submission Result Filter Change
     if (resultFilter) {
         resultFilter.addEventListener("change", async () => {
-            await loadSubmissions(); // Reload table when filter changes
-            clearFields(); // Clear form when filter changes
+            await loadSubmissions();
+            clearFields();
         });
     }
 
-    // --- ADD EVENT LISTENERS FOR ADD HOST/TECHNICAL BUTTONS ---
+    // --- EVENT LISTENERS FOR ADD HOST/TECHNICAL BUTTONS ---
     if (addHostButton) {
         addHostButton.addEventListener('click', () => {
-            addHost(); // Call the globally defined addHost function
+            addHost();
         });
     }
 
     if (addTechnicalButton) {
         addTechnicalButton.addEventListener('click', () => {
-            addTechnical(); // Call the globally defined addTechnical function
+            addTechnical();
         });
     }
     // --- END ADD EVENT LISTENERS ---
@@ -717,31 +676,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 2. Ensure correct School Year and Filter are selected
                 const currentScheduleYear = document.getElementById("schoolYear")?.value;
                 if (submissionSchoolYearDropdown && currentScheduleYear) {
-                    submissionSchoolYearDropdown.value = currentScheduleYear; // Match the year
+                    submissionSchoolYearDropdown.value = currentScheduleYear;
                 }
                 if (resultFilter) {
-                    resultFilter.value = "Pending"; // Set filter to Pending
+                    resultFilter.value = "Pending";
                 }
 
                 // 3. Load submissions for the correct year/filter
-                await loadSubmissions(); // Reload table based on new filter/year settings
+                await loadSubmissions();
 
-                // 4. Select the specific submission (using updated global existingSchedules)
+                // 4. Select the specific submission
                 await selectSubmission(pendingSubmissionId, existingSchedules);
 
-                // 5. Scroll to the submission form (optional)
+                // 5. Scroll to the submission form
                 document.getElementById('submission-form')?.scrollIntoView({ behavior: 'smooth' });
 
             }
             // --- Handle ACCEPTED button click (Open Schedule Modal) ---
             else if (scheduleId && targetButton.classList.contains('schedulebtn')) {
                 console.log("Accepted button clicked, schedule ID:", scheduleId);
-                openScheduleModal(targetButton); // Open modal for editing
+                openScheduleModal(targetButton);
             }
             // --- Handle AVAILABLE button click (Open Schedule Modal for Creation) ---
             else if (targetButton.classList.contains('availablebtn')) {
                  console.log("Available button clicked, Day:", day, "Time:", time);
-                 openScheduleModal(targetButton); // Open modal for creation
+                 openScheduleModal(targetButton);
             }
         });
     }
@@ -756,38 +715,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
          const day = button.dataset.day;
          const time = button.dataset.time;
-         const scheduleId = button.dataset.scheduleId; // Might be undefined for new slots
-         const currentSelectedYear = document.getElementById("schoolYear")?.value; // Year from main schedule dropdown
+         const scheduleId = button.dataset.scheduleId;
+         const currentSelectedYear = document.getElementById("schoolYear")?.value;
 
          // --- Reset form and set defaults for new schedule ---
-         scheduleForm.reset(); // Reset native form elements
-         scheduleForm.dataset.scheduleId = ""; // Clear schedule ID attribute
-         scheduleForm.dataset.day = day || ""; // Store day for saving
-         scheduleForm.dataset.time = time || ""; // Store time for saving
+         scheduleForm.reset();
+         scheduleForm.dataset.scheduleId = "";
+         scheduleForm.dataset.day = day || "";
+         scheduleForm.dataset.time = time || "";
 
-         // Set modal year dropdown to match the main schedule view
          if (currentSelectedYear) {
              modalSchoolYearDropdown.value = currentSelectedYear;
          }
-         saveButton.textContent = "Save"; // Default button text
-         deleteButton.style.display = "none"; // Hide delete button initially
+         saveButton.textContent = "Save";
+         deleteButton.style.display = "none";
 
-         // Reset dynamic fields and show type checkboxes specifically
-         resetDynamicInputs("hosts-container", "host-input", addHost);
-         resetDynamicInputs("technical-container", "technical-input", addTechnical);
+         // Reset dynamic fields
+         resetDynamicInputs("hosts-container", "host-input-group", addHost); // Use correct class
+         resetDynamicInputs("technical-container", "technical-input-group", addTechnical); // Use correct class
 
          // Ensure indices and buttons are reset/toggled correctly
-         // These functions access the global hostIndex/technicalIndex
          if (typeof updateHostIndices === 'function') updateHostIndices();
-         if (typeof toggleAddHostButton === 'function') toggleAddHostButton(); // <<< CALL SITE
+         if (typeof toggleAddHostButton === 'function') toggleAddHostButton();
          if (typeof updateTechnicalIndices === 'function') updateTechnicalIndices();
          if (typeof toggleAddTechnicalButton === 'function') toggleAddTechnicalButton();
 
-
          // --- Explicitly Reset Show Type Checkboxes and Other Input ---
          const typeCheckboxes = document.querySelectorAll("input[name='showDetails.type[]']");
-         const otherCheckbox = document.getElementById("other"); // Assuming id="other" for the 'Other' checkbox
-         const otherInput = document.getElementById("other-input"); // Assuming id="other-input" for the text field
+         const otherCheckbox = document.getElementById("other");
+         const otherInput = document.getElementById("other-input");
          typeCheckboxes.forEach(cb => cb.checked = false);
          if (otherInput) { otherInput.value = ""; otherInput.disabled = true; }
          // --- End Reset ---
@@ -801,43 +757,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                  const schedule = await response.json();
                  console.log("Fetched schedule:", schedule);
 
-                 // Set modal dropdown to the year from the database (overrides main dropdown selection)
                  modalSchoolYearDropdown.value = schedule.schoolYear || currentSelectedYear || '';
-
-                 // Store schedule ID on the form for saving/updating
                  scheduleForm.dataset.scheduleId = schedule._id;
 
                  // --- Populate modal fields ---
                  const showTitleEl = document.getElementById("showTitle");
-                 const showDescEl = document.getElementById("showDescription"); // Check this ID matches your HTML
-                 const showObjectivesEl = document.getElementById("showObjectives"); // <<< ADD: Assuming id="showObjectives"
+                 const showDescEl = document.getElementById("showDescription"); // Use correct ID
+                 const showObjectivesEl = document.getElementById("showObjectives"); // Use correct ID
 
                  if (showTitleEl) showTitleEl.value = schedule.showDetails?.title || "";
                  if (showDescEl) {
                      showDescEl.value = schedule.showDetails?.description || "";
                  } else {
-                     console.warn("Element with ID 'showDescription' not found in modal."); // <<< ADD: Check if element exists
+                     console.warn("Element with ID 'showDescription' not found in modal.");
                  }
-                 if (showObjectivesEl) { // <<< ADD: Populate Objectives
+                 if (showObjectivesEl) {
                      showObjectivesEl.value = schedule.showDetails?.objectives || "";
                  } else {
-                     console.warn("Element with ID 'showObjectives' not found in modal."); // <<< ADD: Check if element exists
+                     console.warn("Element with ID 'showObjectives' not found in modal.");
                  }
 
-
-                 // Populate name fields using helper function
                  populateNameFields("execProducer", schedule.executiveProducer);
                  populateNameFields("creativeStaff", schedule.creativeStaff);
 
-                 // Populate dynamic fields using helper function
-                 populateDynamicNameFields("hosts-container", "host-input", schedule.hosts, addHost, updateHostIndices, toggleAddHostButton);
-                 populateDynamicNameFields("technical-container", "technical-input", schedule.technicalStaff, addTechnical, updateTechnicalIndices, toggleAddTechnicalButton);
+                 populateDynamicNameFields("hosts-container", "host-input-group", schedule.hosts, addHost, updateHostIndices, toggleAddHostButton); // Use correct class
+                 populateDynamicNameFields("technical-container", "technical-input-group", schedule.technicalStaff, addTechnical, updateTechnicalIndices, toggleAddTechnicalButton); // Use correct class
 
                  // --- Populate Show Type Checkboxes ---
                  if (schedule.showDetails && Array.isArray(schedule.showDetails.type)) {
                     const scheduleTypes = schedule.showDetails.type;
                     let otherValue = null;
-
                     const standardCheckboxValues = Array.from(typeCheckboxes)
                         .filter(cb => cb.id !== 'other')
                         .map(cb => cb.value);
@@ -847,33 +796,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (matchingCheckbox) {
                             matchingCheckbox.checked = true;
                         } else if (!standardCheckboxValues.includes(type)) {
-                            // Assume it's the custom value for 'Other' if not a standard checkbox value
                             otherValue = type;
                         }
                     });
 
-                    // Handle the 'Other' checkbox and input field
                     if (otherValue !== null) {
                         if (otherCheckbox) otherCheckbox.checked = true;
                         if (otherInput) {
                             otherInput.value = otherValue;
-                            otherInput.disabled = false; // Enable the text input
+                            otherInput.disabled = false;
                         }
                     } else {
-                         if (otherInput) otherInput.disabled = true; // Ensure disabled if no custom value
+                         if (otherInput) otherInput.disabled = true;
                     }
                  }
                  // --- End Populate Show Type Checkboxes ---
 
-                 // Update button text and visibility for editing
                  saveButton.textContent = "Edit";
-                 deleteButton.style.display = "inline-block"; // Show delete button
+                 deleteButton.style.display = "inline-block";
 
              } catch (error) {
                  console.error("Error fetching schedule details:", error);
                  alert("Failed to load schedule details.");
-                 if (modal) modal.style.display = "none"; // Close modal on error
-                 return; // Stop further execution
+                 if (modal) modal.style.display = "none";
+                 return;
              }
          }
 
@@ -883,39 +829,105 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Modal Event Listeners ---
 
-    // Close Modal
     if (closeModal) {
         closeModal.onclick = () => {
             if (modal) modal.style.display = "none";
         };
     }
 
-    // Close Modal on outside click
     window.onclick = (event) => {
         if (event.target == modal) {
             modal.style.display = "none";
         }
     };
 
-    // Save/Edit Schedule Button
     if (saveButton) {
         saveButton.addEventListener("click", async () => {
-            // ... Add your logic to gather data from the scheduleForm ...
-            // ... Determine if it's a POST (new) or PATCH (edit) based on scheduleForm.dataset.scheduleId ...
-            // ... Send fetch request ...
-            // ... Handle response, show alerts, refresh schedule, close modal ...
+            // TODO: Implement robust data gathering and validation
             console.warn("Save/Edit schedule logic not fully implemented.");
-            // Example structure:
-            /*
+
             const scheduleId = scheduleForm.dataset.scheduleId;
             const method = scheduleId ? 'PATCH' : 'POST';
             const url = scheduleId ? `/schedule/${scheduleId}` : '/schedule';
-            const formData = new FormData(scheduleForm); // Or gather data manually
-            const scheduleData = { ... Object.fromEntries(formData.entries()) }; // Basic conversion, needs refinement for nested objects/arrays
-            scheduleData.day = scheduleForm.dataset.day; // Get day/time from dataset
+
+            // Basic data gathering - NEEDS REFINEMENT for arrays/objects
+            const formData = new FormData(scheduleForm);
+            const scheduleData = {};
+
+            // Manually structure nested objects and arrays
+            scheduleData.showDetails = {};
+            scheduleData.executiveProducer = {};
+            scheduleData.creativeStaff = {};
+            scheduleData.hosts = [];
+            scheduleData.technicalStaff = [];
+            scheduleData.showDetails.type = [];
+
+            // Iterate through FormData entries
+            for (let [key, value] of formData.entries()) {
+                // Handle showDetails.type array
+                if (key === 'showDetails.type[]') {
+                    scheduleData.showDetails.type.push(value);
+                }
+                // Handle nested objects like executiveProducer.lastName
+                else if (key.includes('.')) {
+                    const [parent, child] = key.split('.');
+                    if (parent === 'showDetails') {
+                        scheduleData.showDetails[child] = value;
+                    } else if (parent === 'executiveProducer') {
+                        scheduleData.executiveProducer[child] = value;
+                    } else if (parent === 'creativeStaff') {
+                        scheduleData.creativeStaff[child] = value;
+                    }
+                }
+                // Handle arrays like hosts[0][lastName]
+                else if (key.includes('[')) {
+                    const match = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/);
+                    if (match) {
+                        const arrayName = match[1]; // 'hosts' or 'technicalStaff'
+                        const index = parseInt(match[2], 10);
+                        const fieldName = match[3]; // 'lastName', 'firstName', etc.
+
+                        if (scheduleData[arrayName]) {
+                            // Ensure the object at the index exists
+                            if (!scheduleData[arrayName][index]) {
+                                scheduleData[arrayName][index] = {};
+                            }
+                            scheduleData[arrayName][index][fieldName] = value;
+                        }
+                    }
+                }
+                 // Handle simple fields (if any) - none expected at top level based on form
+                 // else {
+                 //     scheduleData[key] = value;
+                 // }
+            }
+
+            // Add day, time, schoolYear from outside the form elements
+            scheduleData.day = scheduleForm.dataset.day;
             scheduleData.time = scheduleForm.dataset.time;
             scheduleData.schoolYear = modalSchoolYearDropdown.value;
-            // ... structure scheduleData correctly based on your Schedule model ...
+
+            // Handle 'Other' show type - if 'Other' checkbox is checked, use the input value
+            const otherCheckbox = document.getElementById('other');
+            const otherInput = document.getElementById('other-input');
+            if (otherCheckbox?.checked && otherInput?.value) {
+                // Remove the placeholder 'Other' value if present and add the custom one
+                scheduleData.showDetails.type = scheduleData.showDetails.type.filter(t => t !== 'Other');
+                scheduleData.showDetails.type.push(otherInput.value.trim());
+            }
+
+            console.log("Prepared schedule data:", scheduleData);
+
+            // Basic Validation (Expand as needed)
+            if (!scheduleData.day || !scheduleData.time || !scheduleData.schoolYear) {
+                alert("Missing day, time, or school year.");
+                return;
+            }
+            if (!scheduleData.showDetails?.title) {
+                alert("Show Title is required.");
+                return;
+            }
+            // Add more validation for required fields...
 
             try {
                 const response = await fetch(url, {
@@ -923,19 +935,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(scheduleData)
                 });
-                if (!response.ok) throw new Error('Failed to save schedule');
-                alert('Schedule saved successfully!');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Failed to ${method === 'POST' ? 'save' : 'update'} schedule`);
+                }
+                alert(`Schedule ${method === 'POST' ? 'saved' : 'updated'} successfully!`);
                 modal.style.display = 'none';
                 await refreshSchedule(schoolYearDropdown.value); // Refresh grid for the current view
             } catch (error) {
-                console.error('Error saving schedule:', error);
-                alert('Failed to save schedule.');
+                console.error(`Error ${method === 'POST' ? 'saving' : 'updating'} schedule:`, error);
+                alert(`Failed to ${method === 'POST' ? 'save' : 'update'} schedule. ${error.message}`);
             }
-            */
         });
     }
 
-    // Delete Schedule Button
+
     if (deleteButton) {
         deleteButton.addEventListener("click", async () => {
             const scheduleId = scheduleForm.dataset.scheduleId;
@@ -947,7 +961,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (!response.ok) throw new Error('Failed to delete schedule');
                     alert('Schedule deleted successfully!');
                     modal.style.display = 'none';
-                    await refreshSchedule(schoolYearDropdown.value); // Refresh grid
+                    await refreshSchedule(schoolYearDropdown.value);
                 } catch (error) {
                     console.error('Error deleting schedule:', error);
                     alert('Failed to delete schedule.');
@@ -970,7 +984,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (submissionCancelButton) {
         submissionCancelButton.addEventListener("click", () => {
-            clearFields(); // Clear the form on cancel
+            clearFields();
         });
     }
 
@@ -980,7 +994,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         preferredDayDropdown.addEventListener("change", async () => {
             const selectedDay = preferredDayDropdown.value;
             const preferredTimeDropdown = document.getElementById("preferredTime");
-            const submissionId = document.querySelector(".submit-button").dataset.submissionId; // Get current submission ID
+            // Ensure we have a submission ID when changing day/time
+            const submissionId = document.querySelector("#submission-form .submit-button")?.dataset.submissionId;
 
             preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Loading...</option>';
             preferredTimeDropdown.disabled = true;
@@ -991,33 +1006,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                // Refetch schedules for the year if needed, or use existingSchedules if guaranteed up-to-date
-                // Using existingSchedules which should be updated when the submission year dropdown changes
+                // Use existingSchedules global variable
                 const occupiedTimes = existingSchedules
-                    .filter(schedule => schedule.day === selectedDay && schedule.schoolYear === currentSubmissionSchoolYear && schedule.submissionId !== submissionId) // Exclude self
+                    .filter(schedule =>
+                        schedule.day === selectedDay &&
+                        schedule.schoolYear === currentSubmissionSchoolYear &&
+                        (!submissionId || schedule.submissionId !== submissionId) // Exclude self only if submissionId is known
+                    )
                     .map(schedule => schedule.time.trim());
 
                 console.log(`(Day Change) Occupied times for ${selectedDay} in ${currentSubmissionSchoolYear}:`, occupiedTimes);
 
-                preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a time</option>'; // Reset options
+                preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a time</option>';
 
                 let timeSlotAdded = false;
                 ALL_TIME_SLOTS.forEach((time) => {
-                    if (selectedDay !== 'Friday' && time === '12:01-12:55') return; // Skip Friday-only slot if not Friday
+                    if (selectedDay !== 'Friday' && time === '12:01-12:55') return;
 
                     const normalizedTime = time.trim();
                     const isOccupied = occupiedTimes.includes(normalizedTime);
-                    // Allow the original time slot even if it appears occupied (might be occupied by itself before update)
-                    const isOriginalTime = normalizedTime === originalSubmissionPreferredTime;
+                    // Check against original time only if we have a submission context
+                    const isOriginalTime = submissionId && (normalizedTime === originalSubmissionPreferredTime);
 
-                    // Add if not occupied by another, OR if it's the time currently saved for this submission
                     if (!isOccupied || isOriginalTime) {
                         const option = document.createElement("option");
                         option.value = normalizedTime;
                         option.textContent = normalizedTime;
-                        if (isOriginalTime) {
-                            option.selected = true; // Pre-select the original time
-                        }
+                        // Don't pre-select here, let selectSubmission handle pre-selection
                         preferredTimeDropdown.appendChild(option);
                         timeSlotAdded = true;
                     } else {
@@ -1025,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
 
-                preferredTimeDropdown.disabled = !timeSlotAdded; // Disable if no slots were added
+                preferredTimeDropdown.disabled = !timeSlotAdded;
                 if (!timeSlotAdded) {
                     preferredTimeDropdown.innerHTML = '<option value="" disabled selected>No times available</option>';
                 }
@@ -1058,9 +1073,8 @@ async function loadSubmissions() {
         }
 
         const resultFilter = document.getElementById("resultFilter");
-        const result = resultFilter ? resultFilter.value : "All"; // Use capitalized value from dropdown
+        const result = resultFilter ? resultFilter.value : "All";
         const queryParams = new URLSearchParams({ schoolYear });
-        // Append result filter (capitalized) if not 'All'
         if (result && result !== "All") queryParams.append("result", result);
 
         const response = await fetch(`/submissions?${queryParams.toString()}`);
@@ -1069,44 +1083,29 @@ async function loadSubmissions() {
         const submissions = await response.json();
         console.log(`Submissions for ${schoolYear} (Filter: ${result}):`, submissions);
 
-        tableBody.innerHTML = ""; // Clear previous entries
+        tableBody.innerHTML = "";
 
         if (Array.isArray(submissions) && submissions.length > 0) {
             submissions.forEach((submission) => {
                 const row = document.createElement("tr");
-                // Capitalize result for display consistency
-                const displayResult = submission.result
-                    ? submission.result.charAt(0).toUpperCase() + submission.result.slice(1)
-                    : "Pending";
-                // Add class based on result (lowercase for CSS consistency)
+                const displayResult = submission.result ? submission.result.charAt(0).toUpperCase() + submission.result.slice(1) : "Pending";
                 row.classList.add(`result-${(submission.result || 'Pending').toLowerCase()}`);
                 row.innerHTML = `
                     <td>${submission.showDetails?.title || "N/A"}</td>
                     <td>${submission.organizationName || "N/A"}</td>
-                    <td>${submission.preferredSchedule?.day || "N/A"} ${
-                    submission.preferredSchedule?.time || "N/A"
-                }</td>
+                    <td>${submission.preferredSchedule?.day || "N/A"} ${submission.preferredSchedule?.time || "N/A"}</td>
                     <td>${displayResult}</td>
-                    <td><button type="button" class="select-btn" data-id="${
-                        submission._id
-                    }">Select</button></td>
+                    <td><button type="button" class="select-btn" data-id="${submission._id}">Select</button></td>
                 `;
                 tableBody.appendChild(row);
             });
-
-            // Add event listeners to the newly created select buttons using delegation on the table body
-            // This avoids re-adding listeners every time loadSubmissions runs
-            // Ensure this listener is added only once, perhaps in DOMContentLoaded
-
         } else {
-            tableBody.innerHTML =
-                '<tr><td colspan="5">No submissions found for the selected criteria.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5">No submissions found for the selected criteria.</td></tr>';
         }
     } catch (error) {
         console.error("Error loading submissions:", error);
         if (tableBody) {
-            tableBody.innerHTML =
-                '<tr><td colspan="5">Failed to load submissions. Please try again.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5">Failed to load submissions. Please try again.</td></tr>';
         }
     }
 }
@@ -1118,8 +1117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submissionsTableBody.addEventListener('click', (event) => {
             if (event.target.classList.contains('select-btn')) {
                 const submissionId = event.target.dataset.id;
-                // Use the globally scoped existingSchedules variable
-                selectSubmission(submissionId, existingSchedules);
+                selectSubmission(submissionId, existingSchedules); // Pass global schedules
             }
         });
     }
@@ -1136,124 +1134,162 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
         }
         const submission = await response.json();
 
-        // Store original preferred time and school year
         originalSubmissionPreferredTime = submission.preferredSchedule?.time || null;
-        currentSubmissionSchoolYear = submission.schoolYear; // Store the school year from the submission
+        currentSubmissionSchoolYear = submission.schoolYear;
 
-        // --- Populate Read-only Fields ---
-        document.getElementById("organizationName").value = submission.organizationName || "";
-        document.getElementById("organizationType").value = submission.organizationType || "";
-        document.getElementById("proponentName").value = formatName(submission.proponent);
-        document.getElementById("proponentCYS").value = submission.proponent?.cys || "";
+        // --- Populate Read-only Fields (Using unique IDs for submission form) ---
+        // Ensure these IDs exist and are unique in the submission form section of your EJS
+        document.getElementById("submissionOrganizationName").value = submission.organizationName || ""; // Assuming this ID is unique or intended for submission form
+        document.getElementById("submissionOrganizationType").value = submission.organizationType || ""; // Assuming unique
+        document.getElementById("submissionProponentName").value = formatName(submission.proponent); // Assuming unique
+        document.getElementById("submissionProponentCYS").value = submission.proponent?.cys || ""; // Assuming unique
 
         if (submission.coProponent?.notApplicable) {
-            document.getElementById("coProponentName").value = "N/A";
-            document.getElementById("coProponentCYS").value = "N/A";
+            document.getElementById("submissionCoProponentName").value = "N/A"; // Assuming unique
+            document.getElementById("submissionCoProponentCYS").value = "N/A"; // Assuming unique
         } else {
-            document.getElementById("coProponentName").value = formatName(submission.coProponent);
-            document.getElementById("coProponentCYS").value = submission.coProponent?.cys || "";
+            document.getElementById("submissionCoProponentName").value = formatName(submission.coProponent); // Assuming unique
+            document.getElementById("submissionCoProponentCYS").value = submission.coProponent?.cys || ""; // Assuming unique
         }
 
-        document.getElementById("executiveProducer").value = formatName(submission.executiveProducer);
-        document.getElementById("executiveProducerCYS").value = submission.executiveProducer?.cys || "";
+        document.getElementById("executiveProducer").value = formatName(submission.executiveProducer); // Assuming unique
+        document.getElementById("executiveProducerCYS").value = submission.executiveProducer?.cys || ""; // Assuming unique
 
         if (submission.facultyStaff?.notApplicable) {
-            document.getElementById("facultyStaff").value = "N/A";
-            document.getElementById("facultyStaffDepartment").value = "N/A";
+            document.getElementById("facultyStaff").value = "N/A"; // Assuming unique
+            document.getElementById("facultyStaffDepartment").value = "N/A"; // Assuming unique
         } else {
-            document.getElementById("facultyStaff").value = formatName(submission.facultyStaff);
-            // Assuming facultyStaff uses 'department' instead of 'cys'
-            document.getElementById("facultyStaffDepartment").value = submission.facultyStaff?.department || "";
+            document.getElementById("facultyStaff").value = formatName(submission.facultyStaff); // Assuming unique
+            document.getElementById("facultyStaffDepartment").value = submission.facultyStaff?.department || ""; // Assuming unique
         }
 
-        // Populate Hosts (Read-only)
-        const hostContainer = document.getElementById("host-container");
-        hostContainer.innerHTML = ""; // Clear previous
-        if (submission.hosts && submission.hosts.length > 0) {
-            submission.hosts.forEach((host, index) => {
-                const hostField = document.createElement("div");
-                hostField.className = 'readonly-field-group';
-                hostField.innerHTML = `
-                    <label for="host${index}">Host ${index + 1} Name:</label>
-                    <input type="text" id="host${index}" value="${formatName(host)}" readonly>
-                    <label for="hostCYS${index}">Host ${index + 1} CYS:</label>
-                    <input type="text" id="hostCYS${index}" value="${host.cys || ""}" readonly>
-                `;
-                hostContainer.appendChild(hostField);
-            });
-        } else {
-            hostContainer.innerHTML = "<p>No hosts listed.</p>";
-        }
+        // Populate Hosts (Read-only) - Assuming unique container ID "submissionHostContainer"
+        const subHostContainer = document.getElementById("submissionHostContainer"); // Use unique ID
+        if (subHostContainer) {
+            subHostContainer.innerHTML = ""; // Clear previous
+            if (submission.hosts && submission.hosts.length > 0) {
+                submission.hosts.forEach((host, index) => {
+                    const hostField = document.createElement("div");
+                    hostField.className = 'readonly-field-group';
+                    // Use unique IDs for generated elements if needed, though maybe not necessary if just display
+                    hostField.innerHTML = `
+                        <label>Host ${index + 1} Name:</label>
+                        <input type="text" value="${formatName(host)}" readonly>
+                        <label>Host ${index + 1} CYS:</label>
+                        <input type="text" value="${host.cys || ""}" readonly>
+                    `;
+                    subHostContainer.appendChild(hostField);
+                });
+            } else {
+                subHostContainer.innerHTML = "<p>No hosts listed.</p>";
+            }
+        } else { console.warn("selectSubmission: Container 'submissionHostContainer' not found."); }
 
-        // Populate Technical Staff (Read-only)
-        const techContainer = document.getElementById("technicalStaff-container");
-        techContainer.innerHTML = ""; // Clear previous
-        if (submission.technicalStaff && submission.technicalStaff.length > 0) {
-            submission.technicalStaff.forEach((tech, index) => {
-                const techField = document.createElement("div");
-                techField.className = 'readonly-field-group';
-                techField.innerHTML = `
-                    <label for="technicalStaff${index}">Tech Staff ${index + 1} Name:</label>
-                    <input type="text" id="technicalStaff${index}" value="${formatName(tech)}" readonly>
-                    <label for="technicalStaffCYS${index}">Tech Staff ${index + 1} CYS:</label>
-                    <input type="text" id="technicalStaffCYS${index}" value="${tech.cys || ""}" readonly>
-                `;
-                techContainer.appendChild(techField);
-            });
-        } else {
-            techContainer.innerHTML = "<p>No technical staff listed.</p>";
-        }
 
-        document.getElementById("creativeStaff").value = formatName(submission.creativeStaff);
-        document.getElementById("creativeStaffCYS").value = submission.creativeStaff?.cys || "";
-        document.getElementById("dlsudEmail").value = submission.contactInfo?.dlsudEmail || "";
-        document.getElementById("contactEmail").value = submission.contactInfo?.contactEmail || "";
-        document.getElementById("contactFbLink").value = submission.contactInfo?.contactFbLink || "";
+        // Populate Technical Staff (Read-only) - Assuming unique container ID "submissionTechnicalStaffContainer"
+        const subTechContainer = document.getElementById("submissionTechnicalStaffContainer"); // Use unique ID
+         if (subTechContainer) {
+            subTechContainer.innerHTML = ""; // Clear previous
+            if (submission.technicalStaff && submission.technicalStaff.length > 0) {
+                submission.technicalStaff.forEach((tech, index) => {
+                    const techField = document.createElement("div");
+                    techField.className = 'readonly-field-group';
+                    techField.innerHTML = `
+                        <label>Tech Staff ${index + 1} Name:</label>
+                        <input type="text" value="${formatName(tech)}" readonly>
+                        <label>Tech Staff ${index + 1} CYS:</label>
+                        <input type="text" value="${tech.cys || ""}" readonly>
+                    `;
+                    subTechContainer.appendChild(techField);
+                });
+            } else {
+                subTechContainer.innerHTML = "<p>No technical staff listed.</p>";
+            }
+        } else { console.warn("selectSubmission: Container 'submissionTechnicalStaffContainer' not found."); }
 
-        const fbLinkContainer = document.getElementById("FbLink-container");
-        const fbLinkInput = document.getElementById("FbLink");
-        if (submission.contactInfo?.crossposting === "Yes") {
-            fbLinkInput.value = submission.contactInfo?.fbLink || "";
-            fbLinkContainer.style.display = "block";
-        } else {
-            fbLinkContainer.style.display = "none";
-            fbLinkInput.value = "";
-        }
 
-        const proponentSignatureImg = document.getElementById("proponentSignature");
-        if (submission.proponentSignature) {
-            proponentSignatureImg.src = submission.proponentSignature;
-            proponentSignatureImg.style.display = "block";
-        } else {
-            proponentSignatureImg.src = "";
-            proponentSignatureImg.style.display = "none";
-        }
+        // Use unique IDs for submission form elements
+        const subShowDescEl = document.getElementById("submissionShowDescription");
+        if (subShowDescEl) subShowDescEl.value = submission.showDetails?.description || ""; else console.warn("selectSubmission: Missing 'submissionShowDescription'");
 
-        document.getElementById("show-title").value = submission.showDetails?.title || "";
-        document.getElementById("showType").value = Array.isArray(submission.showDetails?.type)
-            ? submission.showDetails.type.join(', ')
-            : (submission.showDetails?.type || "");
-        document.getElementById("showDescription").value = submission.showDetails?.description || "";
-        document.getElementById("show-objectives").value = submission.showDetails?.objectives || "";
+        const subCreativeStaffEl = document.getElementById("submissionCreativeStaff");
+        if (subCreativeStaffEl) subCreativeStaffEl.value = formatName(submission.creativeStaff); else console.warn("selectSubmission: Missing 'submissionCreativeStaff'");
+
+        const subCreativeStaffCYSEl = document.getElementById("submissionCreativeStaffCYS");
+        if (subCreativeStaffCYSEl) subCreativeStaffCYSEl.value = submission.creativeStaff?.cys || ""; else console.warn("selectSubmission: Missing 'submissionCreativeStaffCYS'");
+
+        const subDlsudEmailEl = document.getElementById("submissionDlsudEmail"); // Assuming unique ID
+        if (subDlsudEmailEl) subDlsudEmailEl.value = submission.contactInfo?.dlsudEmail || ""; else console.warn("selectSubmission: Missing 'submissionDlsudEmail'");
+
+        const subContactEmailEl = document.getElementById("submissionContactEmail"); // Assuming unique ID
+        if (subContactEmailEl) subContactEmailEl.value = submission.contactInfo?.contactEmail || ""; else console.warn("selectSubmission: Missing 'submissionContactEmail'");
+
+        const subContactFbLinkEl = document.getElementById("submissionContactFbLink"); // Assuming unique ID
+        if (subContactFbLinkEl) subContactFbLinkEl.value = submission.contactInfo?.contactFbLink || ""; else console.warn("selectSubmission: Missing 'submissionContactFbLink'");
+
+        // Handle FB Link visibility - Assuming unique IDs "submissionFbLinkContainer" and "submissionFbLink"
+        const subFbLinkContainer = document.getElementById("submissionFbLinkContainer");
+        const subFbLinkInput = document.getElementById("submissionFbLink");
+        if (subFbLinkContainer && subFbLinkInput) {
+            if (submission.contactInfo?.crossposting === "Yes") {
+                subFbLinkInput.value = submission.contactInfo?.fbLink || "";
+                subFbLinkContainer.style.display = "block";
+            } else {
+                subFbLinkContainer.style.display = "none";
+                subFbLinkInput.value = "";
+            }
+        } else { console.warn("selectSubmission: Missing FB Link container or input for submission form."); }
+
+        // Handle Signature - Assuming unique ID "submissionProponentSignature"
+        const subProponentSignatureImg = document.getElementById("submissionProponentSignature");
+        if (subProponentSignatureImg) {
+            if (submission.proponentSignature) {
+                subProponentSignatureImg.src = submission.proponentSignature;
+                subProponentSignatureImg.style.display = "block";
+            } else {
+                subProponentSignatureImg.src = "";
+                subProponentSignatureImg.style.display = "none";
+            }
+        } else { console.warn("selectSubmission: Missing signature image element for submission form."); }
+
+
+        // Assuming unique IDs for these as well
+        const subShowTitleEl = document.getElementById("submissionShowTitle");
+        if (subShowTitleEl) subShowTitleEl.value = submission.showDetails?.title || ""; else console.warn("selectSubmission: Missing 'submissionShowTitle'");
+
+        const subShowTypeEl = document.getElementById("submissionShowType");
+        if (subShowTypeEl) {
+             subShowTypeEl.value = Array.isArray(submission.showDetails?.type)
+                ? submission.showDetails.type.join(', ')
+                : (submission.showDetails?.type || "");
+        } else { console.warn("selectSubmission: Missing 'submissionShowType'"); }
+
+        const subShowObjectivesEl = document.getElementById("submissionShowObjectives");
+        if (subShowObjectivesEl) subShowObjectivesEl.value = submission.showDetails?.objectives || ""; else console.warn("selectSubmission: Missing 'submissionShowObjectives'");
         // --- End Populate Read-only Fields ---
 
 
         // --- Populate Editable Fields (Preferred Schedule, Result) ---
+        // These IDs are likely intended to be unique to the submission form's editable section
         const preferredDayDropdown = document.getElementById("preferredDay");
         const preferredTimeDropdown = document.getElementById("preferredTime");
         const resultDropdown = document.getElementById("result");
 
+        if (!preferredDayDropdown || !preferredTimeDropdown || !resultDropdown) {
+            console.error("selectSubmission: Missing one or more editable dropdowns (preferredDay, preferredTime, result).");
+            return; // Stop if essential elements are missing
+        }
+
         const selectedDay = submission.preferredSchedule?.day || "";
         const selectedTime = submission.preferredSchedule?.time || "";
 
-        preferredDayDropdown.value = selectedDay; // Set the day dropdown
+        preferredDayDropdown.value = selectedDay;
 
         // Populate time dropdown based on selected day and availability
         preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a time</option>';
-        preferredTimeDropdown.disabled = true; // Disable initially
+        preferredTimeDropdown.disabled = true;
 
         if (selectedDay && currentSubmissionSchoolYear) {
-            // Filter schedulesForAvailability for the specific day and year, excluding self
             const occupiedTimes = schedulesForAvailability
                 .filter(schedule => schedule.day === selectedDay && schedule.schoolYear === currentSubmissionSchoolYear && schedule.submissionId !== submissionId)
                 .map(schedule => schedule.time.trim());
@@ -1262,20 +1298,18 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
 
             let timeSlotAdded = false;
             ALL_TIME_SLOTS.forEach((time) => {
-                if (selectedDay !== 'Friday' && time === '12:01-12:55') return; // Skip Friday-only slot if not Friday
+                if (selectedDay !== 'Friday' && time === '12:01-12:55') return;
 
                 const normalizedTime = time.trim();
                 const isOccupied = occupiedTimes.includes(normalizedTime);
-                // Allow the original time slot even if it appears occupied (might be occupied by itself before update)
-                const isOriginalTime = normalizedTime === originalSubmissionPreferredTime;
+                const isCurrentSubmissionTime = normalizedTime === selectedTime;
 
-                // Add if not occupied by another, OR if it's the time currently saved for this submission
-                if (!isOccupied || isOriginalTime) {
+                if (!isOccupied || isCurrentSubmissionTime) {
                     const option = document.createElement("option");
                     option.value = normalizedTime;
                     option.textContent = normalizedTime;
-                    if (isOriginalTime) {
-                        option.selected = true; // Pre-select the original time
+                    if (isCurrentSubmissionTime) {
+                        option.selected = true; // Pre-select
                     }
                     preferredTimeDropdown.appendChild(option);
                     timeSlotAdded = true;
@@ -1284,9 +1318,8 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
                 }
             });
 
-            preferredTimeDropdown.disabled = !timeSlotAdded; // Disable if no slots were added
+            preferredTimeDropdown.disabled = !timeSlotAdded;
             if (!timeSlotAdded && selectedTime) {
-                 // If the selected time itself wasn't added (edge case?), add it manually but disabled? Or just show no times.
                  console.warn(`Previously selected time ${selectedTime} is no longer available and no other slots found.`);
                  preferredTimeDropdown.innerHTML = '<option value="" disabled selected>No times available</option>';
             } else if (!timeSlotAdded) {
@@ -1300,24 +1333,30 @@ async function selectSubmission(submissionId, schedulesForAvailability) {
             preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a day first</option>';
         }
 
-        // Set Result Dropdown (use capitalized value)
+        // Set Result Dropdown
         const dbResult = submission.result || "Pending";
         resultDropdown.value = dbResult.charAt(0).toUpperCase() + dbResult.slice(1);
 
-        // --- Enable/Disable Form Elements Based on Result ---
-        initialSubmissionResult = resultDropdown.value; // Store the capitalized initial result
+        // --- Enable/Disable Form Elements ---
+        initialSubmissionResult = resultDropdown.value;
         const isDecided = initialSubmissionResult !== 'Pending';
         resultDropdown.disabled = isDecided;
         preferredDayDropdown.disabled = isDecided;
-        preferredTimeDropdown.disabled = isDecided || preferredTimeDropdown.disabled; // Keep disabled if no times available
-        document.querySelector(".cancel-button").disabled = false; // Always enable cancel
-        document.querySelector(".submit-button").disabled = isDecided; // Disable submit if decided
-        document.querySelector(".submit-button").dataset.submissionId = submissionId; // Set ID for submit button
+        preferredTimeDropdown.disabled = isDecided || preferredTimeDropdown.disabled;
+
+        const subCancelBtn = document.querySelector("#submission-form .cancel-button");
+        if (subCancelBtn) subCancelBtn.disabled = false;
+
+        const subSubmitBtn = document.querySelector("#submission-form .submit-button");
+        if (subSubmitBtn) {
+            subSubmitBtn.disabled = isDecided;
+            subSubmitBtn.dataset.submissionId = submissionId;
+        }
 
     } catch (error) {
         console.error("Error fetching or populating submission details:", error);
         alert("Failed to load submission details.");
-        clearFields(); // Clear fields on error
+        clearFields();
     }
 }
 
@@ -1336,9 +1375,8 @@ function formatName(person) {
     if (suffix) parts.push(suffix);
 
     let formattedName = parts.join(" ");
-    // Clean up potential extra spaces or leading/trailing commas
     formattedName = formattedName.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
-    if (formattedName === ",") return "N/A"; // Handle case where only comma exists
+    if (formattedName === ",") return "N/A";
 
     return formattedName || "N/A";
 }
@@ -1347,10 +1385,16 @@ function formatName(person) {
 // Update submission result and potentially create/update/delete schedule
 async function updateSubmission(submissionId) {
     const resultDropdown = document.getElementById("result");
-    const newResult = resultDropdown.value; // Capitalized: "Accepted" or "Rejected"
     const preferredDay = document.getElementById("preferredDay").value;
     const preferredTime = document.getElementById("preferredTime").value;
-    const selectedYear = currentSubmissionSchoolYear; // Use the stored school year
+
+    if (!resultDropdown || !preferredDay || !preferredTime) {
+        alert("Error: Could not find result, day, or time dropdowns.");
+        return;
+    }
+
+    const newResult = resultDropdown.value;
+    const selectedYear = currentSubmissionSchoolYear;
 
     // --- Confirmation Check ---
     if (initialSubmissionResult === 'Pending' && (newResult === 'Accepted' || newResult === 'Rejected')) {
@@ -1378,17 +1422,13 @@ async function updateSubmission(submissionId) {
     // --- Check for Schedule Conflicts (only if Accepting) ---
     if (newResult === "Accepted") {
         try {
-            const conflictCheckResponse = await fetch(
-                `/schedule?day=${preferredDay}&time=${preferredTime}&schoolYear=${selectedYear}`
-            );
+            const conflictCheckResponse = await fetch(`/schedule?day=${preferredDay}&time=${preferredTime}&schoolYear=${selectedYear}`);
             if (!conflictCheckResponse.ok) throw new Error("Failed to check existing schedules for conflicts");
             const conflictingSchedules = await conflictCheckResponse.json();
             const actualConflict = conflictingSchedules.find(sch => sch.submissionId !== submissionId);
 
             if (actualConflict) {
-                alert(
-                    `${preferredDay} (${preferredTime}) is already occupied by '${actualConflict.showDetails?.title || 'another show'}' in ${selectedYear}. Please choose a different time/day or reject.`
-                );
+                alert(`${preferredDay} (${preferredTime}) is already occupied by '${actualConflict.showDetails?.title || 'another show'}' in ${selectedYear}. Please choose a different time/day or reject.`);
                 return;
             }
         } catch (error) {
@@ -1400,9 +1440,7 @@ async function updateSubmission(submissionId) {
 
     // --- Prepare Update Payload ---
     const updates = {
-        // Send lowercase result as backend might expect it (or adjust backend)
-        // Let's assume backend now expects Capitalized based on previous fixes
-        result: newResult,
+        result: newResult, // Assuming backend expects Capitalized
         preferredSchedule: {
             day: preferredDay,
             time: preferredTime
@@ -1426,21 +1464,20 @@ async function updateSubmission(submissionId) {
         }
 
         alert("Submission updated successfully!");
-        initialSubmissionResult = newResult; // Update the initial state
+        initialSubmissionResult = newResult;
 
-        // Disable form elements after successful irreversible update
         if (newResult === 'Accepted' || newResult === 'Rejected') {
             resultDropdown.disabled = true;
             document.getElementById("preferredDay").disabled = true;
             document.getElementById("preferredTime").disabled = true;
-            document.querySelector(".submit-button").disabled = true;
+            const submitBtn = document.querySelector("#submission-form .submit-button");
+            if (submitBtn) submitBtn.disabled = true;
         }
 
         // --- Handle Schedule Creation/Update/Deletion ---
-        const scheduleDisplayYear = document.getElementById("schoolYear").value; // Year for refreshing main grid
+        const scheduleDisplayYear = document.getElementById("schoolYear").value;
 
         if (newResult === "Accepted") {
-            // Refetch submission to get potentially updated details if needed
             const submissionResponse = await fetch(`/submissions/${submissionId}`);
             if (!submissionResponse.ok) throw new Error("Failed to re-fetch submission after update.");
             const submission = await submissionResponse.json();
@@ -1451,18 +1488,17 @@ async function updateSubmission(submissionId) {
 
             const scheduleData = {
                 day: submission.preferredSchedule.day,
-                time: submission.preferredSchedule.time, // Ensure it's a string if needed
+                time: submission.preferredSchedule.time,
                 showDetails: submission.showDetails || {},
                 executiveProducer: submission.executiveProducer || {},
                 hosts: submission.hosts || [],
                 technicalStaff: submission.technicalStaff || [],
                 creativeStaff: submission.creativeStaff || {},
-                schoolYear: selectedYear, // Use the year from the update context
+                schoolYear: selectedYear,
                 submissionId: submissionId
             };
             console.log("Schedule data being prepared:", scheduleData);
 
-            // Check if schedule exists for this submission
             const checkScheduleResponse = await fetch(`/schedule/bySubmission/${submissionId}`);
             let existingScheduleId = null;
             if (checkScheduleResponse.ok) {
@@ -1488,11 +1524,10 @@ async function updateSubmission(submissionId) {
                  alert(`Submission accepted, but failed to ${existingScheduleId ? 'update' : 'save'} schedule. Error: ${scheduleResultData.error || 'Unknown error'}`);
             } else {
                 alert(`Schedule ${existingScheduleId ? 'updated' : 'saved'} successfully!`);
-                await refreshSchedule(scheduleDisplayYear); // Refresh the main schedule grid
+                await refreshSchedule(scheduleDisplayYear);
             }
 
         } else if (newResult === "Rejected") {
-            // Delete associated schedule if it exists
             try {
                 const checkScheduleResponse = await fetch(`/schedule/bySubmission/${submissionId}`);
                 if (checkScheduleResponse.ok) {
@@ -1516,96 +1551,119 @@ async function updateSubmission(submissionId) {
             }
         }
 
-        // --- Final Steps ---
         loadSubmissions(); // Reload the submissions table
 
     } catch (error) {
         console.error("Error during submission update process:", error);
         alert(`An error occurred: ${error.message}`);
-        // Consider re-enabling fields if the update failed critically
-        // if (initialSubmissionResult === 'Pending') { ... re-enable fields ... }
     }
 }
 
 
 // Clear submission detail fields and reset state
 function clearFields() {
-    // Clear all form fields
+    console.log("Attempting to clear submission fields...");
     const form = document.getElementById('submission-form');
     if (form) {
-        // Clear standard inputs
-        form.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(input => {
-            if (!input.readOnly) { // Don't clear readonly fields unnecessarily, though their values will be overwritten
-                input.value = "";
+
+        // Clear specific read-only fields (using unique IDs where applicable)
+        const fieldsToClear = [
+            "submissionOrganizationName", "submissionOrganizationType", "submissionProponentName", "submissionProponentCYS",
+            "submissionCoProponentName", "submissionCoProponentCYS", "executiveProducer", "executiveProducerCYS",
+            "facultyStaff", "facultyStaffDepartment",
+            "submissionCreativeStaff", // Unique ID
+            "submissionCreativeStaffCYS", // Unique ID
+            "submissionDlsudEmail", // Unique ID
+            "submissionContactEmail", // Unique ID
+            "submissionContactFbLink", // Unique ID
+            "submissionFbLink", // Unique ID
+            "submissionShowTitle", // Unique ID
+            "submissionShowType", // Unique ID
+            "submissionShowDescription", // Unique ID
+            "submissionShowObjectives" // Unique ID
+        ];
+
+        fieldsToClear.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Check if it's a textarea or input
+                if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+                    el.value = "";
+                }
+            } else {
+                console.warn(`clearFields: Missing element with ID '${id}'`);
             }
         });
-        // Clear specific read-only fields that display dynamic data
-        document.getElementById("organizationName").value = "";
-        document.getElementById("organizationType").value = "";
-        document.getElementById("proponentName").value = "";
-        document.getElementById("proponentCYS").value = "";
-        document.getElementById("coProponentName").value = "";
-        document.getElementById("coProponentCYS").value = "";
-        document.getElementById("executiveProducer").value = "";
-        document.getElementById("executiveProducerCYS").value = "";
-        document.getElementById("facultyStaff").value = "";
-        document.getElementById("facultyStaffDepartment").value = "";
-        document.getElementById("creativeStaff").value = "";
-        document.getElementById("creativeStaffCYS").value = "";
-        document.getElementById("dlsudEmail").value = "";
-        document.getElementById("contactEmail").value = "";
-        document.getElementById("contactFbLink").value = "";
-        document.getElementById("FbLink").value = "";
-        document.getElementById("show-title").value = "";
-        document.getElementById("showType").value = ""; // Assuming this is a text input displaying types
-        document.getElementById("showDescription").value = "";
-        document.getElementById("show-objectives").value = "";
 
-        // Clear dynamic containers
-        const hostContainer = document.getElementById("host-container");
-        const techContainer = document.getElementById("technicalStaff-container");
-        if (hostContainer) hostContainer.innerHTML = "<p>Select a submission to view details.</p>";
-        if (techContainer) techContainer.innerHTML = "<p>Select a submission to view details.</p>";
+        // Clear dynamic containers (using unique IDs)
+        const subHostContainer = document.getElementById("submissionHostContainer");
+        if (subHostContainer) subHostContainer.innerHTML = "<p>Select a submission to view details.</p>";
+        else console.warn("clearFields: Missing 'submissionHostContainer'");
 
-        // Hide FB Link container and signature
-        const fbLinkContainer = document.getElementById("FbLink-container");
-        if (fbLinkContainer) fbLinkContainer.style.display = "none";
-        const sigImg = document.getElementById("proponentSignature");
-        if (sigImg) {
-            sigImg.src = "";
-            sigImg.style.display = "none";
-        }
+        const subTechContainer = document.getElementById("submissionTechnicalStaffContainer");
+        if (subTechContainer) subTechContainer.innerHTML = "<p>Select a submission to view details.</p>";
+        else console.warn("clearFields: Missing 'submissionTechnicalStaffContainer'");
 
-        // Reset dropdowns
+        // Hide FB Link container (using unique ID)
+        const subFbLinkContainer = document.getElementById("submissionFbLinkContainer");
+        if (subFbLinkContainer) subFbLinkContainer.style.display = "none";
+        else console.warn("clearFields: Missing 'submissionFbLinkContainer'");
+
+        // Hide Signature (using unique ID)
+        const subSigImg = document.getElementById("submissionProponentSignature");
+        if (subSigImg) {
+            subSigImg.src = "";
+            subSigImg.style.display = "none";
+        } else { console.warn("clearFields: Missing 'submissionProponentSignature'"); }
+
+
+        // Reset dropdowns (These are the editable ones, likely unique to submission form)
         const preferredDayDropdown = document.getElementById("preferredDay");
         const preferredTimeDropdown = document.getElementById("preferredTime");
         const resultDropdown = document.getElementById("result");
 
-        if (preferredDayDropdown) preferredDayDropdown.value = "";
+        if (preferredDayDropdown) {
+            preferredDayDropdown.value = "";
+            preferredDayDropdown.disabled = true; // Disable initially
+        } else {
+            console.error("clearFields: Could not find element with ID 'preferredDay'");
+        }
+
         if (preferredTimeDropdown) {
             preferredTimeDropdown.innerHTML = '<option value="" disabled selected>Select a day first</option>';
             preferredTimeDropdown.disabled = true;
+        } else {
+            console.error("clearFields: Could not find element with ID 'preferredTime'");
         }
-        if (resultDropdown) resultDropdown.value = "Pending"; // Reset to default
+
+        if (resultDropdown) {
+            try {
+                resultDropdown.value = "Pending";
+                resultDropdown.disabled = true; // Disable initially
+            } catch (e) {
+                console.error("clearFields: Error setting value for 'result' dropdown:", e);
+            }
+        } else {
+            console.error("clearFields: Could not find element with ID 'result'. Check EJS file and script timing.");
+        }
 
         // Reset state variables
         initialSubmissionResult = 'Pending';
         originalSubmissionPreferredTime = null;
         currentSubmissionSchoolYear = null;
 
-        // Disable form elements
-        if (resultDropdown) resultDropdown.disabled = true;
-        if (preferredDayDropdown) preferredDayDropdown.disabled = true;
-        preferredTimeDropdown.disabled = true;
-        document.querySelector(".cancel-button").disabled = true;
-        const submitButton = document.querySelector(".submit-button");
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.removeAttribute('data-submission-id');
+        // Disable buttons
+        const subCancelBtn = document.querySelector("#submission-form .cancel-button");
+        if (subCancelBtn) subCancelBtn.disabled = true;
+
+        const subSubmitBtn = document.querySelector("#submission-form .submit-button");
+        if (subSubmitBtn) {
+            subSubmitBtn.disabled = true;
+            subSubmitBtn.removeAttribute('data-submission-id');
         }
 
         console.log("Submission detail fields cleared.");
     } else {
-        console.error("Submission form not found for clearing.");
+        console.error("Submission form with id 'submission-form' not found for clearing.");
     }
 }
