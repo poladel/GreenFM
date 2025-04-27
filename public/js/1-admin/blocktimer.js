@@ -150,7 +150,7 @@ function resetDynamicInputs(containerId, inputClass, addFunction) {
     const container = document.getElementById(containerId);
     if (!container) return;
     // Keep only the first input group (template)
-    const firstInputGroup = container.querySelector(`.${inputClass}-group`);
+    const firstInputGroup = container.querySelector(`.${inputClass}`); // <<< CORRECT SELECTOR
     container.innerHTML = ''; // Clear container
     if (firstInputGroup) {
         // Clear values in the template group
@@ -303,9 +303,10 @@ function populateDynamicNameFields(containerId, inputClass, people, addFunction,
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const template = container.querySelector(`.${inputClass}-group`);
+    const template = container.querySelector(`.${inputClass}`); // <<< CORRECT SELECTOR
     if (!template) {
-        console.error(`Template row with class '${inputClass}-group' not found in container '${containerId}'`);
+        // Update the error message to reflect the correct class name being searched for
+        console.error(`Template row with class '${inputClass}' not found in container '${containerId}'`);
         return;
     }
 
