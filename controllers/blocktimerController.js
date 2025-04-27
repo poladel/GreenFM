@@ -263,6 +263,29 @@ module.exports.acknowledgeResult = async (req, res) => {
 	}
 };
 
+// --- NEW FUNCTION ---
+module.exports.getMyLatestSubmission = async (req, res) => {
+    const userEmail = req.user.email; // Assuming requireAuth adds user to req
+
+    try {
+        const submission = await ApplyBlocktimer.findOne({ submittedBy: userEmail })
+            .sort({ createdAt: -1 }) // Sort by creation date descending
+            .populate('schedule');    // Populate the associated schedule details
+
+        if (!submission) {
+            // It's okay if a user hasn't submitted yet, return 404
+            return res.status(404).json({ message: 'No submission found for this user.' });
+        }
+
+        res.json(submission); // Send the latest submission
+
+    } catch (error) {
+        console.error("Error fetching user's latest submission:", error);
+        res.status(500).json({ error: "Failed to fetch submission status." });
+    }
+};
+// --- END NEW FUNCTION ---
+
 module.exports.updateSubmissionResult = async (req, res) => {
     const { id } = req.params;
     const { result, preferredSchedule } = req.body; // result is lowercase from frontend
@@ -327,13 +350,13 @@ module.exports.updateSubmissionResult = async (req, res) => {
             if (scheduleChanged) {
                 console.log("Schedule changed, preparing confirmation email...");
                 emailSubject = `Schedule Update for Your Show: ${showTitle}`;
-                emailBody = `... Your HTML for schedule change confirmation ...`; // Add your HTML
+                emailBody = `... SCHEDULE CHANGE: ACCEPTED - Your HTML for schedule change confirmation ...`; // Add your HTML
                 scheduleStatus = "Pending Confirmation";
                 requiresConfirmation = true;
             } else {
                 console.log("Schedule NOT changed, preparing approval email...");
                 emailSubject = `Application Approved: ${showTitle}`;
-                emailBody = `... Your HTML for simple approval ...`; // Add your HTML
+                emailBody = `... SCHEDULE: ACCEPTED - Your HTML for simple approval ...`; // Add your HTML
                 scheduleStatus = "Accepted";
             }
 
@@ -373,7 +396,7 @@ module.exports.updateSubmissionResult = async (req, res) => {
         } else if (result === 'rejected') {
             console.log("Processing 'rejected' result..."); // Log entering block
             emailSubject = `Application Update: ${showTitle}`;
-            emailBody = `... Your HTML for rejection ...`; // Add your HTML
+            emailBody = `... REJECTED - Your HTML for rejection ...`; // Add your HTML
             requiresConfirmation = true;
 
             // --- Delete any existing schedule associated with this submission ---

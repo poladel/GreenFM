@@ -3,14 +3,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchSubmissionStatus() {
         try {
-            // Fetch the user's most recent submission (adjust endpoint as needed)
-            const response = await fetch('/submission'); // Needs backend route
+            // Fetch the user's most recent submission using the new dedicated endpoint
+            const response = await fetch('/my-latest-submission'); // <-- FIX: Use the new route
             if (!response.ok) {
                 if (response.status === 404) {
                      statusContainer.innerHTML = '<p>You have no active blocktimer submissions.</p>';
                      return null;
                 }
-                throw new Error(`Failed to fetch status: ${response.statusText}`);
+                // Try to get error message from backend response
+                let errorMsg = `Failed to fetch status: ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorData.error || errorMsg;
+                } catch(e) { /* Ignore if response is not JSON */ }
+                throw new Error(errorMsg);
             }
             const submission = await response.json();
             displayStatus(submission);
@@ -25,11 +31,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function displayStatus(submission) {
         if (!submission) return;
 
-        const { _id, result, showDetails, preferredSchedule, schedule } = submission; // Assuming schedule is populated
+        // Destructure result first
+        const { _id, result, showDetails, preferredSchedule, schedule } = submission;
         const showTitle = showDetails?.title || 'Your Show';
         let htmlContent = '';
 
-        if (result === 'Accepted') {
+        // Convert result to lowercase for reliable comparison
+        const lowerResult = result ? result.toLowerCase() : 'pending'; // Handle potential null/undefined result
+
+        // Use lowerResult for comparisons
+        if (lowerResult === 'accepted') {
             // Check if the associated schedule requires confirmation
             if (schedule && schedule.confirmationStatus === 'Pending Confirmation') {
                 htmlContent = `
@@ -51,18 +62,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <p><b>Day:</b> ${preferredSchedule?.day || schedule?.day || 'N/A'}</p>
                     <p><b>Time:</b> ${preferredSchedule?.time || schedule?.time || 'N/A'}</p>
                     <p>You can view the full schedule on the GreenFM website.</p>
-                    <!-- Optionally add an acknowledge button here too if needed -->
                      <button type="button" class="acknowledge-btn" data-submission-id="${_id}">Okay</button>
                 `;
             }
-        } else if (result === 'Rejected') {
+        } else if (lowerResult === 'rejected') { // <<< Compare lowercase 'rejected'
             htmlContent = `
                 <h4>Application Update: "${showTitle}"</h4>
                 <p>We regret to inform you that your application has been rejected.</p>
                 <p>Thank you for your interest.</p>
                 <button type="button" class="acknowledge-btn" data-submission-id="${_id}">Acknowledge</button>
             `;
-        } else { // Pending
+        } else { // Pending (or any other unexpected value)
             htmlContent = `
                 <h4>Application Pending: "${showTitle}"</h4>
                 <p>Your application is currently under review.</p>
@@ -129,6 +139,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Backend route needed for fetchSubmissionStatus:
-// Example: GET /api/my-latest-submission
+// Example: GET /my-latest-submission  <-- Updated comment
 // This route should find the ApplyBlocktimer doc where submittedBy === req.user.email,
 // sort by submittedOn descending, limit 1, and potentially populate the associated 'schedule' field.

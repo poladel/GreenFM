@@ -6,6 +6,9 @@ const { requireAuth } = require('../middleware/authMiddleware');
 router.get('/submissions', blocktimerController.getSubmissions);
 router.get('/submissions/:id', blocktimerController.getSubmissionById);
 
+// --- ADD NEW ROUTE ---
+router.get('/my-latest-submission', requireAuth, blocktimerController.getMyLatestSubmission);
+
 // Use PATCH for updating an existing resource
 router.patch('/submissions/:id', requireAuth, blocktimerController.updateSubmissionResult);
 
