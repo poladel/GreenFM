@@ -76,16 +76,18 @@ io.on('connection', socket => {
         console.log('🔌 Socket disconnected:', socket.id);
     });
 
-    socket.on('newComment', async (commentText) => {
+    socket.on('newComment', async (data) => {
+        const { text, username } = data;
         try {
-            const comment = await Comment.create({ text: commentText });
+            const comment = await Comment.create({ text, username });
             
-            io.emit('newComment', {
+            io.to('live-comments-room').emit('newComment', {
                 text: comment.text,
+                username: comment.username,
                 createdAt: comment.createdAt
             });
     
-            console.log('💬 Saved and broadcasted new comment:', comment.text);
+            console.log(`💬 [${username}] commented: ${text}`);
         } catch (err) {
             console.error('Error saving comment:', err.message);
         }

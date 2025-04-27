@@ -6,10 +6,14 @@ const CommentSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    username: {
+        type: String,
+        default: 'Anonymous'
+    },
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 3600 // Automatically delete after 1 hour (3600 seconds)
+        expires: 3600 // Auto-delete after 1 hour
     }
 });
 
