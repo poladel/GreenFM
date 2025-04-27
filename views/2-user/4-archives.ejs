@@ -1,21 +1,52 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<!-- Add the link to your archive.css file here -->
+<link rel="stylesheet" href="/css/archive.css">
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
 
-                <!-------------------- CONTENTS START --------------------> 
+            <!-------------------- HEADER MENUS -------------------->   
+            <%- include('../partials/menu.ejs') %>
+
+            <!-------------------- CONTENTS START --------------------> 
+            <div class="head">
+                <h1 class="text-3xl text-center my-4">Past Live Videos</h1>
+
+                <!-- Filters -->
+                <div class="flex justify-between mb-4">
+                    <div class="flex">
+                        <select id="year" class="border p-2">
+                            <option value="">Select Year</option>
+                            <!-- Dynamically populated by JavaScript -->
+                        </select>
+                        <select id="month" class="border p-2 ml-2">
+                            <option value="">Select Month</option>
+                            <!-- Dynamically populated by JavaScript -->
+                        </select>
+                        <select id="date" class="border p-2 ml-2">
+                            <option value="">Select Date</option>
+                            <!-- Dynamically populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
+            <!-- Videos List -->
+            <div id="video-list">
+                <!-- Videos will be populated here via JavaScript -->
+            </div>
+
+            <!-------------------- CONTENTS END --------------------> 
+        </div>
     </div>
 
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="/js/2-user/Archive.js"></script>
 </body>
 </html>

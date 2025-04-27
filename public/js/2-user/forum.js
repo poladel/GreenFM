@@ -1,3 +1,7 @@
+let selectedPostId = null;
+let selectedOptionIndex = null;
+let selectedOptionText = null;
+
 document.addEventListener('DOMContentLoaded', function () {
   class ForumApp {
     constructor() {
@@ -30,8 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!this.checkRequiredElements()) return;
       this.setupEventListeners();
       this.loadPosts();
-      setTimeout(() => this.loadPosts(), 200); // Show the newly posted poll
-
     }
 
     checkRequiredElements() {
@@ -64,14 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
     async handlePollSubmit(e) {
       e.preventDefault();
       const question = this.elements.pollQuestionInput.value.trim();
-      const options = [...this.elements.pollOptionsWrapper.querySelectorAll('input')]
-        .map(input => input.value.trim())
-        .filter(opt => opt);
-    
+      const options = [...this.elements.pollOptionsWrapper.querySelectorAll('input')].map(input => input.value.trim()).filter(opt => opt);
+
       if (!question || options.length < 2) {
         return showToast('❌ Enter a question and at least 2 options', 'error');
       }
-    
+
       try {
         const res = await fetch('/poll', {
           method: 'POST',
@@ -80,18 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
           body: JSON.stringify({ question, options })
         });
         const data = await res.json();
-    
+
         if (data.success) {
           showToast('✅ Poll posted!');
-          
-          // Reset form
-          this.elements.pollForm.reset();
-          this.elements.pollOptionsWrapper.innerHTML = `
-            <input type="text" name="pollOptions[]" placeholder="Option 1" class="w-full p-2 border rounded poll-input" required>
-            <input type="text" name="pollOptions[]" placeholder="Option 2" class="w-full p-2 border rounded poll-input" required>
-          `;
-    
-          // 🔁 Dynamically reload posts to show the newly created poll
+          this.resetPollForm();
           this.loadPosts();
         } else {
           showToast('❌ Failed to post poll', 'error');
@@ -101,74 +93,14 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast('❌ Error submitting poll', 'error');
       }
     }
-    
 
-    async loadPolls() {
-      try {
-        const res = await fetch('/poll');
-        const data = await res.json();
-        if (data.success && data.polls.length > 0) {
-          const poll = data.polls[0];
-          this.elements.pollQuestionInput.value = poll.question;
-          this.elements.pollResults.innerHTML = '';
-          poll.options.forEach((opt, i) => {
-            const result = document.createElement('div');
-            result.className = 'flex justify-between items-center border p-2 rounded my-1';
-            result.innerHTML = `
-              <span>${opt.text}</span>
-              <span class="text-sm text-gray-600">${opt.votes} votes</span>
-            `;
-            this.elements.pollResults.appendChild(result);
-          });
-        }
-      } catch (error) {
-        console.error('Error loading poll results:', error);
-      }
+    resetPollForm() {
+      this.elements.pollForm.reset();
+      this.elements.pollOptionsWrapper.innerHTML = `
+        <input type="text" name="pollOptions[]" placeholder="Option 1" class="w-full p-2 border rounded poll-input" required>
+        <input type="text" name="pollOptions[]" placeholder="Option 2" class="w-full p-2 border rounded poll-input" required>
+      `;
     }
-
-    async handlePostSubmit(e) {
-  e.preventDefault();
-  if (!this.isAuthenticated) return alert('Please log in.');
-
-  const formData = new FormData();
-  formData.append('title', this.elements.postTitle.value);
-  formData.append('text', this.elements.postContent.value);
-  [...this.elements.imageInput.files, ...this.elements.videoInput.files].forEach(file =>
-    formData.append('media', file)
-  );
-
-  const question = this.elements.pollQuestionInput?.value.trim();
-  const options = [...this.elements.pollOptionsWrapper?.querySelectorAll('input[name="pollOptions[]"]')]
-    .map(input => input.value.trim())
-    .filter(opt => opt);
-
-  if (question && options.length >= 2) {
-    formData.append('pollQuestion', question);
-    options.forEach(opt => formData.append('pollOptions[]', opt));
-  }
-
-  try {
-    const res = await fetch('/posts', { method: 'POST', credentials: 'include', body: formData });
-    const data = await res.json();
-
-    if (!data.success) throw new Error('Post failed');
-
-    this.elements.postTitle.value = '';
-    this.elements.postContent.value = '';
-    this.elements.imageInput.value = '';
-    this.elements.videoInput.value = '';
-    this.elements.previewContainer.innerHTML = '';
-
-    // ✅ Add slight delay before reloading posts to ensure post is saved
-    setTimeout(() => this.loadPosts(), 300);
-
-    showToast('✅ Post submitted successfully!', 'success');
-  } catch (error) {
-    console.error('Post error:', error);
-    alert('Error submitting post');
-  }
-}
-
 
     async loadPosts(page = 1) {
       try {
@@ -186,69 +118,64 @@ document.addEventListener('DOMContentLoaded', function () {
 
     renderPosts(posts) {
       this.elements.postsContainer.innerHTML = '';
+    
       posts.forEach(post => {
+        if (!post || !post._id) return;
+    
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
     
         const showControls = post.userId && post.userId._id === this.currentUserId;
-        const userHasVoted = post.poll?.options?.some(o =>
-          o.votes?.some(v => v.toString() === this.currentUserId)
-        );
+        const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
     
-        // Poll section (conditional: edit, or add poll)
+        const createdAt = post.createdAt
+          ? new Date(post.createdAt).toLocaleString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })
+          : '';
+    
+        const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
+    
         let pollSection = '';
         if (post.poll?.question) {
-          pollSection = `
-            <div class="post-poll mt-4 p-3 bg-gray-50 border border-gray-300 rounded-lg" data-post-id="${post._id}">
-              <p class="font-semibold mb-2">📊 <span class="poll-question-text">${post.poll.question}</span></p>
-              <ul class="poll-options space-y-1">
-                ${post.poll.options.map((opt, i) => {
-                  return userHasVoted
-                    ? `<li class="flex justify-between items-center border px-2 py-1 rounded">
-                        <span>${opt.text}</span>
-                        <span class="text-sm text-gray-500">${opt.votes?.length || 0} votes</span>
-                       </li>`
-                    : `<li>
-                        <button onclick="votePoll('${post._id}', ${i})" class="w-full text-left px-3 py-1 border rounded hover:bg-green-50">
-                          ${opt.text}
-                        </button>
-                       </li>`;
-                }).join('')}
-              </ul>
-              ${showControls && !userHasVoted ? `
-                <div class="text-right mt-3">
-                  <button onclick="editPoll('${post._id}', '${post.poll.question}', ${JSON.stringify(post.poll.options).replace(/"/g, '&quot;')})"
-                    class="text-sm text-blue-600 hover:underline">✏️ Edit Poll</button>
-                </div>` : ''}
-            </div>
-          `;
-        } else if (showControls) {
-          pollSection = `
-            <div class="text-right mt-4">
-              <button onclick="addPollToPost('${post._id}')" class="text-sm text-green-600 hover:underline">➕ Add Poll</button>
-            </div>`;
+          pollSection = this.renderPollSection(post, userHasVoted);
         }
     
         div.innerHTML = `
-          <div class="post-header">
-            <p class="post-author text-green-700 font-bold text-lg">${post.userId?.username || 'Unknown'}</p>
-            ${showControls ? `
-              <div class="edit-delete-buttons" style="margin-left:auto;">
-                <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
-                <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
-              </div>` : ''}
+          <div class="post-header flex justify-between items-start">
+            <div>
+              <p class="post-author text-green-700 font-bold text-lg">${post.userId?.username || 'Unknown'}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-500 mb-1">${createdAt}</p>
+              <div class="edit-delete-buttons flex gap-2 justify-end">
+                ${showControls
+                  ? `
+                    <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
+                    <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
+                  `
+                  : `
+                    <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
+                  `}
+              </div>
+            </div>
           </div>
     
           <h3 class="post-title font-bold text-xl text-gray-800 mt-2">${post.title}</h3>
           <p class="post-text text-gray-700 mt-1">${post.text}</p>
     
           <div class="post-media-container mt-3">
-            ${post.media.map(media => media.type === 'image'
-              ? `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md" />`
-              : `<video controls class="post-media w-full max-w-md rounded shadow" oncontextmenu="return false">
-                   <source src="${media.url}" type="video/mp4">
-                 </video>`
+            ${(post.media || []).map(media => media.type === 'image' ?
+                `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` :
+                `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
+                  <source src="${media.url}" type="video/mp4">
+                </video>`
             ).join('')}
           </div>
     
@@ -256,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
     
           <div class="post-actions mt-4 flex space-x-4">
             <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
-              ❤️ <span class="like-count">${post.likes?.length || 0}</span>
+              ❤️ <span class="like-count">${likeCount}</span>
             </button>
-            <button class="comment-toggle-button text-blue-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
+            <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
           </div>
     
           <div class="interaction-panel mt-4" data-post-id="${post._id}">
@@ -276,8 +203,33 @@ document.addEventListener('DOMContentLoaded', function () {
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
-        
-        
+    
+
+    renderPollSection(post, userHasVoted) {
+      return `
+        <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
+          <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
+          <ul class="poll-options space-y-2 max-w-md mx-auto">
+            ${post.poll.options.map((opt, index) => `
+              <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
+                ${!userHasVoted ? `
+                  <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
+                    onclick="confirmVote('${post._id}', ${index}, '${opt.text.replace(/'/g, "\\'")}')">
+                    ${opt.text}
+                  </button>
+                ` : `
+                  <span class="w-full text-left text-gray-600">${opt.text}</span>
+                `}
+                <span class="text-sm text-gray-500">${opt.votes?.length || 0} votes</span>
+              </li>
+            `).join('')}
+          </ul>
+          ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
+        </div>
+      `;
+    }
+    
+
     renderPagination(totalPages, currentPage) {
       const paginationContainer = document.getElementById('pagination-container');
       if (!paginationContainer) return;
@@ -296,10 +248,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
         const data = await res.json();
         const comments = data.comments?.filter(c => !c.isDeleted) || [];
-    
+
         container.innerHTML = comments.map(c => {
           const isOwner = c.userId?._id === window.currentUserId;
-    
+
           return `
             <div class="comment-item">
               <div class="comment-header flex justify-between items-center">
@@ -307,28 +259,34 @@ document.addEventListener('DOMContentLoaded', function () {
                   <span class="font-bold text-green-600 text-lg">${c.userId?.username || 'Anonymous'}</span>
                   <span class="ml-2 text-xs text-gray-500">${new Date(c.createdAt).toLocaleString('en-US')}</span>
                 </div>
-                ${isOwner ? `
-                  <div class="edit-delete-buttons flex gap-2">
+                <div class="edit-delete-buttons flex gap-2">
+                  ${isOwner ? `
                     <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
                     <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
-                  </div>
-                ` : ''}
+                  ` : `
+                    <button class="report-btn text-red-500 text-sm hover:underline" onclick="reportComment('${postId}', '${c._id}')">🚩 Report</button>
+                  `}
+                </div>
               </div>
               <p class="comment-text text-gray-700 mt-1" data-comment-id="${c._id}">${c.text}</p>
             </div>
           `;
         }).join('');
-    
       } catch (error) {
         console.error('Load comments error:', error);
         container.innerHTML = '<div class="text-red-600">Failed to load comments.</div>';
       }
-    }    
-  }    
-  new ForumApp();
+    }
+  }
+
+  // Initialize the app
+  window.app = new ForumApp();
 });
 
 
+//---------------------------------------------------------------------------------------------------------------------//
+//---------------------------------------------------------------------------------------------------------------------//
+//---------------------------------------------------------------------------------------------------------------------//
 
 window.safeDeletePost = async function (postId, button) {
   if (!confirm('Are you sure you want to delete this post?')) return;
@@ -397,37 +355,36 @@ function showPollToast(message) {
 // ===== POST FUNCTIONS =====
 window.editPost = function (postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
+  if (!postEl) return;
+
   const titleEl = postEl.querySelector('.post-title');
   const textEl = postEl.querySelector('.post-text');
-  const pollEl = postEl.querySelector('.post-poll');
   const originalTitle = titleEl.innerText;
   const originalText = textEl.innerText;
 
-  // Only allow edit if not editing poll
-  if (postEl.querySelector('.poll-question-input')) return;
-
-  // Create editable inputs
+  // Replace with input and textarea
   const titleInput = document.createElement('input');
-  titleInput.className = 'post-title-input';
+  titleInput.className = 'post-title-input w-full border p-2 rounded mb-2';
   titleInput.value = originalTitle;
 
   const textArea = document.createElement('textarea');
-  textArea.className = 'post-textbox';
+  textArea.className = 'post-textbox w-full border p-2 rounded';
   textArea.value = originalText;
 
   titleEl.replaceWith(titleInput);
   textEl.replaceWith(textArea);
 
+  // Replace buttons with Save and Cancel
   const buttonsWrapper = postEl.querySelector('.edit-delete-buttons');
   buttonsWrapper.innerHTML = '';
 
   const saveBtn = document.createElement('button');
   saveBtn.textContent = '💾 Save';
-  saveBtn.className = 'edit-btn';
+  saveBtn.className = 'edit-btn bg-green-600 text-white px-3 py-1 rounded';
   saveBtn.onclick = async () => {
     const updatedTitle = titleInput.value.trim();
     const updatedText = textArea.value.trim();
-    if (!updatedTitle || !updatedText) return;
+    if (!updatedTitle || !updatedText) return showToast('❌ Title and content are required.', 'error');
 
     try {
       const res = await fetch(`/posts/${postId}`, {
@@ -437,78 +394,44 @@ window.editPost = function (postId) {
         body: JSON.stringify({ title: updatedTitle, text: updatedText })
       });
       const data = await res.json();
+
       if (data.success) {
         showToast('✅ Post updated!');
-        location.reload();
+
+        // Replace inputs back with updated content
+        const updatedTitleEl = document.createElement('h3');
+        updatedTitleEl.className = 'post-title font-bold text-xl text-gray-800 mt-2';
+        updatedTitleEl.innerText = updatedTitle;
+
+        const updatedTextEl = document.createElement('p');
+        updatedTextEl.className = 'post-text text-gray-700 mt-1';
+        updatedTextEl.innerText = updatedText;
+
+        titleInput.replaceWith(updatedTitleEl);
+        textArea.replaceWith(updatedTextEl);
+
+        // Restore buttons
+        buttonsWrapper.innerHTML = `
+          <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${postId}')">✏️ Edit</button>
+          <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${postId}', this)">🗑️ Delete</button>
+        `;
       } else {
         showToast('❌ Failed to update post', 'error');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Update error:', err);
       showToast('❌ Error updating post', 'error');
     }
   };
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '✖ Cancel';
-  cancelBtn.className = 'delete-btn';
-  cancelBtn.onclick = () => location.reload();
+  cancelBtn.className = 'delete-btn bg-gray-300 text-black px-3 py-1 rounded';
+  cancelBtn.onclick = () => window.app.loadPosts();
 
   buttonsWrapper.appendChild(saveBtn);
   buttonsWrapper.appendChild(cancelBtn);
 };
-
-
-  const buttonsWrapper = postEl.querySelector('.edit-delete-buttons');
-  buttonsWrapper.innerHTML = '';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = '💾 Save';
-  saveBtn.className = 'edit-btn';
-  saveBtn.onclick = async () => {
-    const updatedTitle = titleInput.value.trim();
-    const updatedText = textArea.value.trim();
-    const updatedPollQuestion = pollEl?.querySelector('.poll-question-input')?.value.trim();
-    const updatedPollOptions = pollInputs.map(i => i.value.trim()).filter(Boolean);
-
-    if (!updatedTitle || !updatedText) return;
-
-    try {
-      const res = await fetch(`/posts/${postId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          title: updatedTitle,
-          text: updatedText,
-          ...(updatedPollQuestion && updatedPollOptions.length >= 2
-            ? { poll: { question: updatedPollQuestion, options: updatedPollOptions } }
-            : {})
-        })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        showToast('✅ Post updated!');
-        location.reload(); // You can replace this with a rerender if you want smoother UX
-      } else {
-        showToast('❌ Failed to update post', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('❌ Error updating post', 'error');
-    }
-  };
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '✖ Cancel';
-  cancelBtn.className = 'delete-btn';
-  cancelBtn.onclick = () => location.reload();
-
-  buttonsWrapper.appendChild(saveBtn);
-  buttonsWrapper.appendChild(cancelBtn);
-};
-
 
 
 window.toggleCommentInput = function(postId) {
@@ -672,9 +595,7 @@ window.votePoll = async function(postId, optionIndex) {
     const data = await res.json();
     if (data.success) {
       showToast('✅ Vote submitted!');
-      setTimeout(() => {
-        const app = new ForumApp(); // reload posts to update vote view
-      }, 300);
+      const app = new ForumApp(); 
     } else {
       showToast('❌ Unable to vote', 'error');
     }
@@ -748,46 +669,51 @@ window.editPoll = function(postId) {
 
 window.editPoll = function (postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
+  if (!postEl) return;
+
   const pollContainer = postEl.querySelector('.post-poll');
-  const pollQuestion = pollContainer.querySelector('.poll-question-text')?.innerText;
-  const pollOptions = [...pollContainer.querySelectorAll('.poll-options li')].map(li =>
-    li.innerText.replace(/\s+\d+ votes$/, '').trim()
-  );
+  if (!pollContainer) return;
+
+  const questionText = pollContainer.querySelector('.poll-question-text')?.innerText;
+  const pollOptions = [...pollContainer.querySelectorAll('.poll-options li')]
+    .map(li => li.innerText.replace(/\s+\d+ votes$/, '').trim());
 
   const titleInput = postEl.querySelector('.post-title-input');
   const textArea = postEl.querySelector('.post-textbox');
+
   if (titleInput) titleInput.disabled = true;
   if (textArea) textArea.disabled = true;
 
-  // Convert poll to editable fields
+  // Clear the existing poll container
   pollContainer.innerHTML = '';
 
+  // Create editable question input
   const questionInput = document.createElement('input');
-  questionInput.className = 'post-title-input poll-question-input';
-  questionInput.value = pollQuestion || '';
+  questionInput.className = 'post-title-input poll-question-input w-full p-2 border rounded mb-2';
+  questionInput.value = questionText || '';
   pollContainer.appendChild(questionInput);
 
+  // Create editable options
   const optionWrapper = document.createElement('div');
-  optionWrapper.className = 'space-y-1 mt-2';
-
+  optionWrapper.className = 'space-y-2';
   pollOptions.forEach(opt => {
     const input = document.createElement('input');
-    input.className = 'w-full border rounded px-2 py-1';
+    input.className = 'w-full p-2 border rounded';
     input.value = opt;
     optionWrapper.appendChild(input);
   });
-
   pollContainer.appendChild(optionWrapper);
 
+  // Save button
   const saveBtn = document.createElement('button');
   saveBtn.textContent = '💾 Save Poll';
-  saveBtn.className = 'mt-2 bg-green-600 text-white px-3 py-1 rounded';
+  saveBtn.className = 'mt-3 bg-green-600 text-white px-4 py-2 rounded';
   saveBtn.onclick = async () => {
     const updatedQuestion = questionInput.value.trim();
     const updatedOptions = [...optionWrapper.querySelectorAll('input')].map(i => i.value.trim()).filter(Boolean);
 
     if (!updatedQuestion || updatedOptions.length < 2) {
-      return showToast('❌ Enter a question and at least 2 options', 'error');
+      return showToast('❌ At least 2 options required', 'error');
     }
 
     try {
@@ -805,7 +731,7 @@ window.editPoll = function (postId) {
       const data = await res.json();
       if (data.success) {
         showToast('✅ Poll updated!');
-        location.reload();
+        setTimeout(() => location.reload(), 300);
       } else {
         showToast('❌ Failed to update poll', 'error');
       }
@@ -817,7 +743,6 @@ window.editPoll = function (postId) {
 
   pollContainer.appendChild(saveBtn);
 };
-
 
   // Populate modal fields
   document.getElementById('edit-poll-question').value = pollQuestion;
@@ -840,46 +765,46 @@ window.editPoll = function (postId) {
 
   document.getElementById('editPollModal').dataset.postId = postId;
   document.getElementById('editPollModal').classList.remove('hidden');
-};
 
-
-window.submitEditPoll = async function () {
-  const modal = document.getElementById('editPollModal');
-  const postId = modal.dataset.postId;
-  const question = document.getElementById('edit-poll-question').value.trim();
-  const options = [...document.querySelectorAll('#edit-poll-options input')]
-    .map(input => input.value.trim())
-    .filter(opt => opt);
-
-  if (!question || options.length < 2) {
-    showToast('❌ Question and at least 2 options are required.', 'error');
-    return;
-  }
-
-  try {
-    const res = await fetch(`/poll/update/${postId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ question, options })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      showToast('✅ Poll updated!');
-      closeEditPollModal();
-      setTimeout(() => {
-        const app = new ForumApp();
-      }, 200); // refresh post view
-    } else {
-      showToast('❌ Failed to update poll', 'error');
+  window.submitEditPoll = async function (postId) {
+    const postEl = document.querySelector(`.post[data-id="${postId}"]`);
+    const questionInput = postEl.querySelector('.poll-question-input');
+    const optionInputs = [...postEl.querySelectorAll('.poll-option-input')];
+  
+    const updatedQuestion = questionInput.value.trim();
+    const updatedOptions = optionInputs.map(i => i.value.trim()).filter(Boolean);
+  
+    if (!updatedQuestion || updatedOptions.length < 2) {
+      return showToast('❌ At least 2 options and a question are required.', 'error');
     }
-  } catch (err) {
-    console.error('Edit poll error:', err);
-    showToast('❌ Error editing poll', 'error');
-  }
-};
-
+  
+    try {
+      const res = await fetch(`/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          poll: {
+            question: updatedQuestion,
+            options: updatedOptions
+          }
+        })
+      });
+  
+      const data = await res.json();
+      if (data.success) {
+        showToast('✅ Poll updated!');
+        window.activePollEditPostId = null;
+        await window.app.loadPosts(); // ✅ no reload
+      } else {
+        showToast('❌ Failed to update poll', 'error');
+      }
+    } catch (err) {
+      console.error('Poll update error:', err);
+      showToast('❌ Error updating poll', 'error');
+    }
+  };
+    
 window.closeEditPollModal = function () {
   const modal = document.getElementById('editPollModal');
   const postId = modal.dataset.postId;
@@ -906,35 +831,8 @@ window.startPostEdit = function(postId) {
   showToast('📝 You can now edit the post.');
 };
 
-window.startPollEdit = function(postId) {
-  const postEl = document.querySelector(`.post[data-id="${postId}"]`);
-  const titleInput = postEl.querySelector('.post-title-input');
-  const textArea = postEl.querySelector('.post-textbox');
 
-  if (titleInput && textArea) {
-    titleInput.disabled = true;
-    textArea.disabled = true;
-  }
 
-  // Load poll values into modal
-  const question = postEl.querySelector('.poll-question-text')?.innerText;
-  const options = [...postEl.querySelectorAll('.poll-options li')].map(li => li.innerText.split(/\d+ votes/)[0].trim());
-
-  document.getElementById('edit-poll-question').value = question || '';
-  const optionsContainer = document.getElementById('edit-poll-options');
-  optionsContainer.innerHTML = '';
-  options.forEach(opt => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = opt;
-    input.className = 'w-full border border-gray-300 rounded px-4 py-2';
-    optionsContainer.appendChild(input);
-  });
-
-  // Store active post ID for editing
-  window.activePollEditPostId = postId;
-  document.getElementById('editPollModal').classList.remove('hidden');
-};
 
 window.startPollCreate = function(postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
@@ -949,4 +847,115 @@ window.startPollCreate = function(postId) {
   showToast('➕ Ready to add a new poll.');
   // Optional: load a modal or inline poll form here
 };
+
+
+window.reportComment = function(postId, commentId) {
+  const confirmed = confirm("Are you sure you want to report this comment?");
+  if (!confirmed) return;
+
+  fetch(`/posts/${postId}/comments/${commentId}/report`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast('✅ Comment reported successfully!');
+      } else {
+        showToast('❌ Failed to report comment.', 'error');
+      }
+    })
+    .catch(err => {
+      console.error('Report error:', err);
+      showToast('❌ Error reporting comment.', 'error');
+    });
+};
+
+window.reportPost = async function (postId) {
+  const confirmReport = confirm("Are you sure you want to report this post?");
+  if (!confirmReport) return;
+
+  try {
+    const res = await fetch('/posts/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ type: 'post', targetId: postId })
+    });
+
+    const data = await res.json();
+    showToast(data.message || '🚩 Report sent');
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error reporting post', 'error');
+  }
+};
+
+window.reportComment = async function (postId, commentId) {
+  const confirmReport = confirm("Are you sure you want to report this comment?");
+  if (!confirmReport) return;
+
+  try {
+    const res = await fetch('/posts/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ type: 'comment', targetId: commentId })
+    });
+
+    const data = await res.json();
+    showToast(data.message || '🚩 Comment reported');
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error reporting comment', 'error');
+  }
+};
+
+function confirmVote(postId, optionIndex, optionText) {
+  selectedPostId = postId;
+  selectedOptionIndex = optionIndex;
+  selectedOptionText = optionText;
+
+  const modal = document.getElementById('confirmVoteModal');
+  modal.querySelector('#vote-confirm-text').textContent = `Are you sure you want to vote for: "${optionText}"? You cannot change your vote later.`;
+  modal.classList.remove('hidden');
+}
+
+function closeVoteModal() {
+  selectedPostId = null;
+  selectedOptionIndex = null;
+  selectedOptionText = null;
+  document.getElementById('confirmVoteModal').classList.add('hidden');
+}
+
+async function submitConfirmedVote() {
+  if (!selectedPostId || selectedOptionIndex === null) return;
+
+  try {
+    const res = await fetch('/poll/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ postId: selectedPostId, optionIndex: selectedOptionIndex })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ Your vote has been submitted!');
+      closeVoteModal();
+      await window.app.loadPosts(); // Reload posts to reflect updated votes
+    } else {
+      showToast('❌ Unable to vote', 'error');
+    }
+  } catch (err) {
+    console.error('Vote error:', err);
+    showToast('❌ Error submitting vote', 'error');
+  }
+}
+
+
+
+
+
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const forumController = require('../controllers/forumController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const ForumPost = require('../models/ForumPost');
+const { Report } = require('../models/ForumPost'); // Import the Report model
 
 // Forum post routes (API endpoints)
 router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost);
@@ -16,12 +17,13 @@ router.post('/posts/:id/like', requireAuth, forumController.toggleLike);
 router.post('/posts/:id/comment', requireAuth, forumController.addComment);
 router.get('/posts/:id/comments', forumController.getComments);
 router.delete('/posts/:id/comments/:commentId', requireAuth, forumController.deleteComment);
+
+// Poll routes
 router.post('/poll', requireAuth, forumController.createPoll);
-router.post('/poll/vote', requireAuth, forumController.votePoll);
+router.post('/poll/vote', requireAuth, forumController.votePoll); // Handle poll vote submissions
 router.put('/poll/:postId', requireAuth, forumController.updatePoll);
 
 // Edit comment
-// PUT /posts/:postId/comment/:commentId
 router.put('/posts/:postId/comment/:commentId', requireAuth, async (req, res) => {
   try {
     const { postId, commentId } = req.params;
@@ -45,7 +47,6 @@ router.put('/posts/:postId/comment/:commentId', requireAuth, async (req, res) =>
   }
 });
 
-
 // Delete comment
 router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
   const { postId, commentId } = req.params;
@@ -63,6 +64,52 @@ router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Report post route
+router.post('/posts/report', requireAuth, async (req, res) => {
+  const { type, targetId } = req.body;
+
+  // Ensure the report type is either 'post' or 'comment'
+  if (!['post', 'comment'].includes(type)) {
+    return res.status(400).json({ success: false, message: 'Invalid report type' });
+  }
+
+  try {
+    const report = new Report({
+      type,
+      targetId,
+      reporterId: req.user._id,
+      reason: 'Inappropriate content' // Default reason can be customized later
+    });
+
+    await report.save();
+
+    res.json({ success: true, message: 'Report submitted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to report' });
+  }
+});
+
+// Report comment route
+router.post('/posts/:postId/comments/:commentId/report', requireAuth, async (req, res) => {
+  const { postId, commentId } = req.params;
+
+  try {
+    const report = new Report({
+      type: 'comment',
+      targetId: commentId,
+      reporterId: req.user._id,
+      reason: 'Inappropriate content' // Default reason can be customized later
+    });
+
+    await report.save();
+    res.json({ success: true, message: 'Comment reported successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to report comment' });
   }
 });
 
@@ -152,32 +199,27 @@ router.put('/posts/:id', async (req, res) => {
   }
 });
 
-router.get('/posts', async (req, res) => {
+// Poll vote route (this handles poll voting)
+router.post('/poll/vote', requireAuth, async (req, res) => {
+  const { postId, optionIndex } = req.body;
+
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 5;
-    const skip = (page - 1) * limit;
+    const post = await ForumPost.findById(postId);
+    if (!post || !post.poll) return res.status(400).json({ success: false, message: 'Poll not found' });
 
-    const totalPosts = await ForumPost.countDocuments();
-    const posts = await ForumPost.find()
-      .populate('userId') // Make sure this field exists
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    // Check if the user has already voted
+    const userHasVoted = post.poll.options[optionIndex].votes.includes(req.user._id);
+    if (userHasVoted) return res.status(400).json({ success: false, message: 'You have already voted' });
 
-    res.json({
-      success: true,
-      posts,
-      totalPages: Math.ceil(totalPosts / limit),
-      currentPage: page
-    });
+    // Add the user's vote
+    post.poll.options[optionIndex].votes.push(req.user._id);
+
+    await post.save();
+    res.json({ success: true, message: 'Vote submitted' });
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({ success: false });
+    console.error('Vote error:', err);
+    res.status(500).json({ success: false, message: 'Error voting on poll' });
   }
 });
-
-
-
 
 module.exports = router;

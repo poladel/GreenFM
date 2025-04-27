@@ -1,0 +1,62 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+
+            <h1 class="text-3xl text-center my-4">Admin Archives</h1>
+
+            <!-- Form to add a Facebook Live or Image Post -->
+            <form id="post-form" action="/admin/add-post" method="POST">
+                <div class="form-group">
+                    <label for="video-url">Facebook Live Video URL or Embed Code:</label>
+                    <input type="text" id="video-url" name="videoUrl" class="form-control" placeholder="Enter Facebook Live Video URL">
+                </div>
+                <div class="form-group">
+                    <label for="image-url">Image URL:</label>
+                    <input type="text" id="image-url" name="imageUrl" class="form-control" placeholder="Enter Image URL">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter Description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Post</button>
+            </form>
+
+            <hr>
+
+            <h2>Recent Posts</h2>
+            <div id="video-list">
+                <% if (posts && posts.length > 0) { %>
+                    <% posts.forEach(post => { %>
+                        <div class="post-item">
+                            <% if (post.videoUrl) { %>
+                                <div class="video-post">
+                                    <h3>Facebook Live Video</h3>
+                                    <iframe src="<%= post.videoUrl %>" width="560" height="315" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                </div>
+                            <% } %>
+                            <% if (post.imageUrl) { %>
+                                <div class="image-post">
+                                    <img src="<%= post.imageUrl %>" alt="Post Image" class="img-fluid">
+                                </div>
+                            <% } %>
+                            <p><%= post.description %></p>
+                            <p><%= new Date(post.createdAt).toLocaleString() %></p>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No posts available.</p>
+                <% } %>
+            </div>
+
+        </div>
+    </div>
+
+    <%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="/js/1-admin/Archive.js"></script>
+</body>
+</html>

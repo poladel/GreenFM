@@ -10,7 +10,6 @@
       <!-- Toast Notification -->
       <div id="toast" class="fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
 
-      
       <!-- POST FORM -->
       <form id="post-form" class="bg-white p-4 rounded-xl shadow">
         <h2 class="text-2xl font-semibold mb-4 text-green-700">🟢 Community Forum</h2>
@@ -44,36 +43,26 @@
         </div>
       </form>
 
-<br>
+      <br>
 
-    <!-- Poll Card -->
+      <!-- Poll Card -->
+      <div class="poll-card">
+        <form id="poll-form" method="POST" action="/poll">
+          <h3>Create a Poll</h3>
+          <input type="text" id="poll-question" name="question" placeholder="Enter your poll question..." required />
 
-    <div class="poll-card">
-  <form id="poll-form" method="POST" action="/poll">
-      <h3>Create a Poll</h3>
-    <input type="text" id="poll-question" name="question" placeholder="Enter your poll question..." required />
+          <div id="poll-options-wrapper">
+            <input type="text" name="options[]" placeholder="Option 1" required />
+            <input type="text" name="options[]" placeholder="Option 2" required />
+          </div>
 
-    <div id="poll-options-wrapper">
-      <input type="text" name="options[]" placeholder="Option 1" required />
-      <input type="text" name="options[]" placeholder="Option 2" required />
-    </div>
-
-    <!-- Align buttons right -->
-    <div class="poll-button-group">
-      <button type="button" id="add-option-button" class="poll-btn">+ Add Option</button>
-      <button type="submit" id="submit-poll-button" class="poll-btn">📤 Post Poll</button>
-    </div>
-  </form>
-</div>
-
-
-
-
-
-        
-<div id="posts-container"></div>
-
-
+          <!-- Align buttons right -->
+          <div class="poll-button-group">
+            <button type="button" id="add-option-button" class="poll-btn">+ Add Option</button>
+            <button type="submit" id="submit-poll-button" class="poll-btn">📤 Post Poll</button>
+          </div>
+        </form>
+      </div>
 
       <!-- POSTS RENDERED HERE -->
       <div id="posts-container" class="posts-container"></div>
@@ -84,61 +73,6 @@
   </div>
 </div>
 
-<!-- EDIT POST MODAL -->
-<div id="editPostModal" class="fixed inset-0 hidden z-50 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow-xl relative">
-    <!-- Close Button -->
-    <button
-      onclick="closeEditModal()"
-      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold close-btn"
-    >
-      ✖
-    </button>
-
-    <h2 class="text-2xl font-bold mb-6 text-center text-green-700">✏️ Edit Post</h2>
-
-    <!-- Title Field -->
-    <div class="mb-4">
-      <label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-      <input
-        id="edit-title"
-        type="text"
-        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-400 outline-none"
-        placeholder="Edit title..."
-      />
-    </div>
-
-    <!-- Content Field -->
-    <div class="mb-6">
-      <label for="edit-content" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
-      <textarea
-        id="edit-content"
-        rows="4"
-        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-400 outline-none"
-        placeholder="Edit content..."
-      ></textarea>
-    </div>
-
-    <!-- Modal Action Buttons -->
-    <div class="flex justify-end gap-3">
-      <button
-        onclick="submitEditPost()"
-        class="edit-button-primary"
-      >
-        Update
-      </button>
-      <button
-        onclick="closeEditModal()"
-        class="edit-button-secondary"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
-
-<div id="toast" class="hidden fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
-
 <!-- Inject User ID -->
 <script>
   window.currentUserId = "<%= user ? user._id.toString() : '' %>";
@@ -146,5 +80,17 @@
 
 <!-- Forum Script -->
 <script src="/js/2-user/forum.js"></script>
+
+<!-- Confirmation Vote Modal -->
+<div id="confirmVoteModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Confirm Your Vote</h2>
+    <p id="vote-confirm-text" class="text-gray-600 mb-6">Are you sure you want to vote for this option?</p>
+    <div class="flex justify-center gap-4">
+      <button onclick="submitConfirmedVote()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Yes, Submit</button>
+      <button onclick="closeVoteModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <%- include('../partials/footer.ejs') %>

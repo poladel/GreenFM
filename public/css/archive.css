@@ -1,0 +1,132 @@
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.head{
+    margin-left: 35%;
+}
+
+
+/* Page container */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Content wrap */
+.content-wrap {
+    flex: 1;
+    padding: 20px;
+}
+
+/* Container for the main content */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Filters Section */
+.flex {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+select {
+    width: 150px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+option {
+    font-size: 1rem;
+    padding: 10px;
+}
+
+/* Video List Section */
+#video-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.video-item {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.video-item h3 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.video-item p {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.video-item a {
+    font-size: 1.2rem;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.video-item a:hover {
+    text-decoration: underline;
+}
+
+/* Fallback for no videos */
+#video-list p {
+    font-size: 1.2rem;
+    color: #e74c3c;
+    text-align: center;
+}
+
+/* Make it responsive */
+@media screen and (max-width: 768px) {
+    .flex {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    select {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .video-item {
+        padding: 15px;
+    }
+
+    .video-item h3 {
+        font-size: 1.6rem;
+    }
+}
