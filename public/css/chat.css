@@ -73,7 +73,7 @@
   flex: 1;
   overflow-y: auto;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column; /* <-- FIXED */
   padding: 1rem;
   background-color: #f4f4f4;
   border-radius: 10px;
