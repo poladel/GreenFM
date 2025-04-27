@@ -1,36 +1,13 @@
-const Live = require('../models/Live');
+const Comment = require('../models/Comment');
 
-// GET: render page with latest live video
-exports.getLive = async (req, res) => {
+const getComments = async (req, res) => {
     try {
-        const video = await Live.findOne().sort({ createdAt: -1 });
-        res.render('live', { video });
+        const comments = await Comment.find().sort({ createdAt: 1 }).lean();
+        res.json(comments);
     } catch (err) {
-        console.error('Error getting live video:', err);
-        res.status(500).send('Server Error');
+        console.error('Error loading comments:', err.message);
+        res.status(500).json({ message: 'Failed to load comments' });
     }
 };
 
-// POST: save new live video URL
-exports.addLive = async (req, res) => {
-    try {
-        const { url } = req.body;
-        await Live.deleteMany(); // optional: remove old one
-        await Live.create({ url });
-        res.redirect('/live');
-    } catch (err) {
-        console.error('Error saving live video:', err);
-        res.status(500).send('Server Error');
-    }
-};
-
-// POST: remove current live video (optional)
-exports.removeLive = async (req, res) => {
-    try {
-        await Live.deleteMany({});
-        res.redirect('/live');
-    } catch (err) {
-        console.error('Error removing live video:', err);
-        res.status(500).send('Server Error');
-    }
-};
+module.exports = { getComments };

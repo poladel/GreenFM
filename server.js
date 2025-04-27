@@ -40,6 +40,7 @@ const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
 const statusRoutes = require('./routes/statusRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const Comment = require('./models/Comment');
 
 // App setup
 const app = express();
@@ -74,6 +75,22 @@ io.on('connection', socket => {
     socket.on('disconnect', () => {
         console.log('🔌 Socket disconnected:', socket.id);
     });
+
+    socket.on('newComment', async (commentText) => {
+        try {
+            const comment = await Comment.create({ text: commentText });
+            
+            io.emit('newComment', {
+                text: comment.text,
+                createdAt: comment.createdAt
+            });
+    
+            console.log('💬 Saved and broadcasted new comment:', comment.text);
+        } catch (err) {
+            console.error('Error saving comment:', err.message);
+        }
+    });    
+    
 });
 
 // Conditionally trust the proxy only in production
