@@ -136,12 +136,7 @@ function renderMessage(message, currentUserId) {
 
     return `
         <div class="message ${messageClass}" style="margin-bottom: 10px;">
-            <div class="bubble" style="
-                padding: 10px;
-                background: ${isMine ? '#dcf8c6' : '#fff'};
-                border-radius: 10px;
-                max-width: 70%;
-                ${isMine ? 'margin-left:auto;' : ''}
+            <div class="bubble"}
             ">
                 <strong>${message.sender.username}</strong>
                 <p style="margin: 5px 0 0;">${message.content}</p>
