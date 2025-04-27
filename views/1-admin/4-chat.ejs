@@ -27,7 +27,7 @@
 
                     <!-- Chat Area -->
                     <div class="chat-area">
-                        <div id="messages" style="overflow-y: auto; height: 400px;"></div>
+                        <div id="messages"></div>
                         <form id="message-form">
                             <input id="message-input" type="text" placeholder="Type your message..." />
                             <button type="submit">Send</button>
@@ -36,15 +36,15 @@
                 </div>
 
                 <!-- Start New Chat Modal -->
-                <div id="new-chat-modal" style="display:none; flex-direction: column; background: #fff; padding: 20px; border-radius: 8px; position:fixed; top:10%; left:50%; transform:translateX(-50%); box-shadow: 0 0 10px rgba(0,0,0,0.2);">
-                    <h3>Start New Chat / Group Chat</h3>
+                <div id="new-chat-modal">
+                    <h3>Start New Chat</h3>
 
                     <form id="new-chat-form">
-                        <input type="text" id="group-name" placeholder="Group Name (optional)" style="width:100%; margin-bottom:10px;" />
+                        <input type="text" id="group-name" placeholder="Group Name (optional)"/>
 
-                        <input type="text" id="user-search" placeholder="Search users..." style="width:100%; margin-bottom:10px;" />
+                        <input type="text" id="user-search" placeholder="Search users..."/>
 
-                        <div id="user-list" style="max-height:200px; overflow-y:auto; margin-bottom:10px; border:1px solid #ccc; padding:10px;">
+                        <div id="user-list">
                             <% users.forEach(u => { %>
                                 <div class="user-checkbox">
                                     <label>
