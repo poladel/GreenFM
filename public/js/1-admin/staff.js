@@ -639,27 +639,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- MODIFIED: Clear view after saving ---
     const handleSaveSubmissionResult = async () => {
-        if (!currentSelectedSubmissionId || !submissionResultUpdate) return;
+        if (!currentSelectedSubmissionId || !submissionResultUpdate) {
+            alert("Please select a submission and a result.");
+            return;
+        }
         const newResult = submissionResultUpdate.value;
+
+        // --- ADDED: Check if result is 'Pending' ---
+        if (newResult === 'Pending') {
+            alert("Please choose either 'Accepted' or 'Rejected' to save the status.");
+            return; // Stop execution if 'Pending' is selected
+        }
+        // --- END ADDED CHECK ---
+
         console.log(`Saving result for ${currentSelectedSubmissionId}: ${newResult}`);
+
+        showSpinner(); // <<< Show spinner
+
         try {
             const response = await fetch(`/admin/submissions/${currentSelectedSubmissionId}/result`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ result: newResult }),
+                body: JSON.stringify({ result: newResult })
             });
-            const resultData = await response.json();
-            if (!response.ok) throw new Error(resultData.message || `Failed to update status: ${response.statusText}`);
 
-            alert(resultData.message || 'Status updated successfully!');
+            const responseData = await response.json(); // Read response body once
 
-            // Clear detail view and refresh table
-            clearSubmissionDetailView();
-            await handleSubmissionFilterChange(); // Refresh the table
+            if (!response.ok) {
+                throw new Error(responseData.message || `Failed to update status (${response.status})`);
+            }
+
+            alert(responseData.message || 'Submission status updated successfully!');
+
+            // Refresh the table and clear the detail view
+            await handleSubmissionFilterChange(); // This fetches and renders, also clears detail view
 
         } catch (error) {
-            console.error("Error saving submission result:", error);
-            alert(`Error updating status: ${error.message}`);
+            console.error('Error saving submission result:', error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            hideSpinner(); // <<< Hide spinner
         }
     };
 
@@ -849,3 +868,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminPage(); // Run the setup
 
 }); // End DOMContentLoaded
+
+// --- ADD SPINNER FUNCTIONS (if not already present) ---
+function showSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'block';
+}
+
+function hideSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'none';
+}
+// --- END SPINNER FUNCTIONS ---
