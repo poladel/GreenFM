@@ -1,3 +1,7 @@
+body {
+    overflow-x: hidden;
+}
+
 /* --- Post Filters --- */
 .post-filters {
     background-color: white;
@@ -483,6 +487,9 @@
 
 /* --- Right Sidebar --- */
 .right-sidebar {
+    position: absolute;
+    top: 6.1vw;
+    right: -5.2vw;
     width: 23vw;
     display: flex;
     flex-direction: column;
@@ -495,11 +502,7 @@
     padding: 15px;
     border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 14.9vw;
-    position: fixed;
-    top: 5.5vw; /* stays higher */
-    right: 1vw;
-    z-index: 9999;
+    width: 14.5vw;
 }
 
 .schedule-container {
@@ -507,11 +510,7 @@
     padding: 15px;
     border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 14.9vw;
-    position: fixed;
-    top: 13.3vw; /* offset lower so it's visible */
-    right: 1vw;
-    z-index: 9999;
+    width: 14.5vw;
 }
 
 /* --- Schedule Styles --- */
@@ -576,7 +575,7 @@
 .status-btn {
     position: absolute;
     top: 2px;
-    right: 15px;
+    left: 11.5vw;
     background: #444;
     color: #fff;
     border: none;
