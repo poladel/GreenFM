@@ -11,11 +11,11 @@
       <div id="toast" class="fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
 
       <!-- POST FORM -->
-      <form id="post-form" class="bg-white p-4 rounded-xl shadow" enctype="multipart/form-data">
+      <form id="post-form" class="bg-white p-4 rounded-xl shadow">
         <h2 class="text-2xl font-semibold mb-4 text-green-700">🟢 Community Forum</h2>
-        <input type="text" id="post-title" class="w-full mb-2 p-2 border rounded post-title-input" placeholder="Write something..." required>
-        <!-- Removed the textarea input for content, assuming it's handled by the title -->
-        
+        <input type="text" id="post-title" class="w-full mb-2 p-2 border rounded post-title-input" placeholder="Post title..." required>
+        <textarea class="w-full p-2 border rounded post-textbox" id="post-content" placeholder="Write something..." required></textarea>
+
         <div class="media-buttons">
           <button type="button" id="add-image-button" class="media-button">
             <img src="../img/image.png" alt="Add Image" class="option-icon">
@@ -28,7 +28,7 @@
         </div>
 
         <!-- Media Previews -->
-        <div id="preview-container" class="preview-container mt-3"></div> <!-- For previewing selected files -->
+        <div id="preview-container" class="preview-container mt-3"></div>
 
         <div class="post-button-wrapper mt-4">
           <button
@@ -73,6 +73,14 @@
   </div>
 </div>
 
+<!-- Inject User ID -->
+<script>
+  window.currentUserId = "<%= user ? user._id.toString() : '' %>";
+</script>
+
+<!-- Forum Script -->
+<script src="/js/2-user/forum.js"></script>
+
 <!-- Confirmation Vote Modal -->
 <div id="confirmVoteModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
   <div class="modal-content">
@@ -84,13 +92,5 @@
     </div>
   </div>
 </div>
-
-<!-- Inject User ID -->
-<script>
-  window.currentUserId = "<%= user ? user._id.toString() : '' %>";
-</script>
-
-<!-- Forum Script -->
-<script src="/js/2-user/forum.js"></script>
 
 <%- include('../partials/footer.ejs') %>

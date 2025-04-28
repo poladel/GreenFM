@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const forumController = require('../controllers/forumController');
 const { requireAuth } = require('../middleware/authMiddleware');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });  // Specify the destination folder for file uploads
+const ForumPost = require('../models/ForumPost');
+const { Report } = require('../models/ForumPost'); // Import the Report model
 
 // Forum post routes (API endpoints)
-router.post('/posts', requireAuth, upload.array('media'), forumController.createPost);  // `media` is the field name used in FormData
+router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost);
 router.get('/posts', forumController.getAllPosts);
 router.get('/posts/:id', forumController.getPostById);
-router.put('/posts/:id', requireAuth, upload.array('media'), forumController.updatePost);  // Update posts with media
+router.put('/posts/:id', requireAuth, forumController.handleFileUploads, forumController.updatePost);
 router.delete('/posts/:id', requireAuth, forumController.deletePost);
 
 // Like & Comment routes
@@ -77,21 +77,39 @@ router.post('/posts/report', requireAuth, async (req, res) => {
   }
 
   try {
-    // Create a new report
     const report = new Report({
       type,
       targetId,
       reporterId: req.user._id,
-      reason: 'Inappropriate content' // Default reason, can be customized
+      reason: 'Inappropriate content' // Default reason can be customized later
     });
 
-    // Save the report to the database
     await report.save();
 
     res.json({ success: true, message: 'Report submitted successfully' });
   } catch (err) {
-    console.error('Error reporting post:', err);
+    console.error(err);
     res.status(500).json({ success: false, message: 'Failed to report' });
+  }
+});
+
+// Report comment route
+router.post('/posts/:postId/comments/:commentId/report', requireAuth, async (req, res) => {
+  const { postId, commentId } = req.params;
+
+  try {
+    const report = new Report({
+      type: 'comment',
+      targetId: commentId,
+      reporterId: req.user._id,
+      reason: 'Inappropriate content' // Default reason can be customized later
+    });
+
+    await report.save();
+    res.json({ success: true, message: 'Comment reported successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to report comment' });
   }
 });
 
@@ -178,37 +196,6 @@ router.put('/posts/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false });
-  }
-});
-
-// Poll vote route (this handles poll voting)
-router.post('/poll/vote', requireAuth, async (req, res) => {
-  const { postId, optionIndex } = req.body;
-
-  try {
-    const post = await ForumPost.findById(postId);
-    if (!post || !post.poll) {
-      return res.status(404).json({ success: false, message: 'Poll not found' });
-    }
-
-    // Check if the user has already voted
-    const alreadyVoted = post.poll.options.some(opt => opt.votes.includes(req.user._id));
-    if (alreadyVoted) {
-      return res.status(400).json({ success: false, message: 'You have already voted' });
-    }
-
-    // Add vote to the selected option
-    post.poll.options[optionIndex].votes.push(req.user._id);
-    await post.save();
-
-    // Send back the updated poll with vote count
-    res.json({
-      success: true,
-      poll: post.poll
-    });
-  } catch (error) {
-    console.error('Error voting for poll:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

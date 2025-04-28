@@ -97,27 +97,26 @@ exports.handleFileUploads = (req, res, next) => {
 };
 
 // Controller Method
+
 exports.createPost = async (req, res) => {
   try {
-    const { title, text, pollQuestion, pollOptions } = req.body;  // Extract title, text, and other fields
+    const { title, text, pollQuestion, pollOptions } = req.body;
     const media = req.files?.map(file => ({
-      url: file.path,  // File path after upload
-      type: file.mimetype.startsWith('image/') ? 'image' : 'video'  // Check file type
+      url: file.path,
+      type: file.mimetype.startsWith('image/') ? 'image' : 'video'
     })) || [];
 
-    // Create a new post with the provided data
     const newPost = new ForumPost({
-      userId: req.user._id,  // Assumed authentication is done and user ID is available
+      userId: req.user._id,
       title,
       text,
-      media,  // Attach media
+      media,
       poll: pollQuestion ? {
         question: pollQuestion,
         options: pollOptions.map(opt => ({ text: opt }))
-      } : null  // Attach poll if provided
+      } : null
     });
 
-    // Save the new post to the database
     await newPost.save();
     res.json({ success: true, post: newPost });
   } catch (err) {
@@ -125,6 +124,8 @@ exports.createPost = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
+
 
 
 exports.getAllPosts = async (req, res) => {

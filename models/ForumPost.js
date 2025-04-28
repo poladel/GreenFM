@@ -23,7 +23,7 @@ const pollOptionSchema = new mongoose.Schema({
 // Forum Post Schema
 const forumPostSchema = new mongoose.Schema({
   title: { type: String, default: '' },
-  text: { type: String, default: '' },  // This field should store the post content
+  text: { type: String, default: '' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   media: [mediaSchema],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

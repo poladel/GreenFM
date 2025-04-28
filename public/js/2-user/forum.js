@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
       this.init();
     }
 
-    // Cache DOM elements
     cacheElements() {
       this.elements = {
         postForm: document.getElementById('post-form'),
@@ -31,23 +30,20 @@ document.addEventListener('DOMContentLoaded', function () {
       this.isAuthenticated = this.elements.postButton?.dataset.authenticated === 'true';
     }
 
-    // Initialize the application
     init() {
       if (!this.checkRequiredElements()) return;
       this.setupEventListeners();
       this.loadPosts();
     }
 
-    // Ensure all required elements are available
     checkRequiredElements() {
       const required = ['postForm', 'postsContainer', 'postButton', 'postTitle', 'postContent'];
       return required.every(el => !!this.elements[el]);
     }
 
-    // Setup event listeners for form inputs and buttons
     setupEventListeners() {
-      this.elements.imageInput?.addEventListener('change', (e) => this.handleFileSelect(e, 'image'));
-      this.elements.videoInput?.addEventListener('change', (e) => this.handleFileSelect(e, 'video'));
+      this.elements.imageInput?.addEventListener('change', (e) => this.handleFileSelect(e));
+      this.elements.videoInput?.addEventListener('change', (e) => this.handleFileSelect(e));
       document.getElementById('add-image-button')?.addEventListener('click', () => this.elements.imageInput.click());
       document.getElementById('add-video-button')?.addEventListener('click', () => this.elements.videoInput.click());
       this.elements.postForm?.addEventListener('submit', (e) => this.handlePostSubmit(e));
@@ -55,46 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.pollForm?.addEventListener('submit', (e) => this.handlePollSubmit(e));
     }
 
-    // Handle file selection for image and video
-    handleFileSelect(event, type) {
-      const files = event.target.files;
-      this.selectedFiles = [...files];
-      this.renderPreviews();
-    }
-
-    // Render previews of selected media (image/video)
-    renderPreviews() {
-      this.elements.previewContainer.innerHTML = '';  // Clear previous previews
-
-      this.selectedFiles.forEach(file => {
-        const fileReader = new FileReader();
-        fileReader.onload = (e) => {
-          const fileUrl = e.target.result;
-          const fileType = file.type.split('/')[0]; // Get the type (image or video)
-
-          let previewElement;
-
-          if (fileType === 'image') {
-            previewElement = document.createElement('img');
-            previewElement.src = fileUrl;
-            previewElement.className = 'post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto';
-          } else if (fileType === 'video') {
-            previewElement = document.createElement('video');
-            previewElement.controls = true;
-            const source = document.createElement('source');
-            source.src = fileUrl;
-            previewElement.appendChild(source);
-            previewElement.className = 'post-media w-full max-w-md rounded shadow mx-auto';
-          }
-
-          this.elements.previewContainer.appendChild(previewElement);
-        };
-
-        fileReader.readAsDataURL(file);  // Read the file as data URL
-      });
-    }
-
-    // Add a new poll option input
     handleAddPollOption() {
       const currentCount = this.elements.pollOptionsWrapper.querySelectorAll('input').length;
       if (currentCount >= 5) return alert('You can only add up to 5 options.');
@@ -107,16 +63,16 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.pollOptionsWrapper.appendChild(input);
     }
 
-    // Handle poll submission
     async handlePollSubmit(e) {
       e.preventDefault();
+      
       const question = this.elements.pollQuestionInput.value.trim();
       const options = [...this.elements.pollOptionsWrapper.querySelectorAll('input')].map(input => input.value.trim()).filter(opt => opt);
-
+    
       if (!question || options.length < 2) {
         return showToast('❌ Enter a question and at least 2 options', 'error');
       }
-
+    
       try {
         const res = await fetch('/poll', {
           method: 'POST',
@@ -124,9 +80,9 @@ document.addEventListener('DOMContentLoaded', function () {
           credentials: 'include',
           body: JSON.stringify({ question, options })
         });
-
+    
         const data = await res.json();
-
+    
         if (data.success) {
           showToast('✅ Poll posted!');
           this.resetPollForm();
@@ -139,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast('❌ Error submitting poll', 'error');
       }
     }
+    
 
-    // Reset the poll form
     resetPollForm() {
       this.elements.pollForm.reset();
       this.elements.pollOptionsWrapper.innerHTML = `
@@ -149,13 +105,11 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
     }
 
-    // Reset the post form
     resetPostForm() {
       this.elements.postTitle.value = '';
       this.elements.postContent.value = '';
     }
 
-    // Handle post submission
     async handlePostSubmit(e) {
       e.preventDefault();
 
@@ -166,20 +120,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return showToast('❌ Please enter a title and content for the post.', 'error');
       }
 
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-
-      // Append files if selected
-      if (this.selectedFiles.length > 0) {
-        this.selectedFiles.forEach(file => formData.append('media', file));
-      }
-
       try {
         const res = await fetch('/posts', {
           method: 'POST',
-          body: formData,  // Use FormData to upload files
-          credentials: 'include'  // Send cookies (e.g., session) along with the request
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title, content })
         });
 
         const data = await res.json();
@@ -187,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.success) {
           showToast('✅ Post created successfully!');
           this.resetPostForm();
-          this.loadPosts();  // Refresh the posts with updated content
+          this.loadPosts(); // Refresh the posts with updated content
         } else {
           showToast('❌ Failed to create post', 'error');
         }
@@ -197,55 +143,47 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Load posts from the server with pagination
     async loadPosts(page = 1) {
       try {
         const response = await fetch(`/posts?page=${page}`, { credentials: 'include' });
         const data = await response.json();
-
+    
         console.log('Server response:', data);  // Log server response to debug
-
+    
         // Ensure the server response is valid and contains posts
         if (!data.success || !Array.isArray(data.posts)) {
           throw new Error('Invalid post response');
         }
-
+    
         // Filter out deleted posts
         const filteredPosts = data.posts.filter(p => !p.isDeleted || p.isDeleted === undefined);
-
+    
         // Render posts dynamically without page refresh
-        this.renderPosts(filteredPosts);
+        this.renderPosts(filteredPosts); 
         this.renderPagination(data.totalPages, data.currentPage);
       } catch (error) {
         console.error('Error loading posts:', error);
-        this.elements.postsContainer.innerHTML = `<div class="error">Unable to load posts. Please try again later.</div>`;
+        this.elements.postsContainer.innerHTML = `<div class="error">Unable to load posts.</div>`;
       }
     }
+    
+    
+    
 
-    // Render posts to the page
     renderPosts(posts) {
       this.elements.postsContainer.innerHTML = '';  // Clear existing posts
-
-      // Ensure posts array is not empty or undefined
-      if (!Array.isArray(posts) || posts.length === 0) {
-        this.elements.postsContainer.innerHTML = '<div class="error">No posts to display.</div>';
-        return;
-      }
-
+    
       posts.forEach(post => {
-        // Skip invalid posts
-        if (!post || !post._id) return;
-
+        if (!post || !post._id) return;  // Skip invalid posts
+    
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
-
-        // Check if the logged-in user is the post owner
+    
         const showControls = post.userId && post.userId._id === this.currentUserId;
-        // Check if the user has voted in the poll
         const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
-
-        // Format the creation date for display
+    
+        // Format createdAt for date display
         const createdAt = post.createdAt
           ? new Date(post.createdAt).toLocaleString('en-US', {
               month: 'long',
@@ -256,17 +194,15 @@ document.addEventListener('DOMContentLoaded', function () {
               hour12: true
             })
           : '';
-
-        // Get the like count
+    
         const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-
-        // Render the poll section if it exists
+    
+        // Render Poll Section if it exists
         let pollSection = '';
         if (post.poll?.question) {
           pollSection = this.renderPollSection(post, userHasVoted);
         }
-
-        // Ensure all HTML tags are properly inserted
+    
         div.innerHTML = `
           <div class="post-header flex justify-between items-start">
             <div>
@@ -286,10 +222,10 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
             </div>
           </div>
-
+    
           <h3 class="post-title font-bold text-xl text-gray-800 mt-2">${post.title}</h3>
-          <p class="post-text text-gray-700 mt-1">${post.text}</p> <!-- Render post content here -->
-
+          <p class="post-text text-gray-700 mt-1">${post.text}</p>
+    
           <div class="post-media-container mt-3">
             ${(post.media || []).map(media => media.type === 'image' ? 
                 `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
@@ -297,16 +233,16 @@ document.addEventListener('DOMContentLoaded', function () {
                   <source src="${media.url}" type="video/mp4">
                 </video>`).join('')}
           </div>
-
+    
           ${pollSection}
-
+    
           <div class="post-actions mt-4 flex space-x-4">
             <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
               ❤️ <span class="like-count">${likeCount}</span>
             </button>
             <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
           </div>
-
+    
           <div class="interaction-panel mt-4" data-post-id="${post._id}">
             <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
               <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
@@ -317,46 +253,47 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
           </div>
         `;
-
+    
         // Append the newly created post div to the container
         this.elements.postsContainer.appendChild(div);
-
+    
         // Load comments for each post
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
+    
+    
 
-    // Render the poll section in the post
     renderPollSection(post, userHasVoted) {
-      return `
-        <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
-          <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
-          <ul class="poll-options space-y-2 max-w-md mx-auto">
-            ${post.poll.options.map((opt, index) => `
-              <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
-                ${!userHasVoted ? `
-                  <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
-                    onclick="confirmVote('${post._id}', ${index}, '${opt.text.replace(/'/g, "\\'")}')">
-                    ${opt.text}
-                  </button>
-                ` : `
-                  <span class="w-full text-left text-gray-600">${opt.text}</span>
-                `}
-                <span class="text-sm text-gray-500">${opt.votes.length || 0} votes</span>
-              </li>
-            `).join('')}
-          </ul>
-          ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
-        </div>
-      `;
-    }
+  return `
+    <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
+      <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
+      <ul class="poll-options space-y-2 max-w-md mx-auto">
+        ${post.poll.options.map((opt, index) => `
+          <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
+            ${!userHasVoted ? `
+              <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
+                onclick="confirmVote('${post._id}', ${index}, '${opt.text.replace(/'/g, "\\'")}')">
+                ${opt.text}
+              </button>
+            ` : `
+              <span class="w-full text-left text-gray-600">${opt.text}</span>
+            `}
+            <span class="text-sm text-gray-500">${opt.votes.length || 0} votes</span>
+          </li>
+        `).join('')}
+      </ul>
+      ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
+    </div>
+  `;
+}
 
-    // Render pagination
+    
     renderPagination(totalPages, currentPage) {
       const paginationContainer = document.getElementById('pagination-container');
       if (!paginationContainer) return;
       paginationContainer.innerHTML = '';
-
+    
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
@@ -365,8 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
         paginationContainer.appendChild(btn);
       }
     }
-
-    // Load comments for a post
+    
     async loadComments(postId, container) {
       try {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
@@ -401,11 +337,52 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = '<div class="text-red-600">Failed to load comments.</div>';
       }
     }
+
   }
+
+  async function submitConfirmedVote() {
+    if (!selectedPostId || selectedOptionIndex === null) return;
+  
+    try {
+      const res = await fetch('/poll/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ postId: selectedPostId, optionIndex: selectedOptionIndex })
+      });
+  
+      // Check if the response is not OK (e.g., HTTP status code is not 2xx)
+      if (!res.ok) {
+        throw new Error('Server returned an error: ' + res.statusText);
+      }
+  
+      // Try to parse the JSON response
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error('Invalid JSON response from server');
+      }
+  
+      if (data.success) {
+        showToast('✅ Your vote has been submitted!');
+        closeVoteModal();
+        await window.app.loadPosts(); // Reload the posts with updated vote data
+      } else {
+        showToast('❌ Unable to vote', 'error');
+      }
+    } catch (err) {
+      console.error('Vote error:', err);
+      showToast('❌ Error submitting vote: ' + err.message, 'error');
+    }
+  }
+  
 
   // Initialize the app
   window.app = new ForumApp();
 });
+
+
 
 
 //---------------------------------------------------------------------------------------------------------------------//
