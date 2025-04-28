@@ -1,0 +1,240 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+
+            <!-- HEADER -->
+            <div class="blocktimerForm2-title-container">
+                <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
+            </div>
+
+            <!-- PROGRESS BAR -->
+            <div class="progress-bar">
+                <div class="circle circle-1">1</div>
+                <div class="circle circle-2">2</div>
+                <div class="circle circle-3">3</div>
+            </div>
+
+            <form id="blocktimerForm2">
+                <div class="form-content">
+                    <!-- Summary Container -->
+                    <div class="summary-container">
+                        <h4 class="summary-title">Summary</h4>
+                        <div class="summary-details">
+                            <label class="summary-label">Type of Office/Organization:</label>
+                            <span class="summary-value"><%= applicationData?.organizationType || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Name of Office/Organization:</label>
+                            <span class="summary-value"><%= applicationData?.organizationName || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Proponent's Name:</label>
+                            <span class="summary-value">
+                                <%= applicationData?.proponent?.lastName || '' %>, 
+                                <%= applicationData?.proponent?.firstName || '' %> 
+                                <%= applicationData?.proponent?.mi || '' %> 
+                                <%= applicationData?.proponent?.suffix || '' %>
+                            </span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Title of Show:</label>
+                            <span class="summary-value"><%= applicationData?.showDetails?.title || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Type of Show:</label>
+                            <span class="summary-value"><%= applicationData?.showDetails?.type?.join(', ') || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Brief Description of Show:</label>
+                            <br><span class="summary-value"><%= applicationData?.showDetails?.description || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Objective of Show:</label>
+                            <br><span class="summary-value"><%= applicationData?.showDetails?.objectives || 'N/A' %></span>
+                        </div>
+                        <div class="summary-details">
+                            <label class="summary-label">Name of Executive Producer:</label>
+                            <span class="summary-value">
+                                <%= applicationData?.executiveProducer?.lastName || '' %>,
+                                <%= applicationData?.executiveProducer?.firstName || '' %> 
+                                <%= applicationData?.executiveProducer?.mi || '' %> 
+                                <%= applicationData?.executiveProducer?.suffix || '' %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Date and Time Container -->
+                    <div class="date-time-container">
+                        <h4 class="date-time-title">Select Date & Time</h4>
+                        <div class="school-year-container">
+                            <label for="schoolYear">School Year:</label>
+                            <select id="schoolYear" name="schoolYear" class="school-year-dropdown" required>
+                                
+                            </select>
+                        </div>
+                        <!-- Preferred Day and Time Fields -->
+                        <div class="date-time-fields">
+                            <label>Preferred Days:</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="preferred-days" value="Monday" required> Monday</label>
+                                <label><input type="radio" name="preferred-days" value="Tuesday"> Tuesday</label>
+                                <label><input type="radio" name="preferred-days" value="Wednesday"> Wednesday</label>
+                                <label><input type="radio" name="preferred-days" value="Thursday"> Thursday</label>
+                                <label><input type="radio" name="preferred-days" value="Friday"> Friday</label>
+                            </div>
+                            <br>
+                                <label for="time">Preferred Time:</label>
+                                <select id="time" name="preferred-time" class="time-input" required>
+                                    <option value="" disabled selected>Select a time slot</option>
+                                    <option value="9:10-9:55">9:10-9:55</option>
+                                    <option value="10:00-10:55">10:00-10:55</option>
+                                    <option value="11:00-11:55">11:00-11:55</option>
+                                    <option value="1:00-1:55">1:00-1:55</option>
+                                    <option value="2:00-2:55">2:00-2:55</option>
+                                    <option value="3:00-3:55">3:00-3:55</option>
+                                    <option value="4:00-4:50">4:00-4:50</option>
+                                </select>                           
+                        </div>
+                        <button type="button" class="see-schedule-btn">See Full Schedule</button>
+                    </div>
+                </div>
+
+                <!-- Full Schedule Modal -->
+                <div id="scheduleModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <div class="schedule-container">
+                            <table class="schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Monday</th>
+                                        <th>Tuesday</th>
+                                        <th>Wednesday</th>
+                                        <th>Thursday</th>
+                                        <th>Friday</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="time">9:00-9:10</td>
+                                        <td colspan="5" class="station-sign-on">Station Sign On</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">9:10-9:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="9:10-9:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="9:10-9:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="9:10-9:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="9:10-9:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="9:10-9:55"disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">10:00-10:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="10:00-10:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="10:00-10:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="10:00-10:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="10:00-10:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="10:00-10:55" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">11:00-11:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="11:00-11:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="11:00-11:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="11:00-11:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="11:00-11:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="11:00-11:55" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="angelus">Angelus</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">12:01-12:55</td>
+                                        <td colspan="4"><button class="permasched" disabled>FM MIX</button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="12:01-12:55" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">1:00-1:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="1:00-1:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="1:00-1:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="1:00-1:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn"  data-day="Thursday" data-time="1:00-1:55"></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="1:00-1:55" disabled></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">2:00-2:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="2:00-2:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="2:00-2:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="2:00-2:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="2:00-2:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="2:00-2:55" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">3:00-3:55</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="3:00-3:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="3:00-3:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="3:00-3:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="3:00-3:55" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="3:00-3:55" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time"> </td>
+                                        <td colspan="6" class="centered-row"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">4:00-4:50</td>
+                                        <td><button type="button" class="availablebtn" data-day="Monday" data-time="4:00-4:50" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Tuesday" data-time="4:00-4:50" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Wednesday" data-time="4:00-4:50" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Thursday" data-time="4:00-4:50" disabled></button></td>
+                                        <td><button type="button" class="availablebtn" data-day="Friday" data-time="4:00-4:50" disabled></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time">4:30-4:50</td>
+                                        <td colspan="5" class="station-sign-off">Station Sign Off</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-button">
+                    <button type="submit" class="submit">NEXT</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="js/2-user/blocktimer2.js"></script>
+<script src="js/3-logreg/auth.js" defer></script>
+
+</body>
+
+</html>

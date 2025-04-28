@@ -1,0 +1,175 @@
+/* Base styling */
+body, html {
+    background-color: #EFEFEF;
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    height: 100vh; /* Set height to 100vh for full viewport */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container for the entire register box */
+.register-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2vh;
+}
+
+.register-box {
+    position: relative; /* This allows absolute positioning of children */
+    background-color: white;
+    padding: 4vh;
+    padding-top: 2vh;
+    width: 28vw; /* Matches the login box width */
+    min-height: 40vh; /* Sets a minimum height relative to viewport */
+    max-height: 120vh; /* Ensures the box doesn't grow too large */
+    height: auto; /* Allows auto-expansion based on content */
+    border-radius: 1.5vh;
+    box-shadow: 0 0.4vh 1vh rgba(0, 0, 0, 0.1);
+    text-align: center;
+    overflow: visible; /* Ensure overflow is visible to accommodate growing content */
+}
+
+/* Logo styling */
+.logo {
+    width: 10vh;
+    height: auto;
+    cursor: pointer;
+}
+
+/* Register title */
+.register-title {
+    color: #00722A;
+    font-weight: 700;
+    font-size: 2.8vh; /* Match font size with login title */
+    margin-bottom: 3vh;
+}
+
+/* Form styling */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5vh;
+    text-align: left;
+    position: relative;
+}
+
+.form-group {
+    position: relative; /* Ensure child elements are positioned relative to this */
+}
+
+.form-group label {
+    font-size: 1.8vh;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 0.8vh;
+    display: block;
+}
+
+.form-group input {
+    width: 100%; /* Full width for inputs to match the login form */
+    padding: 1.5vh;
+    border: 0.2vh solid #ccc;
+    border-radius: 1vh;
+    font-size: 2vh;
+    color: #333;
+    box-sizing: border-box;
+}
+
+/* Input focus styling */
+.register-form input:focus {
+    border-color: #00722A;
+    outline: none;
+}
+
+/* Register button */
+.register-button {
+    background-color: #00722A;
+    color: white;
+    padding: 1.5vh;
+    font-size: 2vh;
+    font-weight: bold;
+    border: none;
+    border-radius: 1vh;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register-button:hover {
+    background-color: #00591d;
+}
+
+/* Password Validation Box Styles */
+.password-validation {
+    display: none;
+    position: absolute; /* Position it relative to the form-group */
+    top: 50%; /* Center it vertically in relation to the input */
+    left: 100%; /* Position it directly to the right of the input */
+    transform: translateY(-50%); /* Adjust to center it vertically */
+    background-color: #ffffff;
+    border: 1px solid #ddd; /* Change border color if needed */
+    border-radius: 1vh;
+    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.2);
+    padding: 1.5vh;
+    width: 18vw;
+    z-index: 9999; /* Ensure it's on top of everything */
+    margin-left: 1vh; /* Add some spacing from the input */
+}
+
+/* Update to smaller text in the validation box */
+.password-validation ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    margin-left: 0.8vh;
+    font-size: 1.8vh;
+}
+
+.password-requirement {
+    color: #1f1f1f;
+}
+
+/* Change color of requirements based on password validation */
+.valid {
+    color: green;
+}
+
+.invalid {
+    color: red;
+}
+
+/* Footer links */
+.footer-links {
+    margin-top: 2vh;
+    font-size: 2vh;
+}
+
+.footer-links a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 1.5vh;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* Styling the Back to Home Image Link */
+.back-to-home {
+    display: block;
+    text-align: left;
+    margin-bottom: 0.5vh;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+/* Image styling for the back icon */
+.back-icon {
+    margin-top: 2vh;
+    width: 3vh;
+    height: auto;
+    cursor: pointer;
+}

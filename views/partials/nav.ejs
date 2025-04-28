@@ -1,0 +1,93 @@
+<!-- Sidebar Toggle Button -->
+<div class="sidebar-toggle">☰</div>
+
+<div class="sidebars">
+    <div class="sidebar">
+        <img src="img/GFMLogo.png" alt="GFM Logo" class="logo">
+        <h1 class="title">95.9 GREEN FM</h1>
+        <ul class="menu">
+            <li><a href="/">HOME</a></li>
+            <li><a href="/Live">LIVE</a></li>
+            <li><a href="/Forum">FORUM</a></li>
+            <li><a href="/Archives">ARCHIVES</a></li>
+            <li><a href="/Playlist">PLAYLIST</a></li>
+        </ul>
+    </div>
+    <div class="sidebar1">
+        <ul class="menu">
+            <% if (user && (user.roles === 'Admin' || user.roles === 'Staff')) { %>
+                <li><a href="/Manage-Accounts">MANAGE<br>ACCOUNTS</a></li>
+                <li><a href="/Blocktimer">BLOCKTIMER</a></li>
+                <li><a href="/Staff">STAFF</a></li>
+            <% } else { %>
+            <li>
+                <% if (user) { %>
+                    <% if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
+                        <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else if (user.completedBlocktimerStep1) { %>
+                        <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } else { %>
+                        <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                    <% } %>
+                <% } else { %>  
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                <% } %>
+            </li>
+            <li>
+                <% if (user) { %>
+                    <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
+                        <a href="/JoinGFM-Step3" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
+                    <% } else if (user.completedJoinGFMStep1) { %>
+                        <a href="/JoinGFM-Step2" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
+                    <% } else { %>
+                        <a href="/JoinGFM-Step1" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
+                    <% } %>
+                <% } else { %>
+                    <!-- Redirect to login with a generic redirect path -->
+                    <a href="/LogIn?redirect=/JoinGFM" id="joingreenfm-link">JOIN<br>GREEN FM</a>
+                <% } %>
+            </li>
+            <% } %>
+        </ul>
+    </div>
+    <div class="sidebar2">
+        <ul class="menu">
+            <li><a href="/About">ABOUT US</a></li>
+            <li><a href="/Contact">CONTACT US</a></li>
+        </ul>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="img/FBLogo.png" alt="Facebook" class="social-icon"></a>
+            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="img/IGLogo.png" alt="Instagram" class="social-icon"></a>
+        </div>
+    </div>
+    <div class="user-sidebar">
+        <ul class="menu">
+            <% if (user) { %>
+                <li>
+                    <ul class="user-menu">
+                        <li><a href="/ManageAccount">MANAGE<br>ACCOUNT</a></li>
+                        <li><a href="/LogOut">LOG OUT</a></li>
+                    </ul>
+                </li>
+            <% } else { %>
+                <li>
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+                        <div class="user-container">
+                            <img src="img/user.png" alt="User Icon" class="user-icon">
+                            <span class="sidelogin-text">LOG-IN</span>
+                        </div>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+</div>
+
+<!-- JavaScript to toggle the sidebar -->
+<script>
+    document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+        document.querySelector('.sidebars').classList.toggle('active');
+    });
+</script>
+<script src="/js/restrictedLinks.js"></script>

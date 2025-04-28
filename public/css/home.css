@@ -1,0 +1,871 @@
+body {
+    overflow-x: hidden;
+}
+
+/* --- Post Filters --- */
+.post-filters {
+    background-color: white;
+    padding: 15px 20px;
+    margin: 1vw 4vw 0 4vw;
+    width: 63.8vw;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-family: Arial, sans-serif;
+}
+
+.post-filters select,
+.post-filters input[type="text"] {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+.post-filters input[type="text"] {
+    width: 41.2vw;
+}
+
+.post-filters input::placeholder {
+    color: #888;
+}
+
+#filterBtn {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#filterBtn:hover {
+    background-color: #00591F;
+}
+
+/* --- Post Container --- */
+.post-container {
+    background-color: white;
+    padding: 20px;
+    margin-left: 4vw;
+    width: 63.8vw;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* --- Title Input --- */
+#post-title {
+    width: 62.1vw;
+    height: 2vw;
+    padding: 8px 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #EFEFEF;
+    color: #333;
+    margin-bottom: 8px;
+    margin-top: -1px;
+    font-family: Arial, sans-serif;
+}
+
+#post-title::placeholder {
+    color: #888;
+}
+
+/* --- Post Textbox --- */
+.post-textbox {
+    width: 61.7vw;
+    height: 80px;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #EFEFEF;
+    color: #333;
+    resize: none;
+    font-family: Arial, sans-serif;
+}
+
+.post-textbox::placeholder {
+    color: #888;
+}
+
+/* --- Post Options --- */
+.post-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.post-option-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.option-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Post Button --- */
+.post-button {
+    background-color: #00722A;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: absolute;
+    bottom: 20px;
+    right: 25px;
+}
+
+.post-button:hover {
+    background-color: #00591F;
+}
+
+/* --- Posts Container --- */
+#posts-container {
+    margin-top: 1vw;
+    width: 70.6vw;
+}
+
+/* --- Post --- */
+.post {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 1.5vw;
+    margin-left: 4vw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 20px;
+}
+
+.post h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 5px;
+}
+
+/* --- Post Content --- */
+.post p {
+    font-size: 16px;
+    color: #333;
+}
+
+/* --- Media Grid (Twitter-style) --- */
+.post-media {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    border-radius: 15px;
+}
+
+/* Shared media */
+.post-media-img,
+.post-media-video {
+    width: 100%;
+    height: 280px; /* increased height */
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+/* Fix for 1 media: show whole image/video inside box */
+.media-1 .post-media-img,
+.media-1 .post-media-video {
+    object-fit: contain;
+    background-color: #f0f0f0;
+}
+
+/* Layouts (no more aspect-ratio to prevent weird spacing) */
+.media-1 {
+    grid-template-columns: 1fr;
+}
+
+.media-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.media-3 {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: repeat(2, 1fr);
+}
+.media-3 > :nth-child(1) {
+    grid-row: span 2;
+}
+
+.media-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.media-5,
+.media-6 {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+}
+
+/* Video-specific styles */
+.media-item.video {
+    object-fit: contain;
+    background-color: black;
+}
+
+/* --- Post Header --- */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-header p {
+    font-weight: bold;
+}
+
+/* --- Post Date --- */
+.post-date {
+    font-size: 11px;
+    color: #aaaaaa;
+    position: absolute;
+    top: 1.5vw;
+    right: 1.9vw;
+}
+
+/* --- Post Actions --- */
+.post-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.like-btn,
+.edit-btn,
+.delete-btn {
+    background-color: #EFEFEF;
+    color: #333;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.like-btn:hover,
+.edit-btn:hover,
+.delete-btn:hover {
+    background-color: #ccc;
+}
+
+/* --- Comments Section --- */
+.post-comments {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.comment-input {
+    width: 54.5vw;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: #EFEFEF;
+    color: #333;
+    outline: none;
+    margin-right: 8px;
+}
+
+.comment-btn {
+    padding: 8px 14px;
+    background-color: #00722A;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.comment-btn:hover {
+    background-color: #00591F;
+}
+
+.comment-list {
+    margin-top: 10px;
+}
+
+.comment {
+    background-color: #f9f9f9;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    position: relative;
+    border-bottom: 1px solid #ddd;
+}
+
+.comment strong {
+    color: #00722A;
+}
+
+.comment-text {
+    margin-left: 5px;
+    display: inline-block;
+    max-width: 90%;
+}
+
+.edit-comment-btn,
+.delete-comment-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #00722A;
+    margin-left: 5px;
+    padding: 2px 6px;
+    float: right;
+}
+
+.comment .edit-comment-btn,
+.comment .delete-comment-btn {
+    font-size: 12px;
+    padding: 3px 6px;
+    margin-left: 10px;
+}
+
+.comment .comment-actions {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+}
+
+/* --- Edit Comment Form --- */
+.edit-comment-form {
+    display: flex;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.edit-comment-input {
+    flex: 1;
+    padding: 6px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.edit-comment-form button {
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: none;
+    background-color: #00722A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.edit-comment-form button[type="button"] {
+    background-color: #aaa;
+}
+
+/* --- Preview Container --- */
+#preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.preview-wrapper {
+    position: relative;
+    width: 120px;
+    height: auto;
+}
+
+.preview-wrapper img,
+.preview-wrapper video {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.preview-wrapper .delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 2px 6px;
+    background-color: rgba(231, 76, 60, 0.9);
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+/* --- Media Modal --- */
+.media-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    align-items: center;
+}
+
+.modal-media {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+}
+
+.nav-arrow {
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 10px;
+}
+
+.left-arrow {
+    left: -3vw;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.right-arrow {
+    right: -3vw;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* --- Right Sidebar --- */
+.right-sidebar {
+    position: absolute;
+    top: 6.1vw;
+    right: -5.2vw;
+    width: 23vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+}
+
+/* --- Live Now + Schedule Shared Styles --- */
+.live-now-container {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 14.5vw;
+}
+
+.schedule-container {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 14.5vw;
+}
+
+/* --- Schedule Styles --- */
+.schedule-container h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schedule-day {
+    margin-top: 10px;
+}
+
+.schedule-day label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.schedule-day input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.save-schedule-button {
+    margin-top: 12px;
+    padding: 8px 14px;
+    background-color: #00722A;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- Live Now Styles --- */
+#status-indicator {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 10px;
+    display: inline-block;
+    text-align: center;
+}
+
+.status-live,
+.status-offline {
+    color: #202020;
+    font-size: 16px;
+    font-weight: 1000;
+    margin-left: -0.5vw;
+}
+
+.status-btn {
+    position: absolute;
+    top: 2px;
+    left: 11.5vw;
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.go-live-button {
+    display: inline-block;
+    margin-top: -8vw;
+    padding: 8px 16px;
+    background: #00722A;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+}
+
+.live-now-container button {
+    padding: 6px 12px;
+    margin-top: 13px;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    background-color: #e6e6e6;
+    color: rgb(94, 94, 95);
+    transition: background-color 0.3s;
+}
+
+#live-now-subtext {
+    margin-bottom: 0.5vw;
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 15px;
+    width: 90%;
+    width: 20vw;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-content h3 {
+    font-size: 18px;
+    margin-top: 2vw;
+    margin-bottom: 0;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: #555;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 1vw;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.modal-button {
+    flex: 1;
+    padding: 10px 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    width: 8vw;
+}
+
+.modal-button.live {
+    background: #00722A;
+    color: white;
+}
+
+.modal-button.offline {
+    background: #00722A;
+    color: white;
+}
+
+/* Your Original CSS */
+/* (your whole CSS exactly as you wrote it) */
+
+/* === Responsive Design === */
+@media (max-width: 1024px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 90vw;
+        margin-left: 5vw;
+    }
+
+    .right-sidebar {
+        position: static;
+        width: 90vw;
+        margin: 20px auto;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 42vw;
+    }
+
+    .post-date {
+        top: 10px;
+        right: 20px;
+    }
+
+    .status-btn {
+        left: auto;
+        right: 10px;
+        top: 10px;
+    }
+
+    .go-live-button {
+        margin-top: 20px;
+    }
+
+    .modal-content {
+        width: 80vw;
+    }
+
+    .modal-button {
+        width: 35vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 92vw;
+        margin-left: 4vw;
+    }
+
+    .right-sidebar {
+        flex-direction: column;
+        width: 92vw;
+        gap: 20px;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 90vw;
+    }
+
+    .post-date {
+        font-size: 10px;
+        top: 12px;
+        right: 15px;
+    }
+
+    .preview-wrapper {
+        width: 90px;
+    }
+
+    .modal-content {
+        width: 90vw;
+    }
+
+    .modal-button {
+        width: 40vw;
+    }
+
+    .status-btn {
+        left: auto;
+        right: 10px;
+    }
+
+    .nav-arrow {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 94vw;
+        margin-left: 3vw;
+    }
+
+    .post h3, 
+    .schedule-container h3, 
+    .modal-content h3 {
+        font-size: 16px;
+    }
+
+    .post p {
+        font-size: 14px;
+    }
+
+    .post-media-img,
+    .post-media-video {
+        height: 200px;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 94vw;
+    }
+
+    .modal-content {
+        width: 95vw;
+    }
+
+    .modal-button {
+        width: 90%;
+    }
+
+    .status-live, 
+    .status-offline {
+        font-size: 14px;
+        margin-left: 0;
+    }
+
+    .status-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .post-button {
+        padding: 6px 14px;
+        font-size: 13px;
+        bottom: 15px;
+        right: 20px;
+    }
+
+    .comment-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .like-btn,
+    .edit-btn,
+    .delete-btn {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+
+    .preview-wrapper {
+        width: 80px;
+    }
+
+    .nav-arrow {
+        font-size: 20px;
+    }
+}

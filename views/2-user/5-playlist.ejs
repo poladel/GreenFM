@@ -1,0 +1,107 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+
+            <!-------------------- HEADER MENUS -------------------->   
+            <%- include('../partials/menu.ejs') %>
+
+            <!-------------------- CONTENTS START --------------------> 
+            <div class="playlist-wrapper">
+                <!-- Left Section: Playlist & Genres -->
+                <div class="playlist-container">
+
+                    <!-- Genre Tabs -->
+                    <div class="genre-tabs">
+                        <button class="genre-btn active" data-genre="All">ALL</button>
+                        <button class="genre-btn" data-genre="OPM">OPM</button>
+                        <button class="genre-btn" data-genre="Pop">POP</button>
+                        <button class="genre-btn" data-genre="K-pop">K-POP</button>
+                        <button class="genre-btn" data-genre="Rock">ROCK</button>
+                        <button class="genre-btn" data-genre="Hip-hop">HIP-HOP</button>
+                        <button class="genre-btn" data-genre="Ballad">BALLAD</button>
+                        <button class="genre-btn" data-genre="Classical">CLASSICAL</button>
+                        <button class="genre-btn" data-genre="Others">OTHERS</button>
+                    </div>
+
+                    <!-- Song List (Grid View) -->
+                    <div class="song-list">
+                        <% playlist.forEach(song => { %>
+                        <div class="song-item" data-genre="<%= song.genre %>">
+                            <div class="song-info">
+                                <div class="song-thumbnail"></div>
+                                <div class="song-text">
+                                    <p class="song-title">
+                                        <a href="<%= song.link %>" target="_blank"><%= song.title %></a>
+                                    </p>
+                                    <p class="song-artist">by: <%= song.singer %></p>
+                                    <p class="song-requester">Requested by <%= song.user.username %></p>
+                                </div>                                
+                            </div>
+                            <div class="song-actions">
+                                <% if (user && (user.email === song.user.email || user.roles === 'Admin')) { %>
+                                    <button class="delete-btn" data-id="<%= song._id %>">❌</button>
+                                <% } %>
+                                <% if (user) { %>
+                                    <button class="fav-btn" data-id="<%= song._id %>">❤️ <%= song.likes.length %></button>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <!-- Right Section: Request & Most Requested -->
+                <div class="right-panel">
+                    <!-- Request a Song -->
+                    <div class="request-container">
+                        <h3>REQUEST A SONG</h3>
+                        <% if (user) { %>
+                            <form id="playlistForm">
+                                <input type="text" id="songTitle" placeholder="Song Title" required>
+                                <input type="text" id="singer" placeholder="Artist" required>
+                                <select id="genre" required>
+                                    <option value="" disabled selected>Genre</option>
+                                    <option value="OPM">OPM</option>
+                                    <option value="Pop">Pop</option>
+                                    <option value="K-pop">K-pop</option>
+                                    <option value="Rock">Rock</option>
+                                    <option value="Hip-hop">Hip-hop</option>
+                                    <option value="Ballad">Ballad</option>
+                                    <option value="Classical">Classical</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                                <button type="submit">SUBMIT</button>
+                            </form>
+                        <% } else { %>
+                            <p style="color: red;">You must be logged in to request a song.</p>
+                            <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>">
+                                <button>Log In</button>
+                            </a>
+                        <% } %>
+                    </div>
+
+                    <!-- Most Requested Songs -->
+                    <div class="most-requested-container">
+                        <h3>MOST REQUESTED SONGS</h3>
+                        <ol>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <!-------------------- FOOTER -------------------->
+            <%- include('../partials/footer.ejs') %>
+        </div>
+    </div>
+
+    <script src="/js/2-user/playlist.js"></script>
+</body>
+</html>

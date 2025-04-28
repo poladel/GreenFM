@@ -1,0 +1,32 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+
+            <!-------------------- CONTENTS START -------------------->
+            <div class="form-title-container">
+                <h3 class="form-title">BLOCKTIMER APPLICATION STATUS</h3>
+            </div>
+
+            <div class="status-container" id="status-container">
+                <!-- Status will be loaded here by JS -->
+                <p>Loading application status...</p>
+            </div>
+            <!-------------------- CONTENTS END -------------------->
+
+        </div>
+    </div>
+
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %>
+
+</div>
+
+<!-- Include a dedicated JS file for this page -->
+<script src="js/2-user/blocktimer3.js"></script>
+<script src="/js/3-logreg/auth.js" defer></script>
+</body>
+
+</html>

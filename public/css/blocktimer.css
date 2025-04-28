@@ -1,0 +1,892 @@
+/* Form Container */
+.form-title-container {
+    position: fixed;
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: -0.8vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    margin-right: 2vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 84vw;
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.form-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
+.form-questions-container {
+    display: flex;
+    flex-direction: column; /* Stack the forms vertically */
+    margin-top: 2vh;/* Ensure space from the title */
+}
+
+.form-container1 {
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 1.5vw;
+    margin-bottom: 1vw;
+    margin-right: 0.2vh;
+    margin-left: 8vh;
+}
+
+.form-container2 {
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1vw;
+    margin-right: 0.2vh;
+    margin-left: 8vh;
+}
+
+.form-container3 {
+    width: 81vw;/* Ensure the forms container doesn't overlap with the sidebar */
+    margin-left: 5.3vw;/* Adjust margin to account for sidebar width */
+    margin-right: 3vh;
+    flex: 1;/* Each form takes equal space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-container4 {
+    width: 81vw;/* Ensure the forms container doesn't overlap with the sidebar */
+    margin-left: 5.3vw;/* Adjust margin to account for sidebar width */
+    margin-right: 2vh;
+    flex: 1;/* Each form takes equal space */
+    padding: 20px;
+}
+
+/* Form elements */
+label {
+    margin: 3px;
+    margin-top: 15px;/* Add space above each label */
+    font-weight: bold;/* Make labels bold */
+    font-size: 16px; /* Smaller font size for labels */
+}
+
+.formnote {
+    margin: 3px;
+    font-size: 13px;
+    color: dimgray;
+}
+
+.name-section .middleinitial{
+    width: 9vh;
+}
+
+textarea {
+    width: 100%; /* Stretch to fill the width of the container */
+    max-height: 200px; /* Set a maximum height */
+    min-height: 80px; /* Optional: set a minimum height for better usability */
+    height: auto; /* Allow height to adjust based on content */
+    padding: 10px; /* Add some padding for aesthetics */
+    font-size: 12px; /* Set a font size */
+    box-sizing: border-box; /* Include padding in width and height calculations */
+    resize: vertical; /* Allow vertical resizing only */
+    border: 1px solid #ccc; /* Optional: Add border styling */
+    border-radius: 5px; /* Optional: Add rounded corners */
+}
+
+input[type="text"] {
+    width: 100%;/* Full width of the container */
+    padding: 10px;/* Add padding inside input */
+    margin: 5px 0;/* Space around inputs */
+    border: 1px solid #ccc; /* Border styling */
+    border-radius: 5px; /* Rounded corners */
+    box-sizing: border-box; /* Ensure padding is included in total width */
+    font-size: 14px; /* Smaller font size for labels */
+}
+
+input[type="email"] {
+    width: 100%;/* Full width of the container */
+    padding: 10px;/* Add padding inside input */
+    margin: 5px 0;/* Space around inputs */
+    border: 1px solid #ccc; /* Border styling */
+    border-radius: 5px; /* Rounded corners */
+    box-sizing: border-box; /* Ensure padding is included in total width */
+    font-size: 14px; /* Smaller font size for labels */
+}
+
+/* Add Button Style */
+.addbutton {
+    background-color: #00722A; /* Green background */
+    color: white; /* White text */
+    padding: 5px 10px; /* Smaller padding */
+    border: none; /* No border */
+    border-radius: 5px; /* Smaller rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 14px; /* Smaller font size */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.addbutton:hover {
+    background-color: #005f23; /* Darker shade on hover */
+}
+
+.radio-group,
+.checkbox-group {
+    margin: 10px 0;/* Space around radio and checkbox groups */
+}
+
+/* Additional Styles for Forms */
+.name-section {
+    display: flex;/* Align input fields in a row */
+    gap: 10px;/* Space between name fields */
+}
+
+.checkbox-group label {
+    display: inline-block;/* Align checkboxes horizontally */
+    width: 70%;/* Adjust width as needed for alignment */
+    box-sizing: border-box;/* Ensure padding is included in total width */
+}
+
+.checkbox-row label {
+    font-weight: normal; /* Remove bold */
+    font-size: 0.9em;    /* Adjust size as needed */
+}
+
+/* Style for radio buttons and checkboxes */
+.radio-group label,
+.checkbox-group label {
+    display: block;/* Ensure labels are block-level for proper spacing */
+    margin: 5px 0;/* Space between each checkbox/radio option */
+}
+
+.bold {
+    font-weight: bold;/* Make text bold */
+}
+
+.radio-group {
+    display: flex;/* Align radio buttons in a row */
+    gap: 5px;/* Reduce space between radio options */
+    margin: 10px 0;/* Margin above and below the group */
+}
+
+.radio-group label {
+    margin: 0;/* Remove margin around labels */
+    font-size: 14px;/* Adjust font size for better visibility */
+}
+
+.radio-label {
+    font-weight: normal;/* Make label text not bold */
+}
+
+.checkbox-row {
+    display: flex;/* Use flexbox to align items horizontally */
+    align-items: center;/* Center items vertically */
+    gap: 5px;/* Reduced gap between checkbox and textbox */
+}
+
+.other-textbox {
+    width: 50px;/* Set a shorter width for the textbox */
+    padding: 5px;/* Add some padding for the textbox */
+    border-radius: 5px;/* Rounded corners for the textbox */
+    border: 1px solid #ccc;/* Border styling */
+    box-sizing: border-box;/* Include padding and border in the element's total width */
+    font-size: 14px;/* Optional: smaller font size for the textbox */
+}
+
+/* Ensure checkbox labels have appropriate spacing */
+.checkbox-group {
+    margin: 10px 0;/* Space above and below the group */
+}
+
+.radio-group {
+    display: grid;/* Use grid for layout */
+    grid-template-columns: repeat(2, 1fr); /* Create two equal columns */
+    gap: 0px;/* Space between items */
+    margin: 10px 0;/* Margin above and below the group */
+}
+
+.radio-item {
+    margin: 3px;
+    display: flex;/* Flexbox for aligning the input and text */
+    align-items: center;/* Center items vertically */
+    font-size: 14px;/* Optional: consistent font size */
+}
+
+.radio-item input[type="radio"] {
+    margin-right: 5px;/* Space between the radio button and the label text */
+}
+
+/* Style for file upload button */
+.file-upload {
+    display: none; /* Hide the default file input */
+}
+
+#signature-upload-container {
+    position: relative; /* Positioning context for the custom button */
+    display: inline-block; /* Inline block to accommodate the button */
+}
+
+.custom-file-upload {
+    display: inline-block; /* Ensure it behaves like a button */
+    background-color: #00722A; /* Button background color */
+    color: white; /* Button text color */
+    padding: 10px 15px; /* Padding for the button */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 14px; /* Font size for the button */
+    text-align: center; /* Center the text inside the button */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+    margin-top: 5px; /* Add space above the button */
+}
+
+.custom-file-upload:hover {
+    background-color: #005f23; /* Darker shade on hover */
+}
+
+/* SUBMIT BUTTON */
+.submit-button {
+    display: flex;/* Use flexbox for alignment */
+    justify-content: flex-end;/* Align to the right */
+    margin-top: 20px;/* Space above the button */
+    margin-right: 6vh;/* Right margin */
+}
+
+.submit {
+    background-color: #00722A;/* Green background */
+    color: white;/* White text */
+    padding: 10px 20px;/* Padding */
+    border: none;/* No border */
+    border-radius: 10px;/* Rounded corners */
+    cursor: pointer;/* Pointer cursor on hover */
+    font-size: 16px;/* Adjust font size as needed */
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;/* Align circles in a row */
+    justify-content: center;/* Center circles horizontally */
+    margin: 20px 0;/* Space above and below */
+    margin-left: 4.5vw;/* Margin from the left */
+    margin-bottom: 0px;
+    position: relative;/* Make it relative for absolute positioning of lines */
+}
+
+/* Circle styles */
+.circle {
+    display: flex;/* Use flexbox to center text */
+    justify-content: center;/* Center text horizontally */
+    align-items: center;/* Center text vertically */
+    width: 8vh;/* Set a fixed width for the circles */
+    height: 8vh;/* Set a fixed height for the circles */
+    border-radius: 50%;/* Make it circular */
+    background-color: #00722A;/* Default circle background color */
+    color: white;/* Text color */
+    font-weight: bold;/* Bold text */
+    margin: 0 50px;/* Adjusted space between circles */
+    font-size: 25px;/* Font size for the number */
+    position: relative;/* Make it relative for lines */
+}
+
+/* Specific circle colors */
+.circle-2, .circle-3 {
+    background-color: #74B88D;
+}
+
+/* Lines connecting circles */
+.circle::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background-color: #00722A;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}
+
+.circle-2::after {
+    background-color: #74B88D; /* Change line color for the second circle */
+}
+
+.circle-3::after {
+    display: none;
+}
+
+/* Style for Remove Button */
+.remove-host, .remove-technical {
+    background-color: #ffffff; /* White background */
+    color: rgb(216, 21, 21); /* Red text */
+    padding: 8px 12px; /* Padding for better size */
+    border: 1px solid rgb(216, 21, 21); /* Red border */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    height: fit-content; /* Adjust height to content */
+    align-self: center; /* Center within the section */
+    margin-top: 0; /* Adjust vertical position */
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s; /* Smooth hover effect */
+}
+
+.remove-host:hover, .remove-technical:hover {
+    background-color: rgb(216, 21, 21); /* Dark red background on hover */
+    border-color: rgb(176, 17, 17); /* Slightly darker red border on hover */
+    color: #ffffff; /* White text on hover */
+}
+
+/* Center the Remove button and inputs in the name section */
+.name-section {
+    display: flex;
+    align-items: center; /* Center elements vertically */
+    gap: 10px; /* Space between inputs and button */
+}
+
+button:disabled {
+    pointer-events: none; /* Ensure the button is not clickable */
+    opacity: 0.5; /* Optional: visually indicate the button is disabled */
+}
+
+/* --- Blocktimer3 Status Page Styles (Fixed & Improved) --- */
+.status-container {
+    margin: 2vh auto 4vh auto;
+    width: 84vw;
+    max-width: 900px;
+    min-height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: 1rem;
+    color: #333;
+    text-align: center;
+    margin-top: 1.5vw;
+}
+
+/* Status Text Style */
+.status-container p {
+    font-size: 1.2rem;
+    color: #555;
+    margin: 0;
+    padding: 10px;
+}
+
+/* Loading Animation (optional enhancement) */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.status-container p.loading {
+    animation: blink 1.5s infinite;
+}
+
+
+/* Media Queries */
+@media screen and (min-width: 1px) and (max-width: 200px) {
+    .form-title-container {
+        margin-left: 26vw;
+        margin-top: -3vw;
+        width: 120vw;
+        border-radius: 8vw;
+    }
+
+    .circle {
+        width: 4vh;
+        height: 4vh;
+        margin-top: 40vw;
+        margin-left: -10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 8vw;
+        margin-left: 15vw;
+        width: 120vw;
+    }
+
+    .submit-button {
+        margin-left: 140vw;
+    }
+
+}
+
+@media screen and (min-width: 201px) and (max-width: 300px) {
+    .form-title-container {
+        margin-left: 19vw;
+        margin-top: -1vw;
+        width: 115vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 25vw;
+        margin-left: -35vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 5vw;
+        width: 100vw;
+    }
+
+    .submit-button {
+        margin-left: 110vw;
+    }
+}
+
+@media screen and (min-width: 301px) and (max-width: 400px) {
+    .form-title-container {
+        margin-left: 16vw;
+        margin-top: 2vw;
+        width: 95vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 95vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 85vw;
+        height: 8vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 15vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 501px) and (max-width: 600px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 701px) and (max-width: 800px) {
+    .form-title-container {
+        margin-left: 20vw;
+        margin-top: 0.5vw;
+        width: 76vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 20vw;
+        width: 71vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .form-title-container {
+        margin-left: 17vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 17vw;
+        width: 75.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .form-title-container {
+        margin-left: 15vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 5vw;
+    }
+
+    .form-title {
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        margin-left: 13vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 15vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 79.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        height: 4vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 7.5vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 170%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 82.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 1401px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 180%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 83.6vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}

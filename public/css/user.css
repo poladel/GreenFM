@@ -1,0 +1,1188 @@
+body {
+    background-color: #EFEFEF;
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-wrap {
+    flex: 1;
+}
+
+.container {
+    margin-left: 9vw;
+    display: block;
+}
+
+/*---SIDEBARS---*/
+.sidebars {
+    z-index: 100;
+    position: fixed;
+    top: 2vh;
+    left: 1vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1vh;
+}
+
+.sidebar, .sidebar1, .sidebar2 {
+    width: 12vw;
+    max-width: 300px;
+    background-color: white;
+    border-radius: 15px;
+    padding: 1vw 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.logo {
+    display: block;
+    margin: 1vh auto;
+    width: 60%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.title {
+    text-align: center;
+    color: #00722A;
+    font-size: 0.9em;
+    margin: 5px 0;
+    font-weight: 550;
+}
+
+.menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    width: 100%;
+}
+
+.menu li {
+    text-align: center;
+    margin: 3px 0;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: #272525;
+    font-weight: 550;
+    font-size: 0.9em;
+    padding: 10px 20px;
+    display: block;
+    transition: color 0.3s, background-color 0.3s;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu li a:hover {
+    color: white;
+    background-color: #00722A;
+    transform: scale(1.05);
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    margin-top: 1vh;
+}
+
+.social-icon {
+    width: 22px;
+    height: auto;
+    margin: 0 8px;
+}
+
+/*---USER SIDEBAR MENU---*/
+.user-sidebar {
+    display: none;
+    width: 50vw;
+    max-width: 100vw;
+    background-color: white;
+    border-radius: 15px;
+    padding: 1vw 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sideuser-icon {
+    width: 1.1vw;
+    height: auto;
+    margin-top: 0.5vw;
+}
+
+.sidelogin-text, .userlogin-text {
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.user-menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    width: 100%;
+}
+
+.user-menu li {
+    text-align: center;
+    margin: 3px 0;
+}
+
+.user-menu a {
+    text-decoration: none;
+    color: #272525;
+    font-weight: 550;
+    font-size: 0.9em;
+    padding: 10px 20px;
+    display: block;
+    transition: color 0.3s, background-color 0.3s;
+    box-sizing: border-box;
+}
+
+.user-menu a:hover {
+    color: white;
+    background-color: #00722A;
+    transform: scale(1.05);
+}
+
+/*---HEADER MENU---*/
+.header-container {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    margin-right: 2vh;
+    padding-bottom: 1vh;
+    background-color: #EFEFEF;
+}
+
+.posts-title-container {
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 70vw;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.posts-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
+.chat-search-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-top: 1vh;
+    margin-left: 1vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 6vw;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.icons-container {
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    width: 20px;
+    height: auto;
+}
+
+/*---USER DROPDOWN---*/
+.user-log-container {
+    background-color: #ffffff;
+    padding: 2px;
+    margin-top: 1vh;
+    margin-left: 1vw;
+    margin-right: 0.1vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 10vw;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.user-container {
+    display: flex;
+    align-items: center;
+    width: 8vw;
+}
+
+.user-icon {
+    width: 20px;
+    height: auto;
+    margin-right: 1vh;
+}
+
+.login-text {
+    font-size: 14px;
+    color: #333;
+    margin-left: 0.5vw;
+}
+
+.user-dropdown {
+    position: relative;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    width: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    border-radius: 10px;
+    top: 3.2vw;
+    left: -2.5vw;
+    margin-top: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.user-dropdown:hover .dropdown-content {
+    display: none;
+}
+
+.dropdown-content a {
+    color: #272525;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+.dropdown-content a:hover {
+    background-color: #00722A;
+    color: white;
+}
+
+.user-icon-dropdown {
+    width: 20px;
+    height: auto;
+    margin-left: -2.5vh;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#login-link {
+    text-decoration: none;
+}
+
+#login-link .login-text {
+    text-decoration: none;
+}
+
+.user-log-container {
+    position: relative;
+    overflow: visible;
+}
+
+.user-container {
+    display: flex;
+    align-items: center;
+    margin-left: 1vw;
+    width: auto;
+}
+
+/*---FOOTER---*/
+footer {
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9em;
+    color: #333;
+    margin-top: auto;
+}
+
+footer a {
+    color: #00722A;
+    text-decoration: none;
+    margin: 0 1vw;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/*---SIDEBAR TOGGLE---*/
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 1vh;
+    left: 1vw;
+    margin-right: 5vw;
+    padding: 8px;
+    background-color: white;
+    color: #00722A;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* ---MEDIA QUERIES--- */
+/* small screens */
+@media screen and (min-width: 1px) and (max-width: 200px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 5vw;
+        margin-left: 5vw;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-left: 3vw;
+        margin-top: 18vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 20vw;
+        min-width: 12vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 8px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2, .user-sidebar {
+        width: auto;
+        max-width: 80vw;
+        min-width: 20vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 280vw;
+        min-height: 80vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 180vw;
+        min-height: 30vw;
+    }
+
+    .menu li a {
+        font-size: 7px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 6vw;
+        min-width: 5vw;
+        height: auto;
+        margin-bottom: 5vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .posts-title-container {
+        margin-left: 4vh;
+        width: 38vw;
+        height: 18vw;
+        border-radius: 10px;
+    }
+
+    .posts-title {
+        font-size: 12px;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 201px) and (max-width: 300px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 5vw;
+        margin-left: 5vw;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-left: 3vw;
+        margin-top: 13vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 18vw;
+        min-width: 13vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 10px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: auto;
+        max-width: 80vw;
+        min-width: 20vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 200vw;
+        min-height: 80vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 80vw;
+        min-height: 30vw;
+    }
+
+    .menu li a {
+        font-size: 8.5px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 5vw;
+        min-width: 3vw;
+        height: auto;
+        margin-bottom: 3vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .posts-title-container {
+        margin-left: 4.5vh;
+        width: 100%;
+        height: 13vw;
+        border-radius: 13px;
+    }
+
+    .posts-title {
+        font-size: 12px;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+/* small screens*/
+@media screen and (min-width: 301px) and (max-width: 400px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 5vw;
+        margin-left: 5vw;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-left: 3vw;
+        margin-top: 12vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 8vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 10px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2, .user-sidebar {
+        width: auto;
+        max-width: 60vw;
+        min-width: 30vw;
+    }
+
+    .sidebar {
+        height: auto;
+        max-height: 85vw;
+        min-height: 50vw;
+    }
+
+    .sidebar1, .sidebar2 {
+        height: auto;
+        max-height: 60vw;
+        min-height: 25vw;
+    }
+
+    .menu li a {
+        font-size: 8.8px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 2vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .posts-title-container {
+        margin-top: 7.8vw;
+        margin-left: 5vh;
+        width: 80%;
+        height: 8.8vw;
+        border-radius: 10px;
+    }
+
+    .posts-title {
+        font-size: 12px;
+    }
+
+    footer {
+        font-size: 6px;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 2.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 10px;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 10vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 11px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2, .user-sidebar {
+        width: auto;
+        max-width: 65vw;
+        min-width: 20vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 9.8px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.7vw;
+        min-width: 1.7vw;
+        height: auto;
+        margin-bottom: 3vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 85%;
+        margin-left: 12vw;
+        height: auto;
+        min-height: 8.5vw;
+        max-height: 9.8vw;
+        border-radius: 13px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 4vw;
+        min-width: 2vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 10px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 501px) and (max-width: 600px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 1.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 11px;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 8.5vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 12px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2, .user-sidebar {
+        width: auto;
+        max-width: 65vw;
+        min-width: 20vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 10px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90%;
+        margin-left: 11vw;
+        height: auto;
+        min-height: 7vw;
+        max-height: 8vw;
+        border-radius: 13px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 12.5px;
+    }
+}
+
+/* small screens */
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .sidebar-toggle {
+        display: block;
+        margin-top: 1.8vw;
+        margin-right: 5vw;
+        margin-left: 2vw;
+        padding: 12px;
+    }
+
+    .sidebars {
+        display: none; /* Hide sidebars by default */
+    }
+
+    /* Add class to show sidebar when toggle button is clicked */
+    .sidebars.active {
+        display: flex;
+        position: absolute;
+        z-index: 100;
+        padding: 10px;
+        margin-top: 8.5vw;
+    }
+
+    .logo {
+        width: auto;
+        max-width: 10vw;
+        min-width: 7vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13.5px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2, .user-sidebar {
+        width: auto;
+        max-width: 70vw;
+        min-width: 20vw;
+        height: auto;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90%;
+        margin-left: 10vw;
+        height: auto;
+        min-height: 6.8vw;
+        max-height: 8vw;
+        border-radius: 13px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        display: none;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 3vw;
+        min-width: 2vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 14px;
+    }
+}
+
+/* medium screens */
+@media screen and (min-width: 701px) and (max-width: 800px) {
+    .logo {
+        width: auto;
+        max-width: 8vw;
+        min-width: 6vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2{
+        margin-left: 1vw;
+        width: auto;
+        max-width: 20vw;
+        min-width: 15vw;
+        height: auto;
+    }
+
+    .user-sidebar {
+        display: none;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 80vw;
+        margin-left: 19.5vw;
+        height: auto;
+        min-height: 6.8vw;
+        max-height: 7.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 5vw;
+        max-height: 6vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 13px;
+    }
+    
+    .dropdown-content a {
+        font-size: 12px;
+    }
+
+    .dropdown-content {
+        margin-top: 4vw;
+        margin-left: -2vw;
+        width: 16.7vw;
+    }
+}
+
+/* medium screens */
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .logo {
+        width: auto;
+        max-width: 8vw;
+        min-width: 6vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        margin-left: 1vw;
+        width: auto;
+        max-width: 17vw;
+        min-width: 12vw;
+        height: auto;
+    }
+
+    .user-sidebar {
+        display: none;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90vw;
+        margin-left: 16.5vw;
+        height: auto;
+        min-height: 5.8vw;
+        max-height: 6.8vw;
+        border-radius: 15px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 30vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 4.2vw;
+        max-height: 5.2vw;
+        border-radius: 15px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 15px;
+    }
+
+    .dropdown-content {
+        margin-top: 3vw;
+        margin-left: -2vw;
+        width: 16vw;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .logo {
+        width: auto;
+        max-width: 7vw;
+        min-width: 5vw;
+        height: auto;
+    }
+
+    .title {
+        font-size: 13px;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        margin-left: 0.3vw;
+        width: auto;
+        max-width: 15vw;
+        min-width: 10vw;
+        height: auto;
+    }
+
+    .user-sidebar {
+        display: none;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .social-icon {
+        width: auto;
+        max-width: 2.3vw;
+        min-width: 1.5w;
+        height: auto;
+        margin-bottom: 1vw;
+    }
+
+    .container {
+        margin-left: 0;
+    }
+
+    .posts-title-container {
+        width: 90vw;
+        margin-left: 14.8vw;
+        height: auto;
+        min-height: 5vw;
+        max-height: 6vw;
+        border-radius: 13px;
+    }
+    
+    .chat-search-container, .user-log-container {
+        width: 20vw;
+        margin-left: 1vw;
+        padding: 1vw;
+        height: auto;
+        min-height: 3.3vw;
+        max-height: 4.3vw;
+        border-radius: 13px;
+    }
+
+    .icon, .user-icon {
+        width: auto;
+        max-width: 2vw;
+        min-width: 1vw;
+        height: auto;
+    }
+
+    .posts-title, .login-text {
+        font-size: 15px;
+    }
+
+    .dropdown-content a {
+        font-size: 14px;
+    }
+
+    .dropdown-content {
+        margin-top: 2vw;
+        margin-left: -1vw;
+        width: 13.5vw;
+    }
+}
+
+/* large screens */
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .user-sidebar {
+        display: none;
+    }
+
+    .dropdown-content a {
+        font-size: 13px;
+    }
+
+    .dropdown-content {
+        margin-top: 0.8vw;
+        width: 9.5vw;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: 11vw;
+        max-width: 300px;
+    }
+
+    .logo {
+        width: 50%;
+    }
+
+    .menu li a {
+        font-size: 12px;
+    }
+
+    .posts-title-container {
+        margin-left: 4vw;
+    }
+
+    .posts-title {
+        font-size: 14px;
+    }
+}
+
+/* large screens */
+@media screen and (min-width: 1401px) {
+    .user-sidebar {
+        display: none;
+    }
+
+    .dropdown-content a {
+        font-size: 14px;
+    }
+
+    .dropdown-content {
+        margin-top: -1vh;
+        margin-left: -1.5vh;
+        width: 17vh;
+    }
+
+    .sidebar, .sidebar1, .sidebar2 {
+        width: 11vw;
+        max-width: 300px;
+    }
+
+    .logo {
+        width: 40%;
+    }
+
+    .menu li a {
+        font-size: 13px;
+    }
+
+    .posts-title-container {
+        margin-left: 3.5vw;
+    }
+}

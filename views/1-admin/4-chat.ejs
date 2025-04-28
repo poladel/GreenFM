@@ -1,0 +1,73 @@
+<%- include('../partials/header.ejs') %>
+<body data-user-id="<%= user._id %>">
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
+
+                <!-------------------- HEADER MENUS -------------------->   
+                <%- include('../partials/menu.ejs') %>
+
+                <!-------------------- CONTENTS START -------------------->
+                <div class="chat-wrapper">
+                    <!-- Sidebar -->
+                    <div class="chat-sidebar">
+                        <h4><button id="open-new-chat" type="button">Start New Chat</button></h4>
+                        <h2>Inbox</h2>
+                        <% chats.forEach(chat => { %>
+                            <div class="chat-room" data-id="<%= chat._id %>">
+                                <% if (chat.isGroupChat) { %>
+                                    <strong>[Group]</strong> <%= chat.groupName %>
+                                <% } else { %>
+                                    <%= chat.users.find(u => u._id.toString() !== user._id.toString())?.username %>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div class="chat-area">
+                        <div id="messages"></div>
+                        <form id="message-form">
+                            <input id="message-input" type="text" placeholder="Type your message..." />
+                            <button type="submit">Send</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Start New Chat Modal -->
+                <div id="new-chat-modal">
+                    <h3>Start New Chat</h3>
+
+                    <form id="new-chat-form">
+                        <input type="text" id="group-name" placeholder="Group Name (optional)"/>
+
+                        <input type="text" id="user-search" placeholder="Search users..."/>
+
+                        <div id="user-list">
+                            <% users.forEach(u => { %>
+                                <div class="user-checkbox">
+                                    <label>
+                                        <input type="checkbox" name="userIds" value="<%= u._id %>">
+                                        <%= u.username %> (<%= u.roles %>)
+                                    </label>
+                                </div>
+                            <% }) %>
+                        </div>
+
+                        <button type="submit">Start Chat</button>
+                        <button type="button" id="close-modal">Cancel</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <!-------------------- FOOTER -------------------->
+        <%- include('../partials/footer.ejs') %>
+        
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/1-admin/chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="page-container">
+    <div class="content-wrap">
+        <div class="container">
+            <%- include('../partials/nav.ejs') %>
+            <%- include('../partials/menu.ejs') %>
+
+            <!-------------------- POST COMPONENT -------------------->
+            <div class="post-container">
+                <textarea class="post-textbox" placeholder="Write something..."></textarea>
+                <div class="post-options">
+                    <button class="post-option-button">
+                        <img src="../img/image.png" alt="Add Image" class="option-icon">
+                    </button>
+                    <button class="post-option-button">
+                        <img src="../img/document.png" alt="Add Document" class="option-icon">
+                    </button>
+                    <button type="button" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
+                </div>
+            </div>
+
+            <!-- Modal for post confirmation -->
+            <div id="loginPopup" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-button">&times;</span>
+                    <p>Please sign in to continue.</p>
+                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+                        <button type="submit">Log In</button>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %>
+</div>
+
+<script src="js/2-user/forum.js"></script>
+
+
+
+</body>
+</html>

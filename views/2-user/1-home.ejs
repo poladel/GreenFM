@@ -1,0 +1,165 @@
+<%- include('../partials/header.ejs') %>
+<div id="toast" class="toast"></div>
+
+<style>
+.toast {
+  visibility: hidden;
+  min-width: 200px;
+  margin-left: -100px;
+  background-color: #e74c3c;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  bottom: 30px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.5s ease, bottom 0.5s ease;
+}
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px;
+}
+</style>
+
+<body>
+    <div class="page-container">
+        <div class="content-wrap">
+            <div class="container">
+                <%- include('../partials/nav.ejs') %>
+
+                <!-------------------- HEADER MENUS -------------------->   
+                <%- include('../partials/menu.ejs') %>
+
+                <!-------------------- CONTENTS START -------------------->               
+                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                <div class="post-container">
+                    <form id="post-form" enctype="multipart/form-data">
+                        <!-- New title input -->
+                        <input type="text" id="post-title" name="title" placeholder="Enter post title..." required>
+
+                        <!-- Content textarea -->
+                        <textarea name="text" class="post-textbox" placeholder="Write something..." required></textarea>
+    
+                        <!-- Hidden file inputs -->
+                        <input type="file" id="image-input" name="media" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="video-input" name="video" accept="video/*" style="display: none;">
+    
+                        <!-- Preview area -->
+                        <div id="preview-container"></div>
+    
+                        <div class="post-options">
+                            <button type="button" class="post-option-button" id="add-image-button">
+                                <img src="../img/image.png" alt="Add Image" class="option-icon">
+                            </button>
+                            <button type="button" class="post-option-button" id="add-video-button">
+                                <img src="../img/video.png" alt="Add Video" class="option-icon">
+                            </button>
+                            <button type="submit" class="post-button">Post</button>
+                        </div>
+                    </form>
+                </div>
+                <% } %>
+
+                <!---Search & Filter-->
+                <div class="post-filters">
+                    <input type="text" id="searchInput" placeholder="Search posts...">
+                                    
+                    <select id="filterMonth">
+                        <option value="">Month</option>
+                            <% for (let m = 0; m < 12; m++) { %>
+                                <option value="<%= m %>"><%= new Date(2000, m).toLocaleString('default', { month: 'long' }) %></option>
+                            <% } %>
+                    </select>
+                                
+                    <select id="filterYear">
+                        <option value="">Year</option>
+                            <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
+                                <option value="<%= y %>"><%= y %></option>
+                            <% } %>
+                    </select>
+                                
+                    <button id="filterBtn">Filter</button>
+                </div>  
+                
+                <!-- Posts will be displayed here -->
+                    <div id="posts-container">
+                        <%- include('../partials/postList.ejs', { posts, user }) %>
+                    </div>                                            
+
+                <!-- Right Column (Live Now + Schedule) -->
+                <div class="right-sidebar">
+                    <!-- Live Now! -->
+                    <div class="live-now-container">
+                        <!-- Top-right status button for Admin/Staff only -->
+                        <% if (user && (user.roles === 'Admin' || user.roles.includes('Admin') || user.roles === 'Staff' || user.roles.includes('Staff'))) { %>
+                            <button onclick="openStatusModal()" class="status-btn">Status</button>
+                        <% } %>
+                    
+                        <!-- Live Status Display -->
+                        <div id="live-now-content">
+                            <span id="status-indicator" class="status-offline">OFFLINE</span>
+                            <p id="live-now-subtext">No live broadcast available.</p>
+                        </div>
+                        <a id="live-now-link" href="/live" class="go-live-button" style="display: none;">GO TO LIVE</a>
+                    </div>                                                      
+
+                    <!-- Schedule -->
+                    <div class="schedule-container">
+                        <div class="schedule-header">
+                            <h3>Today's Lives</h3>
+                        </div>
+                        <ul id="schedule-list">
+                            <!-- This will be dynamically populated by JavaScript -->
+                            <li>Loading schedule...</li>
+                        </ul>
+                    </div>
+
+                    <!-- Editable Form (hidden by default)
+                    <form id="schedule-form" style="display: none;">
+                        <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                            <div class="schedule-day" data-day="<%= day %>">
+                                <label><%= day %></label>
+                                <div class="slots"></div>
+                                <button type="button" class="add-slot-btn">+ Add Slot</button>
+                            </div>
+                        <% }); %>
+                        <button type="submit" class="save-schedule-button">Save</button>
+                    </form>
+                </div>  -->
+
+                <!-- Modal -->
+                <div id="media-modal" class="media-modal">
+                    <span class="close-modal">&times;</span>
+                    <div class="modal-content">
+                        <button class="nav-arrow left-arrow">&#10094;</button>
+                        <img id="modal-image" class="modal-media" style="display: none;">
+                        <video id="modal-video" class="modal-media" controls style="display: none;"></video>
+                        <button class="nav-arrow right-arrow">&#10095;</button>
+                    </div>
+                </div>
+
+                <div id="status-modal" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3>Set Live Status</h3>
+                        <button onclick="setStatus(true)" class="modal-button live">Set Live</button>
+                        <button onclick="setStatus(false)" class="modal-button offline">Set Offline</button>
+                        <button onclick="closeStatusModal()" class="modal-close">Cancel</button>
+                    </div>
+                </div>  
+    
+            </div>
+        </div>
+
+        <!-------------------- FOOTER -------------------->
+        <%- include('../partials/footer.ejs') %>
+        
+        <script src="js/2-user/home.js"></script>
+
+    </div>
+</body>
+</html>

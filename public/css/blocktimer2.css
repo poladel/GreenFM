@@ -1,0 +1,812 @@
+/* Form Container */
+.blocktimerForm2-title-container {
+    position: fixed;
+    background-color: #ffffff;
+    padding: 2px;
+    text-align: left;
+    margin-top: -0.8vh;
+    margin-bottom: 1vh;
+    margin-left: 5vw;
+    margin-right: 2vw;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    width: 84vw;
+    height: 50px;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.form-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-left: 20px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;/* Align circles in a row */
+    justify-content: center;/* Center circles horizontally */
+    margin: 20px 0;/* Space above and below */
+    margin-left: 4.5vw;/* Margin from the left */
+    margin-bottom: 0px;
+    position: relative;/* Make it relative for absolute positioning of lines */
+}
+
+/* Circle styles */
+.circle {
+    display: flex;/* Use flexbox to center text */
+    justify-content: center;/* Center text horizontally */
+    align-items: center;/* Center text vertically */
+    width: 8vh;/* Set a fixed width for the circles */
+    height: 8vh;/* Set a fixed height for the circles */
+    border-radius: 50%;/* Make it circular */
+    background-color: #00722A;/* Default circle background color */
+    color: white;/* Text color */
+    font-weight: bold;/* Bold text */
+    margin: 0 50px;/* Adjusted space between circles */
+    font-size: 25px;/* Font size for the number */
+    position: relative;/* Make it relative for lines */
+}
+
+/* Specific circle colors */
+.circle-1, .circle-3 {
+    background-color: #74B88D;
+}
+
+/* Lines connecting circles */
+.circle::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background-color: #00722A;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}
+
+.circle-2::after {
+    background-color: #00722A; /* Change line color for the second circle */
+}
+
+.circle-3::after {
+    display: none;
+}
+
+/* Form Content Layout */
+.form-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align containers vertically */
+    margin-top: 2vh;
+    gap: 1.5vh; /* Space between containers */
+    flex-direction: row; /* Place containers side by side */
+}
+
+/* Summary Container */
+.summary-container {
+    background-color: #ffffff;
+    width: 40%; /* Adjusted width */
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    margin-left: 8vh;
+}
+
+.summary-details {
+    margin-bottom: 1vh;
+}
+
+.summary-space {
+    margin-bottom: 3vh;
+}
+
+/* Date and Time Container */
+.date-time-container {
+    background-color: #ffffff;
+    width: 60%; /* Adjusted width */
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    margin-right: 3vh;
+}
+
+.date-time-fields {
+    margin-bottom: 1vh;
+}
+
+/* See Full Schedule Button */
+.see-schedule-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #00722A;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 3vh;
+}
+
+.see-schedule-btn:hover {
+    background-color: #00591f;
+}
+
+/* SUBMIT BUTTON */
+.submit-button {
+    display: flex;/* Use flexbox for alignment */
+    justify-content: flex-end;/* Align to the right */
+    margin-top: 20px;/* Space above the button */
+    margin-right: 6vh;/* Right margin */
+}
+
+.submit {
+    background-color: #00722A;/* Green background */
+    color: white;/* White text */
+    padding: 10px 20px;/* Padding */
+    border: none;/* No border */
+    border-radius: 10px;/* Rounded corners */
+    cursor: pointer;/* Pointer cursor on hover */
+    font-size: 16px;/* Adjust font size as needed */
+}
+
+/* Schedule Table */
+.schedule-container {
+    background-color: #ffffff;
+    width: 75vw;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+    margin-top: 1vw;
+    margin-left: -2vh;
+    border-radius: 15px;
+}
+
+.schedule-table {
+    width: 100%;
+    max-width: 80vw; /* Adjusted to make the table smaller */
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.schedule-table thead th {
+    background-color: #fff;
+    color: #333;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.schedule-table .time {
+    background-color: #fff;
+    color: #333;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    width: 15%; /* Reduced width for the time column */
+}
+
+.schedule-table tbody td {
+    width: 18%; /* Adjusted width to balance with the reduced time column */
+    padding: 5px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.schedule-table .permasched {
+    background-color: #e7e7e7;
+    color: #797979;
+    cursor: not-allowed;
+    font-size: 11px;
+    max-height: 3vw;
+    pointer-events: none; /* disables hover effects */
+}
+
+.schedule-table .schedulebtn {
+    background-color: #e7e7e7;
+    color: #797979;
+    font-size: 11px;
+    max-height: 3vw;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.schedule-table button {
+    background-color: #1E8449;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+}
+
+.schedule-table button:hover {
+    background-color: #145A32;
+}
+
+.schedule-table .availablebtn:disabled {
+    background-color: #e7e7e7;
+    border: 2px solid #1E8449;
+    color: #1E8449;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: not-allowed;
+    pointer-events: none; /* Ensure the button is not clickable */
+}
+
+/* Style for Station Sign On/Off and Angelus rows */
+.station-sign-on, .station-sign-off, .angelus {
+    position: relative;
+    text-align: center;
+    color: #9e9e9e;
+    padding: 10px 0;
+}
+
+/* Add lines on each side */
+.station-sign-on::before,
+.station-sign-on::after,
+.station-sign-off::before,
+.station-sign-off::after,
+.angelus::before,
+.angelus::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%; /* Adjust length of line */
+    height: 1px;
+    background-color: #bebebe; /* Line color */
+}
+
+/* Positioning for left and right lines */
+.station-sign-on::before, .station-sign-off::before, .angelus::before {
+    left: 0;
+}
+
+.station-sign-on::after, .station-sign-off::after, .angelus::after {
+    right: 0;
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    margin: 5vh auto; /* Center vertically */
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%; /* Adjust width as needed */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close-btn:hover,
+  .close-btn:focus {
+    color: #000;
+    text-decoration: none;
+  }  
+
+/* Media Queries */
+@media screen and (min-width: 1px) and (max-width: 200px) {
+    .form-title-container {
+        margin-left: 26vw;
+        margin-top: -3vw;
+        width: 120vw;
+        border-radius: 8vw;
+    }
+
+    .circle {
+        width: 4vh;
+        height: 4vh;
+        margin-top: 40vw;
+        margin-left: -10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 8vw;
+        margin-left: 15vw;
+        width: 120vw;
+    }
+
+    .submit-button {
+        margin-left: 140vw;
+    }
+
+}
+
+@media screen and (min-width: 201px) and (max-width: 300px) {
+    .form-title-container {
+        margin-left: 19vw;
+        margin-top: -1vw;
+        width: 115vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 25vw;
+        margin-left: -35vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 5vw;
+        width: 100vw;
+    }
+
+    .submit-button {
+        margin-left: 110vw;
+    }
+}
+
+@media screen and (min-width: 301px) and (max-width: 400px) {
+    .form-title-container {
+        margin-left: 16vw;
+        margin-top: 2vw;
+        width: 95vw;
+        border-radius: 5vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 95vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 20vw;
+        margin-left: 10vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 401px) and (max-width: 500px) {
+    .form-title-container {
+        margin-left: 12vw;
+        margin-top: 1vw;
+        width: 85vw;
+        height: 8vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 15vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 501px) and (max-width: 600px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .form-title-container {
+        margin-left: 10vw;
+        margin-top: 0.5vw;
+        width: 87vw;
+        height: 7vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        display: none;
+    }
+
+    .circle::after {
+        display: none;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 2vw;
+        width: 90vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 701px) and (max-width: 800px) {
+    .form-title-container {
+        margin-left: 20vw;
+        margin-top: 0.5vw;
+        width: 76vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 20vw;
+        width: 71vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 801px) and (max-width: 900px) {
+    .form-title-container {
+        margin-left: 17vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 7vw;
+    }
+
+    .progress-bar {
+        margin-left: 15vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 12vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container {
+        display: contents;
+    }
+
+    .form-container1, .form-container2, 
+    .form-container3, .form-container4{
+        margin-top: 5vw;
+        margin-left: 17vw;
+        width: 75.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1000px) {
+    .form-title-container {
+        margin-left: 15vw;
+        margin-top: 0.5vw;
+        width: 80vw;
+        height: 5vw;
+    }
+
+    .form-title {
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        margin-left: 13vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 8vw;
+        margin-left: 1vw;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 15vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 79.5vw;
+    }
+
+    .submit-button {
+        margin-left: 95vw;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 1400px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        height: 4vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 7.5vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 6vh;
+        height: 6vh;
+        margin-top: 6vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 170%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 82.5vw;
+    }
+
+    .submit-button {
+        margin-right: 3vh;
+    }
+}
+
+@media screen and (min-width: 1401px) {
+    .form-title-container {
+        margin-left: 4vw;
+        width: 85.5vw;
+        border-radius: 15px;
+    }
+
+    .form-title {
+        font-size: 13px;
+    }
+
+    .progress-bar {
+        margin-left: -1vw;
+    }
+
+    .circle {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 6vw;
+    }
+
+    .circle-2, .circle-3 {
+        width: 5vh;
+        height: 5vh;
+        margin-top: 5vw;
+        margin-left: 1vw;
+    }
+
+    .circle::after, .circle-2::after, .circle-3::after {
+        width: 180%;
+    }
+
+    .forms-container, .form-container3, .form-container4 {
+        margin-left: 4.2vw;
+    }
+
+    .forms-container {
+        width: 85.5vw;
+    }
+
+    .form-container3, .form-container4{
+        width: 83.6vw;
+    }
+
+    .submit-button {
+        margin-right: 3vh;
+    }
+}

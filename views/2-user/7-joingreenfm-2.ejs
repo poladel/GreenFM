@@ -1,0 +1,114 @@
+<%- include('../partials/header.ejs') %>
+
+  <div class="page-container">
+    <div class="content-wrap">
+      <div class="container">
+        <%- include('../partials/nav.ejs') %>
+
+          <!-- HEADER -->
+          <div class="form-title-container">
+            <h3 class="form-title">JOIN GREEN FM</h3>
+          </div>
+
+          <!-- PROGRESS BAR -->
+          <div class="progress-bar">
+            <div class="circle circle-1">1</div>
+            <div class="circle circle-2">2</div>
+            <div class="circle circle-3">3</div>
+          </div>
+
+          <form id="joingreenfmForm2" method="POST" action="/JoinGFM-Step2">
+
+            <!-- ADD HIDDEN INPUTS HERE -->
+            <input type="hidden" id="preferredDepartmentHidden" value="<%= applicationData?.preferredDepartment || '' %>">
+            <input type="hidden" id="currentYearHidden" value="<%= currentYear || '' %>">
+            <!-- END HIDDEN INPUTS -->
+             
+            <div class="form-content">
+              <!-- Summary Container -->
+              <div class="summary-container">
+                <h4 class="summary-title">Summary</h4>
+                <div class="summary-details">
+                  <label class="summary-label">Full Name:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.lastName || '' %>,
+                      <%= applicationData?.firstName || '' %>
+                        <%= applicationData?.mi || '' %>
+                          <%= applicationData?.suffix || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">DLSU-D Email:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.dlsudEmail || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">College:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.college || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">Program:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.program || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">College Year:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.collegeYear || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">Section:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.section || '' %>
+                  </span>
+                </div>
+                <div class="summary-details">
+                  <label class="summary-label">Preferred Department:</label>
+                  <span class="summary-value">
+                    <%= applicationData?.preferredDepartment || '' %>
+                  </span>
+                </div>
+                <div class="summary-space"></div>
+              </div>
+
+              <!-- Date and Time Container -->
+              <div class="date-time-container">
+                <h4 class="date-time-title">Select Date & Time</h4>
+                <div class="date-time-fields">
+                  <label for="preferredDate">Preferred Date:</label>
+                  <select id="preferredDate" name="preferredSchedule[date]" required>
+                      <!-- Options populated dynamically or statically -->
+                  </select>
+                </div>
+                <div class="date-time-fields">
+                  <label for="preferredTime">Preferred Time:</label>
+                  <select id="preferredTime" name="preferredSchedule[time]" required disabled>
+                      <!-- Options populated dynamically or statically -->
+                      <option value="" disabled selected>Select a date first</option>
+                      <option value="7:00-8:00">7:00 AM - 8:00 AM</option>
+                      <option value="8:00-9:00">8:00 AM - 9:00 AM</option>
+                      <!-- ... other time slots ... -->
+                  </select>
+                </div>
+                <div class="summary-space"></div>
+              </div>
+            </div>
+
+            <div class="submit-button">
+              <button type="submit" class="submit">NEXT</button>
+            </div>
+          </form>
+
+          <!-------------------- FOOTER -------------------->
+          <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+  <script src="js/2-user/joingreenfm2.js"></script>
+  </body>
+</html>

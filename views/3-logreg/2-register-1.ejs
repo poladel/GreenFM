@@ -1,0 +1,49 @@
+<%- include('../partials/header-logreg.ejs') %>
+
+<div class="register-container">
+  <div class="register-box">
+    <span class="back-to-home" onclick="goBack()">
+      <img src="img/back.png" alt="Back to Home" class="back-icon">
+    </span>
+    <a href="/Home"><img src="img/GFMLogo.png" alt="Green FM Logo" class="logo"></a>
+    <h2 class="register-title">Create an Account</h2>
+
+    <!-- Registration Form -->
+    <form id="registerForm" class="register-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="on" required>
+        <div class="email-error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="off" required>
+        <div class="username-error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <div class="password-validation" id="passwordValidation">
+          <ul>
+            <li id="password-length" class="password-requirement">Must be at least 8 characters long.</li>
+            <li id="password-uppercase" class="password-requirement">Must contain at least one uppercase letter.</li>
+            <li id="password-lowercase" class="password-requirement">Must contain at least one lowercase letter.</li>
+            <li id="password-number" class="password-requirement">Must contain at least one number.</li>
+            <li id="password-special" class="password-requirement">Must contain at least one special character.</li>
+          </ul>
+        </div>
+        <div class="password-error"></div>
+      </div>
+      <button type="submit" class="register-button">Register</button>
+    </form>
+
+    <div class="footer-links">
+      <a id="login-link" onclick="goBack()">Already have an account? Log in</a>
+    </div>
+  </div>
+</div>
+<script src="js/3-logreg/register.js"></script>
+</body>
+</html>
