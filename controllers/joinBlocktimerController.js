@@ -246,7 +246,7 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
             },
             schoolYear: schoolYear, // Add schoolYear from Step 2
             submittedBy: req.user.email, // Add user identifier
-            result: 'Pending' // Explicitly set initial result
+            result: 'pending' // Explicitly set initial result
         };
 
         // Create and save the new submission document
@@ -276,18 +276,18 @@ module.exports.joinBlocktimer2_post = async (req, res) => {
                 schoolYear: newSubmission.schoolYear,
                 showTitle: newSubmission.showDetails?.title,
                 day: newSubmission.preferredSchedule?.day,
-                time: newSubmission.preferredSchedule?.time
+                time: newSubmission.preferredSchedule?.time,
+                submissionId: newSubmission._id // <<< ADD THIS LINE
             });
+            console.log(`Emitted scheduleUpdate (pending) for new submission ${newSubmission._id}`); // Optional: Log confirmation
 
             // 2. For the submissions list update
             req.io.emit('newSubmission', {
-                submissionId: newSubmission._id,
-                showTitle: newSubmission.showDetails?.title,
-                submittedBy: newSubmission.submittedBy,
-                schoolYear: newSubmission.schoolYear,
-                result: newSubmission.result,
-                preferredDay: newSubmission.preferredSchedule?.day,
-                preferredTime: newSubmission.preferredSchedule?.time
+                // ... existing newSubmission payload ...
+                // Consider adding _id here too if the handler needs it directly
+                 _id: newSubmission._id, // Optional, depending on 'newSubmission' handler needs
+                 submissionId: newSubmission._id, // Or use this key consistently
+                // ...
             });
         } else {
             console.warn("Socket.io instance (req.io) not found in joinBlocktimerController.joinBlocktimer2_post. Cannot emit events.");

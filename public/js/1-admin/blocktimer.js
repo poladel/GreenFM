@@ -906,89 +906,96 @@ document.addEventListener('DOMContentLoaded', async () => {
             const day = targetButton.dataset.day;
             const time = targetButton.dataset.time;
             const scheduleId = targetButton.dataset.scheduleId;
-            const pendingSubmissionId = targetButton.dataset.pendingSubmissionId;
+            const pendingSubmissionId = targetButton.dataset.pendingSubmissionId; // Retrieve ID
 
             // --- Handle PENDING button click ---
-            if (pendingSubmissionId && targetButton.classList.contains('pendingbtn')) {
-                console.log("--- Pending Button Click ---");
-                console.log("Submission ID:", pendingSubmissionId);
-                showSpinner(); // Show spinner early
+            // <<< MODIFY THIS BLOCK >>>
+            if (targetButton.classList.contains('pendingbtn')) { // Check class first
+                // THEN check if ID exists and is not undefined/empty
+                if (pendingSubmissionId && pendingSubmissionId !== 'undefined') {
+                    console.log("--- Pending Button Click ---");
+                    console.log("Submission ID:", pendingSubmissionId); // Should have a valid ID here
+                    showSpinner();
+                    try {
+                        // 1. Get Element References (Check if they exist)
+                        const submissionsTabButton = document.querySelector('.tab-button[data-tab="submissions-tab"]');
+                        const scheduleTabButton = document.querySelector('.tab-button[data-tab="schedule-tab"]');
+                        const submissionsTabPane = document.getElementById('submissions-tab');
+                        const scheduleTabPane = document.getElementById('schedule-tab');
+                        const currentScheduleYear = document.getElementById("schoolYear")?.value; // Get year from schedule tab
 
-                try {
-                    // 1. Get Element References (Check if they exist)
-                    const submissionsTabButton = document.querySelector('.tab-button[data-tab="submissions-tab"]');
-                    const scheduleTabButton = document.querySelector('.tab-button[data-tab="schedule-tab"]');
-                    const submissionsTabPane = document.getElementById('submissions-tab');
-                    const scheduleTabPane = document.getElementById('schedule-tab');
-                    const currentScheduleYear = document.getElementById("schoolYear")?.value; // Get year from schedule tab
+                        if (!submissionsTabButton || !scheduleTabButton || !submissionsTabPane || !scheduleTabPane) {
+                            throw new Error("Tab switching elements not found.");
+                        }
+                        if (!submissionSchoolYearDropdown) {
+                             throw new Error("Submission school year dropdown not found.");
+                        }
+                         if (!resultFilter) {
+                             throw new Error("Result filter dropdown not found.");
+                        }
+                        if (!currentScheduleYear) {
+                             throw new Error("Could not determine current schedule year.");
+                        }
 
-                    if (!submissionsTabButton || !scheduleTabButton || !submissionsTabPane || !scheduleTabPane) {
-                        throw new Error("Tab switching elements not found.");
+                        console.log("Current Schedule Year:", currentScheduleYear);
+
+                        // 2. Set Dropdown/Filter Values FIRST
+                        submissionSchoolYearDropdown.value = currentScheduleYear;
+                        resultFilter.value = "Pending"; // Set filter to Pending
+                        console.log("Set Submission Year Dropdown to:", submissionSchoolYearDropdown.value);
+                        console.log("Set Result Filter to:", resultFilter.value);
+
+
+                        // 3. Switch Tabs Visually
+                        scheduleTabButton.classList.remove('active');
+                        scheduleTabPane.classList.remove('active');
+                        submissionsTabButton.classList.add('active');
+                        submissionsTabPane.classList.add('active');
+                        console.log("Switched to Submissions tab.");
+
+                        // 4. Load Submissions (Await this to ensure table is populated before selecting)
+                        console.log("Loading submissions...");
+                        await loadSubmissions(); // This uses the values set in step 2
+                        console.log("Submissions loaded.");
+
+                        // 5. Select the specific submission (Await this to populate the form)
+                        console.log("Selecting submission:", pendingSubmissionId);
+                        await selectSubmission(pendingSubmissionId); // Call with the valid ID
+                        console.log("Submission selected and form populated.");
+
+                        // 6. Scroll to the submission form
+                        const subForm = document.getElementById('submission-form');
+                        if (subForm) {
+                            subForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            console.log("Scrolled to submission form.");
+                        } else {
+                            console.warn("Submission form not found for scrolling.");
+                        }
+
+                    } catch (error) {
+                        console.error("Error handling pending button click:", error);
+                        alert(`Error processing request: ${error.message}`);
+                    } finally {
+                        hideSpinner();
                     }
-                    if (!submissionSchoolYearDropdown) {
-                         throw new Error("Submission school year dropdown not found.");
-                    }
-                     if (!resultFilter) {
-                         throw new Error("Result filter dropdown not found.");
-                    }
-                    if (!currentScheduleYear) {
-                         throw new Error("Could not determine current schedule year.");
-                    }
-
-                    console.log("Current Schedule Year:", currentScheduleYear);
-
-                    // 2. Set Dropdown/Filter Values FIRST
-                    submissionSchoolYearDropdown.value = currentScheduleYear;
-                    resultFilter.value = "Pending"; // Set filter to Pending
-                    console.log("Set Submission Year Dropdown to:", submissionSchoolYearDropdown.value);
-                    console.log("Set Result Filter to:", resultFilter.value);
-
-
-                    // 3. Switch Tabs Visually
-                    scheduleTabButton.classList.remove('active');
-                    scheduleTabPane.classList.remove('active');
-                    submissionsTabButton.classList.add('active');
-                    submissionsTabPane.classList.add('active');
-                    console.log("Switched to Submissions tab.");
-
-                    // 4. Load Submissions (Await this to ensure table is populated before selecting)
-                    console.log("Loading submissions...");
-                    await loadSubmissions(); // This uses the values set in step 2
-                    console.log("Submissions loaded.");
-
-                    // 5. Select the specific submission (Await this to populate the form)
-                    console.log("Selecting submission:", pendingSubmissionId);
-                    await selectSubmission(pendingSubmissionId); // Pass only ID, selectSubmission fetches details
-                    console.log("Submission selected and form populated.");
-
-                    // 6. Scroll to the submission form
-                    const subForm = document.getElementById('submission-form');
-                    if (subForm) {
-                        subForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        console.log("Scrolled to submission form.");
-                    } else {
-                        console.warn("Submission form not found for scrolling.");
-                    }
-
-                } catch (error) {
-                    console.error("Error handling pending button click:", error);
-                    alert(`Error processing request: ${error.message}`);
-                } finally {
-                    hideSpinner(); // Hide spinner regardless of success/failure
+                } else {
+                    // Log an error if the button has the class but no valid ID
+                    console.error("Pending button clicked, but pendingSubmissionId dataset is missing or invalid!", targetButton.dataset);
+                    alert("Error: Could not retrieve submission details for this pending slot. The associated ID is missing.");
+                    // Optionally hide spinner if shown earlier, though unlikely here
+                    // hideSpinner();
                 }
-
             }
+            // <<< END MODIFICATION >>>
             // --- Handle ACCEPTED/CONFIRMATION button click (Open Schedule Modal) ---
-            // Check for scheduleId and the specific classes
             else if (scheduleId && (targetButton.classList.contains('schedulebtn') || targetButton.classList.contains('confirmationbtn'))) {
                 console.log("Booked/Pending Confirmation button clicked, schedule ID:", scheduleId);
-                openScheduleModal(targetButton); // This should now be called correctly
+                openScheduleModal(targetButton);
             }
             // --- Handle AVAILABLE button click (Open Schedule Modal for Creation) ---
-            // Check it's not pending, booked, or confirmation
             else if (!scheduleId && !pendingSubmissionId && !targetButton.classList.contains('schedulebtn') && !targetButton.classList.contains('confirmationbtn') && !targetButton.classList.contains('pendingbtn')) {
                  console.log("Available button clicked, Day:", day, "Time:", time);
-                 openScheduleModal(targetButton); // This should now be called correctly
+                 openScheduleModal(targetButton);
             }
             // Optional: Add logging if no condition matches
             else {
@@ -1187,43 +1194,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            // Collect hosts
-            document.querySelectorAll('#hosts-container .host-input-group').forEach((hostDiv, index) => {
-                // Skip the template row if it's the only one and empty
-                if (index === 0 && hostDiv.querySelectorAll('input[value]:not([value=""])').length === 0 && document.querySelectorAll('#hosts-container .host-input-group').length === 1) {
-                    return;
-                }
-                const lastName = hostDiv.querySelector(`input[name$="[lastName]"]`)?.value.trim();
-                const firstName = hostDiv.querySelector(`input[name$="[firstName]"]`)?.value.trim();
-                // Only add if required fields are present
+            // <<< START REVISED HOST COLLECTION >>>
+            document.querySelectorAll('#hosts-container .host-input-group').forEach((hostDiv) => {
+                const lastNameInput = hostDiv.querySelector(`input[name$="[lastName]"]`);
+                const firstNameInput = hostDiv.querySelector(`input[name$="[firstName]"]`);
+
+                // Check the actual value property, not the attribute
+                const lastName = lastNameInput ? lastNameInput.value.trim() : "";
+                const firstName = firstNameInput ? firstNameInput.value.trim() : "";
+
+                // Only add if BOTH required fields have a value
                 if (lastName && firstName) {
                     scheduleData.hosts.push({
                         lastName,
                         firstName,
-                        mi: hostDiv.querySelector(`input[name$="[mi]"]`)?.value.trim(),
-                        suffix: hostDiv.querySelector(`input[name$="[suffix]"]`)?.value.trim(),
-                        cys: hostDiv.querySelector(`input[name$="[cys]"]`)?.value.trim()
+                        mi: hostDiv.querySelector(`input[name$="[mi]"]`)?.value.trim() || "", // Use || "" for safety
+                        suffix: hostDiv.querySelector(`input[name$="[suffix]"]`)?.value.trim() || "",
+                        cys: hostDiv.querySelector(`input[name$="[cys]"]`)?.value.trim() || ""
                     });
+                } else {
+                    // Optional: Log if a row was skipped due to missing name
+                    if (lastName || firstName) { // Log if at least one name field was filled but not both
+                         console.log("Skipping host row: Missing either first or last name.", {lastName, firstName});
+                    }
                 }
             });
 
-            // Collect technical staff
-            document.querySelectorAll('#technical-container .technical-input-group').forEach((techDiv, index) => {
-                 if (index === 0 && techDiv.querySelectorAll('input[value]:not([value=""])').length === 0 && document.querySelectorAll('#technical-container .technical-input-group').length === 1) {
-                    return;
-                }
-                const lastName = techDiv.querySelector(`input[name$="[lastName]"]`)?.value.trim();
-                const firstName = techDiv.querySelector(`input[name$="[firstName]"]`)?.value.trim();
+            // <<< START REVISED TECHNICAL STAFF COLLECTION >>>
+            document.querySelectorAll('#technical-container .technical-input-group').forEach((techDiv) => {
+                const lastNameInput = techDiv.querySelector(`input[name$="[lastName]"]`);
+                const firstNameInput = techDiv.querySelector(`input[name$="[firstName]"]`);
+
+                const lastName = lastNameInput ? lastNameInput.value.trim() : "";
+                const firstName = firstNameInput ? firstNameInput.value.trim() : "";
+
+                // Only add if BOTH required fields have a value
                 if (lastName && firstName) {
                     scheduleData.technicalStaff.push({
                         lastName,
                         firstName,
-                        mi: techDiv.querySelector(`input[name$="[mi]"]`)?.value.trim(),
-                        suffix: techDiv.querySelector(`input[name$="[suffix]"]`)?.value.trim(),
-                        cys: techDiv.querySelector(`input[name$="[cys]"]`)?.value.trim()
+                        mi: techDiv.querySelector(`input[name$="[mi]"]`)?.value.trim() || "",
+                        suffix: techDiv.querySelector(`input[name$="[suffix]"]`)?.value.trim() || "",
+                        cys: techDiv.querySelector(`input[name$="[cys]"]`)?.value.trim() || ""
                     });
+                } else {
+                     if (lastName || firstName) {
+                         console.log("Skipping technical staff row: Missing either first or last name.", {lastName, firstName});
+                    }
                 }
             });
+            // <<< END REVISED TECHNICAL STAFF COLLECTION >>>
+
+            console.log("Prepared schedule data:", scheduleData); // Check the collected arrays here
 
             // Add day, time, schoolYear from outside the form elements
             scheduleData.day = scheduleForm.dataset.day;
@@ -1688,7 +1710,7 @@ async function selectSubmission(submissionId) {
 
 // --- Modify updateSubmission to use the stored ID ---
 async function updateSubmission() { // Removed submissionId parameter
-    const submissionId = document.getElementById('submissionIdHidden')?.value;
+    const submissionId = document.getElementById('submissionIdHidden').value;
     if (!submissionId) {
         alert("No submission selected.");
         return;

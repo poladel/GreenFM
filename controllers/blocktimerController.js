@@ -4,10 +4,12 @@ const User = require('../models/User'); // Assuming User model is needed if fetc
 const sendEmail = require('../config/mailer'); // Verify this path is correct
 
 module.exports.getSubmissions = async (req, res) => {
+    console.log(`[getSubmissions] Received query:`, req.query); // Log incoming query
     try {
         const { schoolYear, result } = req.query;
 
         if (!schoolYear || typeof schoolYear !== "string") {
+            console.error("[getSubmissions] Error: Missing or invalid schoolYear parameter");
             return res
                 .status(400)
                 .json({ error: "Missing or invalid schoolYear parameter" });
@@ -17,20 +19,36 @@ module.exports.getSubmissions = async (req, res) => {
 
         // <<< FIX: Convert incoming filter value to lowercase for DB query >>>
         if (result && result !== "All") {
-            // Assuming your DB stores 'pending', 'accepted', 'rejected' (lowercase)
-            query.result = result.toLowerCase();
+            // Assuming DB stores 'pending', 'accepted', 'rejected' (lowercase)
+            query.result = result.toLowerCase(); // <<< RE-ADD .toLowerCase() HERE
         }
         // <<< END FIX >>>
 
-        // Optional: Log the final query being used
-        console.log("Fetching submissions with query:", query);
+        console.log("[getSubmissions] Executing query:", query); // Log the exact query
 
+        // <<< Add log before the database call >>>
+        console.log("[getSubmissions] Attempting ApplyBlocktimer.find()...");
         const submissions = await ApplyBlocktimer.find(query).sort({
             createdAt: -1,
         });
+        // <<< Add log after the database call >>>
+        console.log(`[getSubmissions] ApplyBlocktimer.find() completed. Found ${submissions.length} submissions.`);
+
+        // Optional: Check if submissions is serializable (basic check)
+        try {
+            JSON.stringify(submissions);
+        } catch (stringifyError) {
+            console.error("[getSubmissions] Error: Found submissions but failed to stringify:", stringifyError);
+            return res.status(500).json({ error: "Failed to process submission data." });
+        }
+
+        console.log("[getSubmissions] Sending response...");
         res.json(submissions);
+        console.log("[getSubmissions] Response sent successfully.");
+
     } catch (error) {
-        console.error("Error fetching submissions:", error);
+        // <<< Log the FULL error stack trace on the server >>>
+        console.error("[getSubmissions] !!! Unhandled Error during fetch:", error); // Log the full error object/stack
         res.status(500).json({ error: "Failed to fetch submissions" });
     }
 };
@@ -253,16 +271,22 @@ module.exports.updateSubmissionResult = async (req, res) => {
             // Prepare email content based on scheduleChanged
             if (scheduleChanged) {
                 emailSubject = `Schedule Update for Your Show: ${showTitle}`;
-                emailBody = `... SCHEDULE CHANGE: ACCEPTED HTML ...`; // Add your HTML
+                emailBody = `<p>Congratulations. Your show has been accepted as a blocktimer.</p>
+                            <p>However, you have been rescheduled to a new time slot.</p>
+                            <p>Please visit <a href="https://greenfm955.com/JoinBlocktimer-Step3" target="_blank">this link</a> to find out more details.</p>  `; // Add your HTML
             } else {
                 emailSubject = `Application Approved: ${showTitle}`;
-                emailBody = `... SCHEDULE: ACCEPTED HTML ...`; // Add your HTML
+                emailBody = `<p>Congratulations. Your show has been accepted as a blocktimer.</p>
+                            <p>Please visit <a href="https://greenfm955.com/JoinBlocktimer-Step3" target="_blank">this link</a> to find out more details.</p>`; // Add your HTML
             }
 
         } else if (result === 'rejected') {
             console.log("Processing 'rejected' result...");
             emailSubject = `Application Update: ${showTitle}`;
-            emailBody = `... REJECTED HTML ...`; // Add your HTML
+            emailBody = `<p>Thank you for your interest in joining Green FM 95.5 as a blocktimer.</p>
+                        <p>After careful review, we regret to inform you that your show has not been selected at this time.</p>
+                        <p>We encourage you to stay tuned for future opportunities. Thank you for your support and understanding!</p>
+                        <p>Please visit <a href="https://greenfm955.com/JoinBlocktimer-Step3" target="_blank">this link</a> to find out more details.</p>`; // Add your HTML
             requiresConfirmation = true; // Requires acknowledgement
 
             // --- Delete any existing schedule ---
@@ -434,6 +458,7 @@ module.exports.confirmSchedule = async (req, res) => {
              applicantEmail: userEmail,
              result: submission.result, // Still 'accepted'
              actionTaken: 'confirmed', // Indicate confirmation happened
+             showTitle: submission.showDetails?.title || 'Your Show', // <<< ADD showTitle
              preferredSchedule: submission.preferredSchedule, // Send latest schedule info
              schedule: { day: schedule.day, time: schedule.time } // Send confirmed schedule
          });
@@ -516,6 +541,7 @@ module.exports.rejectScheduleChange = async (req, res) => {
              applicantEmail: userEmail,
              result: submission.result, // <<< Now sends 'rejected' >>>
              actionTaken: 'rejected_change',
+             showTitle: submission.showDetails?.title || 'Your Show', // <<< ADD showTitle
              message: "Schedule change rejected. Your application status is now Rejected. Please contact admin or re-apply." // Updated message
          });
          console.log(`Emitted submissionStatusUpdate (rejected_change) for user ${userEmail}`);
@@ -530,7 +556,6 @@ module.exports.rejectScheduleChange = async (req, res) => {
          });
          console.log('Emitted submissionAdminUpdate (rejected change)');
          // <<< END ADD >>>
-
 
         res.status(200).json({
             message: "Schedule change rejected. Your application status has been updated to Rejected.", // Updated response message
@@ -571,6 +596,7 @@ module.exports.acknowledgeResult = async (req, res) => {
               submissionId: submission._id,
               applicantEmail: userEmail,
               actionTaken: 'acknowledged', // Indicate acknowledgement
+              showTitle: submission.showDetails?.title || 'Your Show', // <<< ADD showTitle
               result: submission.result // Send current result ('rejected' or 'accepted')
           });
 

@@ -112,7 +112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                      <p>Your show is scheduled for:</p>
                      <p><b>Day:</b> ${displaySchedule?.day || 'N/A'}</p>
                      <p><b>Time:</b> ${displaySchedule?.time || 'N/A'}</p>
-                     <p>You can view the full schedule on the GreenFM website.</p>
                       <button type="button" class="acknowledge-btn" data-submission-id="${_id}">Okay</button>
                  `;
             }
@@ -189,7 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                      <p>Your show is scheduled for:</p>
                      <p><b>Day:</b> ${displaySchedule.day}</p>
                      <p><b>Time:</b> ${displaySchedule.time}</p>
-                     <p>You can view the full schedule on the GreenFM website.</p>
                       <button type="button" class="acknowledge-btn" data-submission-id="${currentSubmissionId}">Okay</button>
                  `;
              }

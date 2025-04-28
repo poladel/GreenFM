@@ -452,11 +452,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const key = `${dateString}_${time}`;
             const slotData = slotMap.get(key);
 
+            // Reset button state
             button.classList.remove('available', 'booked', 'past', 'implicitly-available');
             button.disabled = true;
-            button.textContent = time;
-            // <<< REMOVE ALL button.onclick assignments from here >>>
-            // button.onclick = null; // Keep this reset if using addEventListener, otherwise remove
+            button.innerHTML = ''; // Clear innerHTML first
+            button.textContent = ''; // Clear textContent as well
+            button.dataset.slotId = ''; // Clear data attributes
+            button.dataset.applicationId = '';
 
             // --- Refined Validity Checks ---
             const isValidButtonDate = !isNaN(buttonDate.getTime());
@@ -479,52 +481,67 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (isInPeriod) { // Is this school day within the assessment period?
                     if (isPastDate) { // Is it a past school day within the period?
                          button.classList.add('past');
-                         button.textContent = 'Past';
+                         button.textContent = 'Past'; // Set text for Past
                          // Keep disabled
                     } else { // It's a future or current school day within the period
                         if (slotData) { // Slot exists in DB
                             if (slotData.application) { // Booked
                                 button.classList.add('booked');
-                                button.textContent = `${slotData.applicantName || 'Booked'} (${slotData.applicantSection || 'N/A'})`;
+
+                                // <<< START MODIFICATION for booked button text >>>
+                                const appData = slotData.application; // Reference the application data
+                                const applicantName = slotData.applicantName || 'Booked'; // Use fetched name or default
+                                const applicantSection = slotData.applicantSection || 'N/A'; // Use fetched section or default
+
+                                let preferredScheduleText = 'No Pref.'; // Default text
+                                // Check if preferredSchedule exists and has date/time
+                                if (appData && appData.preferredSchedule && appData.preferredSchedule.date && appData.preferredSchedule.time) {
+                                    try {
+                                        // Format the preferred date nicely
+                                        const prefDate = new Date(appData.preferredSchedule.date);
+                                        const formattedPrefDate = prefDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                        preferredScheduleText = `${formattedPrefDate}, ${appData.preferredSchedule.time}`;
+                                    } catch (e) {
+                                        // Fallback if date parsing fails
+                                        preferredScheduleText = `${appData.preferredSchedule.date}, ${appData.preferredSchedule.time}`;
+                                    }
+                                }
+
+                                 // Construct the final text using innerHTML and <br>
+                                 button.innerHTML = `${applicantName} (${applicantSection})<br>Pref: ${preferredScheduleText}`; // <<< Use innerHTML and <br>
+                                 // <<< END MODIFICATION >>>
+
                                 button.disabled = false;
-                                // <<< Set data attributes for the main listener >>>
-                                button.dataset.slotId = ''; // Clear slotId
-                                button.dataset.applicationId = typeof slotData.application === 'object' && slotData.application !== null
-                                                                ? slotData.application._id
-                                                                : slotData.application; // Store application ID
-                                // button.onclick = () => showApplicationDetails(appId); // <<< REMOVE
+                                // Set data attributes
+                                button.dataset.slotId = '';
+                                button.dataset.applicationId = typeof appData === 'object' && appData !== null ? appData._id : appData;
+
                             } else { // Available
                                 button.classList.add('available');
-                                button.textContent = 'Available';
+                                button.textContent = 'Available'; // Set text for Available
                                 button.disabled = false;
-                                // <<< Set data attributes for the main listener >>>
+                                // Set data attributes
                                 button.dataset.slotId = slotData._id; // Store slot ID for deletion
-                                button.dataset.applicationId = ''; // Clear applicationId
-                                // button.onclick = () => deleteAvailableSlot(slotData._id); // <<< REMOVE
+                                button.dataset.applicationId = '';
                             }
                         } else { // Slot doesn't exist in DB - implicitly available future slot
                             button.classList.add('implicitly-available');
+                            button.textContent = ''; // Keep blank text for implicitly available
                             button.disabled = false;
-                            button.textContent = ''; // Blank text
-                            // <<< Set data attributes for the main listener >>>
-                            button.dataset.slotId = ''; // Clear slotId
-                            button.dataset.applicationId = ''; // Clear applicationId
-                            // button.onclick = () => makeSlotAvailableForAssessment(dateString, time, departmentFilter.value, currentAssessmentPeriod?.year); // <<< REMOVE
+                            // Set data attributes
+                            button.dataset.slotId = '';
+                            button.dataset.applicationId = '';
                         }
                     }
                 } else { // School day, but outside the assessment period
                     button.classList.add('past'); // Style as unavailable/past
-                    button.textContent = 'N/A';
-                    button.dataset.slotId = ''; // Clear attributes
-                    button.dataset.applicationId = '';
-                    // Keep disabled
+                    button.textContent = 'N/A'; // Set text for N/A
+                    // Keep disabled, attributes cleared at the start
                 }
             } else { // Not a school day (Sat/Sun) or invalid date calculation
                  button.classList.add('past'); // Style as unavailable/past
-                 button.textContent = ''; // Blank text for Sat/Sun
-                 button.dataset.slotId = ''; // Clear attributes
-                 button.dataset.applicationId = '';
-                 // Keep disabled
+                 button.textContent = ''; // Keep blank text for Sat/Sun
+                 // Keep disabled, attributes cleared at the start
             }
         });
     };
@@ -633,10 +650,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const otherFields = submissionDetailContentInline.querySelectorAll('[data-field]:not([data-field="fullName"])');
 
             if (fullNameField) {
-                fullNameField.value = '--- Select a submission ---'; // Set value for input/textarea
+                fullNameField.value = ''; // Set value for input/textarea
             }
             otherFields.forEach(field => {
-                field.value = '---'; // Set value for input/textarea
+                field.value = ''; // Set value for input/textarea
             });
         }
         if (submissionResultUpdate) {

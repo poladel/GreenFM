@@ -63,7 +63,7 @@ const applyBlocktimerSchema = new Schema({
     result: {
         type: String,
         enum: ['Pending', 'Accepted', 'Rejected', 'pending', 'accepted', 'rejected'],
-        default: 'Pending'
+        default: 'pending'
     },
 }, {
     timestamps: true,
