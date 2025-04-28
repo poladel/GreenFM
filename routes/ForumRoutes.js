@@ -6,10 +6,10 @@ const ForumPost = require('../models/ForumPost');
 const { Report } = require('../models/ForumPost'); // Import the Report model
 
 // Forum post routes (API endpoints)
-router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost);
+router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost); // File upload is handled here
 router.get('/posts', forumController.getAllPosts);
 router.get('/posts/:id', forumController.getPostById);
-router.put('/posts/:id', requireAuth, forumController.handleFileUploads, forumController.updatePost);
+router.put('/posts/:id', requireAuth, forumController.handleFileUploads, forumController.updatePost); // File upload handled in update as well
 router.delete('/posts/:id', requireAuth, forumController.deletePost);
 
 // Like & Comment routes
@@ -23,31 +23,30 @@ router.post('/poll', requireAuth, forumController.createPoll);
 router.post('/poll/vote', requireAuth, forumController.votePoll);
 router.put('/poll/:postId', requireAuth, forumController.updatePoll);
 
-// Edit comment
+// Edit comment route
 router.put('/posts/:postId/comment/:commentId', requireAuth, async (req, res) => {
-  try {
-    const { postId, commentId } = req.params;
-    const { text } = req.body;
+  const { postId, commentId } = req.params;
+  const { text } = req.body;
 
+  try {
     const post = await ForumPost.findById(postId);
-    if (!post) return res.status(404).json({ success: false });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
 
     const comment = post.comments.id(commentId);
     if (!comment || comment.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false });
+      return res.status(403).json({ success: false, message: 'Unauthorized to edit this comment' });
     }
 
     comment.text = text;
     await post.save();
-
     res.json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Failed to update comment' });
   }
 });
 
-// Delete comment
+// Delete comment route
 router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
   const { postId, commentId } = req.params;
 
@@ -56,14 +55,15 @@ router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res
     const comment = post.comments.id(commentId);
 
     if (!comment || comment.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Unauthorized' });
+      return res.status(403).json({ success: false, message: 'Unauthorized to delete this comment' });
     }
 
     comment.remove();
     await post.save();
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Error deleting comment:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete comment' });
   }
 });
 
@@ -85,7 +85,6 @@ router.post('/posts/report', requireAuth, async (req, res) => {
     });
 
     await report.save();
-
     res.json({ success: true, message: 'Report submitted successfully' });
   } catch (err) {
     console.error(err);
@@ -178,10 +177,10 @@ router.put('/posts/:id', async (req, res) => {
 
   try {
     const post = await ForumPost.findById(req.params.id);
-    if (!post) return res.status(404).json({ success: false });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
 
     if (post.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false });
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this post' });
     }
 
     post.title = title;
@@ -195,7 +194,7 @@ router.put('/posts/:id', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Failed to update post' });
   }
 });
 

@@ -438,7 +438,6 @@ exports.createPoll = async (req, res) => {
 };
 
 
-// Vote on an option
 exports.votePoll = async (req, res) => {
   const { postId, optionIndex } = req.body;
   const userId = req.user._id;
@@ -455,10 +454,10 @@ exports.votePoll = async (req, res) => {
     post.poll.options[optionIndex].votes.push(userId);
     await post.save();
 
-    // Send back the updated poll with vote count
+    // Return the updated poll object with the vote count
     res.json({
       success: true,
-      poll: post.poll
+      poll: post.poll // Send the updated poll with the new vote count
     });
   } catch (error) {
     console.error('Error voting for poll:', error);

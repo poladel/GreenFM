@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
         imageInput: document.getElementById('image-input'),
         videoInput: document.getElementById('video-input'),
         postTitle: document.getElementById('post-title'),
-        postContent: document.getElementById('post-content'),
         postButton: document.getElementById('postButton'),
         pollForm: document.getElementById('poll-form'),
         addOptionBtn: document.getElementById('add-option-button'),
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     checkRequiredElements() {
-      const required = ['postForm', 'postsContainer', 'postButton', 'postTitle', 'postContent'];
+      const required = ['postForm', 'postsContainer', 'postButton', 'postTitle'];
       return required.every(el => !!this.elements[el]);
     }
 
@@ -107,17 +106,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     resetPostForm() {
       this.elements.postTitle.value = '';
-      this.elements.postContent.value = '';
     }
 
     async handlePostSubmit(e) {
       e.preventDefault();
 
       const title = this.elements.postTitle.value.trim();
-      const content = this.elements.postContent.value.trim();
 
-      if (!title || !content) {
-        return showToast('❌ Please enter a title and content for the post.', 'error');
+      if (!title) {
+        return showToast('❌ Please enter a title for the post.', 'error');
       }
 
       try {
@@ -125,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ title, content })
+          body: JSON.stringify({ title })
         });
 
         const data = await res.json();
@@ -167,9 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
     
-    
-    
-
     renderPosts(posts) {
       this.elements.postsContainer.innerHTML = '';  // Clear existing posts
     
@@ -223,8 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
           </div>
     
-          <h3 class="post-title font-bold text-xl text-gray-800 mt-2">${post.title}</h3>
-          <p class="post-text text-gray-700 mt-1">${post.text}</p>
+          <h4 class="post-title  text-l text-gray-800 mt-2">${post.title}</h4>
     
           <div class="post-media-container mt-3">
             ${(post.media || []).map(media => media.type === 'image' ? 
@@ -262,31 +255,30 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
     
-    
-
     renderPollSection(post, userHasVoted) {
-  return `
-    <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
-      <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
-      <ul class="poll-options space-y-2 max-w-md mx-auto">
-        ${post.poll.options.map((opt, index) => `
-          <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
-            ${!userHasVoted ? `
-              <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
-                onclick="confirmVote('${post._id}', ${index}, '${opt.text.replace(/'/g, "\\'")}')">
-                ${opt.text}
-              </button>
-            ` : `
-              <span class="w-full text-left text-gray-600">${opt.text}</span>
-            `}
-            <span class="text-sm text-gray-500">${opt.votes.length || 0} votes</span>
-          </li>
-        `).join('')}
-      </ul>
-      ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
-    </div>
-  `;
-}
+      return `
+        <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
+          <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
+          <ul class="poll-options space-y-2 max-w-md mx-auto">
+            ${post.poll.options.map((opt, index) => `
+              <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
+                ${!userHasVoted ? `
+                  <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
+                    onclick="votePoll('${post._id}', ${index})">
+                    ${opt.text}
+                  </button>
+                ` : `
+                  <span class="w-full text-left text-gray-600">${opt.text}</span>
+                `}
+                <span class="text-sm text-gray-500" id="vote-count-${post._id}-${index}">${opt.votes.length || 0} votes</span>
+              </li>
+            `).join('')}
+          </ul>
+          ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
+        </div>
+      `;
+    }
+    
 
     
     renderPagination(totalPages, currentPage) {
@@ -383,8 +375,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
-
 //---------------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------------//
@@ -449,7 +439,7 @@ window.editPost = function (postId) {
   if (!postEl) return;
 
   const titleEl = postEl.querySelector('.post-title');
-  const textEl = postEl.querySelector('.post-text');
+  // const textEl = postEl.querySelector('.post-text');
   const originalTitle = titleEl.innerText;
   const originalText = textEl.innerText;
 
@@ -695,7 +685,15 @@ window.votePoll = async function(postId, optionIndex) {
     const data = await res.json();
     if (data.success) {
       showToast('✅ Vote submitted!');
-      const app = new ForumApp(); 
+
+      // Dynamically update the vote count for the selected option
+      const voteCountElement = document.getElementById(`vote-count-${postId}-${optionIndex}`);
+      if (voteCountElement) {
+        voteCountElement.textContent = `${data.poll.options[optionIndex].votes.length} votes`;
+      }
+
+      // Optionally, reload posts to reflect the latest data
+      await window.app.loadPosts(); // Refresh the posts with updated vote data
     } else {
       showToast('❌ Unable to vote', 'error');
     }
@@ -704,6 +702,7 @@ window.votePoll = async function(postId, optionIndex) {
     showToast('❌ Error submitting vote', 'error');
   }
 };
+
 
 window.editPoll = function (postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
