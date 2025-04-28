@@ -686,3 +686,186 @@ body {
     background: #00722A;
     color: white;
 }
+
+/* Your Original CSS */
+/* (your whole CSS exactly as you wrote it) */
+
+/* === Responsive Design === */
+@media (max-width: 1024px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 90vw;
+        margin-left: 5vw;
+    }
+
+    .right-sidebar {
+        position: static;
+        width: 90vw;
+        margin: 20px auto;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 42vw;
+    }
+
+    .post-date {
+        top: 10px;
+        right: 20px;
+    }
+
+    .status-btn {
+        left: auto;
+        right: 10px;
+        top: 10px;
+    }
+
+    .go-live-button {
+        margin-top: 20px;
+    }
+
+    .modal-content {
+        width: 80vw;
+    }
+
+    .modal-button {
+        width: 35vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 92vw;
+        margin-left: 4vw;
+    }
+
+    .right-sidebar {
+        flex-direction: column;
+        width: 92vw;
+        gap: 20px;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 90vw;
+    }
+
+    .post-date {
+        font-size: 10px;
+        top: 12px;
+        right: 15px;
+    }
+
+    .preview-wrapper {
+        width: 90px;
+    }
+
+    .modal-content {
+        width: 90vw;
+    }
+
+    .modal-button {
+        width: 40vw;
+    }
+
+    .status-btn {
+        left: auto;
+        right: 10px;
+    }
+
+    .nav-arrow {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .post-filters, 
+    .post-container, 
+    #posts-container, 
+    .post, 
+    #post-title, 
+    .post-textbox, 
+    .comment-input {
+        width: 94vw;
+        margin-left: 3vw;
+    }
+
+    .post h3, 
+    .schedule-container h3, 
+    .modal-content h3 {
+        font-size: 16px;
+    }
+
+    .post p {
+        font-size: 14px;
+    }
+
+    .post-media-img,
+    .post-media-video {
+        height: 200px;
+    }
+
+    .live-now-container, 
+    .schedule-container {
+        width: 94vw;
+    }
+
+    .modal-content {
+        width: 95vw;
+    }
+
+    .modal-button {
+        width: 90%;
+    }
+
+    .status-live, 
+    .status-offline {
+        font-size: 14px;
+        margin-left: 0;
+    }
+
+    .status-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .post-button {
+        padding: 6px 14px;
+        font-size: 13px;
+        bottom: 15px;
+        right: 20px;
+    }
+
+    .comment-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .like-btn,
+    .edit-btn,
+    .delete-btn {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+
+    .preview-wrapper {
+        width: 80px;
+    }
+
+    .nav-arrow {
+        font-size: 20px;
+    }
+}

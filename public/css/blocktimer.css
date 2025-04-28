@@ -353,22 +353,41 @@ button:disabled {
     opacity: 0.5; /* Optional: visually indicate the button is disabled */
 }
 
-/* --- Blocktimer3 Status Page Styles --- */
+/* --- Blocktimer3 Status Page Styles (Fixed & Improved) --- */
 .status-container {
-    padding: 3vh 2vw;
-    margin: 0 auto 4vh auto;
-    width: 80%;
-    max-width: 800px;
+    margin: 2vh auto 4vh auto;
+    width: 84vw;
+    max-width: 900px;
     min-height: 250px;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    font-size: 1em;
+    font-size: 1rem;
     color: #333;
     text-align: center;
     margin-top: 1.5vw;
 }
+
+/* Status Text Style */
+.status-container p {
+    font-size: 1.2rem;
+    color: #555;
+    margin: 0;
+    padding: 10px;
+}
+
+/* Loading Animation (optional enhancement) */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.status-container p.loading {
+    animation: blink 1.5s infinite;
+}
+
 
 /* Media Queries */
 @media screen and (min-width: 1px) and (max-width: 200px) {
