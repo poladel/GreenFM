@@ -222,7 +222,6 @@
     background-color: #eeeeee !important; /* Keep disabled color on hover */
 }
 
-
 /* --- Keep original .availablebtn / .bookedbtn if they define layout --- */
 /* --- OR remove them if .schedule-button is the only base style needed --- */
 
@@ -249,5 +248,142 @@
 }
 */
 
+/* --- SUBMISSIONS TAB --- */
+#submissions-tab {
+  margin: 3vh 5vw 5vh 5vw;
+}
 
-/* ... rest of the CSS ... */
+.submissions-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2vh;
+}
+
+.submissions-filters label {
+  font-weight: 550;
+  color: #333;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.submissions-filters select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 0.95em;
+  width: 200px;
+}
+
+.submissions-table-container {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.submissions-table th,
+.submissions-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.submissions-table th {
+  background-color: #f6f6f6;
+  font-weight: 600;
+  color: #00722A;
+  text-align: center;
+}
+
+.submissions-table td:last-child {
+  text-align: center;
+}
+
+#submissionDetailView {
+  margin-top: 3vh;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#submissionDetailView h2 {
+  color: #00722A;
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+#submissionDetailContentInline label {
+  font-weight: 550;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+
+#submissionDetailContentInline input,
+#submissionDetailContentInline textarea,
+#submissionDetailContentInline select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  font-size: 0.95em;
+  box-sizing: border-box;
+}
+
+#submissionDetailContentInline textarea {
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+#saveSubmissionResultBtn {
+  background-color: #00722A;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95em;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+#saveSubmissionResultBtn:hover {
+  background-color: #005e23;
+  transform: scale(1.03);
+}
+.select-submission-btn {
+  background-color: #00722A;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.select-submission-btn:hover {
+  background-color: #005e23;
+  transform: scale(1.05);
+}
+
