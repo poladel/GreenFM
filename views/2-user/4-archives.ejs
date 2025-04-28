@@ -1,52 +1,69 @@
 <%- include('../partials/header.ejs') %>
 
-<!-- Add the link to your archive.css file here -->
-<link rel="stylesheet" href="/css/archive.css">
-
 <div class="page-container">
     <div class="content-wrap">
         <div class="container">
             <%- include('../partials/nav.ejs') %>
 
-            <!-------------------- HEADER MENUS -------------------->   
-            <%- include('../partials/menu.ejs') %>
+            <h1 class="text-3xl text-center my-4">Past Live Videos</h1>
 
-            <!-------------------- CONTENTS START --------------------> 
-            <div class="head">
-                <h1 class="text-3xl text-center my-4">Past Live Videos</h1>
+            <!-- Filters Section -->
+            <div class="flex justify-between mb-4">
+                <div class="flex">
+                    <!-- Year Filter -->
+                    <select id="year" class="border p-2" onchange="filterVideos()">
+                        <option value="">Select Year</option>
+                        <% if (years && years.length > 0) { %>
+                            <% years.forEach(function(year) { %>
+                                <option value="<%= year %>" <%= year == year ? 'selected' : '' %>><%= year %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
 
-                <!-- Filters -->
-                <div class="flex justify-between mb-4">
-                    <div class="flex">
-                        <select id="year" class="border p-2">
-                            <option value="">Select Year</option>
-                            <!-- Dynamically populated by JavaScript -->
-                        </select>
-                        <select id="month" class="border p-2 ml-2">
-                            <option value="">Select Month</option>
-                            <!-- Dynamically populated by JavaScript -->
-                        </select>
-                        <select id="date" class="border p-2 ml-2">
-                            <option value="">Select Date</option>
-                            <!-- Dynamically populated by JavaScript -->
-                        </select>
-                    </div>
+                    <!-- Month Filter -->
+                    <select id="month" class="border p-2 ml-2" onchange="filterVideos()">
+                        <option value="">Select Month</option>
+                        <% if (months && months.length > 0) { %>
+                            <% months.forEach(function(month) { %>
+                                <option value="<%= month %>" <%= month == month ? 'selected' : '' %>><%= new Date(0, month - 1).toLocaleString('default', { month: 'long' }) %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+
+                    <!-- Date Filter -->
+                    <select id="date" class="border p-2 ml-2" onchange="filterVideos()">
+                        <option value="">Select Date</option>
+                        <% if (dates && dates.length > 0) { %>
+                            <% dates.forEach(function(date) { %>
+                                <option value="<%= date %>" <%= date == date ? 'selected' : '' %>><%= date %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
                 </div>
             </div>
 
-            <!-- Videos List -->
+            <!-- Video List Section -->
             <div id="video-list">
-                <!-- Videos will be populated here via JavaScript -->
+                <% if (videos && videos.length > 0) { %>
+                    <% videos.forEach(function(video) { %>
+                        <div class="video-item p-4 border-b">
+                            <h3 class="text-xl font-bold"><%= video.title %></h3>
+                            <p><%= new Date(video.date).toDateString() %></p>
+                            <a href="<%= video.videoUrl %>" class="text-blue-500" target="_blank">Watch Video</a>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <p>No videos available for the selected filters.</p>
+                <% } %>
             </div>
 
-            <!-------------------- CONTENTS END --------------------> 
         </div>
     </div>
 
-    <!-------------------- FOOTER -------------------->
     <%- include('../partials/footer.ejs') %>
 </div>
 
 <script src="/js/2-user/Archive.js"></script>
+
 </body>
 </html>

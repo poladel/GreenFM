@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
       this.init();
     }
 
+    // Cache DOM elements
     cacheElements() {
       this.elements = {
         postForm: document.getElementById('post-form'),
@@ -30,20 +31,23 @@ document.addEventListener('DOMContentLoaded', function () {
       this.isAuthenticated = this.elements.postButton?.dataset.authenticated === 'true';
     }
 
+    // Initialize the application
     init() {
       if (!this.checkRequiredElements()) return;
       this.setupEventListeners();
       this.loadPosts();
     }
 
+    // Ensure all required elements are available
     checkRequiredElements() {
       const required = ['postForm', 'postsContainer', 'postButton', 'postTitle', 'postContent'];
       return required.every(el => !!this.elements[el]);
     }
 
+    // Setup event listeners for form inputs and buttons
     setupEventListeners() {
-      this.elements.imageInput?.addEventListener('change', (e) => this.handleFileSelect(e));
-      this.elements.videoInput?.addEventListener('change', (e) => this.handleFileSelect(e));
+      this.elements.imageInput?.addEventListener('change', (e) => this.handleFileSelect(e, 'image'));
+      this.elements.videoInput?.addEventListener('change', (e) => this.handleFileSelect(e, 'video'));
       document.getElementById('add-image-button')?.addEventListener('click', () => this.elements.imageInput.click());
       document.getElementById('add-video-button')?.addEventListener('click', () => this.elements.videoInput.click());
       this.elements.postForm?.addEventListener('submit', (e) => this.handlePostSubmit(e));
@@ -51,6 +55,46 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.pollForm?.addEventListener('submit', (e) => this.handlePollSubmit(e));
     }
 
+    // Handle file selection for image and video
+    handleFileSelect(event, type) {
+      const files = event.target.files;
+      this.selectedFiles = [...files];
+      this.renderPreviews();
+    }
+
+    // Render previews of selected media (image/video)
+    renderPreviews() {
+      this.elements.previewContainer.innerHTML = '';  // Clear previous previews
+
+      this.selectedFiles.forEach(file => {
+        const fileReader = new FileReader();
+        fileReader.onload = (e) => {
+          const fileUrl = e.target.result;
+          const fileType = file.type.split('/')[0]; // Get the type (image or video)
+
+          let previewElement;
+
+          if (fileType === 'image') {
+            previewElement = document.createElement('img');
+            previewElement.src = fileUrl;
+            previewElement.className = 'post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto';
+          } else if (fileType === 'video') {
+            previewElement = document.createElement('video');
+            previewElement.controls = true;
+            const source = document.createElement('source');
+            source.src = fileUrl;
+            previewElement.appendChild(source);
+            previewElement.className = 'post-media w-full max-w-md rounded shadow mx-auto';
+          }
+
+          this.elements.previewContainer.appendChild(previewElement);
+        };
+
+        fileReader.readAsDataURL(file);  // Read the file as data URL
+      });
+    }
+
+    // Add a new poll option input
     handleAddPollOption() {
       const currentCount = this.elements.pollOptionsWrapper.querySelectorAll('input').length;
       if (currentCount >= 5) return alert('You can only add up to 5 options.');
@@ -63,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.pollOptionsWrapper.appendChild(input);
     }
 
+    // Handle poll submission
     async handlePollSubmit(e) {
       e.preventDefault();
       const question = this.elements.pollQuestionInput.value.trim();
@@ -79,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
           credentials: 'include',
           body: JSON.stringify({ question, options })
         });
+
         const data = await res.json();
 
         if (data.success) {
@@ -94,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+    // Reset the poll form
     resetPollForm() {
       this.elements.pollForm.reset();
       this.elements.pollOptionsWrapper.innerHTML = `
@@ -102,33 +149,103 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
     }
 
+    // Reset the post form
+    resetPostForm() {
+      this.elements.postTitle.value = '';
+      this.elements.postContent.value = '';
+    }
+
+    // Handle post submission
+    async handlePostSubmit(e) {
+      e.preventDefault();
+
+      const title = this.elements.postTitle.value.trim();
+      const content = this.elements.postContent.value.trim();
+
+      if (!title || !content) {
+        return showToast('❌ Please enter a title and content for the post.', 'error');
+      }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+
+      // Append files if selected
+      if (this.selectedFiles.length > 0) {
+        this.selectedFiles.forEach(file => formData.append('media', file));
+      }
+
+      try {
+        const res = await fetch('/posts', {
+          method: 'POST',
+          body: formData,  // Use FormData to upload files
+          credentials: 'include'  // Send cookies (e.g., session) along with the request
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast('✅ Post created successfully!');
+          this.resetPostForm();
+          this.loadPosts();  // Refresh the posts with updated content
+        } else {
+          showToast('❌ Failed to create post', 'error');
+        }
+      } catch (err) {
+        console.error('Error creating post:', err);
+        showToast('❌ Error creating post', 'error');
+      }
+    }
+
+    // Load posts from the server with pagination
     async loadPosts(page = 1) {
       try {
         const response = await fetch(`/posts?page=${page}`, { credentials: 'include' });
         const data = await response.json();
-        if (!data.success || !Array.isArray(data.posts)) throw new Error('Invalid post response');
+
+        console.log('Server response:', data);  // Log server response to debug
+
+        // Ensure the server response is valid and contains posts
+        if (!data.success || !Array.isArray(data.posts)) {
+          throw new Error('Invalid post response');
+        }
+
+        // Filter out deleted posts
         const filteredPosts = data.posts.filter(p => !p.isDeleted || p.isDeleted === undefined);
+
+        // Render posts dynamically without page refresh
         this.renderPosts(filteredPosts);
         this.renderPagination(data.totalPages, data.currentPage);
       } catch (error) {
         console.error('Error loading posts:', error);
-        this.elements.postsContainer.innerHTML = `<div class="error">Unable to load posts.</div>`;
+        this.elements.postsContainer.innerHTML = `<div class="error">Unable to load posts. Please try again later.</div>`;
       }
     }
 
+    // Render posts to the page
     renderPosts(posts) {
-      this.elements.postsContainer.innerHTML = '';
-    
+      this.elements.postsContainer.innerHTML = '';  // Clear existing posts
+
+      // Ensure posts array is not empty or undefined
+      if (!Array.isArray(posts) || posts.length === 0) {
+        this.elements.postsContainer.innerHTML = '<div class="error">No posts to display.</div>';
+        return;
+      }
+
       posts.forEach(post => {
+        // Skip invalid posts
         if (!post || !post._id) return;
-    
+
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
-    
+
+        // Check if the logged-in user is the post owner
         const showControls = post.userId && post.userId._id === this.currentUserId;
+        // Check if the user has voted in the poll
         const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
-    
+
+        // Format the creation date for display
         const createdAt = post.createdAt
           ? new Date(post.createdAt).toLocaleString('en-US', {
               month: 'long',
@@ -139,14 +256,17 @@ document.addEventListener('DOMContentLoaded', function () {
               hour12: true
             })
           : '';
-    
+
+        // Get the like count
         const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-    
+
+        // Render the poll section if it exists
         let pollSection = '';
         if (post.poll?.question) {
           pollSection = this.renderPollSection(post, userHasVoted);
         }
-    
+
+        // Ensure all HTML tags are properly inserted
         div.innerHTML = `
           <div class="post-header flex justify-between items-start">
             <div>
@@ -166,28 +286,27 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
             </div>
           </div>
-    
+
           <h3 class="post-title font-bold text-xl text-gray-800 mt-2">${post.title}</h3>
-          <p class="post-text text-gray-700 mt-1">${post.text}</p>
-    
+          <p class="post-text text-gray-700 mt-1">${post.text}</p> <!-- Render post content here -->
+
           <div class="post-media-container mt-3">
-            ${(post.media || []).map(media => media.type === 'image' ?
-                `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` :
+            ${(post.media || []).map(media => media.type === 'image' ? 
+                `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
                 `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
                   <source src="${media.url}" type="video/mp4">
-                </video>`
-            ).join('')}
+                </video>`).join('')}
           </div>
-    
+
           ${pollSection}
-    
+
           <div class="post-actions mt-4 flex space-x-4">
             <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
               ❤️ <span class="like-count">${likeCount}</span>
             </button>
             <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
           </div>
-    
+
           <div class="interaction-panel mt-4" data-post-id="${post._id}">
             <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
               <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
@@ -198,13 +317,16 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
           </div>
         `;
-    
+
+        // Append the newly created post div to the container
         this.elements.postsContainer.appendChild(div);
+
+        // Load comments for each post
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
-    
 
+    // Render the poll section in the post
     renderPollSection(post, userHasVoted) {
       return `
         <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
@@ -220,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ` : `
                   <span class="w-full text-left text-gray-600">${opt.text}</span>
                 `}
-                <span class="text-sm text-gray-500">${opt.votes?.length || 0} votes</span>
+                <span class="text-sm text-gray-500">${opt.votes.length || 0} votes</span>
               </li>
             `).join('')}
           </ul>
@@ -228,12 +350,13 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
       `;
     }
-    
 
+    // Render pagination
     renderPagination(totalPages, currentPage) {
       const paginationContainer = document.getElementById('pagination-container');
       if (!paginationContainer) return;
       paginationContainer.innerHTML = '';
+
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
@@ -243,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+    // Load comments for a post
     async loadComments(postId, container) {
       try {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
@@ -330,13 +454,6 @@ window.safeDeleteComment = async function (postId, commentId, button) {
   }
 };
 
-
-function vote(index) {
-  voteCounts[index]++;
-  document.getElementById(`count-${index}`).textContent = voteCounts[index];
-  showPollToast('✅ Vote submitted!');
-}
-
 function showPollToast(message) {
   const toast = document.getElementById('poll-toast');
   toast.textContent = message;
@@ -350,9 +467,6 @@ function showPollToast(message) {
   }, 2000);
 }
 
-
-
-// ===== POST FUNCTIONS =====
 window.editPost = function (postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
   if (!postEl) return;
@@ -433,7 +547,6 @@ window.editPost = function (postId) {
   buttonsWrapper.appendChild(cancelBtn);
 };
 
-
 window.toggleCommentInput = function(postId) {
   const inputWrapper = document.getElementById(`comment-input-wrapper-${postId}`);
   if (!inputWrapper) return;
@@ -450,19 +563,24 @@ window.toggleLike = function(postId, button) {
       if (data.success && Array.isArray(data.likes)) {
         const likeCountSpan = button.querySelector('.like-count');
         likeCountSpan.textContent = data.likes.length;
-        button.classList.toggle('liked');
-        showToast(data.message || '❤️ Liked post!');
+        button.classList.toggle('liked');  // Toggles the 'liked' class to change the button's state
+        
+        // Show different toast messages based on whether it's a like or unlike
+        const message = button.classList.contains('liked') 
+          ? '❤️ Liked post!' 
+          : '💔 Unliked post!';
+        
+        showToast(data.message || message);
       } else {
-        window.showToast('❌ Failed to like post (invalid response)', 'error');
+        window.showToast('❌ Failed to like/unlike post (invalid response)', 'error');
         console.warn('Like API response:', data);
       }
     })
     .catch(err => {
       console.error('Like error:', err);
-      window.showToast('❌ Error liking post', 'error');
+      window.showToast('❌ Error liking/unliking post', 'error');
     });
 };
-
 
 
 window.submitComment = async function (postId, button) {
@@ -514,7 +632,6 @@ window.submitComment = async function (postId, button) {
     showToast('❌ Error posting comment', 'error');
   }
 };
-
 
 window.editComment = async function (postId, commentId, button) {
   const commentItem = button.closest('.comment-item');
@@ -583,6 +700,12 @@ window.editComment = async function (postId, commentId, button) {
   buttonsWrapper.appendChild(cancelBtn);
 };
 
+function vote(index) {
+  voteCounts[index]++;
+  document.getElementById(`count-${index}`).textContent = voteCounts[index];
+  showPollToast('✅ Vote submitted!');
+}
+
 window.votePoll = async function(postId, optionIndex) {
   try {
     const res = await fetch('/poll/vote', {
@@ -603,68 +726,6 @@ window.votePoll = async function(postId, optionIndex) {
     console.error('Vote error:', err);
     showToast('❌ Error submitting vote', 'error');
   }
-};
-
-window.editPoll = function(postId) {
-  const pollContainer = document.querySelector(`.post-poll[data-post-id="${postId}"]`);
-  const questionText = pollContainer.querySelector('.poll-question-text').innerText;
-
-  const questionInput = document.createElement('input');
-  questionInput.type = 'text';
-  questionInput.value = questionText;
-  questionInput.className = 'w-full border border-gray-300 rounded px-2 py-1 mb-2';
-
-  const optionsList = pollContainer.querySelector('ul.poll-options');
-  const currentOptions = Array.from(optionsList.children).map(li => li.querySelector('span')?.innerText || '');
-
-  const newOptionsWrapper = document.createElement('div');
-  newOptionsWrapper.className = 'space-y-1';
-  currentOptions.forEach((opt, i) => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'w-full border rounded px-2 py-1';
-    input.value = opt;
-    newOptionsWrapper.appendChild(input);
-  });
-
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = '💾 Save Poll';
-  saveBtn.className = 'mt-2 bg-green-600 text-white px-3 py-1 rounded';
-  saveBtn.onclick = async () => {
-    const updatedQuestion = questionInput.value.trim();
-    const updatedOptions = Array.from(newOptionsWrapper.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean);
-
-    if (!updatedQuestion || updatedOptions.length < 2) {
-      return showToast('❌ Enter a question and at least 2 options', 'error');
-    }
-
-    try {
-      const res = await fetch(`/posts/${postId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          pollQuestion: updatedQuestion,
-          pollOptions: updatedOptions
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('✅ Poll updated!');
-        setTimeout(() => location.reload(), 300);
-      } else {
-        showToast('❌ Failed to update poll', 'error');
-      }
-    } catch (err) {
-      console.error('Poll update error:', err);
-      showToast('❌ Error updating poll', 'error');
-    }
-  };
-
-  pollContainer.innerHTML = '';
-  pollContainer.appendChild(questionInput);
-  pollContainer.appendChild(newOptionsWrapper);
-  pollContainer.appendChild(saveBtn);
 };
 
 window.editPoll = function (postId) {
@@ -743,67 +804,6 @@ window.editPoll = function (postId) {
 
   pollContainer.appendChild(saveBtn);
 };
-
-  // Populate modal fields
-  document.getElementById('edit-poll-question').value = pollQuestion;
-  const optionsWrapper = document.getElementById('edit-poll-options');
-  optionsWrapper.innerHTML = '';
-  pollOptions.forEach((text, i) => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = text;
-    input.className = 'w-full p-2 border border-gray-300 rounded';
-    input.dataset.index = i;
-    optionsWrapper.appendChild(input);
-  });
-
-  // Disable title and content fields
-  const titleInput = postEl.querySelector('.post-title-input');
-  const contentTextarea = postEl.querySelector('.post-textbox');
-  if (titleInput) titleInput.disabled = true;
-  if (contentTextarea) contentTextarea.disabled = true;
-
-  document.getElementById('editPollModal').dataset.postId = postId;
-  document.getElementById('editPollModal').classList.remove('hidden');
-
-  window.submitEditPoll = async function (postId) {
-    const postEl = document.querySelector(`.post[data-id="${postId}"]`);
-    const questionInput = postEl.querySelector('.poll-question-input');
-    const optionInputs = [...postEl.querySelectorAll('.poll-option-input')];
-  
-    const updatedQuestion = questionInput.value.trim();
-    const updatedOptions = optionInputs.map(i => i.value.trim()).filter(Boolean);
-  
-    if (!updatedQuestion || updatedOptions.length < 2) {
-      return showToast('❌ At least 2 options and a question are required.', 'error');
-    }
-  
-    try {
-      const res = await fetch(`/posts/${postId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          poll: {
-            question: updatedQuestion,
-            options: updatedOptions
-          }
-        })
-      });
-  
-      const data = await res.json();
-      if (data.success) {
-        showToast('✅ Poll updated!');
-        window.activePollEditPostId = null;
-        await window.app.loadPosts(); // ✅ no reload
-      } else {
-        showToast('❌ Failed to update poll', 'error');
-      }
-    } catch (err) {
-      console.error('Poll update error:', err);
-      showToast('❌ Error updating poll', 'error');
-    }
-  };
     
 window.closeEditPollModal = function () {
   const modal = document.getElementById('editPollModal');
@@ -818,22 +818,6 @@ window.closeEditPollModal = function () {
   modal.classList.add('hidden');
 };
 
-window.startPostEdit = function(postId) {
-  const postEl = document.querySelector(`.post[data-id="${postId}"]`);
-  const titleInput = postEl.querySelector('.post-title-input');
-  const textArea = postEl.querySelector('.post-textbox');
-
-  if (titleInput && textArea) {
-    titleInput.disabled = false;
-    textArea.disabled = false;
-  }
-
-  showToast('📝 You can now edit the post.');
-};
-
-
-
-
 window.startPollCreate = function(postId) {
   const postEl = document.querySelector(`.post[data-id="${postId}"]`);
   const titleInput = postEl.querySelector('.post-title-input');
@@ -847,7 +831,6 @@ window.startPollCreate = function(postId) {
   showToast('➕ Ready to add a new poll.');
   // Optional: load a modal or inline poll form here
 };
-
 
 window.reportComment = function(postId, commentId) {
   const confirmed = confirm("Are you sure you want to report this comment?");
@@ -891,25 +874,7 @@ window.reportPost = async function (postId) {
   }
 };
 
-window.reportComment = async function (postId, commentId) {
-  const confirmReport = confirm("Are you sure you want to report this comment?");
-  if (!confirmReport) return;
 
-  try {
-    const res = await fetch('/posts/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ type: 'comment', targetId: commentId })
-    });
-
-    const data = await res.json();
-    showToast(data.message || '🚩 Comment reported');
-  } catch (err) {
-    console.error(err);
-    showToast('❌ Error reporting comment', 'error');
-  }
-};
 
 function confirmVote(postId, optionIndex, optionText) {
   selectedPostId = postId;
@@ -928,34 +893,35 @@ function closeVoteModal() {
   document.getElementById('confirmVoteModal').classList.add('hidden');
 }
 
-async function submitConfirmedVote() {
-  if (!selectedPostId || selectedOptionIndex === null) return;
-
-  try {
-    const res = await fetch('/poll/vote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ postId: selectedPostId, optionIndex: selectedOptionIndex })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      showToast('✅ Your vote has been submitted!');
-      closeVoteModal();
-      await window.app.loadPosts(); // Reload posts to reflect updated votes
-    } else {
-      showToast('❌ Unable to vote', 'error');
-    }
-  } catch (err) {
-    console.error('Vote error:', err);
-    showToast('❌ Error submitting vote', 'error');
+function showToast(message, type = 'success') {
+  const toastContainer = document.getElementById('toast-container');
+  
+  if (!toastContainer) {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.position = 'fixed';
+    container.style.bottom = '10px';
+    container.style.left = '50%';
+    container.style.transform = 'translateX(-50%)';
+    container.style.zIndex = '1000';
+    document.body.appendChild(container);
   }
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.style.backgroundColor = type === 'success' ? 'green' : 'red';
+  toast.style.color = 'white';
+  toast.style.padding = '10px';
+  toast.style.margin = '5px 0';
+  toast.style.borderRadius = '5px';
+  toast.style.fontSize = '14px';
+  
+  toast.innerText = message;
+
+  document.getElementById('toast-container').appendChild(toast);
+
+  // Remove toast after 3 seconds
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
-
-
-
-
-
-

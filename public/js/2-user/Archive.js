@@ -123,3 +123,15 @@ document.addEventListener('DOMContentLoaded', function() {
     populateFilters(videos);
     displayVideos(videos); // Initially display all videos
 });
+
+function filterVideos() {
+    const year = document.getElementById('year').value;
+    const month = document.getElementById('month').value;
+    const date = document.getElementById('date').value;
+
+    // Construct the URL with the selected filters
+    let url = `/user/archives?year=${year}&month=${month}&date=${date}`;
+
+    // Redirect to the filtered URL
+    window.location.href = url;
+}

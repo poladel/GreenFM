@@ -438,17 +438,31 @@
   
   
   /* ===== TOAST NOTIFICATION ===== */
-  #toast {
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  
-  #toast.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast.error {
+  background-color: #f44336; /* Red for error */
+}
+
+.toast.success {
+  background-color: #4CAF50; /* Green for success */
+}
+
   
   
   #editPostModal.show {
