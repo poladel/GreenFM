@@ -101,10 +101,14 @@ exports.handleFileUploads = (req, res, next) => {
 exports.createPost = async (req, res) => {
   try {
     const { title, text, pollQuestion, pollOptions } = req.body;
-    const media = req.files?.map(file => ({
-      url: file.path,
-      type: file.mimetype.startsWith('image/') ? 'image' : 'video'
-    })) || [];
+    let media = [];
+
+    if (req.uploadedMedia && req.uploadedMedia.length > 0) {
+      media = req.uploadedMedia.map(file => ({
+        url: file.url,
+        type: file.type
+      }));
+    }
 
     const newPost = new ForumPost({
       userId: req.user._id,

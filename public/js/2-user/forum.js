@@ -1,11 +1,7 @@
-let selectedPostId = null;
-let selectedOptionIndex = null;
-let selectedOptionText = null;
-
 document.addEventListener('DOMContentLoaded', function () {
   class ForumApp {
     constructor() {
-      this.selectedFiles = [];
+      this.selectedFiles = [];  // Ensure this is initialized as an array
       this.currentUserId = window.currentUserId || null;
       this.cacheElements();
       this.init();
@@ -48,6 +44,36 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.postForm?.addEventListener('submit', (e) => this.handlePostSubmit(e));
       this.elements.addOptionBtn?.addEventListener('click', () => this.handleAddPollOption());
       this.elements.pollForm?.addEventListener('submit', (e) => this.handlePollSubmit(e));
+    }
+
+    // Handle file selection (image/video uploads)
+    handleFileSelect(event) {
+      const files = event.target.files;
+      if (files.length) {
+        this.selectedFiles = Array.from(files);  // Ensure it is an array
+        this.previewFiles();
+      }
+    }
+
+    // Preview selected files (images/videos)
+    previewFiles() {
+      this.elements.previewContainer.innerHTML = ''; // Clear existing previews
+      this.selectedFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const filePreview = document.createElement('div');
+          filePreview.className = 'file-preview';
+
+          if (file.type.startsWith('image/')) {
+            filePreview.innerHTML = `<img src="${e.target.result}" alt="${file.name}" class="preview-image" />`;
+          } else if (file.type.startsWith('video/')) {
+            filePreview.innerHTML = `<video controls class="preview-video"><source src="${e.target.result}" type="${file.type}"></video>`;
+          }
+
+          this.elements.previewContainer.appendChild(filePreview);
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     handleAddPollOption() {
@@ -94,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast('❌ Error submitting poll', 'error');
       }
     }
-    
 
     resetPollForm() {
       this.elements.pollForm.reset();
@@ -110,23 +135,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async handlePostSubmit(e) {
       e.preventDefault();
-
+    
       const title = this.elements.postTitle.value.trim();
-
+    
       if (!title) {
         return showToast('❌ Please enter a title for the post.', 'error');
       }
-
+    
+      // Create a FormData instance
+      const formData = new FormData();
+      formData.append('title', title);
+    
+      // Check if there are selected files (image/video)
+      if (this.selectedFiles.length > 0) {
+        this.selectedFiles.forEach(file => {
+          formData.append('media', file);  // Attach files to form data
+        });
+      }
+    
       try {
+        // Send POST request with form data to the server
         const res = await fetch('/posts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          body: formData,  // Send form data with media
           credentials: 'include',
-          body: JSON.stringify({ title })
         });
-
+    
         const data = await res.json();
-
+    
         if (data.success) {
           showToast('✅ Post created successfully!');
           this.resetPostForm();
@@ -139,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast('❌ Error creating post', 'error');
       }
     }
+    
 
     async loadPosts(page = 1) {
       try {
@@ -210,14 +247,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
                     <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
                   `
-                  : `
+                  : ` 
                     <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
                   `}
               </div>
             </div>
           </div>
     
-          <h4 class="post-title  text-l text-gray-800 mt-2">${post.title}</h4>
+          <h4 class="post-title text-l text-gray-800 mt-2">${post.title}</h4>
     
           <div class="post-media-container mt-3">
             ${(post.media || []).map(media => media.type === 'image' ? 
@@ -254,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
-    
+
     renderPollSection(post, userHasVoted) {
       return `
         <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
@@ -279,13 +316,11 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
     }
     
-
-    
     renderPagination(totalPages, currentPage) {
-      const paginationContainer = document.getElementById('pagination-container');
+      const paginationContainer = this.elements.paginationContainer;
       if (!paginationContainer) return;
       paginationContainer.innerHTML = '';
-    
+
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
@@ -294,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
         paginationContainer.appendChild(btn);
       }
     }
-    
+
     async loadComments(postId, container) {
       try {
         const res = await fetch(`/posts/${postId}/comments`, { credentials: 'include' });
@@ -315,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   ${isOwner ? `
                     <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
                     <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
-                  ` : `
+                  ` : ` 
                     <button class="report-btn text-red-500 text-sm hover:underline" onclick="reportComment('${postId}', '${c._id}')">🚩 Report</button>
                   `}
                 </div>
@@ -329,51 +364,11 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = '<div class="text-red-600">Failed to load comments.</div>';
       }
     }
-
   }
-
-  async function submitConfirmedVote() {
-    if (!selectedPostId || selectedOptionIndex === null) return;
-  
-    try {
-      const res = await fetch('/poll/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ postId: selectedPostId, optionIndex: selectedOptionIndex })
-      });
-  
-      // Check if the response is not OK (e.g., HTTP status code is not 2xx)
-      if (!res.ok) {
-        throw new Error('Server returned an error: ' + res.statusText);
-      }
-  
-      // Try to parse the JSON response
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error('Invalid JSON response from server');
-      }
-  
-      if (data.success) {
-        showToast('✅ Your vote has been submitted!');
-        closeVoteModal();
-        await window.app.loadPosts(); // Reload the posts with updated vote data
-      } else {
-        showToast('❌ Unable to vote', 'error');
-      }
-    } catch (err) {
-      console.error('Vote error:', err);
-      showToast('❌ Error submitting vote: ' + err.message, 'error');
-    }
-  }
-  
 
   // Initialize the app
   window.app = new ForumApp();
 });
-
 
 //---------------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------------//
