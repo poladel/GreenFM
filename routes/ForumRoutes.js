@@ -3,7 +3,6 @@ const router = express.Router();
 const forumController = require('../controllers/forumController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const ForumPost = require('../models/ForumPost');
-const { Report } = require('../models/ForumPost'); // Import the Report model
 
 // Forum post routes (API endpoints)
 router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost); // File upload is handled here

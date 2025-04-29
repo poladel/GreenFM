@@ -35,19 +35,4 @@ const forumPostSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 
-// ✅ Report Schema
-const reportSchema = new mongoose.Schema({
-  type: { type: String, enum: ['post', 'comment'], required: true },
-  targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  reporterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  reason: { type: String, default: 'Inappropriate content' },
-  createdAt: { type: Date, default: Date.now }
-});
-
-// Export models
-const ForumPost = mongoose.model('ForumPost', forumPostSchema, 'ForumPosts');
-const Report = mongoose.model('Report', reportSchema, 'ForumReports');
-
-// Exporting both models and schema if needed elsewhere
-module.exports = { ForumPost, Report, forumPostSchema };
 module.exports = mongoose.model('ForumPost', forumPostSchema, 'ForumPosts');

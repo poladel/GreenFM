@@ -278,7 +278,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">Delete</button>
                   `
                   : ` 
-                    <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
                   `}
               </div>
             </div>
@@ -827,49 +826,6 @@ window.startPollCreate = function(postId) {
   showToast('➕ Ready to add a new poll.');
   // Optional: load a modal or inline poll form here
 };
-
-window.reportComment = function(postId, commentId) {
-  const confirmed = confirm("Are you sure you want to report this comment?");
-  if (!confirmed) return;
-
-  fetch(`/posts/${postId}/comments/${commentId}/report`, {
-    method: 'POST',
-    credentials: 'include'
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        showToast('✅ Comment reported successfully!');
-      } else {
-        showToast('❌ Failed to report comment.', 'error');
-      }
-    })
-    .catch(err => {
-      console.error('Report error:', err);
-      showToast('❌ Error reporting comment.', 'error');
-    });
-};
-
-window.reportPost = async function (postId) {
-  const confirmReport = confirm("Are you sure you want to report this post?");
-  if (!confirmReport) return;
-
-  try {
-    const res = await fetch('/posts/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ type: 'post', targetId: postId })
-    });
-
-    const data = await res.json();
-    showToast(data.message || '🚩 Report sent');
-  } catch (err) {
-    console.error(err);
-    showToast('❌ Error reporting post', 'error');
-  }
-};
-
 
 
 function confirmVote(postId, optionIndex, optionText) {
