@@ -231,6 +231,67 @@ const deleteComment = async (req, res) => {
     }
 };
 
+const editComment = async (req, res) => {
+    const { postId, commentId } = req.params;
+    const { text } = req.body;
+    const user = req.user;
+
+    if (!text) return res.status(400).json({ error: 'Text is required.' });
+
+    try {
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ error: 'Post not found' });
+
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+        const isAuthorized = comment.username === user.username ||
+            (Array.isArray(user.roles)
+                ? user.roles.includes('Admin') || user.roles.includes('Staff')
+                : user.roles === 'Admin' || user.roles === 'Staff');
+
+        if (!isAuthorized) return res.status(403).json({ error: 'Unauthorized to edit this comment' });
+
+        comment.text = text;
+        await post.save();
+
+        res.status(200).json({ success: true, comment });
+    } catch (err) {
+        console.error('Error editing comment:', err);
+        res.status(500).json({ error: 'Failed to edit comment' });
+    }
+};
+
+const getFilteredPosts = async (req, res) => {
+    const { search, month, year } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { text: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    if (month && year) {
+        const start = new Date(year, month, 1);
+        const end = new Date(year, parseInt(month) + 1, 1);
+        query.createdAt = { $gte: start, $lt: end };
+    } else if (year) {
+        const start = new Date(year, 0, 1);
+        const end = new Date(parseInt(year) + 1, 0, 1);
+        query.createdAt = { $gte: start, $lt: end };
+    }
+
+    try {
+        const posts = await Post.find(query).sort({ createdAt: -1 });
+        res.render('partials/postList', { posts, user: req.user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error fetching posts');
+    }
+};
+
 module.exports = {
     upload,
     createPost,
@@ -240,5 +301,7 @@ module.exports = {
     getPublicIdFromUrl,
     toggleLike,
     addComment,
-    deleteComment
+    deleteComment,
+    editComment,
+    getFilteredPosts
 };

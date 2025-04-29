@@ -7,14 +7,14 @@ exports.sendFeedback = async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
   // Email options
   const mailOptions = {
-    from: process.env.GMAIL_USER,
+    from: process.env.EMAIL_USER,
     to: `${process.env.ADMIN_EMAIL}`,
     replyTo: email,
     subject: `New Message from ${name}`,

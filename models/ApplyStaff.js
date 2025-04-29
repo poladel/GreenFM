@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 
 const ApplyStaffSchema = new mongoose.Schema({
+  // --- ADD userId ---
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Reference the User model
+    required: true,
+    index: true // Add index for faster lookups if needed
+  },
+  // --- END ADD ---
   lastName: {
     type: String,
     required: true,
@@ -69,9 +77,18 @@ const ApplyStaffSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  preferredSchedule: {
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+  },
+  schoolYear: {
+    type: String,
+    required: true,
+  },
   result: {
     type: String,
-    default: ''
+    enum: ['Pending', 'Accepted', 'Rejected'], // Keep consistent casing
+    default: 'Pending'
   },
 }, { timestamps: true });
 

@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const liveController = require('../controllers/liveController');
+const { getComments, getUsername } = require('../controllers/liveController');
 
-// GET live video page
-router.get('/', liveController.getLive);
+// Route for getting all live comments
+router.get('/comments', getComments);
 
-// POST to add a new live video
-router.post('/add', liveController.addLive);
-
-// POST to remove the current live video (optional)
-router.post('/remove', liveController.removeLive);
+// Route for getting the current user's username
+router.get('/username', getUsername);
 
 module.exports = router;

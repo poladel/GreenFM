@@ -4,23 +4,26 @@
   <div class="content-wrap">
     <div class="container">
       <%- include('../partials/nav.ejs') %>
-                
+
                 <!-------------------- CONTENTS START -------------------->
                 <div class="form-title-container">
-                    <h3 class="form-title">JOIN GREEN FM</h3>
+                    <h3 class="form-title">JOIN GREEN FM - APPLICATION STATUS</h3>
                 </div>
                 <div class="form-questions-container">
-                    <form id="joingreenfmForm">
-
-                    </form>
+                    <!-- Status will be loaded here -->
+                    <div id="staff-application-status">
+                        <p>Loading application status...</p>
+                    </div>
                 </div>
+                 <!-------------------- CONTENTS END -------------------->
             </div>
         </div>
-        
+
         <!-------------------- FOOTER -------------------->
         <%- include('../partials/footer.ejs') %>
+         <%- include('../partials/spinner.ejs') %> <%# Include spinner %>
     </div>
 
-    <script src="js/2-user/joingreenfm.js"></script>
+    <script src="/js/2-user/joingreenfm3.js"></script> <%# Link the new JS file %>
 </body>
 </html>

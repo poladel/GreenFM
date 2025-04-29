@@ -31,13 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (postForm) {
-        postForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            console.log('Post form submitted');
-        });
-    }
-
     if (imageInput) {
         imageInput.addEventListener('change', function () {
             const files = this.files;
@@ -62,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postForm) {
         postForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-
+    
             const imageInput = document.getElementById('image-input');
             const videoInput = document.getElementById('video-input');
             const titleValue = document.getElementById('post-title').value.trim();
@@ -112,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 if (response.ok) {
                     alert('Post uploaded successfully!');
-                    loadPosts();
+                    window.location.reload();
                     postForm.reset();
                     document.getElementById('preview-container').innerHTML = '';
                 } else {
@@ -294,150 +287,6 @@ function removeFile(file, type, previewElement) {
     }
 }
 
-// Handle form submission
-document.getElementById('post-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const imageInput = document.getElementById('image-input');
-    const videoInput = document.getElementById('video-input');
-    const titleValue = document.getElementById('post-title').value.trim();
-    const textValue = document.querySelector('.post-textbox').value.trim();
-
-    // Check number of images
-    if (imageInput.files.length > 6) {
-        showToast("You can upload a maximum of 6 images.");
-        return;
-    }
-
-    // Check image file sizes (20MB = 20 * 1024 * 1024)
-    for (let file of imageInput.files) {
-        if (file.size > 20 * 1024 * 1024) {
-            showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    // Check video file size (20MB = 20 * 1024 * 1024)
-    if (videoInput.files.length > 0) {
-        const videoFile = videoInput.files[0];
-        if (videoFile.size > 20 * 1024 * 1024) {
-            showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
-            return;
-        }
-    }
-
-    const formData = new FormData();
-    formData.append('title', titleValue);
-    formData.append('text', textValue);
-
-    for (let file of imageInput.files) {
-        formData.append('media', file);
-    }
-
-    if (videoInput.files.length > 0) {
-        formData.append('video', videoInput.files[0]);
-    }
-
-    try {
-        const response = await fetch('/post', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Post uploaded successfully!');
-            loadPosts();
-            document.getElementById('post-form').reset();
-            document.getElementById('preview-container').innerHTML = '';
-        } else {
-            alert(result.error || 'Failed to post');
-        }
-    } catch (error) {
-        alert("Something went wrong!");
-    }
-});
-
-// Fetch posts and display them
-async function loadPosts() {
-    try {
-        const response = await fetch('/posts'); // Adjust your endpoint as needed
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-        const posts = await response.json();
-        const container = document.getElementById('posts-container');
-
-        if (!Array.isArray(posts) || posts.length === 0) {
-            container.innerHTML = '<p>No posts available.</p>';
-            return;
-        }
-
-        container.innerHTML = posts.map(post => {
-            const mediaHtml = `
-                ${post.media?.map(img => `<img src="${img}" class="post-media-img" alt="Image">`).join('') || ''}
-                ${post.video ? `<video src="${post.video}" controls class="post-media-video"></video>` : ''}
-            `;
-
-            const commentsHtml = post.comments?.map(comment => `
-                <div class="comment">
-                    <strong>${comment.username}:</strong> ${comment.text}
-                </div>
-            `).join('') || '';
-
-            return `
-                <div class="post" id="post-${post._id}">
-                    <div class="post-item">
-                        <div class="post-info">
-                            <p class="post-title"><strong>${post.title}</strong></p>
-                            <p class="post-text">${post.text}</p>
-                            <div class="post-media">${mediaHtml}</div>
-                        </div>
-                        <div class="post-actions">
-                            <button onclick="toggleLike('${post._id}')" class="like-btn" id="like-btn-${post._id}">
-                                ❤️ <span id="like-count-${post._id}">${post.likes?.length || 0}</span>
-                            </button>
-                            ${window.user?.roles === 'Admin' ? `
-                                <button class="edit-btn" onclick="editPost('${post._id}', '${post.title}', '${post.text}')">Edit</button>
-                                <button class="delete-btn" onclick="deletePost('${post._id}')">Delete</button>
-                            ` : ''}
-                        </div>
-                        <div class="post-comments">
-                            ${window.user ? `
-                                <form onsubmit="submitComment(event, '${post._id}')">
-                                    <input type="text" class="comment-input" placeholder="Write a comment..." required>
-                                    <button type="submit" class="comment-btn">Comment</button>
-                                </form>
-                            ` : ''}
-                            <div class="comment-list" id="comments-${post._id}">
-                                ${commentsHtml}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (err) {
-        console.error('Failed to load posts:', err);
-        document.getElementById('posts-container').innerHTML = '<p>Failed to load posts. Please try again later.</p>';
-    }
-}
-
-// Call the loadPosts function when the page is loaded
-window.addEventListener('DOMContentLoaded', loadPosts);
-
-// Example of editPost and deletePost functions (to be implemented)
-function editPost(postId, title, text) {
-    console.log('Editing post', postId, title, text);
-    // Add your logic for editing a post
-}
-
-function deletePost(postId) {
-    console.log('Deleting post', postId);
-    // Add your logic for deleting a post
-}
-
-loadPosts();
-
 // Function to edit a post
 async function editPost(postId, currentTitle, currentText) {
     console.log('Editing post', postId, currentTitle, currentText);
@@ -454,25 +303,23 @@ async function editPost(postId, currentTitle, currentText) {
 
 // Function to update a post
 async function updatePost(postId, newTitle, newText) {
-    const formData = new FormData();
-    formData.append('title', newTitle);
-    formData.append('text', newText);
-
-    console.log('Updating post:', postId);
-    console.log('Title:', newTitle);
-    console.log('Text:', newText);
-
     try {
         const response = await fetch(`/post/${postId}`, {
             method: 'PUT',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: newTitle,
+                text: newText
+            })
         });
 
         const result = await response.json();
 
         if (response.ok) {
             alert('Post updated successfully!');
-            loadPosts(); // Reload the posts
+            window.location.reload();
         } else {
             alert(result.error || 'Failed to update post');
         }
@@ -492,7 +339,7 @@ async function deletePost(postId) {
 
             if (response.ok) {
                 alert('Post deleted successfully!');
-                loadPosts(); // Reload the posts
+                window.location.reload();
             } else {
                 alert(result.error || 'Failed to delete post');
             }
@@ -529,7 +376,7 @@ async function toggleLike(postId) {
 //------Comment Funtion-------//
 async function submitComment(event, postId) {
     event.preventDefault();
-    
+
     const form = event.target;
     const input = form.querySelector('.comment-input');
     const text = input.value.trim();
@@ -551,8 +398,21 @@ async function submitComment(event, postId) {
             const commentList = document.getElementById(`comments-${postId}`);
             const newComment = document.createElement('div');
             newComment.classList.add('comment');
-            newComment.innerHTML = `<strong>${result.comment.username}:</strong> ${result.comment.text}`;
-            commentList.appendChild(newComment);
+            newComment.id = `comment-${result.comment._id}`;
+
+            // Check permissions
+            const canDelete = window.user &&
+                (window.user.username === result.comment.username ||
+                (Array.isArray(window.user.roles)
+                ? (window.user.roles.includes('Admin') || window.user.roles.includes('Staff'))
+                : (window.user.roles === 'Admin' || window.user.roles === 'Staff')));
+
+            newComment.innerHTML = `
+                <strong>${result.comment.username}:</strong> ${result.comment.text}
+                ${canDelete ? `<button class="delete-comment-btn" onclick="deleteComment('${postId}', '${result.comment._id}')">🗑️</button>` : ''}
+            `;
+
+            window.location.reload();
             input.value = '';
         } else {
             alert(result.error || 'Failed to post comment.');
@@ -587,7 +447,84 @@ async function deleteComment(postId, commentId) {
     }
 }
 
-//-------Schedule-----------//
+function enableEditComment(postId, commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    textDisplay.style.display = 'none';
+    form.style.display = 'block';
+}
+
+function cancelEditComment(commentId) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const form = commentElement.querySelector('.edit-comment-form');
+    const textDisplay = commentElement.querySelector('.comment-text');
+
+    form.style.display = 'none';
+    textDisplay.style.display = 'inline';
+}
+
+async function editComment(event, postId, commentId) {
+    event.preventDefault();
+
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const input = commentElement.querySelector('.edit-comment-input');
+    const newText = input.value.trim();
+
+    if (!newText) return;
+
+    try {
+        const res = await fetch(`/post/${postId}/comment/${commentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: newText })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            const textDisplay = commentElement.querySelector('.comment-text');
+            textDisplay.textContent = newText;
+            cancelEditComment(commentId);
+        } else {
+            alert(result.error || 'Failed to edit comment.');
+        }
+    } catch (err) {
+        console.error('Error editing comment:', err);
+        alert('Error editing comment.');
+    }
+}
+
+//-------Search & Filter-----------//
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const filterMonth = document.getElementById("filterMonth");
+    const filterYear = document.getElementById("filterYear");
+    const filterBtn = document.getElementById("filterBtn");
+    const postsContainer = document.getElementById("posts-container");
+
+    const fetchPosts = async (query = {}) => {
+        const params = new URLSearchParams(query);
+        const res = await fetch(`/posts?${params}`);
+        const data = await res.text();
+        postsContainer.innerHTML = data;
+    };
+
+    searchInput.addEventListener("input", () => {
+        fetchPosts({ search: searchInput.value });
+    });
+
+    filterBtn.addEventListener("click", () => {
+        fetchPosts({
+            month: filterMonth.value,
+            year: filterYear.value,
+            search: searchInput.value
+        });
+    });
+});
+
+//-------Scheduled Shows-----------//
 function updateScheduleList() {
     const scheduleList = document.getElementById('schedule-list');
 
@@ -597,12 +534,37 @@ function updateScheduleList() {
     // Fetch today's schedule
     const now = new Date();
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[now.getDay()];
-    const currentYear = now.getFullYear().toString();
+    const today = days[now.getDay()]; // Dynamically get today's day
+    console.log(`Today is: ${today}`); // Debugging log
 
-    fetch(`/schedule?day=${today}&schoolYear=${currentYear}`)
-        .then((res) => res.json())
+    // Fetch the current school year from the schoolYearController
+    fetch('/schoolYear')
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch school year: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            console.log('School year data:', data); // Debugging log
+            let schoolYear = data.schoolYear;
+
+            // Normalize the schoolYear format to "2024-2025"
+            schoolYear = schoolYear.split('/')[1].split(' ')[0] + '-' + schoolYear.split('/')[2];
+            console.log('Normalized school year:', schoolYear); // Debugging log
+
+            // Use the fetched school year to get the schedule
+            return fetch(`/schedule?day=${today}&schoolYear=${schoolYear}`);
+        })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch schedule: ${res.status}`);
+            }
+            return res.json();
+        })
         .then((todaySchedule) => {
+            console.log('Today\'s schedule:', todaySchedule); // Debugging log
+
             if (todaySchedule && todaySchedule.length > 0) {
                 scheduleList.innerHTML = ''; // Clear the loading message
                 todaySchedule.forEach((item) => {
@@ -617,161 +579,9 @@ function updateScheduleList() {
         })
         .catch((err) => {
             console.error('Failed to fetch schedule:', err);
-            scheduleList.innerHTML = '<li>Error loading schedule.</li>';
+            scheduleList.innerHTML = '<li>Error loading schedule. Please try again later.</li>';
         });
 }
-   /*// Initialize as empty — filled from DB
-    let weekSchedule = {};
-
-    // 🟢 Fetch schedule from MongoDB
-    function fetchSchedule() {
-        fetch('/api/schedule')
-            .then(res => res.json())
-            .then(data => {
-                if (data) {
-                    weekSchedule = data;
-                    renderScheduleList();
-                }
-            })
-            .catch(err => console.error("Failed to fetch schedule:", err));
-    }
-
-    // 🟢 Save schedule to MongoDB
-    function saveSchedule() {
-        console.log("Sending weekSchedule:", weekSchedule); // 👈 Add this here
-
-        fetch('/api/schedule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(weekSchedule)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                console.log("✅ Schedule saved!");
-            } else {
-                console.warn("⚠️ Schedule not saved properly:", data);
-            }
-        })
-        .catch(err => console.error("Failed to save schedule:", err));
-    } 
-
-    // Show schedule on the page (used when page loads or when saving)
-    function renderScheduleList() {
-        const list = document.getElementById("schedule-list");
-        list.innerHTML = "";
-
-        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        const today = days[new Date().getDay()];
-
-        if (weekSchedule[today]) {
-            weekSchedule[today]
-                .sort((a, b) => parseTime(a.start) - parseTime(b.start))
-                .forEach(slot => {
-                    const li = document.createElement("li");
-                    li.textContent = `${slot.start} - ${slot.end} | ${slot.title}`;
-                    list.appendChild(li);
-                });
-        } else {
-            list.innerHTML = "<li>No shows scheduled today.</li>";
-        }
-    }
-
-    // Toggle edit form
-    document.getElementById("edit-schedule-btn").addEventListener("click", () => {
-        const form = document.getElementById("schedule-form");
-        form.style.display = form.style.display === "none" ? "block" : "none";
-
-        // Pre-fill form with current values
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        days.forEach(day => {
-            const daySection = form.querySelector(`[data-day="${day}"]`);
-            const slotsContainer = daySection.querySelector('.slots');
-            slotsContainer.innerHTML = ''; // Clear any existing slots
-
-            // Check if there are any slots for this day and render them
-            if (weekSchedule[day] && weekSchedule[day].length > 0) {
-                weekSchedule[day].forEach(slot => {
-                    const slotElement = document.createElement("div");
-                    slotElement.className = "slot";
-                    slotElement.innerHTML = `
-                        <input type="time" class="slot-start" value="${slot.start}" required>
-                        <input type="time" class="slot-end" value="${slot.end}" required>
-                        <input type="text" class="slot-title" value="${slot.title}" placeholder="Show Title" required>
-                        <button type="button" class="remove-slot-btn">✖</button>
-                    `;
-                    slotsContainer.appendChild(slotElement);
-
-                    // Remove slot functionality
-                    slotElement.querySelector(".remove-slot-btn").addEventListener("click", () => {
-                        slotElement.remove();
-                    });
-                });
-            } else {
-                // If no slots for the day, you can add a default "No slots" message if needed
-                slotsContainer.innerHTML = '<p>No live shows scheduled</p>';
-            }
-        });
-    });
-
-    // Save form data to weekSchedule + DB
-    document.getElementById("schedule-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        weekSchedule = gatherFormData();
-        renderScheduleList();
-        saveSchedule();
-        e.target.style.display = "none"; // Hide form after saving
-    }); 
-
-    // Capitalize string (e.g., "monday" → "Monday")
-    function capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    function gatherFormData() {
-        const form = document.getElementById("schedule-form");
-        const data = {};
-    
-        // Loop through each day (Monday to Friday)
-        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
-            const daySection = form.querySelector(`[data-day="${day}"]`);
-            const slots = [];
-    
-            // Gather all slots for this day
-            daySection.querySelectorAll('.slot').forEach(slotEl => {
-                const start = slotEl.querySelector('.slot-start').value;
-                const end = slotEl.querySelector('.slot-end').value;
-                const title = slotEl.querySelector('.slot-title').value;
-                if (start && end && title) {
-                    slots.push({ start, end, title });
-                }
-            });
-    
-            // Assign gathered slots to the respective day
-            data[day] = slots;
-        });
-    
-        return data;
-    }    
-
-    document.querySelectorAll(".add-slot-btn").forEach(button => {
-        button.addEventListener("click", () => {
-            const container = button.previousElementSibling;
-            const slot = document.createElement("div");
-            slot.className = "slot";
-            slot.innerHTML = `
-                <input type="time" class="slot-start" required>
-                <input type="time" class="slot-end" required>
-                <input type="text" class="slot-title" placeholder="Show Title" required>
-                <button type="button" class="remove-slot-btn">✖</button>
-            `;
-            container.appendChild(slot);
-    
-            slot.querySelector(".remove-slot-btn").addEventListener("click", () => {
-                slot.remove();
-            });
-        });
-    });*/
 
 //-----Live Now-----//
 // 🟢 Fetch schedule from MongoDB
@@ -826,23 +636,51 @@ function fetchSchedule() {
         return null; // No live show at the moment
     }
 
-    // Update "Live Now" section
-    function updateLiveNow() {
-        const live = getCurrentLive(); // Get the current live show
-        const container = document.getElementById("live-now-content");
-        const link = document.getElementById("live-now-link");
+    // LIVE NOW!
+    async function fetchStatus() {
+        const res = await fetch('/status');
+        const data = await res.json();
+        const statusEl = document.getElementById('status-indicator');
+        const subtextEl = document.getElementById('live-now-subtext');
+        const linkEl = document.getElementById('live-now-link');
 
-        if (live) {
-            container.innerHTML = `
-                <p style="margin: 0 0 8px;"><strong>${live.start} - ${live.title}</strong></p>
-            `;
-            link.href = "/live";
-            link.style.display = "inline-block"; // Show the "Go to live" button
+        if (data.live) {
+            statusEl.textContent = 'LIVE NOW!';
+            statusEl.className = 'status-live';
+            subtextEl.textContent = ''; // Clear subtext
+            linkEl.style.display = 'inline-block';
         } else {
-            container.innerHTML = `<p>No live show at the moment.</p>`; // No live show message
-            link.style.display = "none"; // Hide the "Go to live" button
+            statusEl.textContent = 'OFFLINE';
+            statusEl.className = 'status-offline';
+            subtextEl.textContent = 'No live broadcast available.';
+            linkEl.style.display = 'none';
         }
     }
+
+    async function setStatus(live) {
+        const res = await fetch('/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ live })
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchStatus();
+            closeStatusModal();
+        } else {
+            alert(data.error || "Failed to update status.");
+        }
+    }
+
+    function openStatusModal() {
+        document.getElementById('status-modal').style.display = 'flex';
+    }
+
+    function closeStatusModal() {
+        document.getElementById('status-modal').style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchStatus);
 
     // 🚀 On page load
     fetchSchedule().then(() => {

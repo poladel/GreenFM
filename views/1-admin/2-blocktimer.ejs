@@ -5,6 +5,10 @@
             <div class="container">
                 <%- include('../partials/nav.ejs') %>
 
+                <!-------------------- HEADER MENUS -------------------->   
+                <%- include('../partials/menu.ejs') %>
+
+                <!-------------------- CONTENTS START --------------------> 
                     <!-- Tabs for Submissions and Schedule -->
                     <div class="tabs-container">
                         <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
@@ -15,16 +19,59 @@
                     <div class="tab-content">
                         <!-- Schedule Tab -->
                         <div id="schedule-tab" class="tab-pane active">
+                            <div class="school-year-config">
+                                <h3>Configure School Year</h3>
+                                <form id="schoolYearConfigForm">
+                                    <label for="startMonth">Start Month:</label>
+                                    <select id="startMonth" name="startMonth">
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+
+                                    <label for="startYear">Start Year:</label>
+                                    <input type="number" id="startYear" name="startYear" placeholder="e.g., 2024"
+                                        required>
+
+                                    <label for="endMonth">End Month:</label>
+                                    <select id="endMonth" name="endMonth">
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+
+                                    <label for="endYear">End Year:</label>
+                                    <input type="number" id="endYear" name="endYear" placeholder="e.g., 2025" required>
+
+                                    <button type="submit">Save Configuration</button>
+                                </form>
+                                <!-- Display Current Configuration -->
+                                <div id="currentSchoolYearConfigDisplay" style="margin-top: 10px; font-weight: bold;">
+                                    <!-- Configuration will be loaded here by JS -->
+                                </div>
+                            </div>
                             <div class="schedule-container">
                                 <label for="schoolYear">School Year:</label>
                                 <select id="schoolYear" name="schoolYear">
-                                    <option value="2024" selected>2024</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2026">2026</option>
-                                    <option value="2027">2027</option>
-                                    <option value="2028">2028</option>
-                                    <option value="2029">2029</option>
-                                    <option value="2030">2030</option>
+                                    <!-- Options will be dynamically populated -->
                                 </select>
                                 <table class="schedule-table">
                                     <thead>
@@ -146,107 +193,144 @@
                                         <div class="form-group">
                                             <label for="modalSchoolYear">School Year:</label>
                                             <select id="modalSchoolYear" name="modalSchoolYear">
-                                                <option value="2024" selected>2024</option>
-                                                <option value="2025">2025</option>
-                                                <option value="2026">2026</option>
-                                                <option value="2027">2027</option>
-                                                <option value="2028">2028</option>
-                                                <option value="2029">2029</option>
-                                                <option value="2030">2030</option>
+                                                <!-- Options will be dynamically populated -->
                                             </select>
                                         </div>
                                         <div class="form-group">
                                             <label for="showTitle">Title of Show</label>
-                                            <input type="text" id="showTitle" name="showDetails.title" required/>
+                                            <input type="text" id="showTitle" name="showDetails.title" required />
                                         </div>
-            
+
                                         <!-- Checkboxes -->
                                         <div class="form-group checkbox-group">
                                             <label>Type of Show</label>
                                             <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="News">
+                                                    News</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Interview"> Interview</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Comedy">
+                                                    Comedy</label>
                                             </div>
                                             <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Sports">
+                                                    Sports</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Music">
+                                                    Music</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Entertainment"> Entertainment</label>
                                             </div>
                                             <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Discussion or Podcast"> Discussion or Podcast</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Performance"> Performance</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Drama">
+                                                    Drama</label>
                                             </div>
                                             <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Commentary"> Commentary</label>
+                                                <label><input type="checkbox" name="showDetails.type[]" value="Game">
+                                                    Game</label>
+                                                <label><input type="checkbox" name="showDetails.type[]"
+                                                        value="Public or Current Affairs"> Public or Current
+                                                    Affairs</label>
                                             </div>
                                             <div class="checkbox-row">
-                                                <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
-                                                <input type="text" id="other-input" placeholder="Other" disabled="true" />
-                                            </div>                                               
-                                        </div>                          
-                                    
-                                        <div class="form-group">
-                                            <label for="show-description">Brief Description of Show</label><br>
-                                            <textarea id="show-description" name="showDetails.description" rows="4" cols="130" placeholder="Enter your answer" required></textarea>
+                                                <input type="checkbox" name="showDetails.type[]" id="other"
+                                                    value="Other">
+                                                <input type="text" id="other-input" placeholder="Other"
+                                                    disabled="true" />
+                                            </div>
                                         </div>
-                                    
+
+                                        <div class="form-group">
+                                            <label for="showDescription">Brief Description of Show</label><br>
+                                            <textarea id="showDescription" name="showDetails.description" rows="4"
+                                                cols="130" placeholder="Enter your answer" required></textarea>
+                                        </div>
+
                                         <div class="form-group">
                                             <label for="showObjectives">Objective of Show</label>
-                                            <textarea id="showObjectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
+                                            <textarea id="showObjectives" name="showDetails.objectives" rows="4"
+                                                cols="50" placeholder="Enter your answer" required></textarea>
                                         </div>
                                         <label>Name of Executive Producer</label>
                                         <div class="name-section">
-                                            <input type="text" id="execProducerLastName" name="executiveProducer.lastName" placeholder="Last Name" required>
-                                            <input type="text" id="execProducerFirstName" name="executiveProducer.firstName" placeholder="First Name" required>
-                                            <input type="text" id="execProducerMI" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
-                                            <input type="text" id="execProducerSuffix" name="executiveProducer.suffix" class="middleinitial" placeholder="Suffix">
-                                            <input type="text" id="execProducerCYS" name="executiveProducer.cys"placeholder="CYS">
+                                            <input type="text" id="execProducerLastName"
+                                                name="executiveProducer.lastName" placeholder="Last Name" required>
+                                            <input type="text" id="execProducerFirstName"
+                                                name="executiveProducer.firstName" placeholder="First Name" required>
+                                            <input type="text" id="execProducerMI" name="executiveProducer.mi"
+                                                class="middleinitial" placeholder="M.I.">
+                                            <input type="text" id="execProducerSuffix" name="executiveProducer.suffix"
+                                                class="middleinitial" placeholder="Suffix">
+                                            <input type="text" id="execProducerCYS" name="executiveProducer.cys"
+                                                placeholder="CYS">
                                         </div>
                                         <label>Name of Host/s</label>
-                                        <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
-                                        This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
+                                        <p class="formnote">The hosting arrangement permits a weekly rotation of hosts,
+                                            limited to two (2) sets only.
+                                            This means that there is a maximum cap of four (4) individuals who can
+                                            collectively host a single program.</p>
 
                                         <!-- Container for hosts, necessary for dynamic addition -->
                                         <div id="hosts-container">
-                                            <div class="name-section host-input">
-                                                <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
-                                                <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
-                                                <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
-                                                <input type="text" name="hosts[0].suffix" class="middleinitial" placeholder="Suffix">
-                                                <input type="text" name="hosts[0].cys" placeholder="CYS">
+                                            <div class="name-section host-input-group">
+                                                <input type="text" name="hosts[0][lastName]" placeholder="Last Name"
+                                                    required>
+                                                <input type="text" name="hosts[0][firstName]" placeholder="First Name"
+                                                    required>
+                                                <input type="text" name="hosts[0][mi]" class="middleinitial"
+                                                    placeholder="M.I.">
+                                                <input type="text" name="hosts[0][suffix]" class="middleinitial"
+                                                    placeholder="Suffix">
+                                                <input type="text" name="hosts[0][cys]" placeholder="CYS">
+                                                <button type="button" class="remove-host-button" style="display: none; margin-left: 5px;">Remove</button>
                                             </div>
                                         </div>
-                                        <button type="button" id="add-host" class="addbutton" disabled>+ Add Host</button><br><br>
+                                        <button type="button" id="addHost" class="addbutton" disabled>+ Add Host</button><br><br>
 
                                         <label>Name of Technical Staff/s</label>
-                                        <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
-                                        technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
+                                        <p class="formnote">Each airing of an episode is to be organized by a maximum of
+                                            two (2)
+                                            technical staff while coordinating with the 95.9 Green FM Directors for
+                                            Operations and Logistics.</p>
 
                                         <!-- Container for technical staff, necessary for dynamic addition -->
                                         <div id="technical-container">
-                                            <div class="name-section technical-input">
-                                                <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
-                                                <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
-                                                <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
-                                                <input type="text" name="technicalStaff[0].suffix" class="middleinitial" placeholder="Suffix">
-                                                <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
+                                            <div class="name-section technical-input-group">
+                                                <input type="text" name="technicalStaff[0][lastName]"
+                                                    placeholder="Last Name" required>
+                                                <input type="text" name="technicalStaff[0][firstName]"
+                                                    placeholder="First Name" required>
+                                                <input type="text" name="technicalStaff[0][mi]" class="middleinitial"
+                                                    placeholder="M.I.">
+                                                <input type="text" name="technicalStaff[0][suffix]" class="middleinitial"
+                                                    placeholder="Suffix">
+                                                <input type="text" name="technicalStaff[0][cys]" placeholder="CYS">
+                                                <button type="button" class="remove-technical-button" style="display: none; margin-left: 5px;">Remove</button>
                                             </div>
                                         </div>
-                                        <button type="button" id="add-technical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
+                                        <button type="button" id="addTechnical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
 
                                         <label>Name of Creative Staff</label>
-                                        <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
-                                        creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
+                                        <p class="formnote">The publicity materials for the promotion of the
+                                            blocktimers' show is to be crafted by one (1)
+                                            creatives staff while coordinating with the 95.9 Green FM Senior Director
+                                            for Creatives and Promotions.</p>
                                         <div class="name-section">
-                                            <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName" placeholder="Last Name" required>
-                                            <input type="text" id="creativeStaffFirstName" name="creativeStaff.firstName" placeholder="First Name" required>
-                                            <input type="text" id="creativeStaffMI" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
-                                            <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix" class="middleinitial" placeholder="Suffix">
-                                            <input type="text" id="creativeStaffCYS" name="creativeStaff.cys"placeholder="CYS">
+                                            <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName"
+                                                placeholder="Last Name" required>
+                                            <input type="text" id="creativeStaffFirstName"
+                                                name="creativeStaff.firstName" placeholder="First Name" required>
+                                            <input type="text" id="creativeStaffMI" name="creativeStaff.mi"
+                                                class="middleinitial" placeholder="M.I.">
+                                            <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix"
+                                                class="middleinitial" placeholder="Suffix">
+                                            <input type="text" id="creativeStaffCYS" name="creativeStaff.cys"
+                                                placeholder="CYS">
                                         </div>
 
                                         <button id="saveButton" type="button">Save</button>
@@ -262,19 +346,13 @@
                                 <!-- Add School Year Dropdown -->
                                 <label for="submissionSchoolYear">School Year:</label>
                                 <select id="submissionSchoolYear" name="submissionSchoolYear">
-                                    <option value="2024">2024</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2026">2026</option>
-                                    <option value="2027">2027</option>
-                                    <option value="2028">2028</option>
-                                    <option value="2029">2029</option>
-                                    <option value="2030">2030</option>
+                                    <!-- Options will be dynamically populated -->
                                 </select>
                                 <select id="resultFilter">
                                     <option value="">All</option>
                                     <option value="Pending">Pending</option>
-                                    <option value="Accept">Accepted</option>
-                                    <option value="Reject">Rejected</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Rejected">Rejected</option>
                                 </select>
                                 <table class="submissions-table">
                                     <thead>
@@ -294,49 +372,52 @@
                                 <form id="submission-form">
                                     <h3>Submission Details</h3>
                                     <div>
-                                        <label for="organizationName">Organization Name:</label>
-                                        <input type="text" id="organizationName" name="organizationName" readonly>
+                                        <label for="submissionOrganizationName">Organization Name:</label>
+                                        <input type="text" id="submissionOrganizationName" name="submissionOrganizationName" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="organizationType">Organization Type:</label>
-                                        <input type="text" id="organizationType" name="organizationType" readonly>
+                                        <label for="submissionOrganizationType">Organization Type:</label>
+                                        <input type="text" id="submissionOrganizationType" name="submissionOrganizationType" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="proponentName">Proponent Name:</label>
-                                        <input type="text" id="proponentName" name="proponentName" readonly>
+                                        <label for="submissionProponentName">Proponent Name:</label>
+                                        <input type="text" id="submissionProponentName" name="submissionProponentName" readonly>
 
-                                        <label for="proponentCYS">Proponent CYS:</label>
-                                        <input type="text" id="proponentCYS" name="proponentCYS" readonly>
+                                        <label for="submissionProponentCYS">Proponent CYS:</label>
+                                        <input type="text" id="submissionProponentCYS" name="submissionProponentCYS" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="coProponentName">Co-Proponent Name:</label>
-                                        <input type="text" id="coProponentName" name="coProponentName" readonly>
+                                        <label for="submissionCoProponentName">Co-Proponent Name:</label>
+                                        <input type="text" id="submissionCoProponentName" name="submissionCoProponentName" readonly>
 
-                                        <label for="coProponentCYS">Co-Proponent CYS:</label>
-                                        <input type="text" id="coProponentCYS" name="coProponentCYS" readonly>
+                                        <label for="submissionCoProponentCYS">Co-Proponent CYS:</label>
+                                        <input type="text" id="submissionCoProponentCYS" name="submissionCoProponentCYS" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="show-title">Show Title:</label>
-                                        <input type="text" id="show-title" name="show-title" readonly>
+                                        <label for="submissionShowTitle">Show Title:</label>
+                                        <input type="text" id="submissionShowTitle" name="submissionShowTitle" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="showType">Show Type:</label>
-                                        <input type="text" id="showType" name="showType" readonly>
+                                        <label for="submissionShowType">Show Type:</label>
+                                        <input type="text" id="submissionShowType" name="submissionShowType" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="showDescription">Show Description:</label>
-                                        <textarea id="showDescription" name="showDescription" readonly rows="4"></textarea>
+                                        <!-- CHANGE ID -->
+                                        <label for="submissionShowDescription">Show Description:</label>
+                                        <textarea id="submissionShowDescription" name="submissionShowDescription" readonly
+                                            rows="4"></textarea>
                                     </div>
 
                                     <div>
-                                        <label for="show-objectives">Show Objectives:</label>
-                                        <textarea id="show-objectives" name="show-objectives" readonly rows="4"></textarea>
+                                        <label for="submissionShowObjectives">Show Objectives:</label>
+                                        <textarea id="submissionShowObjectives" name="submissionShowObjectives" readonly
+                                            rows="4"></textarea>
                                     </div>
 
                                     <div>
@@ -357,45 +438,47 @@
                                             readonly>
                                     </div>
 
-                                    <div id="host-container">
+                                    <div id="submissionHostContainer">
                                         <!-- Host fields will be dynamically added here -->
                                     </div>
 
-                                    <div id="technicalStaff-container">
+                                    <div id="submissionTechnicalStaffContainer">
                                         <!-- Host fields will be dynamically added here -->
                                     </div>
 
                                     <div>
-                                        <label for="creativeStaff">Creative Staff Name:</label>
-                                        <input type="text" id="creativeStaff" name="creativeStaff" readonly>
+                                        <!-- CHANGE ID -->
+                                        <label for="submissionCreativeStaff">Creative Staff Name:</label>
+                                        <input type="text" id="submissionCreativeStaff" name="submissionCreativeStaff" readonly>
 
-                                        <label for="creativeStaffCYS">Creative Staff CYS:</label>
-                                        <input type="text" id="creativeStaffCYS" name="creativeStaffCYS" readonly>
+                                        <!-- CHANGE ID -->
+                                        <label for="submissionCreativeStaffCYS">Creative Staff CYS:</label>
+                                        <input type="text" id="submissionCreativeStaffCYS" name="submissionCreativeStaffCYS" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="dlsudEmail">DLSUD Email:</label>
-                                        <input type="text" id="dlsudEmail" name="dlsudEmail" readonly>
+                                        <label for="submissionDlsudEmail">DLSUD Email:</label>
+                                        <input type="text" id="submissionDlsudEmail" name="submissionDlsudEmail" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="contactEmail">Contact Email:</label>
-                                        <input type="text" id="contactEmail" name="contactEmail" readonly>
+                                        <label for="submissionContactEmail">Contact Email:</label>
+                                        <input type="text" id="submissionContactEmail" name="submissionContactEmail" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="contactFbLink">Contact FB Link:</label>
-                                        <input type="text" id="contactFbLink" name="contactFbLink" readonly>
+                                        <label for="submissionContactFbLink">Contact FB Link:</label>
+                                        <input type="text" id="submissionContactFbLink" name="submissionContactFbLink" readonly>
                                     </div>
 
-                                    <div id="FbLink-container">
-                                        <label for="FbLink">Crossposting FB Link:</label>
-                                        <input type="text" id="FbLink" name="FbLink" readonly>
+                                    <div id="submissionFbLinkContainer">
+                                        <label for="submissionFbLink">Crossposting FB Link:</label>
+                                        <input type="text" id="submissionFbLink" name="submissionFbLink" readonly>
                                     </div>
 
                                     <div>
-                                        <label for="proponentSignature">Proponent Signature:</label>
-                                        <img id="proponentSignature" name="proponentSignature" src=""
+                                        <label for="submissionProponentSignature">Proponent Signature:</label>
+                                        <img id="submissionProponentSignature" name="submissionProponentSignature" src=""
                                             alt="Proponent Signature"
                                             style="max-width: 15%; height: auto;  display: none;">
                                     </div>
@@ -420,8 +503,8 @@
                                         <select id="result" name="result" disabled>
                                             <option value="Pending" disabled selected>Pending</option>
                                             <!-- Default unselectable value -->
-                                            <option value="Accept">Accept</option>
-                                            <option value="Reject">Reject</option>
+                                            <option value="Accepted">Accepted</option>
+                                            <option value="Rejected">Rejected</option>
                                         </select>
                                         <div class="result-error"></div>
                                     </div>
@@ -437,6 +520,8 @@
     </div>
 
     <script src="js/1-admin/blocktimer.js"></script>
+
+    <%- include('../partials/spinner.ejs') %> <%# Include the spinner partial %>
 
     </body>
 
