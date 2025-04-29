@@ -55,26 +55,50 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Preview selected files (images/videos)
-    previewFiles() {
-      this.elements.previewContainer.innerHTML = ''; // Clear existing previews
-      this.selectedFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const filePreview = document.createElement('div');
-          filePreview.className = 'file-preview';
 
-          if (file.type.startsWith('image/')) {
-            filePreview.innerHTML = `<img src="${e.target.result}" alt="${file.name}" class="preview-image" />`;
-          } else if (file.type.startsWith('video/')) {
-            filePreview.innerHTML = `<video controls class="preview-video"><source src="${e.target.result}" type="${file.type}"></video>`;
-          }
 
-          this.elements.previewContainer.appendChild(filePreview);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+previewFiles() {
+  this.elements.previewContainer.innerHTML = ''; // Clear existing previews
+  this.selectedFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const filePreview = document.createElement('div');
+      filePreview.className = 'file-preview relative';  // Added relative for positioning the (X) button
+
+      // Display image or video preview
+      if (file.type.startsWith('image/')) {
+        filePreview.innerHTML = `
+          <div class="preview-item relative">
+            <img src="${e.target.result}" alt="${file.name}" class="preview-image" />
+            <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
+          </div>`;
+      } else if (file.type.startsWith('video/')) {
+        filePreview.innerHTML = `
+          <div class="preview-item relative">
+            <video controls class="preview-video"><source src="${e.target.result}" type="${file.type}"></video>
+            <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
+          </div>`;
+      }
+
+      // Append the preview to the container
+      this.elements.previewContainer.appendChild(filePreview);
+
+      // Attach event listener to remove button (X)
+      const removeButton = filePreview.querySelector('.remove-file-btn');
+      removeButton.addEventListener('click', () => this.removeFile(index));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+
+removeFile(index) {
+
+  this.selectedFiles.splice(index, 1);
+
+  // Re-render the previews
+  this.previewFiles();
+}
 
     handleAddPollOption() {
       const currentCount = this.elements.pollOptionsWrapper.querySelectorAll('input').length;
@@ -123,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     resetPollForm() {
       this.elements.pollForm.reset();
-      this.elements.pollOptionsWrapper.innerHTML = `
+      this.elements.pollOptionsWrapper.innerHTML = ` 
         <input type="text" name="pollOptions[]" placeholder="Option 1" class="w-full p-2 border rounded poll-input" required>
         <input type="text" name="pollOptions[]" placeholder="Option 2" class="w-full p-2 border rounded poll-input" required>
       `;
@@ -370,9 +394,11 @@ document.addEventListener('DOMContentLoaded', function () {
   window.app = new ForumApp();
 });
 
-//---------------------------------------------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------------------------------------------//
+
+//-----------------------------------------------------------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------------------------------------------------------//
+
 
 window.safeDeletePost = async function (postId, button) {
   if (!confirm('Are you sure you want to delete this post?')) return;

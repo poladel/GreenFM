@@ -56,6 +56,29 @@
     box-shadow: 0 0 0 3px rgba(0, 114, 42, 0.15);
     outline: none;
   }
+
+  /* Remove button in image (post)*/
+
+  .file-preview {
+    position: relative; /* This ensures the absolute button is positioned correctly */
+  }
+  
+  .remove-file-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .remove-file-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
   
   /* ===== MEDIA PREVIEW ===== */
   .media-buttons {
