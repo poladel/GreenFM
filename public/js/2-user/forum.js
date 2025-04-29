@@ -1,4 +1,3 @@
-// Handling file previews and submissions
 document.addEventListener('DOMContentLoaded', function () {
   class ForumApp {
     constructor() {
@@ -62,15 +61,17 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.onload = (e) => {
           const filePreview = document.createElement('div');
           filePreview.className = 'file-preview relative';
-
-          // Display image or video preview
+    
+          // Display image preview
           if (file.type.startsWith('image/')) {
             filePreview.innerHTML = `
               <div class="preview-item relative">
                 <img src="${e.target.result}" alt="${file.name}" class="preview-image" />
                 <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
               </div>`;
-          } else if (file.type.startsWith('video/')) {
+          } 
+          // Display video preview
+          else if (file.type.startsWith('video/')) {
             filePreview.innerHTML = `
               <div class="preview-item relative">
                 <video controls class="preview-video w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
@@ -79,10 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
               </div>`;
           }
-
+    
           // Append the preview to the container
           this.elements.previewContainer.appendChild(filePreview);
-
+    
           // Attach event listener to remove button (X)
           const removeButton = filePreview.querySelector('.remove-file-btn');
           removeButton.addEventListener('click', () => this.removeFile(index));
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsDataURL(file);
       });
     }
-
+    
     removeFile(index) {
       this.selectedFiles.splice(index, 1);
       this.previewFiles(); // Re-render the previews
@@ -113,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
       
       const question = this.elements.pollQuestionInput.value.trim();
       const options = [...this.elements.pollOptionsWrapper.querySelectorAll('input')].map(input => input.value.trim()).filter(opt => opt);
-    
+      
       if (!question || options.length < 2) {
         return showToast('❌ Enter a question and at least 2 options', 'error');
       }
@@ -128,18 +129,20 @@ document.addEventListener('DOMContentLoaded', function () {
     
         const data = await res.json();
     
+        // Check if response is successful
         if (data.success) {
           showToast('✅ Poll posted!');
           this.resetPollForm();
-          this.loadPosts();
+          this.loadPosts();  // Reload posts after the poll has been posted successfully
         } else {
+          // Handle unsuccessful submission
           showToast('❌ Failed to post poll', 'error');
         }
       } catch (err) {
         console.error('Poll submit error:', err);
         showToast('❌ Error submitting poll', 'error');
       }
-    }
+    }    
 
     resetPollForm() {
       this.elements.pollForm.reset();
@@ -224,16 +227,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     renderPosts(posts) {
       this.elements.postsContainer.innerHTML = '';  // Clear existing posts
-
+    
       posts.forEach(post => {
         if (!post || !post._id) return;  // Skip invalid posts
-
+    
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
-
-        const showControls = post.userId && post.userId._id === this.currentUserId;  // Only show edit for post owner
-
+    
+        const showControls = post.userId && post.userId._id === this.currentUserId;
+        const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
+    
+        // Format createdAt for date display
         const createdAt = post.createdAt
           ? new Date(post.createdAt).toLocaleString('en-US', {
               month: 'long',
@@ -244,14 +249,15 @@ document.addEventListener('DOMContentLoaded', function () {
               hour12: true
             })
           : '';
-
+    
         const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-
+    
+        // Render Poll Section if it exists
         let pollSection = '';
         if (post.poll?.question) {
-          pollSection = this.renderPollSection(post);
+          pollSection = this.renderPollSection(post, userHasVoted);
         }
-
+    
         div.innerHTML = `
           <div class="post-header flex justify-between items-start">
             <div>
@@ -261,34 +267,36 @@ document.addEventListener('DOMContentLoaded', function () {
               <p class="text-sm text-gray-500 mb-1">${createdAt}</p>
               <div class="edit-delete-buttons flex gap-2 justify-end">
                 ${showControls
-                  ? ` 
+                  ? `
                     <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
                     <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
-                  ` : ``}
+                  `
+                  : ` 
+                    <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
+                  `}
               </div>
             </div>
           </div>
-
+    
           <h4 class="post-title text-l text-gray-800 mt-2">${post.title}</h4>
-
+    
           <div class="post-media-container mt-3">
-            ${(post.media || []).map(media => media.type.startsWith('image/') 
-              ? `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />`
-              : `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
-                  <source src="${media.url}" type="${media.type}">
-                </video>`
-            ).join('')}
+            ${(post.media || []).map(media => media.type === 'image' ? 
+                `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
+                `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
+                  <source src="${media.url}" type="video/mp4">
+                </video>`).join('')}
           </div>
-
+    
           ${pollSection}
-
+    
           <div class="post-actions mt-4 flex space-x-4">
             <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
               ❤️ <span class="like-count">${likeCount}</span>
             </button>
             <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
           </div>
-
+    
           <div class="interaction-panel mt-4" data-post-id="${post._id}">
             <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
               <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
@@ -299,14 +307,16 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
           </div>
         `;
-
+    
         // Append the newly created post div to the container
         this.elements.postsContainer.appendChild(div);
-
+    
         // Load comments for each post
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
+    
+    
 
     renderPollSection(post) {
       return `
@@ -543,13 +553,13 @@ window.toggleLike = function(postId, button) {
         
         showToast(data.message || message);
       } else {
-        window.showToast('❌ Failed to like/unlike post (invalid response)', 'error');
+        window.showToast('Failed to like/unlike post (invalid response)', 'error');
         console.warn('Like API response:', data);
       }
     })
     .catch(err => {
       console.error('Like error:', err);
-      window.showToast('❌ Error liking/unliking post', 'error');
+      window.showToast('Error liking/unliking post', 'error');
     });
 };
 
@@ -585,8 +595,8 @@ window.submitComment = async function (postId, button) {
             </div>
             ${isOwner ? `
               <div class="edit-delete-buttons" style="display: flex; gap: 4px;">
-                <button class="edit-btn" type="button" onclick="window.editComment('${postId}', '${data.comment._id}', this)">✏️</button>
-                <button class="delete-btn" type="button" data-post-id="${postId}" data-comment-id="${data.comment._id}">🗑️</button>
+                <button class="edit-btn" type="button" onclick="window.editComment('${postId}', '${data.comment._id}', this)"></button>
+                <button class="delete-btn" type="button" data-post-id="${postId}" data-comment-id="${data.comment._id}"></button>
               </div>
             ` : ''}
           </div>
@@ -594,13 +604,13 @@ window.submitComment = async function (postId, button) {
         </div>`;
 
       commentsList.innerHTML += commentHTML;
-      showToast('💬 Comment posted!');
+      showToast('Comment posted!');
     } else {
-      showToast('❌ Failed to comment', 'error');
+      showToast('Failed to comment', 'error');
     }
   } catch (err) {
     console.error('Submit comment error:', err);
-    showToast('❌ Error posting comment', 'error');
+    showToast('Error posting comment', 'error');
   }
 };
 
@@ -645,13 +655,13 @@ window.editComment = async function (postId, commentId, button) {
           <button class="edit-btn" onclick="window.editComment('${postId}', '${commentId}', this)" type="button">✏️</button>
           <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${commentId}', this)" type="button">🗑️</button>
         `;
-        showToast('✅ Comment updated!');
+        showToast('Comment updated!');
       } else {
-        showToast('❌ Failed to update comment', 'error');
+        showToast('Failed to update comment', 'error');
       }
     } catch (err) {
       console.error('Comment update error:', err);
-      showToast('❌ Error updating comment', 'error');
+      showToast('Error updating comment', 'error');
     }
   };
 
@@ -674,7 +684,7 @@ window.editComment = async function (postId, commentId, button) {
 function vote(index) {
   voteCounts[index]++;
   document.getElementById(`count-${index}`).textContent = voteCounts[index];
-  showPollToast('✅ Vote submitted!');
+  showPollToast('Vote submitted!');
 }
 
 window.votePoll = async function(postId, optionIndex) {
@@ -688,7 +698,7 @@ window.votePoll = async function(postId, optionIndex) {
 
     const data = await res.json();
     if (data.success) {
-      showToast('✅ Vote submitted!');
+      showToast(' Vote submitted!');
 
       // Dynamically update the vote count for the selected option
       const voteCountElement = document.getElementById(`vote-count-${postId}-${optionIndex}`);
@@ -699,7 +709,7 @@ window.votePoll = async function(postId, optionIndex) {
       // Optionally, reload posts to reflect the latest data
       await window.app.loadPosts(); // Refresh the posts with updated vote data
     } else {
-      showToast('❌ Unable to vote', 'error');
+      showToast('You have already voted.', 'error');
     }
   } catch (err) {
     console.error('Vote error:', err);

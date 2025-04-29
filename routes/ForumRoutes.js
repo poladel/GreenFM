@@ -68,6 +68,7 @@ router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res
 });
 
 
+
 // Forum page route with pagination
 router.get('/forum', requireAuth, async (req, res) => {
   try {

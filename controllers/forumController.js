@@ -42,16 +42,17 @@ const upload = multer({
   }
 }).any();
 
+
 // Upload to Cloudinary
 const uploadToCloudinary = (file) => {
   return new Promise((resolve, reject) => {
     const isVideo = file.mimetype.startsWith('video/');
     const uploadOptions = {
       folder: 'uploads',
-      resource_type: isVideo ? 'video' : 'image',
-      format: isVideo ? 'mp4' : 'webp',
+      resource_type: isVideo ? 'video' : 'image',  // Correct type assignment
+      format: isVideo ? 'mp4' : 'webp',  // Correct format assignment
       quality: 'auto:good',
-      ...(isVideo ? {} : { transformation: { width: 800, height: 800, crop: 'limit' } })
+      ...(isVideo ? {} : { transformation: { width: 800, height: 800, crop: 'limit' } }) // Apply transformations for images only
     };
 
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -61,7 +62,7 @@ const uploadToCloudinary = (file) => {
         resolve({
           url: result.secure_url,
           public_id: result.public_id,
-          type: isVideo ? 'video' : 'image'
+          type: isVideo ? 'video' : 'image'  // Ensure the type is correctly set
         });
       }
     );
@@ -99,9 +100,10 @@ exports.handleFileUploads = (req, res, next) => {
 
 exports.createPost = async (req, res) => {
   try {
-    const { title, text, pollQuestion, pollOptions } = req.body;
+    const { title, text, pollQuestion, pollOptions } = req.body; // Get poll data from body
     let media = [];
 
+    // Handle media uploads (images and videos)
     if (req.uploadedMedia && req.uploadedMedia.length > 0) {
       media = req.uploadedMedia.map(file => ({
         url: file.url,
@@ -116,7 +118,7 @@ exports.createPost = async (req, res) => {
       media,
       poll: pollQuestion ? {
         question: pollQuestion,
-        options: pollOptions.map(opt => ({ text: opt }))
+        options: pollOptions.map(opt => ({ text: opt }))  // Map poll options to an array
       } : null
     });
 
@@ -127,7 +129,6 @@ exports.createPost = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
 
 
 

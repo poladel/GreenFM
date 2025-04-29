@@ -11,7 +11,7 @@ const commentSchema = new mongoose.Schema({
 // Media Schema
 const mediaSchema = new mongoose.Schema({
   url: { type: String, required: true },
-  type: { type: String, required: true }
+  type: { type: String, required: true }  // Ensure the type is stored (image or video)
 }, { _id: false });
 
 // Poll Option Schema
@@ -25,7 +25,7 @@ const forumPostSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   text: { type: String, default: '' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  media: [mediaSchema],
+  media: [mediaSchema],  // Media can be both images and videos
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [commentSchema],
   poll: {
@@ -35,4 +35,19 @@ const forumPostSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 
+// ✅ Report Schema
+const reportSchema = new mongoose.Schema({
+  type: { type: String, enum: ['post', 'comment'], required: true },
+  targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  reporterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  reason: { type: String, default: 'Inappropriate content' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// Export models
+const ForumPost = mongoose.model('ForumPost', forumPostSchema, 'ForumPosts');
+const Report = mongoose.model('Report', reportSchema, 'ForumReports');
+
+// Exporting both models and schema if needed elsewhere
+module.exports = { ForumPost, Report, forumPostSchema };
 module.exports = mongoose.model('ForumPost', forumPostSchema, 'ForumPosts');
