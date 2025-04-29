@@ -67,50 +67,6 @@ router.delete('/posts/:postId/comments/:commentId', requireAuth, async (req, res
   }
 });
 
-// Report post route
-router.post('/posts/report', requireAuth, async (req, res) => {
-  const { type, targetId } = req.body;
-
-  // Ensure the report type is either 'post' or 'comment'
-  if (!['post', 'comment'].includes(type)) {
-    return res.status(400).json({ success: false, message: 'Invalid report type' });
-  }
-
-  try {
-    const report = new Report({
-      type,
-      targetId,
-      reporterId: req.user._id,
-      reason: 'Inappropriate content' // Default reason can be customized later
-    });
-
-    await report.save();
-    res.json({ success: true, message: 'Report submitted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to report' });
-  }
-});
-
-// Report comment route
-router.post('/posts/:postId/comments/:commentId/report', requireAuth, async (req, res) => {
-  const { postId, commentId } = req.params;
-
-  try {
-    const report = new Report({
-      type: 'comment',
-      targetId: commentId,
-      reporterId: req.user._id,
-      reason: 'Inappropriate content' // Default reason can be customized later
-    });
-
-    await report.save();
-    res.json({ success: true, message: 'Comment reported successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to report comment' });
-  }
-});
 
 // Forum page route with pagination
 router.get('/forum', requireAuth, async (req, res) => {

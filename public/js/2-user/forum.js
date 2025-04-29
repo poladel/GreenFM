@@ -1,8 +1,9 @@
+// Handling file previews and submissions
 document.addEventListener('DOMContentLoaded', function () {
   class ForumApp {
     constructor() {
-      this.selectedFiles = [];  // Ensure this is initialized as an array
-      this.currentUserId = window.currentUserId || null;
+      this.selectedFiles = [];  // Initialize this as an array for file uploads
+      this.currentUserId = window.currentUserId || null;  // Get the current user ID
       this.cacheElements();
       this.init();
     }
@@ -46,59 +47,54 @@ document.addEventListener('DOMContentLoaded', function () {
       this.elements.pollForm?.addEventListener('submit', (e) => this.handlePollSubmit(e));
     }
 
-    // Handle file selection (image/video uploads)
     handleFileSelect(event) {
       const files = event.target.files;
       if (files.length) {
-        this.selectedFiles = Array.from(files);  // Ensure it is an array
+        this.selectedFiles = Array.from(files);  // Ensure it's an array
         this.previewFiles();
       }
     }
 
+    previewFiles() {
+      this.elements.previewContainer.innerHTML = ''; // Clear existing previews
+      this.selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const filePreview = document.createElement('div');
+          filePreview.className = 'file-preview relative';
 
+          // Display image or video preview
+          if (file.type.startsWith('image/')) {
+            filePreview.innerHTML = `
+              <div class="preview-item relative">
+                <img src="${e.target.result}" alt="${file.name}" class="preview-image" />
+                <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
+              </div>`;
+          } else if (file.type.startsWith('video/')) {
+            filePreview.innerHTML = `
+              <div class="preview-item relative">
+                <video controls class="preview-video w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
+                  <source src="${e.target.result}" type="${file.type}">
+                </video>
+                <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
+              </div>`;
+          }
 
-previewFiles() {
-  this.elements.previewContainer.innerHTML = ''; // Clear existing previews
-  this.selectedFiles.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const filePreview = document.createElement('div');
-      filePreview.className = 'file-preview relative';  // Added relative for positioning the (X) button
+          // Append the preview to the container
+          this.elements.previewContainer.appendChild(filePreview);
 
-      // Display image or video preview
-      if (file.type.startsWith('image/')) {
-        filePreview.innerHTML = `
-          <div class="preview-item relative">
-            <img src="${e.target.result}" alt="${file.name}" class="preview-image" />
-            <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
-          </div>`;
-      } else if (file.type.startsWith('video/')) {
-        filePreview.innerHTML = `
-          <div class="preview-item relative">
-            <video controls class="preview-video"><source src="${e.target.result}" type="${file.type}"></video>
-            <button class="remove-file-btn absolute top-0 right-0 p-2 text-white bg-gray-800 rounded-full" data-index="${index}">✖</button>
-          </div>`;
-      }
+          // Attach event listener to remove button (X)
+          const removeButton = filePreview.querySelector('.remove-file-btn');
+          removeButton.addEventListener('click', () => this.removeFile(index));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
-      // Append the preview to the container
-      this.elements.previewContainer.appendChild(filePreview);
-
-      // Attach event listener to remove button (X)
-      const removeButton = filePreview.querySelector('.remove-file-btn');
-      removeButton.addEventListener('click', () => this.removeFile(index));
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-
-removeFile(index) {
-
-  this.selectedFiles.splice(index, 1);
-
-  // Re-render the previews
-  this.previewFiles();
-}
+    removeFile(index) {
+      this.selectedFiles.splice(index, 1);
+      this.previewFiles(); // Re-render the previews
+    }
 
     handleAddPollOption() {
       const currentCount = this.elements.pollOptionsWrapper.querySelectorAll('input').length;
@@ -154,7 +150,14 @@ removeFile(index) {
     }
 
     resetPostForm() {
-      this.elements.postTitle.value = '';
+      this.elements.postTitle.value = ''; // Reset post title
+      this.selectedFiles = []; // Clear selected files
+      this.previewFiles(); // Clear file previews
+    }
+
+    editPost(postId, title) {
+      this.editPostId = postId;  // Store postId for editing
+      this.elements.postTitle.value = title;  // Set the current title in the form
     }
 
     async handlePostSubmit(e) {
@@ -199,46 +202,38 @@ removeFile(index) {
         showToast('❌ Error creating post', 'error');
       }
     }
-      
 
     async loadPosts(page = 1) {
       try {
         const response = await fetch(`/posts?page=${page}`, { credentials: 'include' });
         const data = await response.json();
     
-        console.log('Server response:', data);  // Log server response to debug
-    
-        // Ensure the server response is valid and contains posts
         if (!data.success || !Array.isArray(data.posts)) {
           throw new Error('Invalid post response');
         }
     
-        // Filter out deleted posts
         const filteredPosts = data.posts.filter(p => !p.isDeleted || p.isDeleted === undefined);
     
-        // Render posts dynamically without page refresh
-        this.renderPosts(filteredPosts); 
+        this.renderPosts(filteredPosts);  // Render the posts dynamically without page refresh
         this.renderPagination(data.totalPages, data.currentPage);
       } catch (error) {
         console.error('Error loading posts:', error);
         this.elements.postsContainer.innerHTML = `<div class="error">Unable to load posts.</div>`;
       }
     }
-    
+
     renderPosts(posts) {
       this.elements.postsContainer.innerHTML = '';  // Clear existing posts
-    
+
       posts.forEach(post => {
         if (!post || !post._id) return;  // Skip invalid posts
-    
+
         const div = document.createElement('div');
         div.className = 'post';
         div.dataset.id = post._id;
-    
-        const showControls = post.userId && post.userId._id === this.currentUserId;
-        const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
-    
-        // Format createdAt for date display
+
+        const showControls = post.userId && post.userId._id === this.currentUserId;  // Only show edit for post owner
+
         const createdAt = post.createdAt
           ? new Date(post.createdAt).toLocaleString('en-US', {
               month: 'long',
@@ -249,15 +244,14 @@ removeFile(index) {
               hour12: true
             })
           : '';
-    
+
         const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-    
-        // Render Poll Section if it exists
+
         let pollSection = '';
         if (post.poll?.question) {
-          pollSection = this.renderPollSection(post, userHasVoted);
+          pollSection = this.renderPollSection(post);
         }
-    
+
         div.innerHTML = `
           <div class="post-header flex justify-between items-start">
             <div>
@@ -267,36 +261,34 @@ removeFile(index) {
               <p class="text-sm text-gray-500 mb-1">${createdAt}</p>
               <div class="edit-delete-buttons flex gap-2 justify-end">
                 ${showControls
-                  ? `
+                  ? ` 
                     <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
                     <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
-                  `
-                  : ` 
-                    <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
-                  `}
+                  ` : ``}
               </div>
             </div>
           </div>
-    
+
           <h4 class="post-title text-l text-gray-800 mt-2">${post.title}</h4>
-    
+
           <div class="post-media-container mt-3">
-            ${(post.media || []).map(media => media.type === 'image' ? 
-                `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
-                `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
-                  <source src="${media.url}" type="video/mp4">
-                </video>`).join('')}
+            ${(post.media || []).map(media => media.type.startsWith('image/') 
+              ? `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />`
+              : `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
+                  <source src="${media.url}" type="${media.type}">
+                </video>`
+            ).join('')}
           </div>
-    
+
           ${pollSection}
-    
+
           <div class="post-actions mt-4 flex space-x-4">
             <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
               ❤️ <span class="like-count">${likeCount}</span>
             </button>
             <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
           </div>
-    
+
           <div class="interaction-panel mt-4" data-post-id="${post._id}">
             <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
               <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
@@ -307,39 +299,33 @@ removeFile(index) {
             <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
           </div>
         `;
-    
+
         // Append the newly created post div to the container
         this.elements.postsContainer.appendChild(div);
-    
+
         // Load comments for each post
         this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
       });
     }
 
-    renderPollSection(post, userHasVoted) {
+    renderPollSection(post) {
       return `
         <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
           <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
           <ul class="poll-options space-y-2 max-w-md mx-auto">
             ${post.poll.options.map((opt, index) => `
               <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
-                ${!userHasVoted ? `
-                  <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
-                    onclick="votePoll('${post._id}', ${index})">
-                    ${opt.text}
-                  </button>
-                ` : `
-                  <span class="w-full text-left text-gray-600">${opt.text}</span>
-                `}
+                <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
+                  onclick="votePoll('${post._id}', ${index})">
+                  ${opt.text}
+                </button>
                 <span class="text-sm text-gray-500" id="vote-count-${post._id}-${index}">${opt.votes.length || 0} votes</span>
-              </li>
-            `).join('')}
+              </li>`).join('')}
           </ul>
-          ${userHasVoted ? `<p class="text-sm text-gray-500 italic mt-2">🔒 You’ve already voted</p>` : ''}
         </div>
       `;
     }
-    
+
     renderPagination(totalPages, currentPage) {
       const paginationContainer = this.elements.paginationContainer;
       if (!paginationContainer) return;
@@ -360,29 +346,20 @@ removeFile(index) {
         const data = await res.json();
         const comments = data.comments?.filter(c => !c.isDeleted) || [];
 
-        container.innerHTML = comments.map(c => {
-          const isOwner = c.userId?._id === window.currentUserId;
-
-          return `
-            <div class="comment-item">
-              <div class="comment-header flex justify-between items-center">
-                <div class="text-sm">
-                  <span class="font-bold text-green-600 text-lg">${c.userId?.username || 'Anonymous'}</span>
-                  <span class="ml-2 text-xs text-gray-500">${new Date(c.createdAt).toLocaleString('en-US')}</span>
-                </div>
-                <div class="edit-delete-buttons flex gap-2">
-                  ${isOwner ? `
-                    <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
-                    <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
-                  ` : ` 
-                    <button class="report-btn text-red-500 text-sm hover:underline" onclick="reportComment('${postId}', '${c._id}')">🚩 Report</button>
-                  `}
-                </div>
+        container.innerHTML = comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-header flex justify-between items-center">
+              <div class="text-sm">
+                <span class="font-bold text-green-600 text-lg">${c.userId?.username || 'Anonymous'}</span>
+                <span class="ml-2 text-xs text-gray-500">${new Date(c.createdAt).toLocaleString('en-US')}</span>
               </div>
-              <p class="comment-text text-gray-700 mt-1" data-comment-id="${c._id}">${c.text}</p>
+              <div class="edit-delete-buttons flex gap-2">
+                <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
+                <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
+              </div>
             </div>
-          `;
-        }).join('');
+            <p class="comment-text text-gray-700 mt-1" data-comment-id="${c._id}">${c.text}</p>
+          </div>`).join('');
       } catch (error) {
         console.error('Load comments error:', error);
         container.innerHTML = '<div class="text-red-600">Failed to load comments.</div>';
@@ -393,7 +370,6 @@ removeFile(index) {
   // Initialize the app
   window.app = new ForumApp();
 });
-
 
 //-----------------------------------------------------------------------------------------------------------------------------------------//
 //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -460,21 +436,25 @@ window.editPost = function (postId) {
   if (!postEl) return;
 
   const titleEl = postEl.querySelector('.post-title');
-  // const textEl = postEl.querySelector('.post-text');
   const originalTitle = titleEl.innerText;
-  const originalText = textEl.innerText;
 
-  // Replace with input and textarea
+  // Replace with input for title only
   const titleInput = document.createElement('input');
   titleInput.className = 'post-title-input w-full border p-2 rounded mb-2';
   titleInput.value = originalTitle;
 
-  const textArea = document.createElement('textarea');
-  textArea.className = 'post-textbox w-full border p-2 rounded';
-  textArea.value = originalText;
-
   titleEl.replaceWith(titleInput);
-  textEl.replaceWith(textArea);
+
+  // Hide media and poll sections during edit (if they exist)
+  const mediaEl = postEl.querySelector('.post-media-container');
+  const pollEl = postEl.querySelector('.post-poll');
+  
+  if (mediaEl) {
+    mediaEl.style.display = 'none';
+  }
+  if (pollEl) {
+    pollEl.style.display = 'none';
+  }
 
   // Replace buttons with Save and Cancel
   const buttonsWrapper = postEl.querySelector('.edit-delete-buttons');
@@ -485,32 +465,34 @@ window.editPost = function (postId) {
   saveBtn.className = 'edit-btn bg-green-600 text-white px-3 py-1 rounded';
   saveBtn.onclick = async () => {
     const updatedTitle = titleInput.value.trim();
-    const updatedText = textArea.value.trim();
-    if (!updatedTitle || !updatedText) return showToast('❌ Title and content are required.', 'error');
+    if (!updatedTitle) return showToast('❌ Title is required.', 'error');
 
     try {
       const res = await fetch(`/posts/${postId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title: updatedTitle, text: updatedText })
+        body: JSON.stringify({ title: updatedTitle })
       });
       const data = await res.json();
 
       if (data.success) {
         showToast('✅ Post updated!');
 
-        // Replace inputs back with updated content
+        // Replace input back with updated title
         const updatedTitleEl = document.createElement('h3');
         updatedTitleEl.className = 'post-title font-bold text-xl text-gray-800 mt-2';
         updatedTitleEl.innerText = updatedTitle;
 
-        const updatedTextEl = document.createElement('p');
-        updatedTextEl.className = 'post-text text-gray-700 mt-1';
-        updatedTextEl.innerText = updatedText;
-
         titleInput.replaceWith(updatedTitleEl);
-        textArea.replaceWith(updatedTextEl);
+
+        // Restore media and poll sections if they exist
+        if (mediaEl) {
+          mediaEl.style.display = 'block';
+        }
+        if (pollEl) {
+          pollEl.style.display = 'block';
+        }
 
         // Restore buttons
         buttonsWrapper.innerHTML = `
@@ -529,11 +511,12 @@ window.editPost = function (postId) {
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '✖ Cancel';
   cancelBtn.className = 'delete-btn bg-gray-300 text-black px-3 py-1 rounded';
-  cancelBtn.onclick = () => window.app.loadPosts();
+  cancelBtn.onclick = () => window.app.loadPosts();  // Reload posts without saving changes
 
   buttonsWrapper.appendChild(saveBtn);
   buttonsWrapper.appendChild(cancelBtn);
 };
+
 
 window.toggleCommentInput = function(postId) {
   const inputWrapper = document.getElementById(`comment-input-wrapper-${postId}`);

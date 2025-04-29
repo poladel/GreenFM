@@ -4,7 +4,6 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const streamifier = require('streamifier');
-const { Report } = require('../models/ForumPost');
 
 
 
@@ -494,29 +493,5 @@ exports.updatePoll = async (req, res) => {
   } catch (error) {
     console.error('Update poll error:', error);
     res.status(500).json({ success: false, message: 'Failed to update poll' });
-  }
-};
-
-exports.reportItem = async (req, res) => {
-  const { type, targetId } = req.body;
-  const reporterId = req.user._id;
-
-  if (!['post', 'comment'].includes(type) || !targetId) {
-    return res.status(400).json({ success: false, message: 'Invalid report data' });
-  }
-
-  try {
-    const existing = await Report.findOne({ type, targetId, reporterId });
-    if (existing) {
-      return res.status(409).json({ success: false, message: 'You already reported this.' });
-    }
-
-    const newReport = new Report({ type, targetId, reporterId });
-    await newReport.save();
-
-    res.status(201).json({ success: true, message: `${type} reported successfully.` });
-  } catch (error) {
-    console.error('Report error:', error);
-    res.status(500).json({ success: false, message: 'Server error reporting content.' });
   }
 };
