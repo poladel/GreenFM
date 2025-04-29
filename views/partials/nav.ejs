@@ -1,93 +1,357 @@
-<!-- Sidebar Toggle Button -->
-<div class="sidebar-toggle">☰</div>
+<!-- Sidebar Toggle Button (Visible only on small screens) -->
+<!-- Hamburger icon using SVG for better control -->
+<button class="sidebar-toggle lg:hidden fixed top-[2vh] left-[1vw] z-[9999] bg-white text-green-700 shadow-md rounded-xl cursor-pointer flex justify-center items-center h-[50px] w-[50px]"> <!-- Removed p-2, mr-[5vw]. Added h-[50px], w-[50px] -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+    </svg>
+</button>
 
-<div class="sidebars">
-    <div class="sidebar">
-        <img src="img/GFMLogo.png" alt="GFM Logo" class="logo">
-        <h1 class="title">95.9 GREEN FM</h1>
-        <ul class="menu">
-            <li><a href="/">HOME</a></li>
-            <li><a href="/Live">LIVE</a></li>
-            <!--<li><a href="/Forum">FORUM</a></li>-->
-            <!--<li><a href="/Archives">ARCHIVES</a></li>-->
-            <li><a href="/Playlist">PLAYLIST</a></li>
-        </ul>
-    </div>
-    <div class="sidebar1">
-        <ul class="menu">
-            <% if (user && (user.roles === 'Admin' || user.roles === 'Staff')) { %>
-                <li><a href="/Manage-Accounts">MANAGE<br>ACCOUNTS</a></li>
-                <li><a href="/Blocktimer">BLOCKTIMER</a></li>
-                <li><a href="/Staff">STAFF</a></li>
-            <% } else { %>
-            <li>
-                <% if (user) { %>
-                    <% if (user.completedBlocktimerStep1 && user.completedBlocktimerStep2) { %>
-                        <a href="/JoinBlocktimer-Step3" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                    <% } else if (user.completedBlocktimerStep1) { %>
-                        <a href="/JoinBlocktimer-Step2" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+<!--
+  Sidebar Container:
+  - hidden by default, lg:flex to show on large screens.
+  - 'active' class (added by JS) will override 'hidden' on small screens.
+  - fixed positioning.
+  - Added lg:max-h-[96vh] and lg:overflow-y-auto to prevent vertical overflow on large screens.
+-->
+<div class="sidebars hidden lg:flex fixed top-[2vh] left-[1vw] z-[100] flex-col gap-[1vh] lg:max-h-[96vh] lg:overflow-y-auto">
+
+    <!-- Main Sidebar -->
+    <div class="sidebar w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+        <img src="/img/GFMLogo.png" alt="GFM Logo" class="logo block my-[1vh] mx-auto w-3/5 h-auto rounded-[10px]">
+        <h1 class="title text-center text-green-700 text-[0.9em] my-[5px] font-medium hidden lg:block">95.9 GREEN FM</h1>
+        <ul class="menu list-none p-0 my-[5px] w-full">
+            <li class="text-center my-[3px]">
+                <!-- Check if currentPath matches '/' and apply active styles -->
+                <a href="/" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/') { %>
+                        bg-green-700 text-white scale-105 /* Active state */
                     <% } else { %>
-                        <a href="/JoinBlocktimer-Step1" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
+                        text-gray-800 /* Default state */
                     <% } %>
-                <% } else { %>  
-                    <!-- Redirect to login with a generic redirect path -->
-                    <a href="/LogIn?redirect=/JoinBlocktimer" id="joingreenfm-link">BE A<br>BLOCKTIMER</a>
-                <% } %>
+                ">
+                    <i class="fas fa-house text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">HOME</span>
+                </a>
             </li>
-            <li>
-                <% if (user) { %>
-                    <% if (user.completedJoinGFMStep1 && user.completedJoinGFMStep2) { %>
-                        <a href="/JoinGFM-Step3" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
-                    <% } else if (user.completedJoinGFMStep1) { %>
-                        <a href="/JoinGFM-Step2" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
+            <li class="text-center my-[3px]">
+                <!-- Check if currentPath matches '/Live' -->
+                <a href="/Live" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/Live') { %>
+                        bg-green-700 text-white scale-105
                     <% } else { %>
-                        <a href="/JoinGFM-Step1" id="joingreenfm-link" data-restricted>JOIN<br>GREEN FM</a>
+                        text-gray-800
                     <% } %>
-                <% } else { %>
-                    <!-- Redirect to login with a generic redirect path -->
-                    <a href="/LogIn?redirect=/JoinGFM" id="joingreenfm-link">JOIN<br>GREEN FM</a>
-                <% } %>
+                ">
+                    <i class="fas fa-video text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">LIVE</span>
+                </a>
             </li>
-            <% } %>
+            <li class="text-center my-[3px]">
+                <!-- Check if currentPath matches '/Playlist' -->
+                <a href="/Playlist" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/Playlist') { %>
+                        bg-green-700 text-white scale-105
+                    <% } else { %>
+                        text-gray-800
+                    <% } %>
+                ">
+                    <i class="fas fa-music text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">PLAYLIST</span>
+                </a>
+            </li>
         </ul>
     </div>
-    <div class="sidebar2">
-        <ul class="menu">
-            <li><a href="/About">ABOUT US</a></li>
-            <li><a href="/Contact">CONTACT US</a></li>
-        </ul>
-        <div class="social-icons">
-            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="img/FBLogo.png" alt="Facebook" class="social-icon"></a>
-            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="img/IGLogo.png" alt="Instagram" class="social-icon"></a>
-        </div>
-    </div>
-    <div class="user-sidebar">
-        <ul class="menu">
-            <% if (user) { %>
-                <li>
-                    <ul class="user-menu">
-                        <li><a href="/ManageAccount">MANAGE<br>ACCOUNT</a></li>
-                        <li><a href="/LogOut">LOG OUT</a></li>
-                    </ul>
+
+    <!-- Sidebar 1 (Admin/User Specific Links) -->
+    <div class="sidebar1 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+        <ul class="menu list-none p-0 my-[5px] w-full">
+            <% if (user && (user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
+                <li class="text-center my-[3px]">
+                    <!-- Check if currentPath matches '/Manage-Accounts' -->
+                    <a href="/Manage-Accounts" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                        <% if (typeof currentPath !== 'undefined' && currentPath === '/Manage-Accounts') { %>
+                            bg-green-700 text-white scale-105
+                        <% } else { %>
+                            text-gray-800
+                        <% } %>
+                    ">
+                        <i class="fas fa-gear text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                        <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">MANAGE <br class="hidden lg:inline">ACCOUNTS</span>
+                    </a>
+                </li>
+                <li class="text-center my-[3px]">
+                     <!-- Check if currentPath matches '/Blocktimer' -->
+                    <a href="/Blocktimer" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                        <% if (typeof currentPath !== 'undefined' && currentPath === '/Blocktimer') { %>
+                            bg-green-700 text-white scale-105
+                        <% } else { %>
+                            text-gray-800
+                        <% } %>
+                    ">
+                        <i class="fas fa-microphone text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                        <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">BLOCKTIMER</span>
+                    </a>
+                </li>
+                <li class="text-center my-[3px]">
+                     <!-- Check if currentPath matches '/Staff' -->
+                    <a href="/Staff" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                        <% if (typeof currentPath !== 'undefined' && currentPath === '/Staff') { %>
+                            bg-green-700 text-white scale-105
+                        <% } else { %>
+                            text-gray-800
+                        <% } %>
+                    ">
+                        <i class="fas fa-user text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                        <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">STAFF</span>
+                    </a>
                 </li>
             <% } else { %>
-                <li>
-                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
-                        <div class="user-container">
-                            <img src="img/user.png" alt="User Icon" class="user-icon">
-                            <span class="sidelogin-text">LOG-IN</span>
-                        </div>
+                <li class="text-center my-[3px]">
+                    <% let blocktimerLink = user ? (user.completedBlocktimerStep1 ? (user.completedBlocktimerStep2 ? '/JoinBlocktimer-Step3' : '/JoinBlocktimer-Step2') : '/JoinBlocktimer-Step1') : '/LogIn?redirect=/JoinBlocktimer'; %>
+                    <!-- Check if currentPath starts with '/JoinBlocktimer' -->
+                    <a href="<%= blocktimerLink %>" id="joingreenfm-link" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                        <% if (typeof currentPath !== 'undefined' && currentPath.startsWith('/JoinBlocktimer')) { %>
+                            bg-green-700 text-white scale-105
+                        <% } else { %>
+                            text-gray-800
+                        <% } %>
+                    ">
+                        <i class="fas fa-microphone text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                        <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">BE A BLOCKTIMER</span>
+                    </a>
+                </li>
+                <li class="text-center my-[3px]">
+                    <% let joinGFMLink = user ? (user.completedJoinGFMStep1 ? (user.completedJoinGFMStep2 ? '/JoinGFM-Step3' : '/JoinGFM-Step2') : '/JoinGFM-Step1') : '/LogIn?redirect=/JoinGFM'; %>
+                     <!-- Check if currentPath starts with '/JoinGFM' -->
+                    <a href="<%= joinGFMLink %>" id="joingreenfm-link" data-restricted class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                        <% if (typeof currentPath !== 'undefined' && currentPath.startsWith('/JoinGFM')) { %>
+                            bg-green-700 text-white scale-105
+                        <% } else { %>
+                            text-gray-800
+                        <% } %>
+                    ">
+                        <i class="fas fa-user-plus text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                        <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">JOIN<br class="hidden lg:inline">GREEN FM</span>
                     </a>
                 </li>
             <% } %>
         </ul>
     </div>
+
+    <!-- Sidebar 2 (About/Contact/Socials) -->
+    <div class="sidebar2 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+        <ul class="menu list-none p-0 my-[5px] w-full">
+            <li class="text-center my-[3px]">
+                 <!-- Check if currentPath matches '/About' -->
+                <a href="/About" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/About') { %>
+                        bg-green-700 text-white scale-105
+                    <% } else { %>
+                        text-gray-800
+                    <% } %>
+                ">
+                    <i class="fas fa-circle-info text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">ABOUT US</span>
+                </a>
+            </li>
+            <li class="text-center my-[3px]">
+                 <!-- Check if currentPath matches '/Contact' -->
+                <a href="/Contact" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/Contact') { %>
+                        bg-green-700 text-white scale-105
+                    <% } else { %>
+                        text-gray-800
+                    <% } %>
+                ">
+                    <i class="fas fa-phone text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">CONTACT US</span>
+                </a>
+            </li>
+        </ul>
+        <div class="social-icons hidden lg:flex justify-center mt-[1vh]">
+            <a href="https://www.facebook.com/959GreenFm" target="_blank"><img src="/img/FBLogo.png" alt="Facebook" class="social-icon w-[22px] h-auto mx-2"></a>
+            <a href="https://www.instagram.com/dlsud.greenfm/" target="_blank"><img src="/img/IGLogo.png" alt="Instagram" class="social-icon w-[22px] h-auto mx-2"></a>
+        </div>
+    </div>
 </div>
 
 <!-- JavaScript to toggle the sidebar -->
+<style>
+    /* Add a specific style for the active mobile sidebar if needed */
+    /* For example, to ensure it stacks vertically and takes full width */
+    /* .active-mobile-sidebar { */
+        /* Example: Override fixed positioning for mobile flow */
+        /* position: absolute; */
+        /* top: 0; */
+        /* left: 0; */
+        /* width: 80%; /* Example width */
+        /* height: 100vh; */
+        /* background-color: white; /* Ensure background */
+        /* flex-direction: column; */
+        /* overflow-y: auto; /* Allow scrolling */
+        /* Add transitions if desired */
+        /* transition: transform 0.3s ease-in-out; */
+        /* transform: translateX(0); */
+    /* } */
+    /* Style for when sidebar is hidden on mobile */
+    /* .sidebars.hidden:not(.lg\:flex) { */
+        /* transform: translateX(-100%); */
+    /* } */
+
+    /* Ensure toggle button is above sidebar when active */
+    .sidebar-toggle {
+        z-index: 101; /* Higher than .sidebars */
+    }
+
+    /* Style for when sidebar is open on mobile */
+    .mobile-sidebar-open {
+        padding-top: 8vh; /* Push content down below toggle button (adjust 8vh as needed) */
+        height: 100vh;    /* Take full viewport height */
+        width: 30vw;      /* Reduced width */
+        max-width: 210px; /* Reduced max-width */
+        overflow-y: auto; /* Allow scrolling */
+        background-color: white; /* Give the container a background */
+        flex-direction: column; /* Stack sidebars vertically */
+        gap: 0; /* Remove gap between sidebars when stacked */
+        /* Ensure it's displayed when class is added */
+        display: flex !important;
+        /* Add transition for smooth opening */
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(0);
+        /* Ensure it starts off-screen before transition */
+        left: 0;
+        top: 0; /* Align to top */
+}
+
+/* ... rest of the styles ... */
+
+    /* Style for when sidebar is hidden on mobile (for transition) */
+    .sidebars.hidden:not(.lg\:flex) {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+
+
+    /* Style adjustments for children within mobile open state */
+    .mobile-sidebar-open .sidebar,
+    .mobile-sidebar-open .sidebar1,
+    .mobile-sidebar-open .sidebar2,
+    .mobile-sidebar-open .user-section {
+        width: 100%; /* Take full width of the container */
+        max-width: none; /* Remove max-width */
+        border-radius: 0; /* Optional: remove rounding */
+        box-shadow: none; /* Optional: remove individual shadows */
+        padding: 1vh 0; /* Adjust vertical padding */
+    }
+    /* Add a separator line between stacked sidebars */
+    .mobile-sidebar-open > div:not(:last-child) {
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Adjust logo position within the padded container */
+    .mobile-sidebar-open .sidebar .logo {
+         width: 50%; /* Example: Adjust size */
+         margin-top: 0; /* Remove top margin as container has padding */
+         margin-bottom: 1vh;
+    }
+
+    /* Show text, hide icons, adjust layout for mobile */
+    .mobile-sidebar-open .title {
+        display: block !important; /* Show title */
+        font-size: 0.8em !important;
+    }
+    .mobile-sidebar-open .menu span {
+        display: inline !important; /* Show menu text */
+        font-size: 0.8em !important;
+    }
+    .mobile-sidebar-open .menu i {
+         display: none !important; /* Hide icons */
+    }
+    .mobile-sidebar-open .menu a {
+        justify-content: flex-start !important; /* Align text left */
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    .mobile-sidebar-open .social-icons {
+        display: flex !important; /* Show social icons */
+        padding-bottom: 1vh;
+    }
+    /* Ensure Manage Account/Logout are hidden */
+    .mobile-sidebar-open .user-section .hidden.lg\:block {
+        display: none !important;
+    }
+
+</style>
 <script>
-    document.querySelector('.sidebar-toggle').addEventListener('click', () => {
-        document.querySelector('.sidebars').classList.toggle('active');
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButton = document.querySelector('.sidebar-toggle');
+        const sidebarsContainer = document.querySelector('.sidebars');
+
+        if (toggleButton && sidebarsContainer) {
+            toggleButton.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent click from immediately closing sidebar via document listener
+                const isOpen = !sidebarsContainer.classList.contains('hidden');
+
+                if (isOpen) {
+                    // Closing sidebar
+                    sidebarsContainer.classList.add('hidden');
+                    sidebarsContainer.classList.remove('flex'); // Keep flex for lg:flex
+                    sidebarsContainer.classList.remove('mobile-sidebar-open'); // Remove mobile class
+                } else {
+                    // Opening sidebar
+                    sidebarsContainer.classList.remove('hidden');
+                    // Add flex only if below lg, otherwise lg:flex handles it
+                    if (window.innerWidth < 1024) {
+                        sidebarsContainer.classList.add('flex');
+                        sidebarsContainer.classList.add('mobile-sidebar-open');
+                    } else {
+                        // On large screens, ensure lg:flex is the one controlling display
+                        sidebarsContainer.classList.remove('flex'); // Remove inline flex if added previously
+                    }
+                }
+            });
+
+             // Close sidebar if clicking outside of it on smaller screens
+             document.addEventListener('click', (event) => {
+                 const isClickInsideSidebar = sidebarsContainer.contains(event.target);
+                 const isClickOnToggleButton = toggleButton.contains(event.target);
+                 const isSmallScreen = window.innerWidth < 1024; // lg breakpoint
+                 const isOpen = !sidebarsContainer.classList.contains('hidden');
+
+                 // If sidebar is visible on small screen and click is outside
+                 if (isOpen && isSmallScreen && !isClickInsideSidebar && !isClickOnToggleButton) {
+                      sidebarsContainer.classList.add('hidden');
+                      sidebarsContainer.classList.remove('flex');
+                      sidebarsContainer.classList.remove('mobile-sidebar-open'); // Remove mobile class
+                 }
+             });
+
+             // Optional: Handle resize to adjust classes
+             window.addEventListener('resize', () => {
+                 const isSmallScreen = window.innerWidth < 1024;
+                 const isOpen = !sidebarsContainer.classList.contains('hidden');
+
+                 if (isSmallScreen) {
+                     // If screen becomes small and sidebar is open, ensure mobile classes are present
+                     if (isOpen) {
+                         sidebarsContainer.classList.add('flex'); // Ensure flex is present
+                         sidebarsContainer.classList.add('mobile-sidebar-open');
+                     }
+                 } else {
+                     // If screen becomes large, remove mobile class and inline flex
+                     sidebarsContainer.classList.remove('mobile-sidebar-open');
+                     sidebarsContainer.classList.remove('flex'); // lg:flex will take over if open
+                     // Ensure it's not hidden if it should be visible on large screens
+                     if (isOpen) {
+                         sidebarsContainer.classList.remove('hidden'); // Ensure lg:flex can show it
+                     }
+                 }
+             });
+
+        } else {
+            console.error("Sidebar toggle button or container not found.");
+        }
     });
 </script>
+<!-- Link to restrictedLinks.js (ensure path is correct) -->
 <script src="/js/restrictedLinks.js"></script>

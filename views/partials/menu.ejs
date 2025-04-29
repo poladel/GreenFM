@@ -1,59 +1,91 @@
-<div class="header-container">
-    <div class="posts-title-container">
-            <h3 class="posts-title"><%= headerTitle %></h3>
-        </div>
-        <div class="chat-search-container">
-            <a href="/Chat">
-                <div class="icons-container">
-                    <img src="../img/email.png" alt="Email Icon" class="icon">
-                </div>
-            </a>            
-        </div>
-    <div class="user-log-container">
-        <% if (user) { %>
-            <!-- User is logged in -->
-            <div class="user-dropdown" id="userDropdown">
-                <div class="user-container">
-                    <img src="img/user.png" alt="User Icon" class="user-icon-dropdown"> <!-- Add this line -->
-                    <span class="login-text"><%= user.username %></span>
-                </div>
-                <div id="dropdownContent" class="dropdown-content">
-                    <a href="/ManageAccount">Manage Account</a>
-                    <a href="/LogOut">Log Out</a>
-                </div>
-            </div>            
-        <% } else { %>
-            <!-- User is not logged in -->
-            <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
+<!-- Outer container for sticky positioning and full-width background -->
+<!-- Added pr-4 for consistent right padding -->
+<div class="sticky top-0 z-[99] bg-gray-100 w-full pl-16 pr-4 lg:pl-[14vw]">
+    <!-- Inner container for max-width, centering -->
+    <div class="header-content max-w-6xl 2xl:max-w-screen-xl mx-auto flex items-center pt-[2vh] pb-[1vh]">
 
-                <div class="user-container">
-                    <img src="img/user.png" alt="User Icon" class="user-icon">
-                    <span class="login-text">LOG-IN</span>
-                </div>
+        <!-- Page Title Container -->
+        <div class="posts-title-container bg-white p-[2px] pl-4 text-left mt-[0] shadow-md rounded-[15px] h-[50px] flex items-center flex-grow overflow-hidden">
+            <h3 class="posts-title font-semibold text-base text-gray-800 ml-5 truncate">
+                <%= headerTitle %>
+            </h3>
+        </div>
+
+        <!-- Chat Icon Container -->
+        <div class="chat-search-container bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
+            <a href="/Chat" class="flex items-center justify-center w-full h-full">
+                <img src="/img/email.png" alt="Chat Icon" class="icon w-5 h-auto">
             </a>
-        <% } %>
-    </div>
-</div>
+        </div>
+
+        <!-- User Login/Dropdown Container -->
+        <!-- Removed pr-4 from here, handled by outer wrapper's pr-4 -->
+        <div class="user-log-container relative bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[10vw] h-[50px] flex justify-center items-center flex-shrink-0 overflow-visible">
+            <% if (user) { %>
+                <!-- User is logged in: Dropdown -->
+                <div class="user-dropdown relative cursor-pointer w-full h-full flex items-center justify-center" id="userDropdown">
+                    <!-- User Icon and Name -->
+                    <div class="user-container flex items-center justify-center px-2">
+                        <img src="/img/user.png" alt="User Icon" class="user-icon-dropdown w-5 h-auto lg:mr-1.5">
+                        <span class="login-text text-sm text-gray-800 truncate hidden lg:inline"><%= user.username %></span>
+                    </div>
+                    <!-- Dropdown Content -->
+                    <div id="dropdownContent" class="dropdown-content hidden absolute top-full right-0 mt-1 w-auto min-w-[150px] bg-white shadow-lg rounded-lg z-[9999] py-1 transition-all duration-300 ease-out">
+                        <a href="/ManageAccount" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-600 hover:text-white rounded-md mx-1">Manage Account</a>
+                        <a href="/LogOut" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-600 hover:text-white rounded-md mx-1">Log Out</a>
+                    </div>
+                </div>
+            <% } else { %>
+                <!-- User is not logged in: Login Link -->
+                <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath || '/') %>" id="login-link" class="flex items-center justify-center w-full h-full text-decoration-none">
+                    <div class="user-container flex items-center justify-center">
+                        <img src="/img/user.png" alt="User Icon" class="user-icon w-5 h-auto lg:mr-1.5">
+                        <span class="login-text text-sm font-medium text-gray-800 uppercase hidden lg:inline">LOG-IN</span>
+                    </div>
+                </a>
+            <% } %>
+        </div>
+    </div> <!-- End Inner container -->
+</div> <!-- End Outer container -->
+
+<!-- Keep the existing JavaScript for dropdown toggle -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-    const userDropdown = document.getElementById("userDropdown");
-    const dropdownContent = document.getElementById("dropdownContent");
+        const userDropdown = document.getElementById("userDropdown");
+        const dropdownContent = document.getElementById("dropdownContent");
 
-    // Only add event listeners if userDropdown exists
-    if (userDropdown && dropdownContent) {
-        // Toggle dropdown on click
-        userDropdown.addEventListener("click", function(event) {
-            event.stopPropagation(); // Prevent click from closing the dropdown
-            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
-        });
+        // Only add event listeners if userDropdown exists (i.e., user is logged in)
+        if (userDropdown && dropdownContent) {
+            // Toggle dropdown on click
+            userDropdown.addEventListener("click", function(event) {
+                event.stopPropagation(); // Prevent click from closing the dropdown immediately
+                // Toggle the 'hidden' class
+                dropdownContent.classList.toggle("hidden");
+                // Optional: Add classes for animation if desired
+                if (!dropdownContent.classList.contains('hidden')) {
+                    // Add classes for entry animation (e.g., opacity, transform)
+                    // dropdownContent.classList.add('opacity-100', 'translate-y-0');
+                    // dropdownContent.classList.remove('opacity-0', '-translate-y-2'); // Example starting state
+                } else {
+                    // Optional: Reset animation classes if needed
+                    // dropdownContent.classList.remove('opacity-100', 'translate-y-0');
+                    // dropdownContent.classList.add('opacity-0', '-translate-y-2');
+                }
+            });
 
-        // Close dropdown if clicking outside of it
-        document.addEventListener("click", function(event) {
-            if (!userDropdown.contains(event.target)) {
-                dropdownContent.style.display = "none";
-            }
-        });
-    }
-});
+            // Close dropdown if clicking outside of it
+            document.addEventListener("click", function(event) {
+                // Check if the dropdown exists and is not hidden before trying to close
+                if (dropdownContent && !dropdownContent.classList.contains('hidden')) {
+                    if (!userDropdown.contains(event.target)) {
+                        dropdownContent.classList.add("hidden");
+                         // Optional: Reset animation classes
+                        // dropdownContent.classList.remove('opacity-100', 'translate-y-0');
+                        // dropdownContent.classList.add('opacity-0', '-translate-y-2');
+                    }
+                }
+            });
+        }
+    });
 </script>
 

@@ -1,125 +1,161 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="flex flex-col min-h-screen bg-gray-100"> <!-- Ensure base background -->
+    <!-- Include nav (fixed position, doesn't affect flow here) -->
+    <%- include('../partials/nav.ejs') %>
 
-                    <!-------------------- HEADER MENUS -------------------->
-                    <%- include('../partials/menu.ejs') %>
+    <!-- Include menu OUTSIDE the main content wrapper -->
+    <%- include('../partials/menu.ejs') %>
 
-                        <!-------------------- CONTENTS START -------------------->
-                        <div class="user-table-container">
-                            <h3>All Users</h3>
-                            <div class="search-container">
-                                <input type="text" id="user-search" placeholder="Search Account">
-                            </div>
-                            <table id="user-table" class="user-table">
-                                <thead>
-                                    <tr>
-                                        <th>Last Name</th>
-                                        <th>First Name</th>
-                                        <th>Username</th>
-                                        <th>Email</th>
-                                        <th>Role</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Rows will be dynamically populated using JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
+    <div class="flex-1">
+        <!-- Main content area wrapper -->
+        <!-- Added pr-4 for consistent right padding -->
+        <div class="pt-5 pl-16 pr-4 lg:pl-[14vw]">
 
-                        <form class="manage-account-form">
-                            <div class="form-group">
-                                <label for="username">Username</label>
-                                <input type="text" id="username" name="username" readOnly>
-                                <div class="username-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" name="email" readOnly>
-                                <div class="email-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="lastName">Last Name</label>
-                                <input type="text" id="lastName" name="lastName" readOnly>
-                                <div class="lastName-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="firstName">First Name</label>
-                                <input type="text" id="firstName" name="firstName" readOnly>
-                                <div class="firstName-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="middleInitial">Middle Initial</label>
-                                <input type="text" id="middleInitial" name="middleInitial" readOnly>
-                                <div class="middleInitial-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="suffix">Suffix</label>
-                                <input type="text" id="suffix" name="suffix" readOnly>
-                                <div class="suffix-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="dlsudEmail">DLSUD Email</label>
-                                <input type="text" id="dlsudEmail" name="dlsudEmail" readOnly>
-                                <div class="dlsudEmail-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="studentNumber">Student Number</label>
-                                <input type="text" id="studentNumber" name="studentNumber" readOnly>
-                                <div class="studentNumber-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="roles">Role</label>
-                                <select id="roles" name="roles" disabled>
-                                    <option value="" disabled selected>User Role</option> <!-- Default unselectable value -->
-                                    <option value="User">User</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Staff">Staff</option>
-                                </select>
-                                <div class="roles-error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="department">Department</label>
-                                <select id="department" name="department" disabled>
-                                    <option value="" disabled selected>User Department</option> <!-- Default unselectable value -->
-                                    <option value="News and Public Affairs">News and Public Affairs</option>
-                                    <option value="Music and Entertainment">Music and Entertainment</option>
-                                    <option value="Operations and Logistics">Operations and Logistics</option>
-                                    <option value="Creatives and Promotions">Creatives and Promotions</option>
-                                    <option value="Internal Affairs">Internal Affairs</option>
-                                    <option value="External Affairs">External Affairs</option>
-                                </select>
-                                <div class="department-error"></div>
-                            </div>
-
-                            <button type="button" class="cancel-button" disabled>Cancel</button>
-                            <button type="button" class="submit-button" disabled>Submit</button>
-                        </form>
-
-                        </br>
-
-
+            <!-------------------- CONTENTS START -------------------->
+            <!-- User Table Container: Centered with max-width -->
+            <!-- mx-auto centers within space defined by pl-* and pr-4 -->
+            <div class="my-5 bg-white p-6 rounded-lg shadow-md max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                <h3 class="text-xl font-semibold mb-4">All Users</h3>
+                <div class="mb-4">
+                    <input type="text" id="user-search" placeholder="Search by name, username, email, or role..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <div class="overflow-x-auto"> <!-- Make table scrollable on small screens -->
+                    <table id="user-table" class="w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="hidden lg:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Last Name</th>
+                                <th class="hidden lg:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">First Name</th>
+                                <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Username</th>
+                                <th class="hidden md:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Email</th>
+                                <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Role</th>
+                                <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <!-- Rows will be dynamically populated -->
+                            <tr>
+                                <td colspan="3" class="md:colspan-4 lg:colspan-6 p-4 text-center text-gray-400">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
+            <!-- Manage Account Form: Centered with max-width -->
+            <!-- mx-auto centers within space defined by pl-* and pr-4 -->
+            <form id="manage-account-form" class="bg-white p-6 rounded-lg shadow-md max-w-6xl 2xl:max-w-screen-xl mx-auto mb-5">
+                <h4 class="text-lg font-semibold mb-5 text-gray-700 border-b pb-2">Manage Account Details</h4>
+                <!-- Hidden input to store the user ID -->
+                <input type="hidden" id="userId" name="userId">
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <!-- Username (Readonly) -->
+                    <div class="mb-3">
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="username" name="username" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed">
+                        <div class="username-error error-message text-red-500 text-xs mt-1 h-4"></div> <!-- Placeholder for error -->
+                    </div>
+
+                    <!-- Email (Readonly) -->
+                    <div class="mb-3">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email" name="email" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed">
+                        <div class="email-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="mb-3">
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="lastName-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- First Name -->
+                    <div class="mb-3">
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" id="firstName" name="firstName" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="firstName-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Middle Initial -->
+                    <div class="mb-3">
+                        <label for="middleInitial" class="block text-sm font-medium text-gray-700 mb-1">Middle Initial</label>
+                        <input type="text" id="middleInitial" name="middleInitial" readonly maxlength="1" class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="middleInitial-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Suffix -->
+                    <div class="mb-3">
+                        <label for="suffix" class="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
+                        <input type="text" id="suffix" name="suffix" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="suffix-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- DLSUD Email -->
+                    <div class="mb-3">
+                        <label for="dlsudEmail" class="block text-sm font-medium text-gray-700 mb-1">DLSUD Email</label>
+                        <input type="email" id="dlsudEmail" name="dlsudEmail" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="dlsudEmail-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Student Number -->
+                    <div class="mb-3">
+                        <label for="studentNumber" class="block text-sm font-medium text-gray-700 mb-1">Student Number</label>
+                        <input type="text" id="studentNumber" name="studentNumber" readonly class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <div class="studentNumber-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Role -->
+                    <div class="mb-3">
+                        <label for="roles" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="roles" name="roles" disabled
+                                class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="" disabled selected>Select Role</option>
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Staff">Staff</option>
+                        </select>
+                        <div class="roles-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+
+                    <!-- Department -->
+                    <div class="mb-3">
+                        <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <select id="department" name="department" disabled
+                                class="w-full p-2 border border-gray-300 rounded-md outline-none bg-gray-200 text-gray-500 text-sm cursor-not-allowed focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="" disabled selected>Select Department</option>
+                            <option value="News and Public Affairs">News and Public Affairs</option>
+                            <option value="Music and Entertainment">Music and Entertainment</option>
+                            <option value="Operations and Logistics">Operations and Logistics</option>
+                            <option value="Creatives and Promotions">Creatives and Promotions</option>
+                            <option value="Internal Affairs">Internal Affairs</option>
+                            <option value="External Affairs">External Affairs</option>
+                        </select>
+                        <div class="department-error error-message text-red-500 text-xs mt-1 h-4"></div>
+                    </div>
+                </div> <!-- End grid -->
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4">
+                    <button type="button" id="cancel-button" disabled class="py-2 px-4 border border-gray-300 rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-gray-500 text-white hover:bg-gray-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Cancel</button>
+                    <button type="button" id="submit-button" disabled class="py-2 px-4 border border-transparent rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300 disabled:text-green-700 disabled:cursor-not-allowed">Submit Changes</button>
+                </div>
+            </form>
+            <!-------------------- CONTENTS END -------------------->
+
+            <br>
+
+        </div> <!-- End main content area wrapper -->
     </div>
-    <script src="/js/1-admin/accounts.js"></script>
-    </body>
 
-    </html>
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %>
+
+</div>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script type="module" src="/js/1-admin/accounts.js"></script>
+
+</body>
+</html>
