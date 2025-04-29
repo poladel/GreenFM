@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const title = this.elements.postTitle.value.trim();
     
       if (!title) {
-        return showToast('❌ Please enter a title for the post.', 'error');
+        return showToast('Please enter a title for the post.', 'error');
       }
     
       // Create a FormData instance
@@ -274,8 +274,8 @@ document.addEventListener('DOMContentLoaded', function () {
               <div class="edit-delete-buttons flex gap-2 justify-end">
                 ${showControls
                   ? `
-                    <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">✏️ Edit</button>
-                    <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">🗑️ Delete</button>
+                    <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">Edit</button>
+                    <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">Delete</button>
                   `
                   : ` 
                     <button class="report-btn border px-3 py-1 text-sm text-red-600 hover:text-white hover:bg-red-500 rounded" onclick="reportPost('${post._id}', 'post')">🚩 Report</button>
@@ -370,8 +370,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span class="ml-2 text-xs text-gray-500">${new Date(c.createdAt).toLocaleString('en-US')}</span>
               </div>
               <div class="edit-delete-buttons flex gap-2">
-                <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)">✏️</button>
-                <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)">🗑️</button>
+                <button class="edit-btn" onclick="window.editComment('${postId}', '${c._id}', this)"></button>
+                <button class="delete-btn" onclick="window.safeDeleteComment('${postId}', '${c._id}', this)"></button>
               </div>
             </div>
             <p class="comment-text text-gray-700 mt-1" data-comment-id="${c._id}">${c.text}</p>
