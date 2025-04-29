@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast('❌ Error creating post', 'error');
       }
     }
-    
+      
 
     async loadPosts(page = 1) {
       try {
