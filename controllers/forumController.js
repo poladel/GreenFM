@@ -418,8 +418,10 @@ exports.deleteComment = async (req, res) => {
 };
 
 // Create a poll
+// Create Poll
 exports.createPoll = async (req, res) => {
   const { question, options } = req.body;
+
   try {
     if (!question || !options || options.length < 2) {
       return res.status(400).json({ success: false, message: 'Invalid poll' });
@@ -434,12 +436,13 @@ exports.createPoll = async (req, res) => {
     });
 
     await newPost.save();
-    res.redirect('/forum'); // or respond with JSON
+    res.json({ success: true, message: 'Poll created successfully!' });
   } catch (err) {
     console.error('Poll creation error:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Error creating poll' });
   }
 };
+
 
 
 exports.votePoll = async (req, res) => {

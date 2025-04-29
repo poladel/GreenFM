@@ -111,10 +111,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async handlePollSubmit(e) {
       e.preventDefault();
-      
+    
       const question = this.elements.pollQuestionInput.value.trim();
       const options = [...this.elements.pollOptionsWrapper.querySelectorAll('input')].map(input => input.value.trim()).filter(opt => opt);
-      
+    
       if (!question || options.length < 2) {
         return showToast('❌ Enter a question and at least 2 options', 'error');
       }
@@ -127,9 +127,14 @@ document.addEventListener('DOMContentLoaded', function () {
           body: JSON.stringify({ question, options })
         });
     
-        const data = await res.json();
+        // Ensure the response is valid JSON
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.statusText}`);
+        }
     
-        // Check if response is successful
+        const data = await res.json(); // Process the JSON response
+    
+        // Check if the poll was successfully posted
         if (data.success) {
           showToast('✅ Poll posted!');
           this.resetPollForm();
@@ -142,7 +147,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('Poll submit error:', err);
         showToast('❌ Error submitting poll', 'error');
       }
-    }    
+    }
+        
 
     resetPollForm() {
       this.elements.pollForm.reset();
