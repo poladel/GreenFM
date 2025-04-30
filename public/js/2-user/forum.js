@@ -331,34 +331,35 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
     renderPollSection(post) {
-        // Calculate the total number of votes across all options
-        const totalVotes = post.poll.options.reduce((sum, option) => sum + option.votes.length, 0);
-      
-        return `
-          <div class="post-poll mt-4 text-center p-4 bg-gradient-to-r from-blue-500 via-teal-400 to-green-500 rounded-lg shadow-lg">
-            <div class="text-xl font-semibold text-white mb-3">${post.poll.question}</div>
-            <ul class="poll-options space-y-3 max-w-md mx-auto text-white">
-              ${post.poll.options.map((opt, index) => {
-                // Calculate the percentage of votes for this option
-                const percentage = totalVotes ? (opt.votes.length / totalVotes) * 100 : 0;  // Handle division by zero
-      
-                return `
-                  <li class="flex justify-start items-center bg-white border border-gray-300 px-4 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105 relative">
-                    <button class="text-left w-full text-gray-800 font-medium hover:bg-green-100 p-2 rounded-lg transition duration-300"
-                      onclick="votePoll('${post._id}', ${index})">
-                      Vote
-                    </button>
-                    <div class="vote-bar-container flex-1 ml-3 bg-gray-300 rounded-full relative">
-                      <div class="vote-bar" style="width: ${percentage}%;"></div>
-                      <span class="text-sm text-gray-500 ml-3 vote-count">${opt.votes.length} votes</span>
-                    </div>
-                  </li>
-                `;
-              }).join('')}
-            </ul>
-          </div>
-        `;
-      }
+      // Calculate the total number of votes across all options
+      const totalVotes = post.poll.options.reduce((sum, option) => sum + option.votes.length, 0);
+    
+      return `
+        <div class="post-poll mt-4 text-center p-4 bg-gradient-to-r from-blue-500 via-teal-400 to-green-500 rounded-lg shadow-lg">
+          <div class="text-xl font-semibold text-white mb-3">${post.poll.question}</div>
+          <ul class="poll-options space-y-3 max-w-md mx-auto text-white">
+            ${post.poll.options.map((opt, index) => {
+              // Calculate the percentage of votes for this option
+              const percentage = totalVotes ? (opt.votes.length / totalVotes) * 100 : 0;  // Handle division by zero
+              
+              return `
+                <li class="flex justify-start items-center bg-white border border-gray-300 px-4 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105 relative">
+                  <button class="text-left w-full text-gray-800 font-medium hover:bg-green-100 p-2 rounded-lg transition duration-300"
+                    onclick="votePoll('${post._id}', ${index})">
+                    ${opt.text || 'Vote'}  <!-- Display the option text here -->
+                  </button>
+                  <div class="vote-bar-container flex-1 ml-3 bg-gray-300 rounded-full relative">
+                    <div class="vote-bar" style="width: ${percentage}%;"></div>
+                    <span class="text-sm text-gray-500 ml-3 vote-count">${opt.votes.length} votes</span>
+                  </div>
+                </li>
+              `;
+            }).join('')}
+          </ul>
+        </div>
+      `;
+  }
+  
       
        
   
