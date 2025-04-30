@@ -394,7 +394,78 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         }
     }
 
-    // --- Helper to update a single schedule button UI ---
+    // --- New function to update schedule table UI from global data ---
+    function updateScheduleTableUI() {
+        console.log("Updating schedule table UI from global data");
+        if (!scheduleTableBody || !currentScheduleViewYear) return; // Ensure body and year exist
+
+        const buttons = scheduleTableBody.querySelectorAll('.schedule-slot-btn');
+
+        buttons.forEach(button => {
+            const day = button.dataset.day;
+            const time = button.dataset.time;
+
+            // Find matching permanent or pending schedule for this button's slot and year
+            const permMatch = permanentSchedules.find(s => s.schoolYear === currentScheduleViewYear && s.day === day && s.time === time);
+            const pendMatch = pendingSubmissions.find(p => p.schoolYear === currentScheduleViewYear && p.preferredSchedule?.day === day && p.preferredSchedule?.time === time);
+
+            // Reset button state first (inline the reset logic from updateScheduleButtonUI)
+            button.disabled = false;
+            button.classList.remove('booked', 'pending', 'bg-red-500', 'bg-yellow-400', 'text-white', 'text-black', 'border-red-500', 'border-yellow-400', 'cursor-not-allowed', 'hover:bg-red-600', 'hover:bg-yellow-500');
+            button.classList.add('bg-white', 'border-green-700', 'hover:bg-green-700', 'hover:text-white');
+            button.textContent = ''; // Clear text
+            delete button.dataset.scheduleId;
+            delete button.dataset.pendingSubmissionId;
+
+            // Apply new state if there's a match
+            if (permMatch) {
+                button.textContent = permMatch.showDetails?.title || 'Booked';
+                button.classList.add('booked');
+                button.dataset.scheduleId = permMatch._id;
+                button.classList.remove('bg-white', 'border-green-700', 'hover:bg-green-700', 'hover:text-white');
+                button.classList.add('bg-red-500', 'text-white', 'border-red-500', 'hover:bg-red-600');
+            } else if (pendMatch) {
+                button.textContent = `PENDING: ${pendMatch.showDetails?.title || 'N/A'}`;
+                button.classList.add('pending');
+                button.dataset.pendingSubmissionId = pendMatch._id;
+                button.classList.remove('bg-white', 'border-green-700', 'hover:bg-green-700', 'hover:text-white');
+                button.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400', 'hover:bg-yellow-500');
+            }
+            // Else: Button remains in the 'available' state (set during reset)
+        });
+    }
+
+    // --- Schedule Loading & Interaction ---
+    async function loadSchedule(schoolYear) {
+        currentScheduleViewYear = schoolYear; // Store the currently viewed year
+        if (!schoolYear || schoolYear === 'undefined') {
+            console.warn("loadSchedule: No valid school year provided, clearing schedule.");
+            // Clear data and update UI to empty state
+            permanentSchedules = [];
+            pendingSubmissions = [];
+            updateScheduleTableUI(); // Call update UI even when clearing
+            return;
+        }
+        showSpinner();
+        console.log(`Loading schedule for ${schoolYear}`);
+        try {
+            // Fetch data and store globally
+            await fetchScheduleAndPendingData(schoolYear);
+            // Update UI based on fetched data
+            updateScheduleTableUI(); // Update UI from global data (no separate clear needed)
+        } catch (error) {
+            console.error('Error loading schedule:', error);
+            // Clear data and update UI to empty state on error
+            permanentSchedules = [];
+            pendingSubmissions = [];
+            updateScheduleTableUI(); // Call update UI even on error
+            alert(`Error loading schedule for ${schoolYear}. Check console for details.`);
+        } finally {
+            hideSpinner();
+        }
+    }
+
+    // --- Helper to update a single schedule button UI (Used by Socket Events) ---
     function updateScheduleButtonUI(data) {
         const { action, day, time, schoolYear, showTitle, status, scheduleId, submissionId } = data;
         const currentYear = schoolYearSelect ? schoolYearSelect.value : null;
@@ -404,7 +475,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         const button = scheduleTableBody?.querySelector(`.schedule-slot-btn[data-day="${day}"][data-time="${time}"]`);
         if (!button) return;
 
-        // Reset state
+        // Reset state (same reset logic as in the main update function)
         button.disabled = false;
         button.classList.remove('booked', 'pending', 'bg-red-500', 'bg-yellow-400', 'text-white', 'text-black', 'border-red-500', 'border-yellow-400', 'cursor-not-allowed', 'hover:bg-red-600', 'hover:bg-yellow-500');
         button.classList.add('bg-white', 'border-green-700', 'hover:bg-green-700', 'hover:text-white');
@@ -413,8 +484,10 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         delete button.dataset.pendingSubmissionId;
 
         // Apply new state based on latest data (check permanentSchedules and pendingSubmissions)
-        const permMatch = permanentSchedules.find(s => s.day === day && s.time === time);
-        const pendMatch = pendingSubmissions.find(p => p.preferredSchedule?.day === day && p.preferredSchedule?.time === time);
+        // Re-fetch might be needed here if socket event doesn't guarantee global vars are up-to-date
+        // For now, assume global vars ARE updated before this is called by socket handler
+        const permMatch = permanentSchedules.find(s => s.schoolYear === currentYear && s.day === day && s.time === time);
+        const pendMatch = pendingSubmissions.find(p => p.schoolYear === currentYear && p.preferredSchedule?.day === day && p.preferredSchedule?.time === time);
 
         if (permMatch) {
             button.textContent = permMatch.showDetails?.title || 'Booked';
@@ -464,7 +537,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
 
 
     // --- Function to populate available time slots ---
-    async function populateAvailableTimes(selectedDay, timeToSelect = null) {
+    async function populateAvailableTimes(selectedDay, timeToSelect = null) { // Can likely remove 'async' now
         if (!submissionPreferredTimeSelect || !selectedDay) {
             if (submissionPreferredTimeSelect) {
                 submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>Select Day First</option>';
@@ -474,33 +547,37 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         }
 
         const schoolYear = submissionSchoolYearSelect ? submissionSchoolYearSelect.value : null;
-        if (!schoolYear) {
-             submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>Select Year First</option>';
+        if (!schoolYear || schoolYear !== currentSubmissionViewYear) { // Also check if the correct year's data is loaded
+             submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>Year Mismatch or Not Loaded</option>';
              submissionPreferredTimeSelect.disabled = true;
+             console.warn("populateAvailableTimes: School year mismatch or data not loaded for", schoolYear);
              return;
         }
 
-        submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+        submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>Calculating...</option>'; // Changed from Loading...
         submissionPreferredTimeSelect.disabled = true;
 
-        // Ensure latest data is available (could be optimized later)
-        await fetchScheduleAndPendingData(schoolYear);
+        // --- REMOVE THIS LINE ---
+        // await fetchScheduleAndPendingData(schoolYear); // Data should already be in global vars
 
-        // Filter occupied slots for the selected day and year
+        // Filter occupied slots using existing global data
         const occupiedTimes = new Set();
+        // Use the globally stored permanentSchedules and pendingSubmissions
         permanentSchedules.forEach(sched => {
-            if (sched.day === selectedDay) {
+            // Ensure we only consider schedules for the *correct* school year
+            if (sched.schoolYear === schoolYear && sched.day === selectedDay) {
                 occupiedTimes.add(sched.time);
             }
         });
         pendingSubmissions.forEach(sub => {
+            // Ensure we only consider pending subs for the *correct* school year
             // Add pending slot *unless* it's the original slot of the submission currently being viewed
-            if (sub.preferredSchedule?.day === selectedDay && sub._id !== currentSubmissionId) {
+            if (sub.schoolYear === schoolYear && sub.preferredSchedule?.day === selectedDay && sub._id !== currentSubmissionId) {
                 occupiedTimes.add(sub.preferredSchedule.time);
             }
         });
 
-        console.log(`Occupied times for ${selectedDay} (${schoolYear}):`, Array.from(occupiedTimes));
+        console.log(`Occupied times for ${selectedDay} (${schoolYear}) using cached data:`, Array.from(occupiedTimes));
         console.log(`Original slot for current submission (${currentSubmissionId}): ${originalSubmissionPreferredDay} ${originalSubmissionPreferredTime}`);
 
         submissionPreferredTimeSelect.innerHTML = '<option value="" disabled>Select Time</option>'; // Default placeholder
@@ -536,8 +613,10 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         } else {
             // Enable if slots exist, unless the form is already decided (handled by enableSubmissionForm)
             const isDecided = submissionResultSelect && submissionResultSelect.value !== 'Pending';
-            submissionPreferredTimeSelect.disabled = isDecided;
-            if (!submissionPreferredTimeSelect.value && submissionPreferredTimeSelect.options.length > 1) {
+            submissionPreferredTimeSelect.disabled = isDecided; // Enable/disable based on result status
+             submissionPreferredTimeSelect.classList.toggle('bg-gray-100', isDecided);
+             submissionPreferredTimeSelect.classList.toggle('cursor-not-allowed', isDecided);
+            if (!submissionPreferredTimeSelect.value && submissionPreferredTimeSelect.options.length > 1 && !timeToSelect) {
                  submissionPreferredTimeSelect.value = ""; // Ensure "Select Time" is chosen if no specific time was pre-selected
             }
         }
@@ -552,68 +631,6 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
         });
     }
 
-
-    // --- Schedule Loading & Interaction ---
-    async function loadSchedule(schoolYear) {
-        currentScheduleViewYear = schoolYear; // Store the currently viewed year
-        if (!schoolYear || schoolYear === 'undefined') {
-            console.warn("loadSchedule: No valid school year provided, clearing schedule.");
-            clearScheduleTable();
-            permanentSchedules = []; // Clear data
-            pendingSubmissions = []; // Clear data
-            return;
-        }
-        showSpinner();
-        console.log(`Loading schedule for ${schoolYear}`);
-        try {
-            // Fetch data and store globally
-            await fetchScheduleAndPendingData(schoolYear);
-            // Update UI based on fetched data
-            updateScheduleTableUI(); // New function to update UI from global data
-        } catch (error) {
-            console.error('Error loading schedule:', error);
-            clearScheduleTable();
-            alert(`Error loading schedule for ${schoolYear}. Check console for details.`);
-        } finally {
-            hideSpinner();
-        }
-    }
-
-    function clearScheduleTable() {
-        if (!scheduleTableBody) return;
-        const buttons = scheduleTableBody.querySelectorAll('.schedule-slot-btn');
-        buttons.forEach(button => {
-            button.textContent = ''; // Clear text
-            button.disabled = false; // Re-enable button
-            button.classList.remove('booked', 'pending'); // Remove status classes
-            // Reset to default available appearance (Tailwind example)
-            button.classList.remove('bg-red-500', 'bg-yellow-400', 'text-white', 'text-black', 'border-red-500', 'border-yellow-400', 'cursor-not-allowed', 'hover:bg-red-600', 'hover:bg-yellow-500');
-            button.classList.add('bg-white', 'border-green-700', 'hover:bg-green-700', 'hover:text-white');
-            // Clear any associated schedule or submission ID
-             button.dataset.scheduleId = '';
-             button.dataset.pendingSubmissionId = ''; // Clear pending ID too
-        });
-    }
-
-    // --- New function to update schedule table UI from global data ---
-    function updateScheduleTableUI() {
-        console.log("Updating schedule table UI from global data");
-        clearScheduleTable(); // Clear previous state first
-        if (!scheduleTableBody) return;
-
-        permanentSchedules.forEach(sched => {
-            updateScheduleButtonUI({ // Simulate data structure for UI update
-                action: 'update', day: sched.day, time: sched.time, schoolYear: sched.schoolYear,
-                showTitle: sched.showDetails?.title, status: 'Accepted', scheduleId: sched._id
-            });
-        });
-        pendingSubmissions.forEach(sub => {
-             updateScheduleButtonUI({ // Simulate data structure for UI update
-                action: 'pending', day: sub.preferredSchedule?.day, time: sub.preferredSchedule?.time, schoolYear: sub.schoolYear,
-                showTitle: sub.showDetails?.title, status: 'Pending', submissionId: sub._id
-            });
-        });
-    }
 
     // --- Modal Logic ---
     if (scheduleTableBody) {
@@ -1439,6 +1456,8 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
          const submissionId = event.target.dataset.id;
          if (!submissionId) return;
 
+         showSpinner();
+
          // Highlight selected row (optional)
          if (submissionsTableBody) {
              const currentlySelected = submissionsTableBody.querySelector('tr.bg-green-100');
@@ -1446,7 +1465,13 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
              event.target.closest('tr').classList.add('bg-green-100');
          }
 
-          showSpinner();
+         // --- Show and Scroll Immediately ---
+         if (submissionForm) {
+             submissionForm.classList.remove('hidden'); // Show the form container first
+             submissionForm.scrollIntoView({ behavior: 'auto', block: 'start' }); // Scroll instantly
+         }
+         // --- End Immediate Scroll ---
+
          try {
              // Endpoint: GET /submissions/:id (Corrected)
              const response = await fetch(`/submissions/${submissionId}`);
@@ -1463,22 +1488,25 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
              originalSubmissionPreferredTime = submission.preferredSchedule?.time;
              // --- End Store ---
 
-             await populateSubmissionForm(submission); // Await population
+             await populateSubmissionForm(submission); // Await population (form is already visible and scrolled to)
               enableSubmissionForm(); // Enable form fields and buttons
-              if (submissionForm) submissionForm.classList.remove('hidden'); // Show the form
+             // Removed scroll from here as it's done earlier
+             // if (submissionForm) {
+             //   submissionForm.classList.remove('hidden'); // Show the form
+             //   submissionForm.scrollIntoView({ behavior: 'auto', block: 'start' }); // Scroll to the form
+             // }
          } catch (error) {
              console.error('Error fetching submission details:', error);
              alert(`Error: ${error.message}`); // Use alert or Swal
               resetSubmissionForm(); // Reset form on error
          } finally {
-              hideSpinner();
+              hideSpinner(); // Hide spinner after data is loaded/populated or on error
          }
      }
 
 
      // --- Update populateSubmissionForm ---
-     async function populateSubmissionForm(submission) { // Make async
-         if (!submissionForm) return;
+     async function populateSubmissionForm(submission) { // Keep async for now, might remove later if populateAvailableTimes becomes sync
          // Don't reset form here, reset happens before calling this or in handleSubmissionSelect error
          // resetSubmissionForm(); // <<< REMOVE THIS LINE
 
@@ -1550,7 +1578,8 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
          }
 
          // Populate Time dropdown based on the selected day and pre-select the time
-         await populateAvailableTimes(selectedDay, selectedTime); // <<< CALL HERE
+         // This should now be much faster as it uses cached data
+         populateAvailableTimes(selectedDay, selectedTime); // <<< CALL HERE (No longer needs await)
 
          // --- Set Result Dropdown ---
          if (submissionResultSelect) {

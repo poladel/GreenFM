@@ -64,15 +64,34 @@ exports.saveAssessmentSlot = async (req, res) => {
 
         // Check if assessment period exists and if the date is within it
         const assessmentPeriod = await AssessmentPeriod.findOne({ year: parseInt(year, 10) });
-        if (!assessmentPeriod) {
-            return res.status(400).json({ message: `Assessment period for year ${year} not found.` });
+        if (!assessmentPeriod || !assessmentPeriod.startDate || !assessmentPeriod.endDate) { // Check dates exist
+            return res.status(400).json({ message: `Assessment period for year ${year} not found or is incomplete.` });
         }
-        const slotDate = new Date(date + 'T00:00:00'); // Ensure comparison at midnight UTC or local as needed
+
+        // <<< FIX: Parse slotDate explicitly as UTC midnight >>>
+        const slotDateString = date; // Keep original string for messages
+        const slotDate = new Date(slotDateString + 'T00:00:00.000Z');
+
+        // Parse period dates (these are likely already UTC from DB)
         const periodStartDate = new Date(assessmentPeriod.startDate);
         const periodEndDate = new Date(assessmentPeriod.endDate);
+
+        // Optional: Add logging to verify parsed dates just before comparison
+        console.log(`[Slot Save Validation] Comparing Slot Date (UTC): ${slotDate.toISOString()}`);
+        console.log(`[Slot Save Validation] With Period Start (UTC): ${periodStartDate.toISOString()}`);
+        console.log(`[Slot Save Validation] And Period End (UTC): ${periodEndDate.toISOString()}`);
+
+        // <<< FIX: Use inclusive comparison (>= and <=) >>>
         if (slotDate < periodStartDate || slotDate > periodEndDate) {
-            return res.status(400).json({ message: `Slot date ${date} is outside the assessment period.` });
+             // Log failure details
+             console.error(`[Slot Save Validation] FAILED: Slot ${slotDate.toISOString()} is outside period ${periodStartDate.toISOString()} - ${periodEndDate.toISOString()}`);
+             // Include period dates in user message for clarity
+             const periodStartStr = periodStartDate.toISOString().split('T')[0];
+             const periodEndStr = periodEndDate.toISOString().split('T')[0];
+             return res.status(400).json({ message: `Slot date ${slotDateString} is outside the assessment period (${periodStartStr} to ${periodEndStr}).` });
         }
+        console.log(`[Slot Save Validation] PASSED: Slot date is within the assessment period.`);
+        // <<< END FIX >>>
 
 
         // Check for existing slot

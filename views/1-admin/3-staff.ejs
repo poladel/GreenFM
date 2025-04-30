@@ -2,255 +2,334 @@
 
 <body data-admin-department="<%= typeof adminDepartment !== 'undefined' ? adminDepartment : '' %>">
 
-<div class="page-container">
-    <div class="content-wrap">
-        <div class="container">
-            <%- include('../partials/nav.ejs') %>
-            <%- include('../partials/menu.ejs') %>
+<div class="flex flex-col min-h-screen bg-gray-100"> <%# Added bg-gray-100 %>
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs') %>
 
-            <div class="tabs-container">
-                <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                <button class="tab-button" data-tab="submissions-tab">Submissions</button>
-            </div>
+    <div class="flex-1">
+        <%# Outer wrapper with padding matching menu.ejs and 2-blocktimer.ejs %>
+        <div class="pt-5 pl-16 pr-4 lg:pl-[14vw]">
+
+            <!-------------------- CONTENTS START -------------------->
+            <%# Centering wrapper for tabs %>
+            <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                <div class="tabs-container flex justify-start my-4 gap-2 md:gap-4"> <%# Use tabs-container class, adjusted gaps/margins %>
+                    <button class="tab-button active bg-green-700 text-white py-2.5 px-5 rounded-lg font-semibold text-sm shadow-md transition duration-300 hover:scale-103 cursor-pointer" data-tab="schedule-tab">Schedule</button> <%# Adjusted styles %>
+                    <button class="tab-button bg-white border border-gray-300 py-2.5 px-5 rounded-lg font-semibold text-sm text-gray-800 shadow-md transition duration-300 hover:bg-green-700 hover:text-white hover:scale-103 cursor-pointer" data-tab="submissions-tab">Submissions</button> <%# Adjusted styles %>
+                </div>
+            </div> <%# End centering wrapper for tabs %>
 
             <div class="tab-content">
-                <!-- Schedule Tab (Existing Content) -->
-                <div id="schedule-tab" class="tab-pane active">
-                    <div class="settings-container">
-                        <div class="route-settings">
-                            <!-- Combined Form -->
-                            <h3>GFM Application & Assessment Periods</h3>
-                            <form id="periodSettingsForm">
+                <!-- Schedule Tab -->
+                <%# Removed ml/mr, centering handled by inner content %>
+                <div id="schedule-tab" class="tab-pane block mt-4 mb-4">
+                    <%# Centering wrapper for schedule content %>
+                    <div class="settings-container max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                        <!-- Period Settings -->
+                        <%# Adjusted padding/margins/rounding %>
+                        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h3 class="mt-0 text-green-700 text-lg font-semibold mb-4 border-b pb-2">GFM Application & Assessment Periods</h3>
+                            <form id="periodSettingsForm" class="space-y-4">
+                                <%# Adjusted grid layout for better alignment %>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <%# Application Period Section %>
+                                    <div class="md:col-span-2">
+                                        <h4 class="text-md font-semibold mb-2 text-gray-800">Application Period</h4>
+                                    </div>
+                                    <div>
+                                        <label for="applicationStartDate" class="block font-medium text-gray-700 text-sm mb-1">Start Date:</label>
+                                        <input type="date" id="applicationStartDate" name="applicationStartDate" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label for="applicationEndDate" class="block font-medium text-gray-700 text-sm mb-1">End Date:</label>
+                                        <input type="date" id="applicationEndDate" name="applicationEndDate" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
 
-                                <h4>Application Period</h4>
-                                <div class="form-group">
-                                    <label for="applicationStartDate">Start Date:</label>
-                                    <input type="date" id="applicationStartDate" name="applicationStartDate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="applicationEndDate">End Date:</label>
-                                    <input type="date" id="applicationEndDate" name="applicationEndDate">
-                                </div>
-
-                                <h4>Assessment Period</h4>
-                                <div class="form-group">
-                                    <label for="assessmentStartDate">Start Date:</label>
-                                    <input type="date" id="assessmentStartDate" name="assessmentStartDate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="assessmentEndDate">End Date:</label>
-                                    <input type="date" id="assessmentEndDate" name="assessmentEndDate">
+                                    <%# Assessment Period Section %>
+                                    <div class="md:col-span-2 mt-4"> <%# Added margin-top %>
+                                        <h4 class="text-md font-semibold mb-2 text-gray-800">Assessment Period</h4>
+                                    </div>
+                                    <div>
+                                        <label for="assessmentStartDate" class="block font-medium text-gray-700 text-sm mb-1">Start Date:</label>
+                                        <input type="date" id="assessmentStartDate" name="assessmentStartDate" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label for="assessmentEndDate" class="block font-medium text-gray-700 text-sm mb-1">End Date:</label>
+                                        <input type="date" id="assessmentEndDate" name="assessmentEndDate" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">Save Period Settings</button>
+                                <div class="flex justify-end pt-4"> <%# Button container %>
+                                    <button type="submit" class="bg-green-600 text-white py-2 px-5 border-none rounded-lg font-semibold text-sm cursor-pointer transition duration-300 hover:bg-green-700 hover:scale-103">Save Period Settings</button>
+                                </div>
                             </form>
-                            <div id="existingApplicationPeriod"
-                                style="margin-top: 10px; font-weight: bold;">
+                            <div id="existingApplicationPeriod" class="mt-4 font-bold text-sm text-gray-800"> <%# Adjusted margin/color %>
                                 <!-- Dynamically updated -->
                             </div>
-                            <div id="existingAssessmentPeriod" style="margin-top: 10px; font-weight: bold;">
+                            <div id="existingAssessmentPeriod" class="mt-2 font-bold text-sm text-gray-800"> <%# Adjusted margin/color %>
                                 <!-- Dynamically updated -->
                             </div>
-                            <!-- End NEW Section -->
                         </div>
 
-                        <div class="filters-container">
-                            <label for="departmentFilter">Department:</label>
-                            <select id="departmentFilter"> <!-- MUST HAVE id="departmentFilter" -->
-                                <option value="News and Public Affairs">News and Public Affairs</option>
-                                <option value="Music and Entertainment">Music and Entertainment</option>
-                                <option value="Operations and Logistics">Operations and Logistics
-                                </option>
-                                <option value="Creatives and Promotions">Creatives and Promotions
-                                </option>
-                            </select>
-
-                            <label for="weekFilter">View Week:</label>
-                            <select id="weekFilter" disabled> <!-- MUST HAVE id="weekFilter" -->
-                                <option value="">Set Assessment Period First</option>
-                                <!-- Changed Text -->
-                                <!-- Options will be populated by JavaScript -->
-                            </select>
+                        <!-- Filters -->
+                        <%# Adjusted padding/margins/rounding/gap %>
+                        <div class="filters-container flex flex-wrap items-center gap-x-6 gap-y-4 mb-6 bg-white p-4 rounded-lg shadow-md">
+                             <div class="flex-grow md:flex-grow-0">
+                                 <label for="departmentFilter" class="font-medium text-sm text-gray-700 mr-2">Department:</label>
+                                 <select id="departmentFilter" class="p-2.5 text-sm border border-gray-300 rounded-lg w-full md:w-auto md:min-w-[200px] focus:ring-green-500 focus:border-green-500"> <%# Adjusted styles %>
+                                    <option value="News and Public Affairs">News and Public Affairs</option>
+                                    <option value="Music and Entertainment">Music and Entertainment</option>
+                                    <option value="Operations and Logistics">Operations and Logistics</option>
+                                    <option value="Creatives and Promotions">Creatives and Promotions</option>
+                                    <option value="Internal Affairs">Internal Affairs</option>
+                                    <option value="External Affairs">External Affairs</option>
+                                 </select>
+                             </div>
+                             <div class="flex-grow md:flex-grow-0">
+                                 <label for="weekFilter" class="font-medium text-sm text-gray-700 mr-2">View Week:</label>
+                                 <select id="weekFilter" disabled class="p-2.5 text-sm border border-gray-300 rounded-lg w-full md:w-auto md:min-w-[250px] disabled:bg-gray-100 disabled:cursor-not-allowed focus:ring-green-500 focus:border-green-500"> <%# Adjusted styles %>
+                                    <option value="">Set Assessment Period First</option>
+                                    <!-- Options populated by JavaScript -->
+                                </select>
+                             </div>
                         </div>
 
-                        <div id="scheduleGrid" class="schedule-grid">
-                            <table class="schedule-table">
+                        <!-- Schedule Grid -->
+                        <%# Adjusted padding/margins/rounding %>
+                        <div id="scheduleGrid" class="schedule-grid bg-white p-4 rounded-lg shadow-md overflow-x-auto mb-6">
+                            <%# Applied styling similar to 2-blocktimer.ejs schedule-table %>
+                            <table class="schedule-table w-full border-collapse text-center">
                                 <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Monday</th>
-                                        <th>Tuesday</th>
-                                        <th>Wednesday</th>
-                                        <th>Thursday</th>
-                                        <th>Friday</th>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Time</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Monday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Tuesday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Wednesday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Thursday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Friday</th>
                                     </tr>
                                 </thead>
-                                <tbody id="schedule-body">
-                                    <!-- Rows generated by EJS or JS -->
-                                    <% const times=["7:00-8:00", "8:00-9:00" , "9:00-10:00" , "10:00-11:00"
-                                        , "11:00-12:00" , "12:00-1:00" , "1:00-2:00" , "2:00-3:00" , "3:00-4:00"
-                                        , "4:00-5:00" , "5:00-6:00" , "6:00-7:00" ]; %>
-                                        <% const days=["Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday"
-                                            ]; %>
-                                            <% times.forEach(time=> { %>
-                                                <tr>
-                                                    <td class="time">
-                                                        <%= time %>
-                                                    </td>
-                                                    <% days.forEach(day=> { %>
-                                                        <td>
-                                                            <!-- Add 'schedule-button' class -->
-                                                            <button type="button" class="schedule-button availablebtn"
-                                                                    data-day="<%= day %>" data-time="<%= time %>"
-                                                                    disabled></button>
-                                                        </td>
-                                                        <% }); %>
-                                                </tr>
-                                                <% }); %>
+                                <tbody id="schedule-body" class="divide-y divide-gray-200">
+                                    <% const times = ["7:00-8:00", "8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-1:00", "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-5:00", "5:00-6:00", "6:00-7:00"]; %>
+                                    <% const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; %>
+                                    <% times.forEach(time => { %>
+                                        <tr>
+                                            <td class="p-2 border border-gray-300 text-sm font-semibold bg-gray-50 text-gray-700"><%= time %></td> <%# Adjusted padding %>
+                                            <% days.forEach(day => { %>
+                                                <td class="p-1 border border-gray-300 text-sm text-gray-700 align-middle"> <%# Adjusted padding %>
+                                                    <%# Applied styling similar to 2-blocktimer.ejs schedule-slot-btn %>
+                                                    <button type="button"
+                                                            <%# Base classes from 2-blocktimer.ejs schedule-slot-btn %>
+                                                            class="schedule-button w-full p-1 border border-green-700 rounded-lg bg-white cursor-pointer transition duration-200 hover:bg-green-700 hover:text-white hover:scale-103 text-xs whitespace-normal overflow-hidden text-ellipsis leading-tight min-h-[40px] break-words"
+                                                            data-day="<%= day %>"
+                                                            data-time="<%= time %>">
+                                                            <%# Removed initial disabled attribute %>
+                                                        <!-- Content added by JS -->
+                                                    </button>
+                                                </td>
+                                            <% }); %>
+                                        </tr>
+                                    <% }); %>
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </div> <%# End centering wrapper for schedule content %>
                 </div>
 
                 <!-- Submissions Tab -->
-                <div id="submissions-tab" class="tab-pane">
-                    <h3>Staff Application Submissions</h3>
+                 <%# Removed ml/mr, centering handled by inner content %>
+                 <div id="submissions-tab" class="tab-pane hidden mt-4 mb-6">
+                     <%# Centering wrapper for submissions content %>
+                     <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                         <h3 class="text-xl font-semibold text-green-700 mb-4">Staff Application Submissions</h3>
 
-                    <!-- Filters -->
-                    <div class="submissions-filters" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
-                        <div>
-                            <label for="submissionYearFilter">Year:</label>
-                            <select id="submissionYearFilter">
-                                <option value="">Loading...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="submissionStatusFilter">Status:</label>
-                            <select id="submissionStatusFilter">
-                                <option value="All">All</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Accepted">Accepted</option>
-                                <option value="Rejected">Rejected</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="submissionDepartmentFilter">Department:</label>
-                            <select id="submissionDepartmentFilter">
-                                <option value="All">All</option>
-                                <option value="News and Public Affairs">News and Public Affairs</option>
-                                <option value="Music and Entertainment">Music and Entertainment</option>
-                                <option value="Operations and Logistics">Operations and Logistics</option>
-                                <option value="Creatives and Promotions">Creatives and Promotions</option>
-                            </select>
-                        </div>
-                    </div>
+                         <!-- Filters (Adapted from blocktimer, kept department filter) -->
+                         <%# Use styling from blocktimer's filter section %>
+                         <div class="flex flex-wrap gap-4 items-center mb-6 border-b pb-4 bg-white p-5 rounded-lg shadow-md">
+                             <div>
+                                 <label for="submissionYearFilter" class="font-semibold block mb-1 text-gray-700 text-sm">Year:</label>
+                                 <select id="submissionYearFilter" class="p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500 min-w-[150px]">
+                                     <option value="" disabled selected>Loading...</option>
+                                 </select>
+                             </div>
+                             <div>
+                                 <label for="submissionStatusFilter" class="font-semibold block mb-1 text-gray-700 text-sm">Status:</label>
+                                 <select id="submissionStatusFilter" class="p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500 min-w-[150px]">
+                                     <option value="All">All</option>
+                                     <option value="Pending">Pending</option>
+                                     <option value="Accepted">Accepted</option>
+                                     <option value="Rejected">Rejected</option>
+                                 </select>
+                             </div>
+                             <div>
+                                 <label for="submissionDepartmentFilter" class="font-semibold block mb-1 text-gray-700 text-sm">Department:</label>
+                                 <select id="submissionDepartmentFilter" class="p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500 min-w-[200px]">
+                                     <option value="All">All</option>
+                                     <option value="News and Public Affairs">News and Public Affairs</option>
+                                     <option value="Music and Entertainment">Music and Entertainment</option>
+                                     <option value="Operations and Logistics">Operations and Logistics</option>
+                                     <option value="Creatives and Promotions">Creatives and Promotions</option>
+                                     <option value="Internal Affairs">Internal Affairs</option>
+                                     <option value="External Affairs">External Affairs</option>
+                                 </select>
+                             </div>
+                         </div>
 
-                    <!-- Submissions Table -->
-                    <div class="submissions-table-container">
-                        <table id="submissionsTable" class="submissions-table" style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Number</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Department</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="submissionsTableBody">
-                                <!-- Rows populated by JS -->
-                                <tr>
-                                    <td colspan="5" style="text-align: center; padding: 15px;">Loading submissions...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                         <!-- Submissions Table (Structure from blocktimer, headers adapted) -->
+                         <%# Use styling from blocktimer's table container %>
+                         <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto mb-0"> <%# Changed mb-6 to mb-0, adjusted padding %>
+                             <table id="submissionsTable" class="submissions-table w-full border-collapse text-left mb-6"> <%# Use blocktimer class %>
+                                 <thead>
+                                     <tr class="bg-gray-100"> <%# Use blocktimer class %>
+                                         <%# Headers matching blocktimer style, content matching staff.js %>
+                                         <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Name</th>
+                                         <th class="hidden md:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Student Number</th> <%# Show on md+ %>
+                                         <th class="hidden lg:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Department</th> <%# Show on lg+ %>
+                                         <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Status</th>
+                                         <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider text-center">Action</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody id="submissionsTableBody" class="divide-y divide-gray-200"> <%# Use blocktimer class %>
+                                     <tr>
+                                         <%# Adjusted colspan based on visible columns, use blocktimer style %>
+                                         <td colspan="3" class="md:colspan-4 lg:colspan-5 p-4 text-center text-gray-500">Loading submissions...</td>
+                                     </tr>
+                                 </tbody>
+                             </table>
+                         </div>
 
-                    <!-- ALWAYS VISIBLE: Submission Detail View -->
-                    <div id="submissionDetailView" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; background-color: #f9f9f9;">
-                        <h2>Applicant Submission Details</h2>
-                        <div id="submissionDetailContentInline">
-                            <!-- Changed to input fields -->
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailFullName"><strong>Name:</strong></label>
-                                <input type="text" id="detailFullName" data-field="fullName" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailStudentNumber"><strong>Student Number:</strong></label>
-                                <input type="text" id="detailStudentNumber" data-field="studentNumber" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailDlsudEmail"><strong>DLSU-D Email:</strong></label>
-                                <input type="email" id="detailDlsudEmail" data-field="dlsudEmail" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailCollege"><strong>College:</strong></label>
-                                <input type="text" id="detailCollege" data-field="college" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailProgram"><strong>Program:</strong></label>
-                                <input type="text" id="detailProgram" data-field="program" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailCollegeYearSection"><strong>Year & Section:</strong></label>
-                                <input type="text" id="detailCollegeYearSection" data-field="collegeYearSection" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailFacebookUrl"><strong>Facebook URL:</strong></label>
-                                <input type="text" id="detailFacebookUrl" data-field="facebookUrl" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailAffiliatedOrgsList"><strong>Affiliated Orgs:</strong></label>
-                                <input type="text" id="detailAffiliatedOrgsList" data-field="affiliatedOrgsList" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailPreferredDepartment"><strong>Preferred Department:</strong></label>
-                                <input type="text" id="detailPreferredDepartment" data-field="preferredDepartment" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailPreferredSchedule"><strong>Preferred Schedule:</strong></label>
-                                <input type="text" id="detailPreferredSchedule" data-field="preferredSchedule" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailSchoolYear"><strong>School Year Applied:</strong></label>
-                                <input type="text" id="detailSchoolYear" data-field="schoolYear" readonly value="" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee;">
-                            </div>
-                            <hr>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailStaffApplicationReasons"><strong>Why Apply for Staff?</strong></label>
-                                <textarea id="detailStaffApplicationReasons" data-field="staffApplicationReasons" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;"></textarea>
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailDepartmentApplicationReasons"><strong>Why Apply for Department?</strong></label>
-                                <textarea id="detailDepartmentApplicationReasons" data-field="departmentApplicationReasons" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;"></textarea>
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <label for="detailGreenFmContribution"><strong>How Can You Contribute?</strong></label>
-                                <textarea id="detailGreenFmContribution" data-field="greenFmContribution" readonly rows="4" style="width: 95%; padding: 4px; border: 1px solid #ddd; background-color: #eee; white-space: pre-wrap; resize: vertical;"></textarea>
-                            </div>
-                            <hr>
-                            <div>
-                                <label for="submissionResultUpdate"><strong>Update Status:</strong></label>
-                                <select id="submissionResultUpdate" disabled> <!-- Disable initially -->
-                                    <option value="Pending">Pending</option>
-                                    <option value="Accepted">Accept</option>
-                                    <option value="Rejected">Reject</option>
-                                </select>
-                                <button id="saveSubmissionResultBtn" style="margin-left: 10px;" disabled>Save Status</button> <!-- Disable initially -->
-                            </div>
-                        </div>
-                    </div>
-                    <!-- End Submission Detail View -->
+                         <!-- Pagination Controls (Copied from blocktimer) -->
+                         <%# Use styling from blocktimer's pagination container %>
+                         <div id="pagination-controls" class="flex justify-between items-center bg-white p-4 rounded-b-lg shadow-md mb-6 border-t border-gray-200"> <%# Added bg, rounded-b, border-t %>
+                             <button id="prev-page-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l disabled:opacity-50 disabled:cursor-not-allowed">
+                                 Previous
+                             </button>
+                             <span id="page-info" class="text-sm text-gray-700">Page 1 of 1</span>
+                             <button id="next-page-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r disabled:opacity-50 disabled:cursor-not-allowed">
+                                 Next
+                             </button>
+                         </div>
+                         <!-- End Pagination Controls -->
 
-                </div> <!-- End submissions-tab -->
+                         <!-- Submission Detail Form (Structure from blocktimer, fields adapted) -->
+                          <%# Use styling from blocktimer's form container %>
+                          <form id="submissionDetailView" class="hidden bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200 mb-6">
+                              <h2 class="text-green-700 text-lg font-semibold mt-0 mb-6 border-b pb-2">Applicant Submission Details</h2>
+                               <input type="hidden" id="selectedSubmissionId"> <!-- To store the ID -->
+
+                               <div id="submissionDetailContentInline"> <%# Wrapper for JS targeting %>
+                                  <!-- Applicant Info Group -->
+                                  <%# Use styling from blocktimer's fieldsets %>
+                                  <fieldset class="border border-gray-300 p-4 rounded-lg mb-4 bg-white">
+                                      <legend class="font-semibold px-2 text-sm text-gray-600">Applicant Information</legend>
+                                      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                          <div>
+                                              <%# Use styling from blocktimer's labels/inputs %>
+                                              <label for="detailFullName" class="block font-medium text-gray-700 mb-1 text-sm">Name:</label>
+                                              <input type="text" id="detailFullName" data-field="fullName" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailStudentNumber" class="block font-medium text-gray-700 mb-1 text-sm">Student Number:</label>
+                                              <input type="text" id="detailStudentNumber" data-field="studentNumber" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailDlsudEmail" class="block font-medium text-gray-700 mb-1 text-sm">DLSU-D Email:</label>
+                                              <input type="email" id="detailDlsudEmail" data-field="dlsudEmail" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailCollege" class="block font-medium text-gray-700 mb-1 text-sm">College:</label>
+                                              <input type="text" id="detailCollege" data-field="college" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailProgram" class="block font-medium text-gray-700 mb-1 text-sm">Program:</label>
+                                              <input type="text" id="detailProgram" data-field="program" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailCollegeYearSection" class="block font-medium text-gray-700 mb-1 text-sm">Year & Section:</label>
+                                              <input type="text" id="detailCollegeYearSection" data-field="collegeYearSection" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div class="md:col-span-2">
+                                              <label for="detailFacebookUrl" class="block font-medium text-gray-700 mb-1 text-sm">Facebook URL:</label>
+                                              <input type="text" id="detailFacebookUrl" data-field="facebookUrl" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                           <div class="md:col-span-2">
+                                              <label for="detailAffiliatedOrgsList" class="block font-medium text-gray-700 mb-1 text-sm">Affiliated Orgs:</label>
+                                               <textarea id="detailAffiliatedOrgsList" data-field="affiliatedOrgsList" readonly rows="3" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed whitespace-pre-wrap"></textarea> <%# Added whitespace-pre-wrap %>
+                                          </div>
+                                      </div>
+                                  </fieldset>
+
+                                  <!-- Application Details Group -->
+                                  <fieldset class="border border-gray-300 p-4 rounded-lg mb-4 bg-white">
+                                      <legend class="font-semibold px-2 text-sm text-gray-600">Application Details</legend>
+                                      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                          <div>
+                                              <label for="detailPreferredDepartment" class="block font-medium text-gray-700 mb-1 text-sm">Preferred Department:</label>
+                                              <input type="text" id="detailPreferredDepartment" data-field="preferredDepartment" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div>
+                                              <label for="detailPreferredSchedule" class="block font-medium text-gray-700 mb-1 text-sm">Preferred Schedule:</label>
+                                              <input type="text" id="detailPreferredSchedule" data-field="preferredSchedule" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                          <div class="md:col-span-2">
+                                              <label for="detailSchoolYear" class="block font-medium text-gray-700 mb-1 text-sm">School Year Applied:</label>
+                                              <input type="text" id="detailSchoolYear" data-field="schoolYear" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                          </div>
+                                      </div>
+                                  </fieldset>
+
+                                  <!-- Essays Group -->
+                                  <fieldset class="border border-gray-300 p-4 rounded-lg mb-6 bg-white"> <%# Adjusted margin %>
+                                      <legend class="font-semibold px-2 text-sm text-gray-600">Reasons</legend>
+                                      <div class="space-y-4">
+                                          <div>
+                                              <label for="detailStaffApplicationReasons" class="block font-medium text-gray-700 mb-1 text-sm">Why Apply for Staff?</label>
+                                              <textarea id="detailStaffApplicationReasons" data-field="staffApplicationReasons" readonly rows="4" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed whitespace-pre-wrap"></textarea> <%# Added whitespace-pre-wrap %>
+                                          </div>
+                                          <div>
+                                              <label for="detailDepartmentApplicationReasons" class="block font-medium text-gray-700 mb-1 text-sm">Why Apply for Department?</label>
+                                              <textarea id="detailDepartmentApplicationReasons" data-field="departmentApplicationReasons" readonly rows="4" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed whitespace-pre-wrap"></textarea> <%# Added whitespace-pre-wrap %>
+                                          </div>
+                                          <div>
+                                              <label for="detailGreenFmContribution" class="block font-medium text-gray-700 mb-1 text-sm">How Can You Contribute?</label>
+                                              <textarea id="detailGreenFmContribution" data-field="greenFmContribution" readonly rows="4" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed whitespace-pre-wrap"></textarea> <%# Added whitespace-pre-wrap %>
+                                          </div>
+                                      </div>
+                                  </fieldset>
+                               </div> <%# End submissionDetailContentInline %>
+
+                              <!-- Status Update Section (Adapted from blocktimer form buttons) -->
+                              <%# Use styling from blocktimer's button container %>
+                              <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4">
+                                  <div class="flex items-center gap-2 mr-auto"> <%# Push status to the left %>
+                                      <label for="submissionResultUpdate" class="block font-medium text-gray-700 text-sm">Status:</label>
+                                      <%# Use styling from blocktimer's result select %>
+                                      <select id="submissionResultUpdate" name="result" disabled class="p-2.5 border border-gray-300 rounded-lg bg-gray-100 disabled:cursor-not-allowed focus:ring-green-500 focus:border-green-500 text-sm disabled:bg-gray-200 disabled:text-gray-500">
+                                          <option value="Pending">Pending</option>
+                                          <option value="Accepted">Accept</option>
+                                          <option value="Rejected">Reject</option>
+                                      </select>
+                                      <div class="result-error text-red-500 text-xs mt-1 h-4"></div> <%# Error placeholder %>
+                                  </div>
+                                  <%# Use styling from blocktimer's cancel button %>
+                                  <button type="button" id="cancel-submission-button" class="py-2.5 px-4 border border-gray-300 rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-gray-500 text-white hover:bg-gray-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Cancel</button>
+                                  <%# Use styling from blocktimer's submit button %>
+                                  <button type="button" id="saveSubmissionResultBtn" class="py-2.5 px-4 border border-transparent rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-green-600 text-white hover:enabled:bg-green-700 disabled:bg-green-300 disabled:text-green-700 disabled:cursor-not-allowed">Save Status</button>
+                              </div>
+                          </form>
+                          <!-- End Submission Detail Form -->
+                     </div> <%# End centering wrapper for submissions content %>
+                 </div> <!-- End submissions-tab -->
             </div> <!-- End tab-content -->
-        </div> <!-- End container -->
-        <%- include('../partials/footer.ejs') %>
-    </div> <!-- End content-wrap -->
+            <!-------------------- CONTENTS END -------------------->
+            <br> <%# Keep break if needed before footer %>
+        </div> <!-- End outer wrapper -->
+    </div> <!-- End flex-1 -->
+    <%- include('../partials/footer.ejs') %>
 </div> <!-- End page-container -->
 
 <%- include('../partials/spinner.ejs') %> <%# Include the spinner partial %>
+<script src="/socket.io/socket.io.js"></script> <%# Ensure Socket.IO client is included %>
 <script src="/js/1-admin/staff.js"></script>
 
 </body>
