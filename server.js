@@ -150,7 +150,6 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: false })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies
 app.use(sessionMiddleware); // Session management
-app.use('/', forumRoutes); 
 
 // Static files
 app.use(express.static(path.join(__dirname, '/public')));
@@ -172,6 +171,7 @@ app.use(joinBlocktimerRoutes);
 app.use(joinGFMRoutes);
 app.use(staffSubmissionRoutes);
 app.use(uploadRoutes);
+app.use('/', forumRoutes); // ADD HERE - Group with other routes
 app.use('/playlist', playlistRoutes);
 app.use(accountRoutes);
 app.use(blocktimerRoutes);
@@ -185,7 +185,6 @@ app.use(manageRoutes);
 app.use('/live', liveRoutes);
 app.use('/', statusRoutes);
 app.use('/chat', chatRoutes);
-
 
 // 404 Fallback
 app.all('*', (req, res) => {
