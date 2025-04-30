@@ -479,6 +479,16 @@ module.exports.rejectScheduleChange = async (req, res) => {
 
     try {
         const submission = await ApplyBlocktimer.findById(submissionId);
+
+        // --- Add Logging ---
+        console.log(`[rejectScheduleChange] Checking submission ID: ${submissionId}`);
+        console.log(`[rejectScheduleChange] User email from req: ${userEmail}`);
+        if (submission) {
+            console.log(`[rejectScheduleChange] Submission found. Submitted by: ${submission.submittedBy}`);
+        } else {
+            console.log(`[rejectScheduleChange] Submission NOT found in DB.`);
+        }
+        
         if (!submission || submission.submittedBy !== userEmail) {
             return res
                 .status(404)

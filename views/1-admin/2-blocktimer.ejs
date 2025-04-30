@@ -1,528 +1,421 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="flex flex-col min-h-screen bg-gray-100">
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
+    <div class="flex-1">
+        <div class="pt-5 pl-16 pr-4 lg:pl-[14vw]">
 
-                <!-------------------- CONTENTS START --------------------> 
-                    <!-- Tabs for Submissions and Schedule -->
-                    <div class="tabs-container">
-                        <button class="tab-button active" data-tab="schedule-tab">Schedule</button>
-                        <button class="tab-button" data-tab="submissions-tab">Submissions</button>
+            <!-------------------- CONTENTS START -------------------->
+            <!-- Add a wrapper div for centering the tabs -->
+            <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                <!-- Tabs for Submissions and Schedule -->
+                <!-- Removed ml-0 md:ml-4 from here, centering handled by parent -->
+                <div class="tabs-container flex justify-start my-4 gap-2 md:gap-4">
+                    <button class="tab-button active bg-green-700 text-white py-2.5 px-5 rounded-lg font-semibold text-sm shadow-md transition duration-300 hover:scale-103 cursor-pointer" data-target="schedule-tab">Schedule</button>
+                    <button class="tab-button bg-white border border-gray-300 py-2.5 px-5 rounded-lg font-semibold text-sm text-gray-800 shadow-md transition duration-300 hover:bg-green-700 hover:text-white hover:scale-103 cursor-pointer" data-target="submissions-tab">Submissions</button>
+                </div>
+            </div> <!-- End centering wrapper for tabs -->
 
+            <div class="tab-content">
+                <!-- Schedule Tab -->
+                <!-- Removed ml/mr from here, centering handled by inner content -->
+                <div id="schedule-tab" class="tab-pane block mt-4 mb-4">
+                    <!-- School Year Config -->
+                    <!-- This already has max-width and mx-auto -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6 max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                        <h3 class="mt-0 text-green-700 text-lg font-semibold mb-4 border-b pb-2">Configure School Year</h3>
+                        <form id="schoolYearConfigForm" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div>
+                                    <label for="startMonth" class="block font-medium text-gray-700 text-sm mb-1">Start Month:</label>
+                                    <select id="startMonth" name="startMonth" class="w-full p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:ring-green-500 focus:border-green-500">
+                                        <% for(let i=1; i <= 12; i++) { %>
+                                            <option value="<%= i %>"><%= new Date(0, i-1).toLocaleString('default', { month: 'long' }) %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="startYear" class="block font-medium text-gray-700 text-sm mb-1">Start Year:</label>
+                                    <input type="number" id="startYear" name="startYear" placeholder="e.g., 2024" required class="w-full p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label for="endMonth" class="block font-medium text-gray-700 text-sm mb-1">End Month:</label>
+                                    <select id="endMonth" name="endMonth" class="w-full p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:ring-green-500 focus:border-green-500">
+                                        <% for(let i=1; i <= 12; i++) { %>
+                                            <option value="<%= i %>"><%= new Date(0, i-1).toLocaleString('default', { month: 'long' }) %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="endYear" class="block font-medium text-gray-700 text-sm mb-1">End Year:</label>
+                                    <input type="number" id="endYear" name="endYear" placeholder="e.g., 2025" required class="w-full p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:ring-green-500 focus:border-green-500">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end pt-4"> <!-- Button container -->
+                                <button type="submit" class="bg-green-600 text-white py-2 px-5 border-none rounded-lg font-semibold text-sm cursor-pointer transition duration-300 hover:bg-green-700 hover:scale-103">Save Configuration</button>
+                            </div>
+                        </form>
+                        <!-- Display Current Configuration -->
+                        <div id="currentSchoolYearConfigDisplay" class="mt-4 font-bold text-gray-800 text-sm"> <!-- Adjusted margin/size -->
+                            <!-- Configuration will be loaded here by JS -->
+                        </div>
                     </div>
 
-                    <div class="tab-content">
-                        <!-- Schedule Tab -->
-                        <div id="schedule-tab" class="tab-pane active">
-                            <div class="school-year-config">
-                                <h3>Configure School Year</h3>
-                                <form id="schoolYearConfigForm">
-                                    <label for="startMonth">Start Month:</label>
-                                    <select id="startMonth" name="startMonth">
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
-                                    </select>
-
-                                    <label for="startYear">Start Year:</label>
-                                    <input type="number" id="startYear" name="startYear" placeholder="e.g., 2024"
-                                        required>
-
-                                    <label for="endMonth">End Month:</label>
-                                    <select id="endMonth" name="endMonth">
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
-                                    </select>
-
-                                    <label for="endYear">End Year:</label>
-                                    <input type="number" id="endYear" name="endYear" placeholder="e.g., 2025" required>
-
-                                    <button type="submit">Save Configuration</button>
-                                </form>
-                                <!-- Display Current Configuration -->
-                                <div id="currentSchoolYearConfigDisplay" style="margin-top: 10px; font-weight: bold;">
-                                    <!-- Configuration will be loaded here by JS -->
-                                </div>
-                            </div>
-                            <div class="schedule-container">
-                                <label for="schoolYear">School Year:</label>
-                                <select id="schoolYear" name="schoolYear">
-                                    <!-- Options will be dynamically populated -->
-                                </select>
-                                <table class="schedule-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Time</th>
-                                            <th>Monday</th>
-                                            <th>Tuesday</th>
-                                            <th>Wednesday</th>
-                                            <th>Thursday</th>
-                                            <th>Friday</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td class="time">9:10-9:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="9:10-9:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="9:10-9:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="9:10-9:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="9:10-9:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="9:10-9:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">10:00-10:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="10:00-10:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="10:00-10:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="10:00-10:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="10:00-10:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="10:00-10:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">11:00-11:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="11:00-11:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="11:00-11:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="11:00-11:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="11:00-11:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="11:00-11:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">12:01-12:55</td>
-                                            <td colspan="4"><button class="permaSchedbtn">FM MIX</button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="12:01-12:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">1:00-1:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="1:00-1:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="1:00-1:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="1:00-1:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="1:00-1:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="1:00-1:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">2:00-2:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="2:00-2:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="2:00-2:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="2:00-2:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="2:00-2:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="2:00-2:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">3:00-3:55</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="3:00-3:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="3:00-3:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="3:00-3:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="3:00-3:55"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="3:00-3:55"></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="time">4:00-4:50</td>
-                                            <td><button type="button" class="availablebtn" data-day="Monday"
-                                                    data-time="4:00-4:50"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Tuesday"
-                                                    data-time="4:00-4:50"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Wednesday"
-                                                    data-time="4:00-4:50"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Thursday"
-                                                    data-time="4:00-4:50"></button></td>
-                                            <td><button type="button" class="availablebtn" data-day="Friday"
-                                                    data-time="4:00-4:50"></button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div id="scheduleModal" class="modal">
-                                <div class="modal-content">
-                                    <span class="close">&times;</span>
-                                    <form id="scheduleForm">
-                                        <h3>Schedule Details</h3>
-                                        <div class="form-group">
-                                            <label for="modalSchoolYear">School Year:</label>
-                                            <select id="modalSchoolYear" name="modalSchoolYear">
-                                                <!-- Options will be dynamically populated -->
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="showTitle">Title of Show</label>
-                                            <input type="text" id="showTitle" name="showDetails.title" required />
-                                        </div>
-
-                                        <!-- Checkboxes -->
-                                        <div class="form-group checkbox-group">
-                                            <label>Type of Show</label>
-                                            <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="News">
-                                                    News</label>
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Interview"> Interview</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Comedy">
-                                                    Comedy</label>
-                                            </div>
-                                            <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Sports">
-                                                    Sports</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Music">
-                                                    Music</label>
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Entertainment"> Entertainment</label>
-                                            </div>
-                                            <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Discussion or Podcast"> Discussion or Podcast</label>
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Performance"> Performance</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Drama">
-                                                    Drama</label>
-                                            </div>
-                                            <div class="checkbox-row">
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Commentary"> Commentary</label>
-                                                <label><input type="checkbox" name="showDetails.type[]" value="Game">
-                                                    Game</label>
-                                                <label><input type="checkbox" name="showDetails.type[]"
-                                                        value="Public or Current Affairs"> Public or Current
-                                                    Affairs</label>
-                                            </div>
-                                            <div class="checkbox-row">
-                                                <input type="checkbox" name="showDetails.type[]" id="other"
-                                                    value="Other">
-                                                <input type="text" id="other-input" placeholder="Other"
-                                                    disabled="true" />
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="showDescription">Brief Description of Show</label><br>
-                                            <textarea id="showDescription" name="showDetails.description" rows="4"
-                                                cols="130" placeholder="Enter your answer" required></textarea>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="showObjectives">Objective of Show</label>
-                                            <textarea id="showObjectives" name="showDetails.objectives" rows="4"
-                                                cols="50" placeholder="Enter your answer" required></textarea>
-                                        </div>
-                                        <label>Name of Executive Producer</label>
-                                        <div class="name-section">
-                                            <input type="text" id="execProducerLastName"
-                                                name="executiveProducer.lastName" placeholder="Last Name" required>
-                                            <input type="text" id="execProducerFirstName"
-                                                name="executiveProducer.firstName" placeholder="First Name" required>
-                                            <input type="text" id="execProducerMI" name="executiveProducer.mi"
-                                                class="middleinitial" placeholder="M.I.">
-                                            <input type="text" id="execProducerSuffix" name="executiveProducer.suffix"
-                                                class="middleinitial" placeholder="Suffix">
-                                            <input type="text" id="execProducerCYS" name="executiveProducer.cys"
-                                                placeholder="CYS">
-                                        </div>
-                                        <label>Name of Host/s</label>
-                                        <p class="formnote">The hosting arrangement permits a weekly rotation of hosts,
-                                            limited to two (2) sets only.
-                                            This means that there is a maximum cap of four (4) individuals who can
-                                            collectively host a single program.</p>
-
-                                        <!-- Container for hosts, necessary for dynamic addition -->
-                                        <div id="hosts-container">
-                                            <div class="name-section host-input-group">
-                                                <input type="text" name="hosts[0][lastName]" placeholder="Last Name"
-                                                    required>
-                                                <input type="text" name="hosts[0][firstName]" placeholder="First Name"
-                                                    required>
-                                                <input type="text" name="hosts[0][mi]" class="middleinitial"
-                                                    placeholder="M.I.">
-                                                <input type="text" name="hosts[0][suffix]" class="middleinitial"
-                                                    placeholder="Suffix">
-                                                <input type="text" name="hosts[0][cys]" placeholder="CYS">
-                                                <button type="button" class="remove-host-button" style="display: none; margin-left: 5px;">Remove</button>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="addHost" class="addbutton" disabled>+ Add Host</button><br><br>
-
-                                        <label>Name of Technical Staff/s</label>
-                                        <p class="formnote">Each airing of an episode is to be organized by a maximum of
-                                            two (2)
-                                            technical staff while coordinating with the 95.9 Green FM Directors for
-                                            Operations and Logistics.</p>
-
-                                        <!-- Container for technical staff, necessary for dynamic addition -->
-                                        <div id="technical-container">
-                                            <div class="name-section technical-input-group">
-                                                <input type="text" name="technicalStaff[0][lastName]"
-                                                    placeholder="Last Name" required>
-                                                <input type="text" name="technicalStaff[0][firstName]"
-                                                    placeholder="First Name" required>
-                                                <input type="text" name="technicalStaff[0][mi]" class="middleinitial"
-                                                    placeholder="M.I.">
-                                                <input type="text" name="technicalStaff[0][suffix]" class="middleinitial"
-                                                    placeholder="Suffix">
-                                                <input type="text" name="technicalStaff[0][cys]" placeholder="CYS">
-                                                <button type="button" class="remove-technical-button" style="display: none; margin-left: 5px;">Remove</button>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="addTechnical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
-
-                                        <label>Name of Creative Staff</label>
-                                        <p class="formnote">The publicity materials for the promotion of the
-                                            blocktimers' show is to be crafted by one (1)
-                                            creatives staff while coordinating with the 95.9 Green FM Senior Director
-                                            for Creatives and Promotions.</p>
-                                        <div class="name-section">
-                                            <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName"
-                                                placeholder="Last Name" required>
-                                            <input type="text" id="creativeStaffFirstName"
-                                                name="creativeStaff.firstName" placeholder="First Name" required>
-                                            <input type="text" id="creativeStaffMI" name="creativeStaff.mi"
-                                                class="middleinitial" placeholder="M.I.">
-                                            <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix"
-                                                class="middleinitial" placeholder="Suffix">
-                                            <input type="text" id="creativeStaffCYS" name="creativeStaff.cys"
-                                                placeholder="CYS">
-                                        </div>
-
-                                        <button id="saveButton" type="button">Save</button>
-                                        <button id="deleteButton" type="button" style="display: none;">Delete</button>
-                                    </form>
-                                </div>
-                            </div>
+                    <!-- Schedule Container -->
+                    <!-- This already has max-width and mx-auto -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6 max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                        <div class="mb-4"> <!-- Added margin-bottom -->
+                            <label for="schoolYear" class="font-semibold block mb-1 text-gray-700 text-sm">School Year:</label>
+                            <select id="schoolYear" name="schoolYear" class="w-full p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500">
+                                <option value="" disabled selected>Loading School Years...</option>
+                                <!-- Options will be dynamically populated -->
+                            </select>
                         </div>
+                        <div class="overflow-x-auto"> <!-- Added for responsiveness on small screens -->
+                            <table class="schedule-table w-full border-collapse text-center"> <!-- Added class -->
+                                <thead>
+                                    <tr class="bg-gray-100"> <!-- Added background -->
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Time</th> <!-- Adjusted styles -->
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Monday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Tuesday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Wednesday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Thursday</th>
+                                        <th class="p-3 border border-gray-300 font-semibold text-green-700 text-sm uppercase tracking-wider">Friday</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200"> <!-- Added divider -->
+                                    <!-- Schedule rows -->
+                                    <% const times = ["9:10-9:55", "10:00-10:55", "11:00-11:55", "12:01-12:55", "1:00-1:55", "2:00-2:55", "3:00-3:55", "4:00-4:50"]; %>
+                                    <% const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; %>
+                                    <% times.forEach(time => { %>
+                                    <tr>
+                                        <td class="p-2 border border-gray-300 text-sm text-gray-700 font-semibold bg-gray-50"><%= time %></td> <!-- Adjusted padding -->
+                                        <% if (time === '12:01-12:55') { %>
+                                            <td colspan="4" class="p-2 border border-gray-300 text-sm text-gray-700">
+                                                <button class="w-full p-2 border-none bg-green-700 text-white font-semibold rounded-lg cursor-default text-xs whitespace-normal overflow-hidden text-ellipsis leading-tight min-h-[40px] break-words">FM MIX</button> <!-- Adjusted padding/radius -->
+                                            </td>
+                                            <td class="p-1 border border-gray-300 text-sm text-gray-700"> <!-- Adjusted padding -->
+                                                <button type="button" class="schedule-slot-btn w-full p-1 border border-green-700 rounded-lg bg-white cursor-pointer transition duration-200 hover:bg-green-700 hover:text-white hover:scale-103 text-xs whitespace-normal overflow-hidden text-ellipsis leading-tight min-h-[40px] break-words" data-day="Friday" data-time="<%= time %>"></button>
+                                            </td>
+                                        <% } else { %>
+                                            <% days.forEach(day => { %>
+                                                <td class="p-1 border border-gray-300 text-sm text-gray-700"> <!-- Adjusted padding -->
+                                                    <button type="button" class="schedule-slot-btn w-full p-1 border border-green-700 rounded-lg bg-white cursor-pointer transition duration-200 hover:bg-green-700 hover:text-white hover:scale-103 text-xs whitespace-normal overflow-hidden text-ellipsis leading-tight min-h-[40px] break-words" data-day="<%= day %>" data-time="<%= time %>"></button>
+                                                </td>
+                                            <% }); %>
+                                        <% } %>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                        <!-- Submissions Tab -->
-                        <div id="submissions-tab" class="tab-pane">
-                            <div id="submissions-container">
-                                <!-- Add School Year Dropdown -->
-                                <label for="submissionSchoolYear">School Year:</label>
-                                <select id="submissionSchoolYear" name="submissionSchoolYear">
+                    <!-- Modal -->
+                    <div id="scheduleModal" class="fixed hidden z-[9999] inset-0 w-full h-full overflow-auto bg-black/40">
+                        <div class="modal-content bg-white my-8 mx-auto p-6 rounded-lg w-11/12 md:w-4/5 lg:w-3/4 xl:max-w-5xl shadow-lg relative animate-fadeIn"> <!-- Adjusted padding/margins/width -->
+                            <span class="close absolute top-3 right-4 text-3xl font-bold text-gray-500 cursor-pointer hover:text-red-600">&times;</span> <!-- Adjusted position/color -->
+                            <form id="scheduleForm">
+                                <h3 class="mt-0 text-green-700 font-semibold mb-5 text-lg border-b pb-2">Schedule Details</h3> <!-- Adjusted margin/border -->
+                                <input type="hidden" id="scheduleId" name="scheduleId"> <!-- Hidden input for schedule ID -->
+                                <input type="hidden" id="selectedDay" name="selectedDay">
+                                <input type="hidden" id="selectedTime" name="selectedTime">
+
+                                <div class="mb-4"> <!-- Adjusted margin -->
+                                    <label for="modalSchoolYear" class="block font-medium text-gray-700 mb-1 text-sm">School Year:</label> <!-- Adjusted text size/margin -->
+                                    <select id="modalSchoolYear" name="modalSchoolYear" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"> <!-- Added disabled styles -->
+                                        <!-- Options will be dynamically populated -->
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="showTitle" class="block font-medium text-gray-700 mb-1 text-sm">Title of Show</label>
+                                    <input type="text" id="showTitle" name="showDetails.title" required class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500"/>
+                                </div>
+
+                                <!-- Checkboxes -->
+                                <div class="mb-4 mt-4"> <!-- Adjusted margins -->
+                                    <label class="font-medium text-gray-700 mb-2 block text-sm">Type of Show</label> <!-- Adjusted margin/size -->
+                                    <% const showTypes = ["News", "Interview", "Comedy", "Sports", "Music", "Entertainment", "Discussion or Podcast", "Performance", "Drama", "Commentary", "Game", "Public or Current Affairs"]; %>
+                                    <% for (let i = 0; i < showTypes.length; i += 3) { %>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mb-2"> <!-- Responsive grid, adjusted gaps/margin -->
+                                        <% for (let j = i; j < i + 3 && j < showTypes.length; j++) { %>
+                                        <label class="flex items-center font-normal text-gray-700 gap-1.5 whitespace-nowrap text-sm"> <!-- Adjusted text size -->
+                                            <input type="checkbox" name="showDetails.type[]" value="<%= showTypes[j] %>" class="form-checkbox h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"> <%= showTypes[j] %> <!-- Styled checkbox -->
+                                        </label>
+                                        <% } %>
+                                    </div>
+                                    <% } %>
+                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mb-2 items-center"> <!-- Added items-center -->
+                                        <label class="flex items-center font-normal text-gray-700 gap-1.5 whitespace-nowrap text-sm">
+                                            <input type="checkbox" name="showDetails.type[]" id="other" value="Other" class="form-checkbox h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"> Other
+                                        </label>
+                                         <input type="text" id="other-input" placeholder="Specify Other" disabled="true" class="w-full p-1.5 rounded-lg border border-gray-300 text-sm md:col-span-2 bg-gray-100 focus:ring-green-500 focus:border-green-500 disabled:cursor-not-allowed" /> <!-- Adjusted span/styles -->
+                                     </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="showDescription" class="block font-medium text-gray-700 mb-1 text-sm">Brief Description of Show</label><br>
+                                    <textarea id="showDescription" name="showDetails.description" rows="3" placeholder="Enter your answer" required class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border resize-y focus:ring-green-500 focus:border-green-500"></textarea> <!-- Adjusted rows -->
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="showObjectives" class="block font-medium text-gray-700 mb-1 text-sm">Objective of Show</label>
+                                    <textarea id="showObjectives" name="showDetails.objectives" rows="3" placeholder="Enter your answer" required class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border resize-y focus:ring-green-500 focus:border-green-500"></textarea> <!-- Adjusted rows -->
+                                </div>
+
+                                <fieldset class="border border-gray-300 p-4 rounded-lg mb-4"> <!-- Grouped with fieldset -->
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Executive Producer</legend>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2"> <!-- Grid layout -->
+                                        <input type="text" id="execProducerLastName" name="executiveProducer.lastName" placeholder="Last Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="execProducerFirstName" name="executiveProducer.firstName" placeholder="First Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="execProducerMI" name="executiveProducer.mi" placeholder="M.I." class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="execProducerSuffix" name="executiveProducer.suffix" placeholder="Suffix" class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="execProducerCYS" name="executiveProducer.cys" placeholder="CYS" class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Host/s</legend>
+                                    <p class="text-xs text-gray-600 mt-1 mb-3">Weekly rotation allowed (max 2 sets). Max four (4) hosts total.</p> <!-- Adjusted margins -->
+                                    <div id="hosts-container" class="space-y-3 mb-3">
+                                        <!-- Host fields added by JS -->
+                                    </div>
+                                    <button type="button" id="addHostButton" class="bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Host</button> <!-- Corrected ID, adjusted styles -->
+                                </fieldset>
+
+                                <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Technical Staff/s</legend>
+                                    <p class="text-xs text-gray-600 mt-1 mb-3">Max two (2) technical staff per episode.</p>
+                                    <div id="technical-container" class="space-y-3 mb-3">
+                                       <!-- Technical staff fields added by JS -->
+                                    </div>
+                                    <button type="button" id="addTechnicalButton" class="bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Technical Staff</button> <!-- Corrected ID, adjusted styles -->
+                                </fieldset>
+
+                                <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Creative Staff</legend>
+                                    <p class="text-xs text-gray-600 mt-1 mb-3">One (1) creative staff for publicity materials.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
+                                        <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName" placeholder="Last Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="creativeStaffFirstName" name="creativeStaff.firstName" placeholder="First Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="creativeStaffMI" name="creativeStaff.mi" placeholder="M.I." class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix" placeholder="Suffix" class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <input type="text" id="creativeStaffCYS" name="creativeStaff.cys" placeholder="CYS" class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                </fieldset>
+
+                                <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4"> <!-- Container for buttons -->
+                                    <button id="deleteButton" type="button" class="py-2 px-4 border border-red-300 rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-red-600 text-white hover:bg-red-700 hidden">Delete</button> <!-- Adjusted styles -->
+                                    <button id="saveButton" type="button" class="py-2 px-4 border border-transparent rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-green-600 text-white hover:bg-green-700">Save Schedule</button> <!-- Adjusted styles -->
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submissions Tab -->
+                 <!-- Removed ml/mr from here, centering handled by inner content -->
+                <div id="submissions-tab" class="tab-pane hidden mt-4 mb-6">
+                    <!-- This already has max-width and mx-auto -->
+                    <div id="submissions-container" class="bg-white p-6 rounded-lg shadow-md max-w-6xl 2xl:max-w-screen-xl mx-auto">
+                        <div class="flex flex-wrap gap-4 items-center mb-6 border-b pb-4"> <!-- Adjusted gap/margin/border -->
+                            <div>
+                                <label for="submissionSchoolYear" class="font-semibold block mb-1 text-gray-700 text-sm">School Year:</label> <!-- Adjusted size -->
+                                <select id="submissionSchoolYear" name="submissionSchoolYear" class="p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500 min-w-[150px]"> <!-- Added min-width -->
+                                    <option value="" disabled selected>Loading...</option>
                                     <!-- Options will be dynamically populated -->
                                 </select>
-                                <select id="resultFilter">
+                            </div>
+                            <div>
+                                <label for="resultFilter" class="font-semibold block mb-1 text-gray-700 text-sm">Status:</label>
+                                <select id="resultFilter" class="p-2.5 border rounded-lg border-gray-300 text-sm focus:ring-green-500 focus:border-green-500 min-w-[150px]"> <!-- Added min-width -->
                                     <option value="">All</option>
                                     <option value="Pending">Pending</option>
                                     <option value="Accepted">Accepted</option>
                                     <option value="Rejected">Rejected</option>
                                 </select>
-                                <table class="submissions-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Show Title</th>
-                                            <th>Organization</th>
-                                            <th>Preferred Schedule</th>
-                                            <th>Result</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="submissions-table-body">
-                                        <!-- Submissions will be dynamically loaded here -->
-                                    </tbody>
-                                </table>
+                            </div>
+                        </div>
 
-                                <form id="submission-form">
-                                    <h3>Submission Details</h3>
+                        <div class="overflow-x-auto"> <!-- Added for responsiveness -->
+                            <table class="submissions-table w-full border-collapse text-left mb-6"> <!-- Added class, adjusted margin/text-align -->
+                                <thead>
+                                    <tr class="bg-gray-100"> <!-- Added background -->
+                                        <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Show Title</th> <!-- Adjusted styles -->
+                                        <th class="hidden lg:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Organization</th> <!-- Hidden until lg -->
+                                        <th class="hidden md:table-cell p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider">Preferred Schedule</th> <!-- Show on md and up -->
+                                        <!-- Removed Submitted Header -->
+                                        <th class="p-3 border-b border-gray-300 font-semibold text-sm text-gray-600 uppercase tracking-wider text-center">Action</th> <!-- Centered -->
+                                    </tr>
+                                </thead>
+                                <tbody id="submissions-table-body" class="divide-y divide-gray-200"> <!-- Added divider -->
+                                    <!-- Submissions will be dynamically loaded here -->
+                                    <!-- Adjust colspan for loading/empty message -->
+                                    <tr><td colspan="3" class="md:colspan-4 lg:colspan-4 p-4 text-center text-gray-500">Loading submissions...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div id="pagination-controls" class="flex justify-between items-center mt-4 mb-6 border-t pt-4">
+                            <button id="prev-page-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l disabled:opacity-50 disabled:cursor-not-allowed">
+                                Previous
+                            </button>
+                            <span id="page-info" class="text-sm text-gray-700">Page 1 of 1</span>
+                            <button id="next-page-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next
+                            </button>
+                        </div>
+                        <!-- End Pagination Controls -->
+
+                        <form id="submission-form" class="hidden bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200"> <!-- Initially hidden, adjusted styling -->
+                            <h3 class="text-green-700 text-lg font-semibold mt-0 mb-6 border-b pb-2">Submission Details</h3> <!-- Adjusted margin/border -->
+                            <input type="hidden" id="submissionId" name="submissionId">
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4"> <!-- Adjusted gaps -->
+                                <div>
+                                    <label for="submissionOrgName" class="block font-semibold mb-1 text-sm text-gray-600">Organization Name:</label>
+                                    <input type="text" id="submissionOrgName" name="submissionOrgName" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label for="submissionOrgType" class="block font-semibold mb-1 text-sm text-gray-600">Organization Type:</label>
+                                    <input type="text" id="submissionOrgType" name="submissionOrgType" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                                </div>
+                            </div>
+
+                            <!-- Personnel Groups (Read-only Display) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"> <!-- Adjusted gaps/margin -->
+                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Proponent</legend>
+                                    <input type="text" id="submissionProponentName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
+                                    <input type="text" id="submissionProponentCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
+                                </fieldset>
+                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Executive Producer</legend>
+                                    <input type="text" id="submissionExecProducerName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
+                                    <input type="text" id="submissionExecProducerCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
+                                </fieldset>
+                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Creative Staff</legend>
+                                    <input type="text" id="submissionCreativeStaffName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
+                                    <input type="text" id="submissionCreativeStaffCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
+                                </fieldset>
+                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Faculty/Staff Adviser</legend>
+                                    <input type="text" id="submissionFacultyStaffName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
+                                    <input type="text" id="submissionFacultyStaffDept" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Department">
+                                </fieldset>
+                            </div>
+
+                             <div class="mb-4">
+                                <label for="submissionShowTitle" class="block font-semibold mb-1 text-sm text-gray-600">Show Title:</label>
+                                <input type="text" id="submissionShowTitle" name="submissionShowTitle" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
+                            </div>
+                             <div class="mb-4">
+                                <label class="block font-semibold mb-1 text-sm text-gray-600">Show Type(s):</label>
+                                <p id="submissionShowType" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 min-h-[40px]"></p> <!-- Use a <p> or <div> for display -->
+                            </div>
+                             <div class="mb-4">
+                                <label for="submissionShowDescription" class="block font-semibold mb-1 text-sm text-gray-600">Show Description:</label>
+                                <textarea id="submissionShowDescription" name="submissionShowDescription" readonly rows="3" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed"></textarea>
+                            </div>
+                             <div class="mb-4">
+                                <label for="submissionShowObjectives" class="block font-semibold mb-1 text-sm text-gray-600">Show Objectives:</label>
+                                <textarea id="submissionShowObjectives" name="submissionShowObjectives" readonly rows="3" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed"></textarea>
+                            </div>
+
+                             <!-- Contact Info Section -->
+                             <fieldset class="border border-gray-300 p-4 rounded-lg mb-6 bg-white"> <!-- Adjusted margin -->
+                                <legend class="font-semibold px-2 text-sm text-gray-600">Contact Information</legend>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="submissionOrganizationName">Organization Name:</label>
-                                        <input type="text" id="submissionOrganizationName" name="submissionOrganizationName" readonly>
+                                        <label for="submissionDlsudEmail" class="block font-semibold mb-1 text-sm text-gray-600">DLSU-D Email:</label>
+                                        <input type="email" id="submissionDlsudEmail" name="submissionDlsudEmail" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
                                     </div>
-
                                     <div>
-                                        <label for="submissionOrganizationType">Organization Type:</label>
-                                        <input type="text" id="submissionOrganizationType" name="submissionOrganizationType" readonly>
+                                        <label for="submissionContactEmail" class="block font-semibold mb-1 text-sm text-gray-600">Contact Email:</label>
+                                        <input type="email" id="submissionContactEmail" name="submissionContactEmail" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
                                     </div>
-
                                     <div>
-                                        <label for="submissionProponentName">Proponent Name:</label>
-                                        <input type="text" id="submissionProponentName" name="submissionProponentName" readonly>
-
-                                        <label for="submissionProponentCYS">Proponent CYS:</label>
-                                        <input type="text" id="submissionProponentCYS" name="submissionProponentCYS" readonly>
+                                        <label for="submissionContactFbLink" class="block font-semibold mb-1 text-sm text-gray-600">Contact FB Link:</label>
+                                        <input type="url" id="submissionContactFbLink" name="submissionContactFbLink" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
                                     </div>
-
                                     <div>
-                                        <label for="submissionCoProponentName">Co-Proponent Name:</label>
-                                        <input type="text" id="submissionCoProponentName" name="submissionCoProponentName" readonly>
-
-                                        <label for="submissionCoProponentCYS">Co-Proponent CYS:</label>
-                                        <input type="text" id="submissionCoProponentCYS" name="submissionCoProponentCYS" readonly>
+                                        <label for="submissionCrossposting" class="block font-semibold mb-1 text-sm text-gray-600">Allow Crossposting:</label>
+                                        <input type="text" id="submissionCrossposting" name="submissionCrossposting" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
                                     </div>
-
-                                    <div>
-                                        <label for="submissionShowTitle">Show Title:</label>
-                                        <input type="text" id="submissionShowTitle" name="submissionShowTitle" readonly>
+                                    <div class="md:col-span-2" id="submissionFbLinkContainer" style="display: none;"> <!-- Hide by default -->
+                                        <label for="submissionFbLink" class="block font-semibold mb-1 text-sm text-gray-600">Organization FB Link:</label>
+                                        <input type="url" id="submissionFbLink" name="submissionFbLink" readonly class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 cursor-not-allowed">
                                     </div>
+                                </div>
+                            </fieldset>
 
-                                    <div>
-                                        <label for="submissionShowType">Show Type:</label>
-                                        <input type="text" id="submissionShowType" name="submissionShowType" readonly>
-                                    </div>
+                             <!-- Host/Tech Display Containers -->
+                             <div id="submissionHostContainer" class="mb-4 border border-gray-300 p-4 rounded-lg bg-white">
+                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Hosts:</label>
+                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
+                             </div>
+                             <div id="submissionTechnicalStaffContainer" class="mb-6 border border-gray-300 p-4 rounded-lg bg-white"> <!-- Adjusted margin -->
+                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Technical Staff:</label>
+                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
+                             </div>
 
-                                    <div>
-                                        <!-- CHANGE ID -->
-                                        <label for="submissionShowDescription">Show Description:</label>
-                                        <textarea id="submissionShowDescription" name="submissionShowDescription" readonly
-                                            rows="4"></textarea>
-                                    </div>
+                             <div class="mb-6"> <!-- Adjusted margin -->
+                                <label for="submissionProponentSignature" class="block font-semibold mb-1 text-sm text-gray-600">Proponent Signature:</label>
+                                <img id="submissionProponentSignature" name="submissionProponentSignature" src="" alt="Proponent Signature" class="mt-1 border border-gray-300 p-1 rounded-lg bg-white max-w-[150px] h-auto hidden">
+                            </div>
 
-                                    <div>
-                                        <label for="submissionShowObjectives">Show Objectives:</label>
-                                        <textarea id="submissionShowObjectives" name="submissionShowObjectives" readonly
-                                            rows="4"></textarea>
-                                    </div>
-
-                                    <div>
-                                        <label for="executiveProducer">Executive Producer Name:</label>
-                                        <input type="text" id="executiveProducer" name="executiveProducer" readonly>
-
-                                        <label for="executiveProducerCYS">Executive Producer CYS:</label>
-                                        <input type="text" id="executiveProducerCYS" name="executiveProducerCYS"
-                                            readonly>
-                                    </div>
-
-                                    <div>
-                                        <label for="CreativeStaff">Faculty Staff Name:</label>
-                                        <input type="text" id="facultyStaff" name="facultyStaff" readonly>
-
-                                        <label for="facultyStaffDepartment">Faculty Staff Department:</label>
-                                        <input type="text" id="facultyStaffDepartment" name="facultyStaffDepartment"
-                                            readonly>
-                                    </div>
-
-                                    <div id="submissionHostContainer">
-                                        <!-- Host fields will be dynamically added here -->
-                                    </div>
-
-                                    <div id="submissionTechnicalStaffContainer">
-                                        <!-- Host fields will be dynamically added here -->
-                                    </div>
-
-                                    <div>
-                                        <!-- CHANGE ID -->
-                                        <label for="submissionCreativeStaff">Creative Staff Name:</label>
-                                        <input type="text" id="submissionCreativeStaff" name="submissionCreativeStaff" readonly>
-
-                                        <!-- CHANGE ID -->
-                                        <label for="submissionCreativeStaffCYS">Creative Staff CYS:</label>
-                                        <input type="text" id="submissionCreativeStaffCYS" name="submissionCreativeStaffCYS" readonly>
-                                    </div>
-
-                                    <div>
-                                        <label for="submissionDlsudEmail">DLSUD Email:</label>
-                                        <input type="text" id="submissionDlsudEmail" name="submissionDlsudEmail" readonly>
-                                    </div>
-
-                                    <div>
-                                        <label for="submissionContactEmail">Contact Email:</label>
-                                        <input type="text" id="submissionContactEmail" name="submissionContactEmail" readonly>
-                                    </div>
-
-                                    <div>
-                                        <label for="submissionContactFbLink">Contact FB Link:</label>
-                                        <input type="text" id="submissionContactFbLink" name="submissionContactFbLink" readonly>
-                                    </div>
-
-                                    <div id="submissionFbLinkContainer">
-                                        <label for="submissionFbLink">Crossposting FB Link:</label>
-                                        <input type="text" id="submissionFbLink" name="submissionFbLink" readonly>
-                                    </div>
-
-                                    <div>
-                                        <label for="submissionProponentSignature">Proponent Signature:</label>
-                                        <img id="submissionProponentSignature" name="submissionProponentSignature" src=""
-                                            alt="Proponent Signature"
-                                            style="max-width: 15%; height: auto;  display: none;">
-                                    </div>
-
-                                    <label for="preferredDay">Preferred Day:</label>
-                                    <select id="preferredDay" name="preferredDay" disabled>
-                                        <option value="" disabled selected>Select a day</option>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4"> <!-- Adjusted gaps -->
+                                <div>
+                                    <label for="submissionPreferredDay" class="block font-semibold mb-1 text-sm text-gray-600">Preferred Day:</label>
+                                    <select id="submissionPreferredDay" name="submissionPreferredDay" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed" disabled>
+                                        <option value="" disabled selected>Select Day</option>
                                         <option value="Monday">Monday</option>
                                         <option value="Tuesday">Tuesday</option>
                                         <option value="Wednesday">Wednesday</option>
                                         <option value="Thursday">Thursday</option>
                                         <option value="Friday">Friday</option>
                                     </select>
-
-                                    <label for="preferredTime">Preferred Time:</label>
-                                    <select id="preferredTime" name="preferredTime" disabled>
-                                        <option value="" disabled selected>Select a time</option>
+                                </div>
+                                <div>
+                                    <label for="submissionPreferredTime" class="block font-semibold mb-1 text-sm text-gray-600">Preferred Time:</label>
+                                    <!-- Changed input to select -->
+                                    <select id="submissionPreferredTime" name="submissionPreferredTime" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed" disabled>
+                                        <option value="" disabled selected>Select Day First</option>
+                                        <!-- Time options populated by JS -->
                                     </select>
-
-                                    <div class="form-group">
-                                        <label for="result">Result</label>
-                                        <select id="result" name="result" disabled>
-                                            <option value="Pending" disabled selected>Pending</option>
-                                            <!-- Default unselectable value -->
-                                            <option value="Accepted">Accepted</option>
-                                            <option value="Rejected">Rejected</option>
-                                        </select>
-                                        <div class="result-error"></div>
-                                    </div>
-
-                                    <button type="button" class="cancel-button" disabled>Cancel</button>
-                                    <button type="button" class="submit-button" disabled>Submit</button>
-                                </form>
                             </div>
-                        </div>
+
+                            <div class="mb-4"> <!-- Adjusted margin -->
+                                <label for="result" class="font-semibold block mb-1 text-gray-700 text-sm">Result</label>
+                                <select id="result" name="result" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed" disabled> <!-- Enable this -->
+                                    <option value="" disabled selected>Select Result...</option> <!-- Add placeholder -->
+                                    <option value="Pending">Pending</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                                <div class="result-error text-red-500 text-xs mt-1 h-4"></div> <!-- Added height -->
+                            </div>
+
+                            <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4"> <!-- Added container for buttons -->
+                                <button type="button" id="cancel-submission-button" class="py-2.5 px-4 border border-gray-300 rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-gray-500 text-white hover:bg-gray-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Cancel</button> <!-- Adjusted styles -->
+                                <button type="button" id="submit-submission-button" class="py-2.5 px-4 border border-transparent rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300 disabled:text-green-700 disabled:cursor-not-allowed">Submit Result</button> <!-- Changed text, adjusted styles -->
+                            </div>
+                        </form>
                     </div>
+                </div>
             </div>
+            <!-------------------- CONTENTS END -------------------->
+            <br>
         </div>
     </div>
-
-    <script src="js/1-admin/blocktimer.js"></script>
-
-    <%- include('../partials/spinner.ejs') %> <%# Include the spinner partial %>
-
-    </body>
-
-    </html>
+    <%- include('../partials/footer.ejs') %>
+</div>
+<script src="/js/1-admin/blocktimer.js"></script>
+<%- include('../partials/spinner.ejs') %>
+</body>
+</html>
