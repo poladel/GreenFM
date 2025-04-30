@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green FM | <%= pageTitle %></title>
-    <link rel="stylesheet" href="<%= cssFile %>">
+
+    <link href="/css/output.css" rel="stylesheet">
+
     <script src="/js/backButton.js" defer></script>
 
     <!-- Favicon for the tab logo -->
-    <link rel="icon" type="image/png" href="img/GFMLogo.png">
+    <link rel="icon" type="image/png" href="/img/GFMLogo.png"> <!-- Ensure path is correct -->
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<!-- Apply base body styles using Tailwind -->
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen"> <!-- bg-[#EFEFEF] equivalent, default sans font, flex layout for centering -->

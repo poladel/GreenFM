@@ -1,41 +1,51 @@
-document.querySelector('.forgot-password-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.forgot-password-form');
+    const emailError = document.querySelector('.email-error');
 
-    const email = document.querySelector('#email').value;
-    const errorDiv = document.querySelector('.email-error'); // Select the error div
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = form.email.value;
+            const submitButton = form.querySelector('button[type="submit"]');
 
-    // Clear any previous error messages
-    errorDiv.textContent = '';
+            // Clear previous errors
+            if (emailError) emailError.textContent = '';
+            if (submitButton) submitButton.disabled = true;
 
-    try {
-        const response = await fetch('/LogIn/ForgotPassword', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email })
+            try {
+                const res = await fetch('/LogIn/ForgotPassword', { 
+                    method: 'POST',
+                    body: JSON.stringify({ email }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    form.reset(); // Clear the form
+                    if (emailError) emailError.textContent = ''; // Ensure error div is cleared on success
+                } else {
+                    // Handle errors
+                    let errorMessage = data.message || (data.errors ? Object.values(data.errors).join(', ') : 'Failed to send reset email. Please try again.');
+
+                    // Check for specific "email not found" error from backend
+                    const emailNotFound = (data.message && data.message.toLowerCase().includes('email not found')) ||
+                                          (data.errors?.email && data.errors.email.toLowerCase().includes('email not found'));
+
+                    if (emailNotFound) {
+                        errorMessage = "Email not registered."; // Custom message for inline display
+                        if (emailError) emailError.textContent = errorMessage;
+                    } else {
+                        // Display the generic error from backend inline
+                        if (emailError) emailError.textContent = errorMessage;
+                    }
+                }
+
+            } catch (err) {
+                console.error('Forgot Password Error:', err);
+            } finally {
+                 if (submitButton) submitButton.disabled = false;
+            }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // Show success message
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: data.message, // "Password reset email sent successfully!"
-                showConfirmButton: false,
-                timer: 1500,
-            });
-        } else {
-            // Display the error message in the errorDiv
-            errorDiv.textContent = data.error || 'An error occurred.';
-            errorDiv.style.color = 'red'; // Optional: Style the error message
-        }
-    } catch (err) {
-        console.error('Error occurred:', err); // Debugging log
-        // Display a generic error message in the errorDiv
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.style.color = 'red'; // Optional: Style the error message
     }
 });

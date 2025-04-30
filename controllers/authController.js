@@ -306,7 +306,8 @@ module.exports.forgot_password_post = async (req, res) => {
         // Check if the user exists
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ error: 'Email not found' });
+            // Change status to 400 and use 'message' key to match frontend expectation
+            return res.status(400).json({ success: false, message: 'Email not found' });
         }
 
         // Generate a reset token
@@ -344,10 +345,11 @@ module.exports.forgot_password_post = async (req, res) => {
         // Send the email
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ message: 'Password reset email sent' });
+        res.status(200).json({ success: true, message: 'Password reset email sent' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'An error occurred while processing your request' });
+        // Send a generic error message with success: false
+        res.status(500).json({ success: false, message: 'An error occurred while processing your request' });
     }
 };
 

@@ -1,46 +1,58 @@
 <%- include('../partials/header-logreg.ejs') %>
 
-<div class="login-container">
-  <div class="login-box">
-    
-    <!-- Back to Previous Page Button inside the container -->
-    <span class="back-to-home" onclick="goBack()">
-      <img src="img/back.png" alt="Back to Previous Page" class="back-icon">
+<!-- Centering container -->
+<div class="flex-1 flex items-center justify-center mb-[2vh]"> <!-- Replaces .login-container -->
+  <!-- Login Box -->
+  <!-- Adjusted width: wider on small screens (w-11/12 or w-[90vw]), narrower on medium+ screens (md:w-[45vw]) -->
+  <div class="relative bg-white p-[4vh] pt-[2vh] w-[90vw] xl:w-[45vw] md:w-[50vw] min-h-[35vh] max-h-[80vh] h-auto rounded-[1.5vh] shadow-md text-center overflow-hidden">
+
+    <!-- Back Button -->
+    <span class="back-to-home block text-left mb-[0.5vh] relative top-0 left-0 cursor-pointer" onclick="goBack()"> <!-- Replaces .back-to-home -->
+      <img src="/img/back.png" alt="Back to Previous Page" class="mt-[2vh] w-[3vh] h-auto"> <!-- Replaces .back-icon -->
     </span>
 
-
+    <!-- Logo -->
     <a href="/">
-      <img src="img/GFMLogo.png" alt="Green FM Logo" class="logo">
+      <img src="/img/GFMLogo.png" alt="Green FM Logo" class="mx-auto w-[10vh] h-auto cursor-pointer mb-4"> <!-- Centered logo, replaces .logo -->
     </a>
-    
-    <h2 class="login-title">Green FM Login</h2>
 
-    <form class="login-form">
+    <!-- Title -->
+    <h2 class="text-[#00722A] font-bold text-[2.8vh] mb-[3vh]">Green FM Login</h2> <!-- Replaces .login-title -->
 
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-        <div class="username-error"></div>
+    <!-- Login Form -->
+    <form class="login-form flex flex-col gap-[2.5vh] text-left"> <!-- Replaces .login-form -->
+
+      <!-- Username Group -->
+      <div class="form-group"> <!-- Keep form-group for JS if needed -->
+        <label for="username" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Username</label>
+        <input type="text" id="username" name="username" required
+               class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none"> <!-- Input styles -->
+        <div class="username-error text-red-500 text-xs mt-1"></div> <!-- Error styling -->
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        <div class="password-error"></div>
+      <!-- Password Group -->
+      <div class="form-group"> <!-- Keep form-group for JS if needed -->
+        <label for="password" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Password</label>
+        <input type="password" id="password" name="password" required
+               class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none"> <!-- Input styles -->
+        <div class="password-error text-red-500 text-xs mt-1"></div> <!-- Error styling -->
       </div>
 
       <input type="hidden" name="redirect" value="<%= redirectUrl %>">
-      <button type="submit" class="login-button">Log in</button>
+
+      <!-- Login Button -->
+      <button type="submit" class="bg-[#00722A] text-white p-[1.5vh] text-[2vh] font-bold border-none rounded-[1vh] cursor-pointer transition duration-300 ease-in-out hover:bg-[#00591d]">Log in</button> <!-- Replaces .login-button -->
     </form>
 
-    <div class="footer-links">
-      <a href="/LogIn/ForgotPassword">Forgot password?</a>
-      <a href="/Register">Sign up for Green FM</a>
+    <!-- Footer Links -->
+    <div class="mt-[2vh] text-[2vh] flex flex-col md:flex-row md:justify-center md:gap-x-[3vh]"> <!-- Use flex, stack vertically by default, row on md and up -->
+      <a href="/LogIn/ForgotPassword" class="text-[#00722A] no-underline hover:underline mb-2 md:mb-0">Forgot password?</a> <!-- Add bottom margin for stacked layout -->
+      <a href="/Register" class="text-[#00722A] no-underline hover:underline">Sign up for Green FM</a>
     </div>
   </div>
 </div>
 
-<script src="js/3-logreg/login.js"></script>
+<!-- Keep existing JS link -->
+<script src="/js/3-logreg/login.js"></script>
 </body>
-
 </html>

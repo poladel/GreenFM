@@ -1,49 +1,77 @@
 <%- include('../partials/header-logreg.ejs') %>
 
-<div class="register-container">
-  <div class="register-box">
-    <span class="back-to-home" onclick="goBack()">
-      <img src="img/back.png" alt="Back to Home" class="back-icon">
+<!-- Centering container -->
+<div class="flex-1 flex items-center justify-center mb-[2vh]"> <!-- Replaces .register-container -->
+  <!-- Register Box -->
+  <!-- Adjusted width: wider on small screens (w-11/12 or w-[90vw]), narrower on medium+ screens (md:w-[45vw]) -->
+  <div class="relative bg-white p-[4vh] pt-[2vh] w-[90vw] xl:w-[45vw] md:w-[50vw] min-h-[35vh] max-h-[80vh] h-auto rounded-[1.5vh] shadow-md text-center">
+
+    <!-- Back Button -->
+    <span class="back-to-home block text-left mb-[0.5vh] relative top-0 left-0 cursor-pointer" onclick="goBack()"> <!-- Replaces .back-to-home -->
+      <img src="/img/back.png" alt="Back to Previous Page" class="mt-[2vh] w-[3vh] h-auto"> <!-- Replaces .back-icon -->
     </span>
-    <a href="/Home"><img src="img/GFMLogo.png" alt="Green FM Logo" class="logo"></a>
-    <h2 class="register-title">Create an Account</h2>
+
+    <!-- Logo -->
+    <a href="/Home"><img src="/img/GFMLogo.png" alt="Green FM Logo" class="mx-auto w-[10vh] h-auto cursor-pointer mb-4"></a>
+
+    <!-- Title -->
+    <h2 class="text-[#00722A] font-bold text-[2.8vh] mb-[3vh]">Create an Account</h2> <!-- Replaces .register-title -->
 
     <!-- Registration Form -->
-    <form id="registerForm" class="register-form">
+    <form id="registerForm" class="register-form relative flex flex-col gap-[2.5vh] text-left"> <!-- Replaces .register-form -->
+
+      <!-- Email Group -->
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" autocomplete="on" required>
-        <div class="email-error"></div>
+        <label for="email" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Email</label>
+        <input type="email" id="email" name="email" autocomplete="on" required
+               class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+        <div class="email-error text-red-500 text-xs mt-1"></div>
       </div>
 
+      <!-- Username Group -->
       <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" autocomplete="off" required>
-        <div class="username-error"></div>
+        <label for="username" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Username</label>
+        <input type="text" id="username" name="username" autocomplete="off" required
+               class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+        <div class="username-error text-red-500 text-xs mt-1"></div>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        <div class="password-validation" id="passwordValidation">
-          <ul>
-            <li id="password-length" class="password-requirement">Must be at least 8 characters long.</li>
-            <li id="password-uppercase" class="password-requirement">Must contain at least one uppercase letter.</li>
-            <li id="password-lowercase" class="password-requirement">Must contain at least one lowercase letter.</li>
-            <li id="password-number" class="password-requirement">Must contain at least one number.</li>
-            <li id="password-special" class="password-requirement">Must contain at least one special character.</li>
+      <!-- Password Group -->
+      <div class="form-group relative"> <!-- Added relative for absolute positioning of validation box -->
+        <label for="password" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Password</label>
+        <input type="password" id="password" name="password" required
+               class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+
+        <!-- Password Validation Pop-up -->
+        <!-- Default: Position below input (< 2xl). 2xl+: Position to the right -->
+        <!-- Changed bottom-full mb-2 to top-full mt-2 -->
+        <div class="password-validation hidden absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-[90%] max-w-sm z-10
+                    2xl:top-1/2 2xl:left-full 2xl:bottom-auto 2xl:-translate-y-1/2 2xl:translate-x-0 2xl:ml-2 2xl:mt-0 2xl:w-[18vw] 2xl:max-w-none
+                    bg-white border border-gray-300 rounded-[1vh] shadow-md p-[1.5vh]"
+             id="passwordValidation">
+          <ul class="list-none p-0 m-0 ml-[0.8vh] text-[1.8vh]">
+            <li id="password-length" class="text-gray-800">Must be at least 8 characters long.</li>
+            <li id="password-uppercase" class="text-gray-800">Must contain at least one uppercase letter.</li>
+            <li id="password-lowercase" class="text-gray-800">Must contain at least one lowercase letter.</li>
+            <li id="password-number" class="text-gray-800">Must contain at least one number.</li>
+            <li id="password-special" class="text-gray-800">Must contain at least one special character.</li>
           </ul>
+          <!-- JS will add 'text-green-500' or 'text-red-500' to these li elements -->
         </div>
-        <div class="password-error"></div>
+        <div class="password-error text-red-500 text-xs mt-1"></div>
       </div>
-      <button type="submit" class="register-button">Register</button>
+
+      <!-- Register Button -->
+      <button type="submit" class="bg-[#00722A] text-white p-[1.5vh] text-[2vh] font-bold border-none rounded-[1vh] cursor-pointer transition duration-300 ease-in-out hover:bg-[#00591d]">Register</button>
     </form>
 
-    <div class="footer-links">
-      <a id="login-link" onclick="goBack()">Already have an account? Log in</a>
+    <!-- Footer Links -->
+    <div class="mt-[2vh] text-[2vh]">
+      <a id="login-link" onclick="goBack()" class="text-[#00722A] no-underline mx-[1.5vh] hover:underline cursor-pointer">Already have an account? Log in</a>
     </div>
   </div>
 </div>
-<script src="js/3-logreg/register.js"></script>
+<!-- Keep existing JS link -->
+<script src="/js/3-logreg/register.js"></script>
 </body>
 </html>

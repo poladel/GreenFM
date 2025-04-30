@@ -1,55 +1,96 @@
 <%- include('../partials/header-logreg.ejs') %>
 
-<div class="register-container">
-  <div class="register-box">
-    <a href="/Home" class="back-to-home">
-      <img src="/img/GFMLogo.png" alt="Green FM Logo" class="logo">
+<!-- Centering container -->
+<div class="flex-1 flex items-center justify-center mb-[2vh]"> <!-- Replaces .login-container -->
+  <!-- Login Box -->
+  <!-- Adjusted width: wider on small screens (w-11/12 or w-[90vw]), narrower on medium+ screens (md:w-[45vw]) -->
+  <div class="relative bg-white p-[4vh] pt-[2vh] w-[90vw] xl:w-[45vw] md:w-[50vw] min-h-[35vh] h-auto rounded-[1.5vh] shadow-md text-center">
+
+    <!-- Back Button -->
+    <span class="back-to-home block text-left mb-[0.5vh] relative top-0 left-0 cursor-pointer" onclick="goBack()"> <!-- Replaces .back-to-home -->
+      <img src="/img/back.png" alt="Back to Previous Page" class="mt-[2vh] w-[3vh] h-auto"> <!-- Replaces .back-icon -->
+    </span>
+
+    <!-- Logo -->
+    <a href="/">
+      <img src="/img/GFMLogo.png" alt="Green FM Logo" class="mx-auto w-[10vh] h-auto cursor-pointer mb-4"> <!-- Centered logo, replaces .logo -->
     </a>
-    <h2 class="register-title">Create an Account</h2>
+
+    <!-- Title -->
+    <h2 class="text-[#00722A] font-bold text-[2.8vh] mb-[3vh]">Complete Your Profile</h2> <!-- Updated Title -->
 
     <!-- Registration Form -->
-    <form id="registerForm2" class="register-form">
-      <label for="lastName">Full Name:</label>
-      <div class="full-name-group">
-        <input type="text" name="lastName" placeholder="Last Name*" required>
-        <input type="text" name="firstName" placeholder="First Name*" required>
-        <input type="text" name="middleInitial" class="middleinitial" placeholder="M.I">
-        <input type="text" name="suffix" class="middleinitial" placeholder="Suffix">
+    <form id="registerForm2" class="register-form relative flex flex-col text-left gap-[2.5vh]"> <!-- Added gap for spacing between form elements -->
+
+      <!-- Full Name Group -->
+      <div> <!-- Wrapper div for label + input group -->
+          <label for="lastName" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Full Name:</label> <!-- Adjusted margin -->
+          <!-- Default: flex-col (stacked), 2xl+: flex-row (inline) -->
+          <div class="full-name-group flex flex-col gap-y-2 2xl:flex-row 2xl:items-center 2xl:gap-x-[0.5vh] 2xl:gap-y-0">
+              <input type="text" name="lastName" placeholder="Last Name*" required
+                     class="w-full 2xl:flex-1 p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+              <input type="text" name="firstName" placeholder="First Name*" required
+                     class="w-full 2xl:flex-1 p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+              <!-- Nested group for M.I. and Suffix -->
+              <!-- Stacks vertically by default, becomes horizontal row from lg breakpoint -->
+              <div class="flex flex-col gap-y-2 lg:flex-row lg:gap-x-[0.5vh] lg:gap-y-0 w-full 2xl:w-auto">
+                  <input type="text" name="middleInitial" placeholder="M.I." maxlength="1"
+                         class="w-full lg:flex-1 2xl:w-16 p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none"> <!-- Full width < lg, flex-1 lg-2xl, fixed width 2xl+ -->
+                  <input type="text" name="suffix" placeholder="Suffix"
+                         class="w-full lg:flex-1 2xl:w-20 p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none"> <!-- Full width < lg, flex-1 lg-2xl, fixed width 2xl+ -->
+              </div>
+          </div>
+          <!-- Consolidated error message div for name fields -->
+          <div class="lastName-error error-text text-red-500 text-[1.6vh] mt-[1vh]"></div>
+          <div class="firstName-error error-text text-red-500 text-[1.6vh]"></div>
+          <!-- Add error divs for MI/Suffix if needed -->
       </div>
 
-      <div class="form-group checkbox-group">
-        <label for="dlsuD">Are you from DLSU-D?</label>
-        <label class="checkbox-label">
-          <input type="radio" id="dlsuD" name="dlsuD" value="true" required> Yes
-        </label>
-        <label class="checkbox-label">
-          <input type="radio" id="dlsuDNo" name="dlsuD" value="false"> No
-        </label>
-      </div>    
+      <!-- DLSU-D Question Group -->
+      <!-- Removed mt-[2vw], relying on form gap -->
+      <div class="form-group flex items-center gap-[1vh]">
+          <label class="text-[1.8vh] text-gray-800 font-bold">Are you from DLSU-D?</label>
+          <label class="flex items-center text-[1.8vh] text-gray-800 cursor-pointer">
+              <input type="radio" id="dlsuD" name="dlsuD" value="true" required class="mr-1"> Yes
+          </label>
+          <label class="flex items-center text-[1.8vh] text-gray-800 cursor-pointer">
+              <input type="radio" id="dlsuDNo" name="dlsuD" value="false" class="mr-1"> No
+          </label>
+          <div class="dlsuD-error error-text text-red-500 text-[1.6vh] ml-2"></div> <!-- Error message for radio -->
+      </div>
 
-      <div id="dlsudEmailContainer" style="display: none;"> <!-- Hide initially -->
-        <hr><br>
-        <label for="dlsudEmail">DLSU-D Email:</label>
-        <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph">
-        <div class="studnumlabel">
-        <label>Student Number:</label>
-        <p class="formnote">For students only. If not applicable, check "N/A"</p>
-        <div class="studentNumber">
-            <input type="text" id="studentNumber" name="studentNumber">
-        </div>
-       </div>
-        <div class="checkbox-group-dlsud">
-            <label class="checkbox-label-dlsud">
-                <input type="checkbox" id="studentNumberNotApplicable" name="studentNumberNotApplicable"> Not Applicable
-            </label>
-        </div>
-      </div>     
+      <!-- DLSU-D Specific Fields (Hidden Initially) -->
+      <!-- Removed mb/mt-[1vw], relying on form gap -->
+      <div id="dlsudEmailContainer" class="hidden flex-col items-start pt-4 border-t border-gray-200 gap-y-2"> <!-- Added gap-y-2 -->
+          <div>
+              <label for="dlsudEmail" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">DLSU-D Email:</label> <!-- Adjusted margin -->
+              <input type
 
-      <button type="submit" class="register-button">Submit</button>
+          <div class="w-full"> <!-- Removed mt-[1vw] -->
+              <label for="studentNumber" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Student Number:</label> <!-- Adjusted margin -->
+              <p class="text-[1.6vh] text-gray-600 mt-0 mb-[0.8vh]">For students only. If not applicable, check "N/A"</p> <!-- Adjusted margin -->
+              <input type="text" id="studentNumber" name="studentNumber" maxlength="9" pattern="\d*" inputmode="numeric"
+                     class="w-full p-[1.5vh] border border-gray-300 rounded-[1vh] text-[2vh] text-gray-800 box-border focus:border-[#00722A] focus:outline-none">
+              <div class="studentNumber-error error-text text-red-500 text-[1.6vh] mt-[1vh]"></div>
+          </div>
+
+          <div class="flex items-center mt-[1vh] w-full">
+              <label class="flex items-center text-[1.8vh] text-gray-800 whitespace-nowrap cursor-pointer">
+                  <input type="checkbox" id="studentNumberNotApplicable" name="studentNumberNotApplicable" class="flex-shrink-0 w-auto mr-2"> Not Applicable
+              </label>
+              <!-- Error div for checkbox if needed -->
+              <div class="studentNumberNotApplicable-error error-text text-red-500 text-[1.6vh] ml-2"></div>
+          </div>
+      </div>
+
+      <!-- Submit Button -->
+      <!-- Removed mt-[2vh], relying on form gap -->
+      <button type="submit" class="bg-[#00722A] text-white p-[1.5vh] text-[2vh] font-bold border-none rounded-[1vh] cursor-pointer transition duration-300 ease-in-out hover:bg-[#00591d] disabled:opacity-50">Submit</button>
     </form>
   </div>
 </div>
 
+<!-- Keep existing JS link -->
 <script src="/js/3-logreg/add-info.js"></script>
 </body>
 </html>
