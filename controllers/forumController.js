@@ -1,3 +1,4 @@
+//forumController
 const ForumPost = require('../models/ForumPost');
 const cloudinary = require('../config/cloudinaryConfig');
 const multer = require('multer');

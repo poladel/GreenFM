@@ -1,3 +1,4 @@
+//ForumPost
 const mongoose = require('mongoose');
 
 // Comment Schema
