@@ -15,7 +15,7 @@ router.post(
 );
 
 // Filtered post list (used for rendering with search/filtering)
-router.get('/posts', postController.getFilteredPosts);
+router.get('/posts-filter', postController.getFilteredPosts);
 
 // API route to get JSON (for admin/API use maybe?)
 router.get('/api/posts', postController.getAllPosts);
