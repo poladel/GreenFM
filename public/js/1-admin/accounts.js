@@ -43,8 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- End Socket.IO Setup ---
 
     const searchInput = document.getElementById('user-search');
+    const roleFilterSelect = document.getElementById('role-filter'); // Get role filter element
     const tableBody = document.querySelector('#user-table tbody');
+    const paginationControls = document.getElementById('pagination-controls'); // Get pagination container
     let allUsers = []; // To store all users fetched initially
+    let currentPage = 1;
+    const rowsPerPage = 10; // Set rows per page
 
     // Form elements
     const form = document.getElementById('manage-account-form');
@@ -68,11 +72,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for search input
     if (searchInput) {
         searchInput.addEventListener('input', function () {
-            const searchTerm = searchInput.value.toLowerCase();
-            filterUsers(searchTerm);
+            currentPage = 1; // Reset to first page on search
+            renderFilteredAndPaginatedUsers();
         });
     } else {
         console.error("Search input #user-search not found.");
+    }
+
+    // Add event listener for role filter dropdown
+    if (roleFilterSelect) {
+        roleFilterSelect.addEventListener('change', function() {
+            currentPage = 1; // Reset to first page on filter change
+            renderFilteredAndPaginatedUsers();
+        });
+    } else {
+        console.error("Role filter select #role-filter not found.");
     }
 
     // Function to fetch all users
@@ -86,7 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             allUsers = await response.json();
             console.log("Users fetched:", allUsers.length);
-            populateTable(allUsers);
+            currentPage = 1; // Reset to first page after fetching
+            renderFilteredAndPaginatedUsers(); // Initial render
         } catch (error) {
             console.error('Error fetching users:', error);
             if (tableBody) {
@@ -95,19 +110,54 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to populate the table
-    function populateTable(users) {
+    // Function to render filtered and paginated users
+    function renderFilteredAndPaginatedUsers() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedRole = roleFilterSelect ? roleFilterSelect.value : '';
+
+        // 1. Filter users based on search term and role
+        const filteredUsers = allUsers.filter(user => {
+            if (!user) return false;
+
+            const searchMatch = (
+                (user.username || '').toLowerCase().includes(searchTerm) ||
+                (user.email || '').toLowerCase().includes(searchTerm) ||
+                `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchTerm)
+            );
+
+            const roleString = (Array.isArray(user.roles) ? user.roles.join(' ') : user.roles || '').toLowerCase();
+            // Check if the selectedRole is empty (all roles) or if the user's role string includes the selected role
+            const roleMatch = !selectedRole || roleString.includes(selectedRole.toLowerCase());
+
+            return searchMatch && roleMatch;
+        });
+
+        // 2. Paginate the filtered users
+        const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+        // 3. Populate table with paginated users
+        populateTable(paginatedUsers);
+
+        // 4. Render pagination controls
+        renderPagination(totalPages, filteredUsers.length); // Pass total filtered count for info
+    }
+
+
+    // Function to populate the table (accepts users to display)
+    function populateTable(usersToDisplay) {
         if (!tableBody) {
             console.error("Table body #user-table tbody not found.");
             return;
         }
         tableBody.innerHTML = ''; // Clear existing rows
-        if (users.length === 0) {
-            // Colspan: 3 below md, 4 below lg, 6 at lg+
-            tableBody.innerHTML = '<tr><td colspan="3" class="md:colspan-4 lg:colspan-6 p-4 text-center text-gray-500">No users found.</td></tr>';
+        if (usersToDisplay.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No users match the current filters.</td></tr>';
             return;
         }
-        users.forEach(user => {
+        usersToDisplay.forEach(user => {
             const row = document.createElement('tr');
             row.classList.add('hover:bg-gray-50'); // Add hover effect
             const displayRoles = Array.isArray(user.roles) ? user.roles.join(', ') : (user.roles || 'N/A');
@@ -130,28 +180,61 @@ document.addEventListener('DOMContentLoaded', function () {
         addTableButtonListeners();
     }
 
-    // Function to filter users based on search term
-    function filterUsers(searchTerm) {
-        const filteredUsers = allUsers.filter(user => {
-            // Safeguard: Check if user object and essential properties exist before accessing them
-            if (!user) {
-                console.warn("Skipping invalid user object in filter:", user);
-                return false; // Skip this invalid entry
+    // Function to render pagination controls
+    function renderPagination(totalPages, totalFilteredUsers) {
+        if (!paginationControls) {
+            console.error("Pagination controls container #pagination-controls not found.");
+            return;
+        }
+        paginationControls.innerHTML = ''; // Clear existing controls
+
+        if (totalPages <= 1) {
+            // Optionally display total count even if only one page
+            if (totalFilteredUsers > 0) {
+                const pageInfo = document.createElement('span');
+                pageInfo.className = 'text-sm text-gray-600';
+                pageInfo.textContent = `Showing ${totalFilteredUsers} user(s)`;
+                paginationControls.appendChild(pageInfo);
             }
+            return; // No controls needed for 0 or 1 page
+        }
 
-            const searchLower = searchTerm.toLowerCase();
-
-            // Use default empty strings to prevent errors if properties are missing/null
-            const usernameMatch = (user.username || '').toLowerCase().includes(searchLower);
-            const emailMatch = (user.email || '').toLowerCase().includes(searchLower);
-            const roleString = (Array.isArray(user.roles) ? user.roles.join(' ') : user.roles || '').toLowerCase();
-            const roleMatch = roleString.includes(searchLower);
-            const nameMatch = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchLower);
-
-            return usernameMatch || emailMatch || roleMatch || nameMatch;
+        // Previous Button
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.className = 'px-3 py-1 border rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderFilteredAndPaginatedUsers();
+            }
         });
-        populateTable(filteredUsers);
+        paginationControls.appendChild(prevButton);
+
+        // Page Info (e.g., "Page 1 of 5")
+        const pageInfo = document.createElement('span');
+        pageInfo.className = 'text-sm text-gray-600 px-2';
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        paginationControls.appendChild(pageInfo);
+
+        // Next Button
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.className = 'px-3 py-1 border rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderFilteredAndPaginatedUsers();
+            }
+        });
+        paginationControls.appendChild(nextButton);
     }
+
+
+    // Function to filter users based on search term (REPLACED by renderFilteredAndPaginatedUsers)
+    // function filterUsers(searchTerm) { ... } // Remove or comment out this old function
 
     // Function to add event listeners to edit and delete buttons
     function addTableButtonListeners() {
@@ -653,9 +736,8 @@ document.addEventListener('DOMContentLoaded', function () {
              }
         }
 
-        // 2. Re-render the table based on the current filter
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        filterUsers(searchTerm); // filterUsers already has safeguards
+        // 2. Re-render the table and pagination based on the current filter/page
+        renderFilteredAndPaginatedUsers(); // Use the combined render function
 
         // 3. Optional: Update the form if this user is currently being edited
         const selectedUserId = userIdInput.value;
@@ -682,9 +764,17 @@ document.addEventListener('DOMContentLoaded', function () {
              console.log(`Removed user ${deletedUserId} from local array.`);
         }
 
-        // 2. Re-render the table based on the current filter
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        filterUsers(searchTerm);
+        // 2. Re-render the table and pagination based on the current filter/page
+        // Check if the deletion might cause the current page to become empty
+        const totalFilteredBeforeDelete = allUsers.filter(user => { /* apply current filters */ }).length;
+        const maxPageAfterDelete = Math.ceil((totalFilteredBeforeDelete -1) / rowsPerPage);
+        if (currentPage > maxPageAfterDelete && maxPageAfterDelete > 0) {
+            currentPage = maxPageAfterDelete; // Go to the new last page
+        } else if (maxPageAfterDelete === 0) {
+            currentPage = 1; // Reset to page 1 if no users left
+        }
+
+        renderFilteredAndPaginatedUsers(); // Use the combined render function
 
         // 3. Reset form if the deleted user was being edited
         const selectedUserId = userIdInput.value;

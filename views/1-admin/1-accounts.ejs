@@ -14,11 +14,16 @@
 
             <!-------------------- CONTENTS START -------------------->
             <!-- User Table Container: Centered with max-width -->
-            <!-- mx-auto centers within space defined by pl-* and pr-4 -->
             <div class="my-5 bg-white p-6 rounded-lg shadow-md max-w-6xl 2xl:max-w-screen-xl mx-auto">
                 <h3 class="text-xl font-semibold mb-4">All Users</h3>
-                <div class="mb-4">
-                    <input type="text" id="user-search" placeholder="Search by name, username, email, or role..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                <div class="mb-4 flex flex-col md:flex-row gap-4">
+                    <input type="text" id="user-search" placeholder="Search by name, username, email..." class="flex-grow p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <select id="role-filter" class="p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent md:w-auto">
+                        <option value="">All Roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Staff">Staff</option>
+                        <option value="User">User</option>
+                    </select>
                 </div>
                 <div class="overflow-x-auto"> <!-- Make table scrollable on small screens -->
                     <table id="user-table" class="w-full border-collapse text-left">
@@ -35,10 +40,14 @@
                         <tbody class="divide-y divide-gray-200">
                             <!-- Rows will be dynamically populated -->
                             <tr>
-                                <td colspan="3" class="md:colspan-4 lg:colspan-6 p-4 text-center text-gray-400">Loading users...</td>
+                                <td colspan="6" class="p-4 text-center text-gray-400">Loading users...</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <!-- Pagination Controls Container -->
+                <div id="pagination-controls" class="mt-4 flex justify-center items-center space-x-2">
+                    <!-- Pagination buttons will be added here by JS -->
                 </div>
             </div>
 
@@ -137,7 +146,7 @@
                 </div> <!-- End grid -->
 
                 <!-- Action Buttons -->
-                <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4">
+                <div class="flex gap-3 mt-6 w-full justify-end border-t pt-4"></div>
                     <button type="button" id="cancel-button" disabled class="py-2 px-4 border border-gray-300 rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-gray-500 text-white hover:bg-gray-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Cancel</button>
                     <button type="button" id="submit-button" disabled class="py-2 px-4 border border-transparent rounded-md font-medium text-sm cursor-pointer transition duration-150 bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300 disabled:text-green-700 disabled:cursor-not-allowed">Submit Changes</button>
                 </div>
