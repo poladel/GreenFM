@@ -233,113 +233,134 @@ document.addEventListener('DOMContentLoaded', function () {
   
       renderPosts(posts) {
         this.elements.postsContainer.innerHTML = '';  // Clear existing posts
-      
+    
         posts.forEach(post => {
-          if (!post || !post._id) return;  // Skip invalid posts
-      
-          const div = document.createElement('div');
-          div.className = 'post';
-          div.dataset.id = post._id;
-      
-          const showControls = post.userId && post.userId._id === this.currentUserId;
-          const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
-      
-          // Format createdAt for date display
-          const createdAt = post.createdAt
-            ? new Date(post.createdAt).toLocaleString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              })
-            : '';
-      
-          const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-      
-          // Render Poll Section if it exists
-          let pollSection = '';
-          if (post.poll?.question) {
-            pollSection = this.renderPollSection(post, userHasVoted);
-          }
-      
-          div.innerHTML = `
-            <div class="post-header flex justify-between items-start">
-              <div>
-                <p class="post-author text-green-700 font-bold text-lg">${post.userId?.username || 'Unknown'}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm text-gray-500 mb-1">${createdAt}</p>
-                <div class="edit-delete-buttons flex gap-2 justify-end">
-                  ${showControls
-                    ? `
-                      <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">Edit</button>
-                      <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">Delete</button>
-                    `
-                    : ` 
-                    `}
+            if (!post || !post._id) return;  // Skip invalid posts
+    
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.dataset.id = post._id;
+    
+            const showControls = post.userId && post.userId._id === this.currentUserId;
+            const userHasVoted = post.poll?.options?.some(o => o.votes?.some(v => v.toString() === this.currentUserId));
+    
+            // Format createdAt for date display
+            const createdAt = post.createdAt
+                ? new Date(post.createdAt).toLocaleString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                })
+                : '';
+    
+            const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
+    
+            // Render Poll Section if it exists
+            let pollSection = '';
+            if (post.poll?.question) {
+                pollSection = this.renderPollSection(post, userHasVoted);
+            }
+    
+            div.innerHTML = `
+                <div class="post-header flex justify-between items-start">
+                    <div>
+                        <p class="post-author text-green-700 font-bold text-lg">${post.userId?.username || 'Unknown'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500 mb-1">${createdAt}</p>
+                        <div class="edit-delete-buttons flex gap-2 justify-end">
+                            ${showControls
+                                ? `
+                                    <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded" onclick="editPost('${post._id}')">Edit</button>
+                                    <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded" onclick="safeDeletePost('${post._id}', this)">Delete</button>
+                                  `
+                                : ``
+                            }
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-      
-            <h4 class="post-title text-l text-gray-800 mt-2">${post.title}</h4>
-      
-            <div class="post-media-container mt-3">
-              ${(post.media || []).map(media => media.type === 'image' ? 
-                  `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
-                  `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
-                    <source src="${media.url}" type="video/mp4">
-                  </video>`).join('')}
-            </div>
-      
-            ${pollSection}
-      
-            <div class="post-actions mt-4 flex space-x-4">
-              <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
-                ❤️ <span class="like-count">${likeCount}</span>
-              </button>
-              <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
-            </div>
-      
-            <div class="interaction-panel mt-4" data-post-id="${post._id}">
-              <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
-                <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
-                <div class="comment-button-wrap mt-2">
-                  <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="submitComment('${post._id}', this)">Post Comment</button>
+    
+                <h4 class="post-title text-l text-gray-800 mt-2">${post.title}</h4>
+    
+                <div class="post-media-container mt-3">
+                    ${(post.media || []).map(media => media.type === 'image' ? 
+                        `<img src="${media.url}" class="post-media post-image w-full max-w-md rounded-lg shadow-md mx-auto" />` : 
+                        `<video controls class="post-media w-full max-w-md rounded shadow mx-auto" oncontextmenu="return false">
+                            <source src="${media.url}" type="video/mp4">
+                        </video>`).join('')}
                 </div>
-              </div>
-              <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
-            </div>
-          `;
-      
-          // Append the newly created post div to the container
-          this.elements.postsContainer.appendChild(div);
-      
-          // Load comments for each post
-          this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
+    
+                ${pollSection}
+    
+                <div class="post-actions mt-4 flex space-x-4">
+                    <button class="like-button ${post.liked ? 'liked text-red-500' : 'text-gray-500'}" onclick="toggleLike('${post._id}', this)">
+                        ❤️ <span class="like-count">${likeCount}</span>
+                    </button>
+                    <button class="comment-toggle-button text-green-600 hover:underline" onclick="toggleCommentInput('${post._id}')">💬 Comment</button>
+                </div>
+    
+                <div class="interaction-panel mt-4" data-post-id="${post._id}">
+                    <div class="comment-input-wrapper" id="comment-input-wrapper-${post._id}" style="display: none;">
+                        <textarea class="comment-input w-full p-2 border border-gray-300 rounded" placeholder="Write a comment..."></textarea>
+                        <div class="comment-button-wrap mt-2">
+                            <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="submitComment('${post._id}', this)">Post Comment</button>
+                        </div>
+                    </div>
+                    <div class="comments-list mt-4 space-y-2" id="comments-${post._id}"></div>
+                </div>
+            `;
+    
+            // Highlight the voted option if user has voted
+            if (userHasVoted) {
+                const votedOptionButton = div.querySelector('.poll-options button');
+                if (votedOptionButton) {
+                    votedOptionButton.classList.add('voted'); // Apply the 'voted' class to the voted option
+                }
+            }
+    
+            // Append the newly created post div to the container
+            this.elements.postsContainer.appendChild(div);
+    
+            // Load comments for each post
+            this.loadComments(post._id, div.querySelector(`#comments-${post._id}`));
         });
-      }
+    }
+    
+
+    renderPollSection(post) {
+        // Calculate the total number of votes across all options
+        const totalVotes = post.poll.options.reduce((sum, option) => sum + option.votes.length, 0);
       
-      
-  
-      renderPollSection(post) {
         return `
-          <div class="post-poll mt-4 text-center" data-post-id="${post._id}">
-            <div class="text-lg font-semibold text-gray-800 mb-3">${post.poll.question}</div>
-            <ul class="poll-options space-y-2 max-w-md mx-auto">
-              ${post.poll.options.map((opt, index) => `
-                <li class="flex justify-between items-center bg-white border border-gray-300 px-4 py-2 rounded">
-                  <button class="text-left w-full text-gray-800 hover:bg-green-100 p-2 rounded transition"
-                    onclick="votePoll('${post._id}', ${index})">
-                    ${opt.text}
-                  </button>
-                  <span class="text-sm text-gray-500" id="vote-count-${post._id}-${index}">${opt.votes.length || 0} votes</span>
-                </li>`).join('')}
+          <div class="post-poll mt-4 text-center p-4 bg-gradient-to-r from-blue-500 via-teal-400 to-green-500 rounded-lg shadow-lg">
+            <div class="text-xl font-semibold text-white mb-3">${post.poll.question}</div>
+            <ul class="poll-options space-y-3 max-w-md mx-auto text-white">
+              ${post.poll.options.map((opt, index) => {
+                // Calculate the percentage of votes for this option
+                const percentage = totalVotes ? (opt.votes.length / totalVotes) * 100 : 0;  // Handle division by zero
+      
+                return `
+                  <li class="flex justify-start items-center bg-white border border-gray-300 px-4 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105 relative">
+                    <button class="text-left w-full text-gray-800 font-medium hover:bg-green-100 p-2 rounded-lg transition duration-300"
+                      onclick="votePoll('${post._id}', ${index})">
+                      Vote
+                    </button>
+                    <div class="vote-bar-container flex-1 ml-3 bg-gray-300 rounded-full relative">
+                      <div class="vote-bar" style="width: ${percentage}%;"></div>
+                      <span class="text-sm text-gray-500 ml-3 vote-count">${opt.votes.length} votes</span>
+                    </div>
+                  </li>
+                `;
+              }).join('')}
             </ul>
           </div>
         `;
       }
+      
+       
   
       renderPagination(totalPages, currentPage) {
         const paginationContainer = this.elements.paginationContainer;
@@ -381,6 +402,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     }
+    
   
     // Initialize the app
     window.app = new ForumApp();
@@ -694,33 +716,56 @@ document.addEventListener('DOMContentLoaded', function () {
   
   window.votePoll = async function(postId, optionIndex) {
     try {
-      const res = await fetch('/poll/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ postId, optionIndex })
-      });
-  
-      const data = await res.json();
-      if (data.success) {
-        showToast(' Vote submitted!');
-  
-        // Dynamically update the vote count for the selected option
-        const voteCountElement = document.getElementById(`vote-count-${postId}-${optionIndex}`);
-        if (voteCountElement) {
-          voteCountElement.textContent = `${data.poll.options[optionIndex].votes.length} votes`;
+        // Send the vote request to the server
+        const res = await fetch('/poll/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ postId, optionIndex })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('✅ Vote submitted!');
+
+            // Update the vote count for the selected option
+            const voteCountElement = document.getElementById(`vote-count-${postId}-${optionIndex}`);
+            if (voteCountElement) {
+                voteCountElement.textContent = `${data.poll.options[optionIndex].votes.length} votes`;
+            }
+
+            // Get all the poll option buttons for this post
+            const pollOptionsButtons = document.querySelectorAll(`#post-${postId} .poll-options button`);
+
+            // Get the bar container for the selected option
+            const selectedOptionBar = document.querySelector(`#post-${postId} .poll-options li:nth-child(${optionIndex + 1}) .vote-bar .bar`);
+            
+            if (selectedOptionBar) {
+                // Calculate the width of the bar based on the percentage of votes
+                const totalVotes = data.poll.totalVotes; // Assuming you pass the total votes count
+                const selectedVotes = data.poll.options[optionIndex].votes.length;
+                const percentage = (selectedVotes / totalVotes) * 100;
+
+                // Animate the width of the bar to show the new percentage of votes
+                selectedOptionBar.style.transition = 'width 0.5s ease'; // Smooth transition for bar width change
+                selectedOptionBar.style.width = `${percentage}%`; // Update the width of the bar
+
+                // Keep the color consistent (you can customize this color as needed)
+                selectedOptionBar.style.backgroundColor = '#10b981'; // Green color for the bar
+            }
+
+            // Optionally, reload posts to reflect the latest data
+            await window.app.loadPosts(); // Refresh the posts with updated vote data
+        } else {
+            showToast('You have already voted.', 'error');
         }
-  
-        // Optionally, reload posts to reflect the latest data
-        await window.app.loadPosts(); // Refresh the posts with updated vote data
-      } else {
-        showToast('You have already voted.', 'error');
-      }
     } catch (err) {
-      console.error('Vote error:', err);
-      showToast('❌ Error submitting vote', 'error');
+        console.error('Vote error:', err);
+        showToast('❌ Error submitting vote', 'error');
     }
-  };
+};
+
   
   
   window.editPoll = function (postId) {
