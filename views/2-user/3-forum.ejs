@@ -1,46 +1,96 @@
+<!-- forum -->
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-    <div class="content-wrap">
-        <div class="container">
-            <%- include('../partials/nav.ejs') %>
-            <%- include('../partials/menu.ejs') %>
+<div class="forum-layout flex">
+  <%- include('../partials/menu.ejs') %>
 
-            <!-------------------- POST COMPONENT -------------------->
-            <div class="post-container">
-                <textarea class="post-textbox" placeholder="Write something..."></textarea>
-                <div class="post-options">
-                    <button class="post-option-button">
-                        <img src="../img/image.png" alt="Add Image" class="option-icon">
-                    </button>
-                    <button class="post-option-button">
-                        <img src="../img/document.png" alt="Add Document" class="option-icon">
-                    </button>
-                    <button type="button" id="postButton" data-authenticated="<%= !!user %>" class="post-button">Post</button>
-                </div>
-            </div>
+  <div class="content-wrap p-4 sm:p-6 flex-1">
+    <div class="container mx-auto max-w-4xl space-y-6">
+      <%- include('../partials/nav.ejs') %>
 
-            <!-- Modal for post confirmation -->
-            <div id="loginPopup" class="modal" style="display:none;">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <p>Please sign in to continue.</p>
-                    <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>" id="login-link">
-                        <button type="submit">Log In</button>
-                    </a>
-                </div>
-            </div>
+      <!-- Toast Notification -->
+      <div id="toast" class="fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white"></div>
 
+      <!-- POST FORM -->
+      <form id="post-form" class="bg-white p-4 rounded-xl shadow">
+        <h2 class="text-2xl font-semibold mb-4 text-green-700">🟢 Community Forum</h2>
+        <input type="text" id="post-title" class="w-full mb-2 p-2 border rounded post-title-input" placeholder="Write something..." required>
+
+        <div class="media-buttons">
+          <button type="button" id="add-image-button" class="media-button">
+            <img src="../img/image.png" alt="Add Image" class="option-icon">
+            <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
+          </button>
+          <button type="button" id="add-video-button" class="media-button">
+            <img src="../img/video.png" alt="Add Video" class="option-icon">
+            <input type="file" id="video-input" accept="video/*" style="display: none;">
+          </button>
         </div>
-    </div>
 
-    <!-------------------- FOOTER -------------------->
-    <%- include('../partials/footer.ejs') %>
+        <!-- Media Previews -->
+        <div id="preview-container" class="preview-container mt-3"></div>
+
+        <div class="post-button-wrapper mt-4">
+          <button
+            type="submit"
+            id="postButton"
+            data-authenticated="<%= !!user %>"
+            data-userid="<%= user ? user._id : '' %>"
+            class="post-button bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+            Post
+          </button>
+        </div>
+      </form>
+
+      <br>
+
+      <!-- Poll Card -->
+      <div class="poll-card">
+        <form id="poll-form" method="POST" action="/poll">
+          <h3>Create a Poll</h3>
+          <input type="text" id="poll-question" name="question" placeholder="Enter your poll question..." required />
+
+          <div id="poll-options-wrapper">
+            <input type="text" name="options[]" placeholder="Option 1" required />
+            <input type="text" name="options[]" placeholder="Option 2" required />
+          </div>
+
+          <!-- Align buttons right -->
+          <div class="poll-button-group">
+            <button type="button" id="add-option-button" class="poll-btn">+ Add Option</button>
+            <button type="submit" id="submit-poll-button" class="poll-btn">📤 Post Poll</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- POSTS RENDERED HERE -->
+      <div id="posts-container" class="posts-container"></div>
+
+      <!-- PAGINATION -->
+      <div id="pagination-container" class="flex justify-center z-10 mt-6 space-x-2"></div>
+    </div>
+  </div>
 </div>
 
-<script src="js/2-user/forum.js"></script>
+<!-- Inject User ID -->
+<script>
+  window.currentUserId = "<%= user ? user._id.toString() : '' %>";
+</script>
 
+<!-- Forum Script -->
+<script src="/js/2-user/forum.js"></script>
 
+<!-- Confirmation Vote Modal -->
+<div id="confirmVoteModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Confirm Your Vote</h2>
+    <p id="vote-confirm-text" class="text-gray-600 mb-6">Are you sure you want to vote for this option?</p>
+    <div class="flex justify-center gap-4">
+      <button onclick="submitConfirmedVote()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Yes, Submit</button>
+      <button onclick="closeVoteModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</button>
+    </div>
+  </div>
+</div>
 
-</body>
-</html>
+<%- include('../partials/footer.ejs') %>
