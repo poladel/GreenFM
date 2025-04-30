@@ -43,6 +43,7 @@ const manageRoutes = require('./routes/manageRoutes');
 const liveRoutes = require('./routes/liveRoutes');
 const statusRoutes = require('./routes/statusRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const forumRoutes = require('./routes/ForumRoutes');
 const Comment = require('./models/Comment');
 
 // App setup
@@ -149,6 +150,7 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: false })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies
 app.use(sessionMiddleware); // Session management
+app.use('/', forumRoutes); 
 
 // Static files
 app.use(express.static(path.join(__dirname, '/public')));
@@ -184,6 +186,7 @@ app.use('/live', liveRoutes);
 app.use('/', statusRoutes);
 app.use('/chat', chatRoutes);
 
+
 // 404 Fallback
 app.all('*', (req, res) => {
     res.status(404);
@@ -195,6 +198,8 @@ app.all('*', (req, res) => {
         res.type('txt').send('404 Not Found');
     }
 });
+
+
 
 // Start server after MongoDB is ready
 mongoose.connection.once('open', () => {
