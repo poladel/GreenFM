@@ -5,6 +5,7 @@ const joinBlocktimerController = require('../controllers/joinBlocktimerControlle
 const joinGFMController = require('../controllers/joinGFMController');
 const User = require('../models/User');
 const Playlist = require("../models/Playlist");
+const Post = require('../models/Post'); // Assuming Post model for archives
 const router = express.Router();
 
 // Define the routes for each 'user' section with dynamic titles
@@ -12,7 +13,7 @@ const userRoutes = [
     // Public routes (auth: false or omitted)
     { path: '/Live', view: '2-user/2-live', pageTitle: 'Live',  headerTitle: 'LIVE', cssFile: 'css/live.css'},
     { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM', cssFile: 'css/forum.css'},
-    { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES' },
+    { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES', cssFile: 'css/archive.css' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST', cssFile: 'css/playlist.css' },
     { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' , cssFile: 'css/about.css'},
     { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US', cssFile: 'css/contact.css' },
@@ -62,8 +63,21 @@ userRoutes.forEach(userRoute => {
                 playlist = await Playlist.find().sort({ createdAt: -1 });
             }
 
+            // Handle Archives route specifically
+            if (userRoute.path === '/Archives') {
+                const Archive = require('../models/Archive');
+                const archives = await Archive.find().sort({ createdAt: -1 });
+                return res.render(userRoute.view, {
+                    pageTitle: userRoute.pageTitle,
+                    cssFile: userRoute.cssFile,
+                    user: res.locals.user,
+                    headerTitle: userRoute.headerTitle,
+                    currentPath: req.path,
+                    archives
+                });
+            }            
+
             // Handle restricted routes (This check might be redundant if requireAuth/checkRoles handle it)
-            // Consider if this specific 'restricted' logic is still needed or can be merged
             if (userRoute.restricted) {
                 const user = res.locals.user; // Note: res.locals.user is set by checkUser, which runs on GET *
                 if (!user || (userRoute.roles && !user.roles.includes(user.roles))) { // Ensure user exists before checking roles
