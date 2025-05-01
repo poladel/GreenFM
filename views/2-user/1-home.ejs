@@ -72,9 +72,19 @@
                         </div>
 
                         <!-- Posts Container -->
-                        <%# Removed lg:w-[calc(...)]. Width controlled by grid column. %>
                         <div id="posts-container" class="w-full">
-                            <%- include('../partials/postList.ejs', { posts, user }) %>
+                            <%# Pass pagination data if available from the initial load, default to 1 if not %>
+                            <%- include('../partials/postList.ejs', {
+                                posts: posts,
+                                user: user,
+                                currentPage: (typeof currentPage !== 'undefined' ? currentPage : 1),
+                                totalPages: (typeof totalPages !== 'undefined' ? totalPages : 1)
+                            }) %>
+                        </div>
+
+                        <!-- Pagination Controls Container -->
+                        <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6 mb-6">
+                            <!-- Pagination buttons will be dynamically added here by home.js -->
                         </div>
                     </div> <!-- End Left Column -->
 

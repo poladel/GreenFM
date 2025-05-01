@@ -516,32 +516,108 @@ async function editComment(event, postId, commentId) {
 }
 
 //-------Search & Filter-----------//
+// Add currentPage variable
+let currentPage = 1;
+const postsPerPage = 20; // Or get this from backend if configurable
+
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("searchInput");
     const filterMonth = document.getElementById("filterMonth");
     const filterYear = document.getElementById("filterYear");
     const filterBtn = document.getElementById("filterBtn");
     const postsContainer = document.getElementById("posts-container");
+    const paginationControls = document.getElementById("pagination-controls");
 
-    const fetchPosts = async (query = {}) => {
+    // --- Updated fetchPosts function ---
+    const fetchPosts = async (query = {}, page = 1) => {
+        // Add pagination parameters to the query
+        query.page = page;
+        query.limit = postsPerPage;
+        currentPage = page; // Update current page
+
         const params = new URLSearchParams(query);
-        const res = await fetch(`/posts-filter?${params}`);
-        const data = await res.text();
-        postsContainer.innerHTML = data;
+        try {
+            // Assuming the endpoint now returns { html: '...', currentPage: ..., totalPages: ... }
+            const res = await fetch(`/posts-filter?${params}`);
+            const data = await res.json(); // Expect JSON response
+
+            if (res.ok) {
+                postsContainer.innerHTML = data.html; // Update posts list
+                renderPaginationControls(data.currentPage, data.totalPages, query); // Update pagination
+            } else {
+                console.error("Failed to fetch posts:", data.error);
+                postsContainer.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
+                paginationControls.innerHTML = ''; // Clear pagination on error
+            }
+        } catch (error) {
+            console.error("Error during fetch:", error);
+            postsContainer.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
+            paginationControls.innerHTML = ''; // Clear pagination on error
+        }
     };
 
+    // --- Render Pagination Controls ---
+    const renderPaginationControls = (currentPage, totalPages, currentQuery) => {
+        paginationControls.innerHTML = ''; // Clear existing controls
+
+        if (totalPages <= 1) return; // No controls needed for 1 or 0 pages
+
+        // Previous Button
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                fetchPosts(currentQuery, currentPage - 1);
+            }
+        });
+        paginationControls.appendChild(prevButton);
+
+        // Page Info (Optional: Add page number links here if desired)
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        pageInfo.className = 'text-sm text-gray-600';
+        paginationControls.appendChild(pageInfo);
+
+        // Next Button
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                fetchPosts(currentQuery, currentPage + 1);
+            }
+        });
+        paginationControls.appendChild(nextButton);
+    };
+
+    // --- Update Event Listeners ---
     searchInput.addEventListener("input", () => {
-        fetchPosts({ search: searchInput.value });
+        // Reset to page 1 when searching
+        fetchPosts({ search: searchInput.value }, 1);
     });
 
     filterBtn.addEventListener("click", () => {
+        // Reset to page 1 when filtering
         fetchPosts({
             month: filterMonth.value,
             year: filterYear.value,
-            search: searchInput.value
-        });
+            search: searchInput.value // Keep search term if present
+        }, 1);
     });
-});
+
+    // Initial load pagination (if data is passed from backend)
+    // This assumes 'currentPage' and 'totalPages' are available globally or passed differently
+    // If not, the initial renderPaginationControls call might need adjustment
+    // or rely solely on the first fetchPosts call if filters are applied initially.
+    // Example: If initial data is embedded:
+    // const initialCurrentPage = parseInt(paginationControls.dataset.currentPage || '1');
+    // const initialTotalPages = parseInt(paginationControls.dataset.totalPages || '1');
+    // renderPaginationControls(initialCurrentPage, initialTotalPages, {});
+
+}); // End DOMContentLoaded
 
 //-------Scheduled Shows-----------//
 function updateScheduleList() {

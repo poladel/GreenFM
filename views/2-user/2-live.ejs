@@ -1,50 +1,66 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-    <div class="content-wrap">
-        <div class="container">
-            <%- include('../partials/nav.ejs') %>
+<div class="page-container flex flex-col min-h-screen bg-gray-100"> <!-- Added base background -->
+    <!-- Include nav and menu OUTSIDE the main content wrapper -->
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs', { headerTitle: "LIVE" }) %> <!-- Pass appropriate title -->
 
-            <!-------------------- HEADER MENUS -------------------->   
-            <%- include('../partials/menu.ejs') %>
+    <!-- Main Content Area Wrapper - Takes remaining space and applies padding -->
+    <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
+        <!-- Inner container for max-width and centering -->
+        <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
 
-            <!-------------------- CONTENTS START --------------------> 
-            <div class="live-container">
-                <div class="video-section">
-                    <div class="video-wrapper">
-                        <iframe 
-                            src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fdzbb594%2Fvideos%2F552584174549577%2F&show_text=false&width=560&t=0" 
-                            width="100%" 
-                            height="100%" 
-                            style="border:none;overflow:hidden" 
-                            scrolling="no" 
-                            frameborder="0" 
-                            allowfullscreen="true" 
+            <!-------------------- CONTENTS START -------------------->
+            <!-- Live Container: Added lg:items-start -->
+            <!-- Removed fixed lg height, let content determine height more naturally -->
+            <div class="live-container flex flex-col lg:flex-row gap-[1vw] lg:items-start">
+
+                <!-- Video Section: Removed default flex, added lg:flex lg:flex-col. Use p-2 default, lg:p-[1.5vh] -->
+                <div class="video-section lg:flex-1 bg-white rounded-[15px] p-2 lg:p-[1.5vh] shadow-md lg:flex lg:flex-col lg:h-auto mb-4 lg:mb-0"> <!-- Removed flex flex-col, added lg:flex lg:flex-col. Changed padding -->
+                    <!-- Added aspect-video to enforce 16:9 ratio -->
+                    <div class="video-wrapper w-full aspect-video"> <!-- Removed flex-grow, added aspect-video -->
+                        <iframe
+                            src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fdzbb594%2Fvideos%2F552584174549577%2F&show_text=false&width=560&t=0"
+                            class="w-full h-full border-none rounded-[10px]"
+                            allowfullscreen="true"
                             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
                         </iframe>
                     </div>
                 </div>
 
-                <div class="comments-section">
-                    <div id="live-comments">
-                        <h3>💬 Live Comments</h3>
+                <!-- Comments Section: Removed min-h-[50vh] and lg:min-h-0 -->
+                <div class="comments-section lg:flex-3 bg-white rounded-[15px] p-[1vw] shadow-md flex flex-col lg:h-[calc(100vh-150px)]"> <!-- Removed min-h-[50vh], lg:min-h-0 -->
+                    <div id="live-comments" class="flex flex-col h-full">
+                        <h3 class="mt-0 mb-2.5 text-[1.2em] text-gray-800 font-semibold">💬 Live Comments</h3>
 
-                        <div id="comments" class="comments-box">
-                            <!-- Comments will appear here -->
+                        <!-- Comments Box: Scrolls, flex-col -->
+                        <div id="comments" class="comments-box flex-1 overflow-y-auto border border-gray-300 rounded-[10px] p-2.5 mb-2.5 flex flex-col space-y-2 scrollbar-hide">
+                            <!-- Comments will appear here (dynamically added by JS) -->
+                             <p class="text-center text-gray-400 italic m-auto">Loading comments or no comments yet...</p>
                         </div>
 
-                        <form id="commentForm" class="comment-form">
-                            <input type="text" id="commentInput" placeholder="Type your comment..." required />
-                            <button type="submit">Send</button>
+                        <!-- Comment Form: Sticks at bottom -->
+                        <form id="commentForm" class="comment-form flex gap-2.5 mt-auto pt-3 border-t border-gray-200"> <!-- mt-auto pushes form down -->
+                            <input type="text" id="commentInput" placeholder="Type your comment..." required
+                                   class="flex-1 p-2 border border-gray-300 rounded-[10px] focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none text-sm"/>
+                            <button type="submit"
+                                    class="py-2 px-4 bg-[#00722A] text-white border-none rounded-[10px] cursor-pointer transition duration-300 ease-in-out hover:bg-[#005d20] text-sm font-medium">Send</button>
                         </form>
                     </div>
                 </div>
             </div>
+             <!-------------------- CONTENTS END -------------------->
 
-            <script src="/socket.io/socket.io.js"></script>
-            <script src="/js/2-user/live.js"></script>
-        </div>
-    </div>
-</div>
+        </div> <!-- End max-w / mx-auto container -->
+    </div> <!-- End content-wrap -->
+
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %> <!-- Include footer outside content wrap -->
+
+    <!-- Keep script includes -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/2-user/live.js"></script>
+
+</div> <!-- End page-container -->
 </body>
 </html>
