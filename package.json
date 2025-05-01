@@ -6,7 +6,7 @@
     "start": "npm run build:css && node server.js",
     "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css",
     "watch:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
-    "dev": "concurrently \"npm:watch:css\" \"nodemon server.js\"",
+    "dev": "npx concurrently \"npm:watch:css\" \"nodemon server.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

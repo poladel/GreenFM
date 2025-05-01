@@ -1,249 +1,350 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
-                <%- include('../partials/spinner') %>
+<div class="page-container flex flex-col min-h-screen bg-gray-100"> <!-- Base background -->
+    <!-- Include nav (fixed position) -->
+    <%- include('../partials/nav.ejs') %>
 
-                <!-- HEADER -->
-                <div class="form-title-container">
-                    <h3 class="form-title">BLOCKTIMER APPLICATION FORM</h3>
-                </div>
-                
-                <!-- PROGRESS BAR -->
-                <div class="progress-bar">
-                    <div class="circle circle-1">1</div>
-                    <div class="circle circle-2">2</div>
-                    <div class="circle circle-3">3</div>
-                </div>                                            
+    <!-- Include menu (sticky, takes headerTitle) -->
+    <%- include('../partials/menu.ejs', { headerTitle: "BLOCKTIMER APPLICATION FORM" }) %>
 
-                <form id="blocktimerForm1">
-                    <!-- FORMS START -->
-                        <div class="form-container1">
-                            <label>Type of Office/Organization</label>
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Administration" required> Administration</label>
+    <!-- Main Content Area Wrapper -->
+    <!-- Uses standard padding like 1-accounts.ejs -->
+    <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
+        <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
+
+            <!-- Add Tailwind Spinner HTML (hidden by default) -->
+            <div id="loading-spinner" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-[1000]">
+                <!-- Updated spinner classes -->
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-solid border-gray-200 border-t-green-500"></div>
+            </div>
+
+
+            <!-- PROGRESS BAR -->
+            <!-- Ensure step-X-active class is present -->
+            <div class="progress-bar step-1-active flex justify-center my-5 relative">
+                <!-- Step 1 Active -->
+                <div class="circle active flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold mx-[50px] text-[25px] relative">1</div>
+                <!-- Step 2 Inactive -->
+                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-[50px] text-[25px] relative">2</div>
+                <!-- Step 3 Inactive -->
+                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-[50px] text-[25px] relative">3</div>
+            </div>
+
+            <!-------------------- CONTENTS START -------------------->
+            <!-- Form placed inside the centered container -->
+            <form id="blocktimerForm1">
+                <!-- FORM SECTIONS -->
+                <div class="space-y-6"> <!-- Adjusted spacing -->
+
+                    <!-- Container 1 -->
+                    <div class="form-container1 bg-white p-5 rounded-[15px] shadow-md">
+                        <label class="block mt-[15px] font-bold text-base">Type of Office/Organization</label>
+                        <div class="radio-group grid grid-cols-2 gap-x-1 my-2.5 text-sm">
+                            <% const orgTypes = ["Administration", "Student Government", "Department", "Program Council", "Faculty", "Interest Organization"]; %>
+                            <% orgTypes.forEach((type, index) => { %>
+                                <% const inputId = `orgType-${index}`; %> <!-- Generate unique ID -->
+                                <div class="radio-item flex items-center my-1 mr-4">
+                                    <input type="radio" id="<%= inputId %>" name="organizationType" value="<%= type %>" required class="mr-1.5">
+                                    <label for="<%= inputId %>" class="font-normal cursor-pointer"><%= type %></label> <!-- Add for attribute and cursor-pointer -->
                                 </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Student Government"> Student Government</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Department"> Department</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Program Council"> Program Council</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Faculty"> Faculty</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="organizationType" value="Interest Organization"> Interest Organization</label>
-                                </div>
-                            </div>                                                       
-                            <br>
-                            <label>Name of Office/Organization</label>
-                            <p class="formnote">Note: Please include abbreviated name</p>
-                            <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required>
-                            <br>
-                            <label>Proponent's Name</label>
-                            <div class="name-section">
-                                <input type="text" name="proponent.lastName" placeholder="Last Name" required>
-                                <input type="text" name="proponent.firstName" placeholder="First Name" required>
-                                <input type="text" name="proponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="proponent.suffix" class="middleinitial" placeholder="Suffix">
-                                <input type="text" name="proponent.cys" placeholder="CYS" >
+                            <% }) %>
+                        </div>
+                        <br>
+                        <label class="block mt-[15px] font-bold text-base">Name of Office/Organization</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">Note: Please include abbreviated name</p>
+                        <input type="text" name="organizationName" placeholder="Ex. Communication Program Council (CPC)" required class="w-full p-2.5 my-1.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                        <br>
+                        <label class="block mt-[15px] font-bold text-base">Proponent's Name</label>
+                        <!-- Updated structure for vertical stacking on sm/md -->
+                        <div class="name-section flex flex-wrap items-start gap-2.5 mt-1">
+                            <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                <input type="text" name="proponent.lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
                             </div>
-                            <br>
-                            <label>Co-Proponent's Name</label>
-                            <p class="formnote">If no co-proponent, check "N/A"</p>
-                            <div class="name-section">
-                                <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name">
-                                <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name">
-                                <input type="text" id="coProponentMi" name="coProponent.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="coProponentSuffix" name="coProponent.suffix" class="middleinitial" placeholder="Suffix">
-                                <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS">
+                            <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                <input type="text" name="proponent.firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
                             </div>
-                            <div class="checkbox-group">
-                                <label>
-                                    <p><input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable"> Not Applicable</p>
-                                </label>
+                            <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                <input type="text" name="proponent.mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                            </div>
+                            <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                <input type="text" name="proponent.suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                            </div>
+                            <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                <input type="text" name="proponent.cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
                             </div>
                         </div>
+                        <br>
+                        <label class="block mt-[15px] font-bold text-base">Co-Proponent's Name</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">If no co-proponent, check "N/A"</p>
+                        <!-- Updated structure -->
+                        <div class="name-section flex flex-wrap items-start gap-2.5 mt-1">
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                 <input type="text" id="coProponentLastName" name="coProponent.lastName" placeholder="Last Name" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                 <input type="text" id="coProponentFirstName" name="coProponent.firstName" placeholder="First Name" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                 <input type="text" id="coProponentMi" name="coProponent.mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                 <input type="text" id="coProponentSuffix" name="coProponent.suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                 <input type="text" id="coProponentCYS" name="coProponent.cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                        </div>
+                        <div class="checkbox-group my-2.5">
+                             <label class="flex items-center text-sm">
+                                 <input type="checkbox" id="coProponentNotApplicable" name="coProponent.notApplicable" class="mr-2"> Not Applicable
+                             </label>
+                        </div>
+                    </div>
 
-                    <!-- Form 2 -->
-                        <div class="form-container2">
-                            <div class="form-group">
-                                <label for="showTitle">Title of Show</label>
-                                <input type="text" id="showTitle" name="showDetails.title" required/>
-                            </div>
-
-                            <!-- Checkboxes -->
-                            <div class="form-group checkbox-group">
-                                <label>Type of Show</label>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="News"> News</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Interview"> Interview</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Comedy"> Comedy</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Sports"> Sports</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Music"> Music</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Entertainment"> Entertainment</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Discussion or Podcast"> Discussion or Podcast</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Performance"> Performance</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Drama"> Drama</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Commentary"> Commentary</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Game"> Game</label>
-                                    <label><input type="checkbox" name="showDetails.type[]" value="Public or Current Affairs"> Public or Current Affairs</label>
-                                </div>
-                                <div class="checkbox-row">
-                                    <input type="checkbox" name="showDetails.type[]" id="other" value="Other">
-                                    <input type="text" id="other-input" placeholder="Other" disabled="true" />
-                                </div>                                               
-                            </div>                          
-                        
-                            <div class="form-group">
-                                <label for="show-description">Brief Description of Show</label><br>
-                                <textarea id="show-description" name="showDetails.description" rows="4" cols="130" placeholder="Enter your answer" required></textarea>
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="show-objectives">Objective of Show</label>
-                                <textarea id="show-objectives" name="showDetails.objectives" rows="4" cols="50" placeholder="Enter your answer" required></textarea>
-                            </div>
+                    <!-- Container 2 -->
+                     <!-- Removed lg:ml, lg:mr -->
+                     <div class="form-container2 bg-white p-5 rounded-[15px] shadow-md">
+                        <div class="form-group mb-4">
+                            <label for="showTitle" class="block mt-0 font-bold text-base">Title of Show</label>
+                            <input type="text" id="showTitle" name="showDetails.title" required class="w-full p-2.5 mt-1 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500"/>
                         </div>
 
-                <!-- Form 3 -->
-                <div class="form-container3">
-                    <label>Name of Executive Producer</label>
-                            <div class="name-section">
-                                <input type="text" name="executiveProducer.lastName" placeholder="Last Name" required>
-                                <input type="text" name="executiveProducer.firstName" placeholder="First Name" required>
-                                <input type="text" name="executiveProducer.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="executiveProducer.suffix" class="middleinitial" placeholder="Suffix">
-                                <input type="text" name="executiveProducer.cys"placeholder="CYS">
-                            </div>
+                        <!-- Checkboxes -->
+                        <div class="form-group checkbox-group my-2.5">
+                             <label class="block font-bold text-base mb-2">Type of Show</label>
+                             <% const showTypes = ["News", "Interview", "Comedy", "Sports", "Music", "Entertainment", "Discussion or Podcast", "Performance", "Drama", "Commentary", "Game", "Public or Current Affairs"]; %>
+                             <!-- Use Grid for better alignment -->
+                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
+                                 <% showTypes.forEach(type => { %>
+                                     <label class="flex items-center text-sm font-normal cursor-pointer">
+                                         <input type="checkbox" name="showDetails.type[]" value="<%= type %>" class="mr-1.5"> <%= type %>
+                                     </label>
+                                 <% }) %>
+                             </div>
+                             <!-- Other checkbox row -->
+                             <div class="flex items-center gap-1.5 mt-3"> <!-- Adjusted margin top -->
+                                 <label class="flex items-center text-sm font-normal cursor-pointer w-auto">
+                                     <input type="checkbox" name="showDetails.type[]" id="other" value="Other" class="mr-1.5"> Other:
+                                 </label>
+                                 <input type="text" id="other-input" placeholder="Specify" disabled="true" class="other-textbox w-[150px] p-1.5 rounded-md border border-gray-300 box-border text-sm focus:border-green-500 focus:ring-green-500 disabled:bg-gray-100" />
+                             </div>
+                         </div>
 
-                            <label>Name of Faculty Staff or Staff Adviser</label>
-                            <p class="formnote">For students only. If not applicable, check "N/A"</p>
-                            <div class="name-section">
-                                <input type="text" id="facultyStaffLastName" name="facultyStaff.lastName" placeholder="Last Name">
-                                <input type="text" id="facultyStaffFirstName" name="facultyStaff.firstName" placeholder="First Name">
-                                <input type="text" id="facultyStaffMi" name="facultyStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" id="facultyStaffSuffix" name="facultyStaff.suffix" class="middleinitial" placeholder="Suffix">
-                                <input type="text" id="facultyStaffDepartment" name="facultyStaff.department"placeholder="Department">
-                            </div>
-                            <div class="checkbox-group">
-                                <label>
-                                    <p><input type="checkbox" id="facultyStaffNotApplicable" name="facultyStaff.notApplicable"> Not Applicable</p>
-                                </label>
-                            </div>
+                         <div class="form-group mt-4 mb-4">
+                             <label for="show-description" class="block font-bold text-base">Brief Description of Show</label><br>
+                             <textarea id="show-description" name="showDetails.description" rows="4" placeholder="Enter your answer" required class="w-full max-h-[200px] min-h-[80px] h-auto p-2.5 text-sm box-border resize-y border border-gray-300 rounded-md mt-1 focus:border-green-500 focus:ring-green-500"></textarea>
+                         </div>
 
-                            <label>Name of Host/s</label>
-                            <p class="formnote">The hosting arrangement permits a weekly rotation of hosts, limited to two (2) sets only. 
-                                This means that there is a maximum cap of four (4) individuals who can collectively host a single program.</p>
+                         <div class="form-group">
+                             <label for="show-objectives" class="block font-bold text-base">Objective of Show</label>
+                             <textarea id="show-objectives" name="showDetails.objectives" rows="4" placeholder="Enter your answer" required class="w-full max-h-[200px] min-h-[80px] h-auto p-2.5 text-sm box-border resize-y border border-gray-300 rounded-md mt-1 focus:border-green-500 focus:ring-green-500"></textarea>
+                         </div>
+                     </div>
 
-                            <!-- Container for hosts, necessary for dynamic addition -->
-                            <div id="hosts-container">
-                                <div class="name-section host-input">
-                                    <input type="text" name="hosts[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="hosts[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="hosts[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="hosts[0].suffix" class="middleinitial" placeholder="Suffix">
-                                    <input type="text" name="hosts[0].cys" placeholder="CYS">
+                     <!-- Container 3 -->
+                    <div class="form-container3 bg-white p-5 rounded-[15px] shadow-md">
+                        <label class="block mt-[15px] font-bold text-base">Name of Executive Producer</label>
+                        <!-- Updated structure -->
+                        <div class="name-section flex flex-wrap items-start gap-2.5 mt-1">
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                 <input type="text" name="executiveProducer.lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                 <input type="text" name="executiveProducer.firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                 <input type="text" name="executiveProducer.mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                 <input type="text" name="executiveProducer.suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                 <input type="text" name="executiveProducer.cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                        </div>
+
+                        <label class="block mt-[15px] font-bold text-base">Name of Faculty Staff or Staff Adviser</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">For students only. If not applicable, check "N/A"</p>
+                        <!-- Updated structure -->
+                        <div class="name-section flex flex-wrap items-start gap-2.5 mt-1">
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                 <input type="text" id="facultyStaffLastName" name="facultyStaff.lastName" placeholder="Last Name" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                 <input type="text" id="facultyStaffFirstName" name="facultyStaff.firstName" placeholder="First Name" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                 <input type="text" id="facultyStaffMi" name="facultyStaff.mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                 <input type="text" id="facultyStaffSuffix" name="facultyStaff.suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Department -->
+                                 <input type="text" id="facultyStaffDepartment" name="facultyStaff.department" placeholder="Department" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                        </div>
+                         <div class="checkbox-group my-2.5">
+                             <label class="flex items-center text-sm">
+                                 <input type="checkbox" id="facultyStaffNotApplicable" name="facultyStaff.notApplicable" class="mr-2"> Not Applicable
+                             </label>
+                        </div>
+
+                        <label class="block mt-[15px] font-bold text-base">Name of Host/s</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">Max 4 hosts (weekly rotation, max 2 sets).</p>
+                        <div id="hosts-container" class="space-y-2 mt-1"> <!-- Add space between host rows -->
+                            <!-- Updated structure -->
+                            <div class="name-section host-input flex flex-wrap items-start gap-2.5">
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                    <input type="text" name="hosts[0].lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                    <input type="text" name="hosts[0].firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                    <input type="text" name="hosts[0].mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                    <input type="text" name="hosts[0].suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                    <input type="text" name="hosts[0].cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <!-- Remove button needs wrapper for layout -->
+                                <div class="w-full lg:w-auto flex justify-end"> <!-- Adjusted wrapper -->
+                                    <!-- Remove button added by JS -->
                                 </div>
                             </div>
-                            <button type="button" id="add-host" class="addbutton" disabled>+ Add Host</button><br><br>
+                        </div>
+                         <button type="button" id="add-host" class="addbutton mt-2 bg-[#00722A] text-white py-1 px-2.5 border-none rounded-md cursor-pointer text-sm transition hover:bg-[#005f23] disabled:opacity-50 disabled:cursor-not-allowed">+ Add Host</button>
+                         <br><br>
 
-
-                            <label>Name of Technical Staff/s</label>
-                            <p class="formnote">Each airing of an episode is to be organized by a maximum of two (2) 
-                                technical staff while coordinating with the 95.9 Green FM Directors for Operations and Logistics.</p>
-
-                            <!-- Container for technical staff, necessary for dynamic addition -->
-                            <div id="technical-container">
-                                <div class="name-section technical-input">
-                                    <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required>
-                                    <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required>
-                                    <input type="text" name="technicalStaff[0].mi" class="middleinitial" placeholder="M.I.">
-                                    <input type="text" name="technicalStaff[0].suffix" class="middleinitial" placeholder="Suffix">
-                                    <input type="text" name="technicalStaff[0].cys" placeholder="CYS">
+                        <label class="block mt-[15px] font-bold text-base">Name of Technical Staff/s</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">Max 2 technical staff per episode.</p>
+                        <div id="technical-container" class="space-y-2 mt-1"> <!-- Add space between tech rows -->
+                            <!-- Updated structure -->
+                            <div class="name-section technical-input flex flex-wrap items-start gap-2.5">
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                    <input type="text" name="technicalStaff[0].lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                    <input type="text" name="technicalStaff[0].firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                    <input type="text" name="technicalStaff[0].mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                    <input type="text" name="technicalStaff[0].suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                    <input type="text" name="technicalStaff[0].cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                                </div>
+                                <!-- Remove button needs wrapper for layout -->
+                                <div class="w-full lg:w-auto flex justify-end"> <!-- Adjusted wrapper -->
+                                    <!-- Remove button added by JS -->
                                 </div>
                             </div>
-                            <button type="button" id="add-technical" class="addbutton" disabled>+ Add Technical Staff</button><br><br>
+                        </div>
+                        <button type="button" id="add-technical" class="addbutton mt-2 bg-[#00722A] text-white py-1 px-2.5 border-none rounded-md cursor-pointer text-sm transition hover:bg-[#005f23] disabled:opacity-50 disabled:cursor-not-allowed">+ Add Technical Staff</button>
+                        <br><br>
 
+                        <label class="block mt-[15px] font-bold text-base">Name of Creative Staff</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">One (1) creative staff for publicity.</p>
+                        <!-- Updated structure -->
+                        <div class="name-section flex flex-wrap items-start gap-2.5 mt-1">
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                                 <input type="text" name="creativeStaff.lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                                 <input type="text" name="creativeStaff.firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                                 <input type="text" name="creativeStaff.mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                                 <input type="text" name="creativeStaff.suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                             <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                                 <input type="text" name="creativeStaff.cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                             </div>
+                        </div>
+                    </div>
 
-                            <label>Name of Creative Staff</label>
-                            <p class="formnote">The publicity materials for the promotion of the blocktimers' show is to be crafted by one (1) 
-                                creatives staff while coordinating with the 95.9 Green FM Senior Director for Creatives and Promotions.</p>
-                            <div class="name-section">
-                                <input type="text" name="creativeStaff.lastName" placeholder="Last Name" required>
-                                <input type="text" name="creativeStaff.firstName" placeholder="First Name" required>
-                                <input type="text" name="creativeStaff.mi" class="middleinitial" placeholder="M.I.">
-                                <input type="text" name="creativeStaff.suffix" class="middleinitial" placeholder="Suffix">
-                                <input type="text" name="creativeStaff.cys"placeholder="CYS">
-                            </div>
+                    <!-- Container 4 -->
+                    <div class="form-container4 p-5 bg-white rounded-[15px] shadow-md">
+                        <label class="block mt-[15px] font-bold text-base">Agreement</label>
+                        <p class="agreement text-sm my-2">We have read, understood, and will responsibly comply with the guidelines for blocktimers that have been set forth by the 95.9 Green FM Management Board.</p>
+                        <label class="radio-item flex items-center my-1 text-sm">
+                            <input type="radio" name="agreement" value="Agree" required class="mr-1.5"> Yes, we agree.
+                        </label><br>
+
+                        <label class="block mt-[15px] font-bold text-base">DLSU-D Email of Office/Organization</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">If not applicable, use contact person's DLSU-D email</p>
+                        <!-- Changed type to text -->
+                        <input type="text" id="dlsud-email-office" name="contactInfo.dlsudEmail" placeholder="@dlsud.edu.ph" required class="w-full p-2.5 my-1.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                        <br>
+
+                        <label class="block mt-[15px] font-bold text-base">Contact Person's DLSU-D Email</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">Used for MS Teams Channel invites.</p>
+                        <!-- Changed type to text -->
+                        <input type="text" id="dlsud-email-contact" name="contactInfo.contactEmail" placeholder="@dlsud.edu.ph" required class="w-full p-2.5 my-1.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                        <br>
+
+                        <label class="block mt-[15px] font-bold text-base">Contact Person's Facebook Link</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">Used for Messenger Group Chat invites.</p>
+                        <input type="text" name="contactInfo.contactFbLink" placeholder="https://www.facebook.com/..." required class="w-full p-2.5 my-1.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+
+                        <label class="block mt-[15px] font-bold text-base">Allow automatic crossposting to your Facebook page?</label>
+                        <p class="formnote block text-sm text-gray-600 my-1">See <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank" class="text-blue-600 hover:underline">Facebook's article</a> for details.</p>
+                        <div class="radio-group grid grid-cols-2 gap-x-1 my-2.5 text-sm">
+                            <label class="radio-item flex items-center my-1 mr-4">
+                                <input type="radio" name="contactInfo.crossposting" value="Yes" required class="mr-1.5"> Yes
+                            </label>
+                            <label class="radio-item flex items-center my-1">
+                                <input type="radio" name="contactInfo.crossposting" value="No" class="mr-1.5"> No
+                            </label>
+                        </div>
+
+                        <div id="fb-link-container" class="hidden mt-4"> <!-- Starts hidden -->
+                            <label class="block font-bold text-base">Facebook Crossposting Link</label>
+                            <p class="formnote block text-sm text-gray-600 my-1">Note: This is different from your page's main URL. See the article linked above.</p>
+                            <input type="text" name="contactInfo.fbLink" class="w-full p-2.5 my-1.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                        </div>
+
+                        <label class="block mt-[15px] font-bold text-base">Signature of Proponent</label><br>
+                        <div id="signature-upload-container" class="relative inline-block mt-1">
+                            <label for="signature-upload" class="custom-file-upload inline-block bg-[#00722A] text-white py-2.5 px-4 rounded-md cursor-pointer text-sm text-center transition hover:bg-[#005f23]">
+                                Upload Signature
+                            </label>
+                            <input type="file" id="signature-upload" name="signature-upload" accept=".jpg, .jpeg, .png" required class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"> <!-- Hidden actual input -->
+                            <p class="formnote block text-sm text-gray-600 my-1">Upload JPG or PNG format.</p>
+                        </div>
+                         <div id="signature-preview" class="hidden mt-2"> <!-- Starts hidden -->
+                             <p class="text-sm font-medium">Preview:</p>
+                             <img id="signature-image" src="" alt="Signature Preview" class="mt-1 border border-gray-300 p-1 max-w-[200px] max-h-[100px]">
+                         </div>
+                    </div>
+
+                </div> <!-- End form sections wrapper -->
+
+                <!-- Submit button placed inside the centered container -->
+                <div class="submit-button flex justify-end mt-6 mb-6"> <!-- Adjusted margins -->
+                    <button type="submit" class="submit bg-[#00722A] text-white py-2.5 px-5 border-none rounded-[10px] cursor-pointer text-base hover:bg-[#00591d]">NEXT</button>
                 </div>
-                
-                <!-- Form 4 -->
-                <div class="form-container4">
-                    <!-------------------- 4 - Blocktimer Agreement -------------------->
-                    <label>Agreement</label>
-                    <p class="agreement">We have read, understood, and will responsibly comply with the guidelines for blocktimers that have been set forth by the 95.9 Green FM Management Board.</p>
-                    <label class="radio-item"><input type="radio" name="agreement" value="Agree" required> Yes, we agree.</label><br>
+            </form>
+            <!-------------------- CONTENTS END -------------------->
 
-                    <!-------------------- 5 - Contact Information -------------------->
-                    <label>DLSU-D Email of Office/Organization</label>
-                    <p class="formnote">If not applicable, you may enter the DLSU-D email of the contact person</p>
-                    <input type="text" id="dlsud-email-office" name="contactInfo.dlsudEmail" placeholder="@dlsud.edu.ph" required>
-                    <br>
+        </div> <!-- End Centering Container -->
 
-                    <label>Contact Person's DLSU-D Email</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' MS Teams Channel for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
-                    <input type="text" id="dlsud-email-contact" name="contactInfo.contactEmail" placeholder="@dlsud.edu.ph" required>
+    </div> <!-- End Main Content Area Wrapper -->
 
-                    <br><label>Contact Person's Facebook Link</label>
-                    <p class="formnote">This is for the purpose of adding your main contact person to the Official 95.9 Green FM Blocktimers' Messenger Group Chat for communication. Other production members may be added later on upon coordinating with your provided contact person.</p>
-                    <input type="text" name="contactInfo.contactFbLink" placeholder="https://www.facebook.com/959GreenFm" required>
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %> <!-- Include footer -->
 
-                    <label>Allow automatic crossposting to your office/organization's Facebook page?</label>
-                    <p class="formnote">Note: Automatic crossposting on Facebook refers to its feature where it will allow every episode of your show which will be published on 95.9 Green FM's Facebook page, to be automatically posted to your office/organization's Facebook page. For direction on how to set up our crossposting relationship, read this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a></p>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="contactInfo.crossposting" value="Yes" required> Yes</label>
-                        <label class="radio-item"><input type="radio" name="contactInfo.crossposting" value="No"> No</label>
-                    </div>
+</div> <!-- End page-container -->
 
-                    <div id="fb-link-container" style="display: none;">
-                        <label>Facebook Crossposting Link</label>
-                        <p class="formnote">Note: Please take note that "Crossposting" link is different from your office/organization's official Facebook link. For directions in getting this specific link, refer to this <a href="https://www.facebook.com/business/learn/lessons/crosspost-video-across-pages" target="_blank">article</a>.</p>
-                        <input type="text" name="contactInfo.fbLink">
-                    </div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-                    <label>Signature of Proponent</label><br>
-                    <div id="signature-upload-container">
-                        <input type="file" id="signature-upload" name="proponentSignature" accept=".jpg, .jpeg, .png" required>
-                        <p class="formnote">Upload your signature in JPG or PNG format.</p>
-                    </div>
-                    <div id="signature-preview" style="display: none;">
-                        <p>Preview:</p>
-                        <img id="signature-image" src="" alt="Signature Preview" style="max-width: 200px; max-height: 100px;">
-                    </div>
-                </div>
-            </div>     
-        </div>
-        <div class="submit-button">
-            <button type="submit" class="submit">NEXT</button> 
-        </div>
-    </form>      
-</div>
-
-    <script src="js/2-user/blocktimer.js"></script>
-    <script src="js/3-logreg/auth.js" defer></script>   
+<script src="/js/2-user/blocktimer.js"></script> <!-- Keep JS link -->
+<script src="/js/3-logreg/auth.js" defer></script>
 </body>
 </html>

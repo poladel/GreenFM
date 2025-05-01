@@ -1881,14 +1881,20 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
 }); // End DOMContentLoaded
 
  // --- Spinner ---
- const spinner = document.getElementById('loading-spinner');
+ const spinner = document.getElementById('loading-spinner'); // Get spinner element
 
  function showSpinner() {
-     if (spinner) spinner.style.display = 'block';
+     if (spinner) {
+         spinner.classList.remove('hidden'); // Remove hidden class to show
+         spinner.classList.add('flex');      // Ensure it's displayed as flex container
+     }
  }
 
  function hideSpinner() {
-     if (spinner) spinner.style.display = 'none';
+     if (spinner) {
+         spinner.classList.add('hidden');   // Add hidden class to hide
+         spinner.classList.remove('flex');  // Remove flex display
+     }
  }
 
  // --- Helper Functions ---

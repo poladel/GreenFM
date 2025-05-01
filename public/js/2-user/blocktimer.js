@@ -1,14 +1,16 @@
 function showSpinner() {
     const spinner = document.getElementById('loading-spinner');
     if (spinner) {
-        spinner.style.display = 'flex';
+        spinner.classList.remove('hidden'); // Remove hidden class to show
+        spinner.classList.add('flex');      // Ensure it's displayed as flex container
     }
 }
 
 function hideSpinner() {
     const spinner = document.getElementById('loading-spinner');
     if (spinner) {
-        spinner.style.display = 'none';
+        spinner.classList.add('hidden');   // Add hidden class to hide
+        spinner.classList.remove('flex');  // Remove flex display
     }
 }
 
@@ -75,9 +77,12 @@ function setupOtherInputToggle() {
 
     function toggleOtherInputs() {
         const isChecked = checkbox.checked;
-        input.disabled = !isChecked;
+        input.disabled = !isChecked; // Keep disabled logic for functionality
         if (!isChecked) {
             input.value = ''; // Clear value when disabled
+            input.classList.add('disabled:bg-gray-100'); // Add Tailwind class for visual styling when disabled
+        } else {
+            input.classList.remove('disabled:bg-gray-100'); // Remove Tailwind class when enabled
         }
         // Optionally make required based on checkbox state
         // input.required = isChecked;
@@ -108,16 +113,30 @@ function setupDynamicAddRemove() {
 
         if (currentHosts < 4) {
             const newHostDiv = document.createElement("div");
-            newHostDiv.className = "name-section host-input"; // Use consistent class
+            // Apply Tailwind classes for layout
+            newHostDiv.className = "name-section host-input flex flex-wrap items-start gap-2.5"; // Removed mt-1, handled by space-y on parent
 
-            // Use the current hostIndex for the new fields
+            // Use the new structure with wrappers and responsive classes/ordering
+            // DOM Order: LN, FN, MI, Suffix, CYS
             newHostDiv.innerHTML = `
-                <input type="text" name="hosts[${hostIndex}].lastName" placeholder="Last Name" required>
-                <input type="text" name="hosts[${hostIndex}].firstName" placeholder="First Name" required>
-                <input type="text" name="hosts[${hostIndex}].mi" placeholder="M.I.">
-                <input type="text" name="hosts[${hostIndex}].suffix" placeholder="Suffix">
-                <input type="text" name="hosts[${hostIndex}].cys" placeholder="CYS">
-                <button type="button" class="remove-btn remove-host">Remove</button> <!-- Use consistent class -->
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                    <input type="text" name="hosts[${hostIndex}].lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                    <input type="text" name="hosts[${hostIndex}].firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                    <input type="text" name="hosts[${hostIndex}].mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                    <input type="text" name="hosts[${hostIndex}].suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                    <input type="text" name="hosts[${hostIndex}].cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-auto flex justify-end"> <!-- Remove Button Wrapper -->
+                    <button type="button" class="remove-host bg-white text-red-600 py-1 px-2 border border-red-600 rounded-md text-xs cursor-pointer h-fit self-center transition hover:bg-red-600 hover:border-red-700 hover:text-white">Remove</button>
+                </div>
             `;
 
             hostsContainer.appendChild(newHostDiv);
@@ -140,15 +159,16 @@ function setupDynamicAddRemove() {
         hostIndex = hostInputs.length; // Reset index based on current count
 
         for (let i = 0; i < hostInputs.length; i++) {
-            const inputs = hostInputs[i].querySelectorAll("input[type='text']"); // More specific selector
-            if (inputs.length === 5) { // Ensure all inputs are found
-                inputs[0].name = `hosts[${i}].lastName`;
-                inputs[1].name = `hosts[${i}].firstName`;
-                inputs[2].name = `hosts[${i}].mi`;
-                inputs[3].name = `hosts[${i}].suffix`;
-                inputs[4].name = `hosts[${i}].cys`;
+            // Query inputs based on their order in the generated HTML (LN, FN, MI, Suffix, CYS)
+            const inputs = hostInputs[i].querySelectorAll("input[type='text']");
+            if (inputs.length === 5) { // Check if 5 text inputs exist
+                inputs[0].name = `hosts[${i}].lastName`;  // 1st input in HTML
+                inputs[1].name = `hosts[${i}].firstName`; // 2nd input in HTML
+                inputs[2].name = `hosts[${i}].mi`;        // 3rd input in HTML
+                inputs[3].name = `hosts[${i}].suffix`;    // 4th input in HTML
+                inputs[4].name = `hosts[${i}].cys`;       // 5th input in HTML
             } else {
-                console.error("Error updating host indices: Input mismatch in row", i);
+                console.error("Error updating host indices: Input mismatch in row", i, "Expected 5, found", inputs.length);
             }
         }
     }
@@ -166,16 +186,30 @@ function setupDynamicAddRemove() {
 
         if (currentTechnical < 2) {
             const newTechnicalDiv = document.createElement("div");
-            newTechnicalDiv.className = "name-section technical-input"; // Use consistent class
+            // Apply Tailwind classes for layout
+            newTechnicalDiv.className = "name-section technical-input flex flex-wrap items-start gap-2.5"; // Removed mt-1
 
-            // Use the current technicalIndex for the new fields
+            // Use the new structure with wrappers and responsive classes/ordering
+            // DOM Order: LN, FN, MI, Suffix, CYS
             newTechnicalDiv.innerHTML = `
-                <input type="text" name="technicalStaff[${technicalIndex}].lastName" placeholder="Last Name" required>
-                <input type="text" name="technicalStaff[${technicalIndex}].firstName" placeholder="First Name" required>
-                <input type="text" name="technicalStaff[${technicalIndex}].mi" placeholder="M.I.">
-                <input type="text" name="technicalStaff[${technicalIndex}].suffix" placeholder="Suffix">
-                <input type="text" name="technicalStaff[${technicalIndex}].cys" placeholder="CYS">
-                <button type="button" class="remove-btn remove-technical">Remove</button> <!-- Use consistent class -->
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- Last Name -->
+                    <input type="text" name="technicalStaff[${technicalIndex}].lastName" placeholder="Last Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- First Name -->
+                    <input type="text" name="technicalStaff[${technicalIndex}].firstName" placeholder="First Name" required class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-[9vh]"> <!-- M.I. -->
+                    <input type="text" name="technicalStaff[${technicalIndex}].mi" placeholder="M.I." class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-[9vh]"> <!-- Suffix -->
+                    <input type="text" name="technicalStaff[${technicalIndex}].suffix" placeholder="Suffix" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:flex-1 lg:w-auto min-w-0"> <!-- CYS -->
+                    <input type="text" name="technicalStaff[${technicalIndex}].cys" placeholder="CYS" class="w-full p-2.5 border border-gray-300 rounded-md box-border text-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div class="w-full lg:w-auto flex justify-end"> <!-- Remove Button Wrapper -->
+                    <button type="button" class="remove-technical bg-white text-red-600 py-1 px-2 border border-red-600 rounded-md text-xs cursor-pointer h-fit self-center transition hover:bg-red-600 hover:border-red-700 hover:text-white">Remove</button>
+                </div>
             `;
 
             technicalContainer.appendChild(newTechnicalDiv);
@@ -198,15 +232,16 @@ function setupDynamicAddRemove() {
         technicalIndex = technicalInputs.length; // Reset index based on current count
 
         for (let i = 0; i < technicalInputs.length; i++) {
-            const inputs = technicalInputs[i].querySelectorAll("input[type='text']"); // More specific selector
-             if (inputs.length === 5) { // Ensure all inputs are found
-                inputs[0].name = `technicalStaff[${i}].lastName`;
-                inputs[1].name = `technicalStaff[${i}].firstName`;
-                inputs[2].name = `technicalStaff[${i}].mi`;
-                inputs[3].name = `technicalStaff[${i}].suffix`;
-                inputs[4].name = `technicalStaff[${i}].cys`;
+            // Query inputs based on their order in the generated HTML (LN, FN, MI, Suffix, CYS)
+            const inputs = technicalInputs[i].querySelectorAll("input[type='text']");
+             if (inputs.length === 5) { // Check if 5 text inputs exist
+                inputs[0].name = `technicalStaff[${i}].lastName`;  // 1st input in HTML
+                inputs[1].name = `technicalStaff[${i}].firstName`; // 2nd input in HTML
+                inputs[2].name = `technicalStaff[${i}].mi`;        // 3rd input in HTML
+                inputs[3].name = `technicalStaff[${i}].suffix`;    // 4th input in HTML
+                inputs[4].name = `technicalStaff[${i}].cys`;       // 5th input in HTML
             } else {
-                console.error("Error updating technical staff indices: Input mismatch in row", i);
+                 console.error("Error updating technical staff indices: Input mismatch in row", i, "Expected 5, found", inputs.length);
             }
         }
     }
@@ -256,9 +291,11 @@ function setupCrosspostingToggle() {
 
     function toggleFbLinkDisplay() {
         const selectedValue = document.querySelector('input[name="contactInfo.crossposting"]:checked')?.value;
-        fbLinkContainer.style.display = selectedValue === "Yes" ? "block" : "none";
-        if (selectedValue !== "Yes") {
-            fbLinkInput.value = ""; // Clear the input if 'No' is selected
+        if (selectedValue === "Yes") {
+            fbLinkContainer.classList.remove('hidden'); // Show using Tailwind
+        } else {
+            fbLinkContainer.classList.add('hidden'); // Hide using Tailwind
+            if (fbLinkInput) fbLinkInput.value = ""; // Clear the input if 'No' is selected
         }
         // Optionally make required based on selection
         // fbLinkInput.required = selectedValue === "Yes";
@@ -279,25 +316,136 @@ function setupDlsudEmailFormatting() {
     const emailInputOffice = document.getElementById('dlsud-email-office');
     const emailInputContact = document.getElementById('dlsud-email-contact');
 
-    // Function to format the email input on blur
+    // Function to format the email input on input event
     function formatDlsudEmail(emailInput) {
         if (!emailInput) return;
-        let value = emailInput.value.trim();
-        // Remove existing domain if user tries to type it again or pastes it
-        value = value.replace(domain, "");
-        // Append domain if there's a username part
-        if (value.length > 0) {
-            emailInput.value = value + domain;
-        } else {
-            emailInput.value = ''; // Clear if only domain was present or input is empty
+
+        const originalValue = emailInput.value;
+        const originalCursorPos = emailInput.selectionStart; // Get cursor position
+
+        // Separate username and domain parts
+        let username = originalValue;
+        if (originalValue.endsWith(domain)) {
+            username = originalValue.substring(0, originalValue.length - domain.length);
+        } else if (originalValue.includes(domain)) {
+            // If domain is typed in the middle, remove it and anything after it for simplicity
+            username = originalValue.substring(0, originalValue.indexOf(domain));
         }
+
+        // Prevent deleting the domain if the cursor is within or at the start of it
+        // Allow deletion if the entire input is selected or if backspacing from just after the username
+        const isDeletingDomain = originalCursorPos > username.length && originalValue.length < (username + domain).length;
+
+        if (isDeletingDomain && !emailInput.dataset.justSelectedAll) {
+             // If trying to delete part of the domain, reset value and cursor
+             emailInput.value = username + domain;
+             // Place cursor at end of username (before domain)
+             emailInput.setSelectionRange(username.length, username.length);
+             return; // Prevent further processing that might remove the domain
+        }
+
+        // Always ensure the domain is appended if there's a username
+        let newValue = username;
+        if (username.length > 0) {
+            newValue += domain;
+        } else {
+             // If username becomes empty (e.g., select all + delete), clear the input
+             newValue = '';
+        }
+
+        // Calculate the new cursor position *before* setting the value
+        // Keep the cursor within the username part
+        const newCursorPos = Math.min(originalCursorPos, username.length);
+
+        if (newValue !== originalValue) {
+            emailInput.value = newValue;
+        }
+
+        // Use setTimeout to ensure cursor position is set after value update is processed
+        setTimeout(() => {
+            // Re-check username length in case of rapid typing/deletion before timeout
+            const currentUsername = emailInput.value.substring(0, emailInput.value.indexOf(domain));
+            const finalCursorPos = Math.min(newCursorPos, currentUsername.length);
+            emailInput.setSelectionRange(finalCursorPos, finalCursorPos);
+        }, 0);
+
+
+        // Reset the flag after processing
+        emailInput.dataset.justSelectedAll = 'false';
     }
 
     // Common event listener setup
     function setupInput(emailInput) {
         if (!emailInput) return; // Skip if element not found
-        emailInput.addEventListener("blur", () => formatDlsudEmail(emailInput));
-        // Optional: Add keydown listener to prevent easy deletion of domain if desired
+
+        // Use 'input' event for real-time formatting
+        emailInput.addEventListener("input", () => formatDlsudEmail(emailInput));
+
+        // Handle focus to initially format if needed (e.g., pre-filled values)
+        emailInput.addEventListener("focus", () => {
+             if (emailInput.value.length > 0 && !emailInput.value.endsWith(domain)) {
+                 formatDlsudEmail(emailInput); // Format on focus if needed
+             } else if (emailInput.value.length === 0) {
+                 // Optionally add domain immediately on focus if empty
+                 // emailInput.value = domain;
+                 // emailInput.setSelectionRange(0, 0); // Place cursor at start
+             } else {
+                 // If focused and already formatted, ensure cursor is before domain
+                 const usernameLength = emailInput.value.indexOf(domain);
+                 if (usernameLength !== -1 && emailInput.selectionStart > usernameLength) {
+                     // Use setTimeout here as well for consistency on focus
+                     setTimeout(() => {
+                         emailInput.setSelectionRange(usernameLength, usernameLength);
+                     }, 0);
+                 }
+             }
+        });
+
+         // Handle edge case: User selects all and deletes
+         emailInput.addEventListener('keydown', (e) => {
+             if ((e.key === 'Backspace' || e.key === 'Delete') && emailInput.selectionStart === 0 && emailInput.selectionEnd === emailInput.value.length) {
+                 emailInput.dataset.justSelectedAll = 'true'; // Flag that deletion is happening after select all
+             } else {
+                 emailInput.dataset.justSelectedAll = 'false';
+             }
+
+             // Prevent cursor movement into the domain via arrow keys
+             const usernameLength = emailInput.value.indexOf(domain);
+             if (usernameLength !== -1) {
+                 if (e.key === 'ArrowRight' && emailInput.selectionStart === usernameLength) {
+                     e.preventDefault(); // Stop right arrow key if at the end of username
+                 }
+                 if (e.key === 'ArrowLeft' && emailInput.selectionStart === usernameLength + 1) {
+                     // Allow left arrow from start of domain back to end of username
+                 } else if (e.key === 'ArrowLeft' && emailInput.selectionStart > usernameLength) {
+                      e.preventDefault(); // Stop left arrow if deep inside domain
+                      emailInput.setSelectionRange(usernameLength, usernameLength); // Move to end of username
+                 }
+                 // Prevent Home/End keys from going into the domain easily
+                 if (e.key === 'End') {
+                     e.preventDefault();
+                     emailInput.setSelectionRange(usernameLength, usernameLength);
+                 }
+                 // Allow Home key to go to the start (position 0)
+             }
+         });
+
+         // Ensure cursor is positioned correctly after clicks
+         emailInput.addEventListener('click', () => {
+             const usernameLength = emailInput.value.indexOf(domain);
+             if (usernameLength !== -1 && emailInput.selectionStart > usernameLength) {
+                 // Use setTimeout here as well for consistency on click
+                 setTimeout(() => {
+                     emailInput.setSelectionRange(usernameLength, usernameLength);
+                 }, 0);
+             }
+         });
+
+
+         // Initial format on load if value exists
+         if (emailInput.value.length > 0) {
+             formatDlsudEmail(emailInput);
+         }
     }
 
     // Set up event listeners for both email inputs
@@ -324,16 +472,16 @@ function setupSignaturePreview() {
 
             reader.onload = function (e) {
                 signatureImage.src = e.target.result; // Set the src to the file data
-                previewContainer.style.display = "block"; // Show the preview
+                previewContainer.classList.remove('hidden'); // Show the preview using Tailwind
             };
             reader.onerror = function() {
                 alert("Error reading signature file.");
-                previewContainer.style.display = "none";
+                previewContainer.classList.add('hidden'); // Hide preview using Tailwind
                 signatureImage.src = "";
             }
             reader.readAsDataURL(file); // Convert the file to a Data URL
         } else {
-            previewContainer.style.display = "none"; // Hide the preview if no file or invalid file
+            previewContainer.classList.add('hidden'); // Hide the preview using Tailwind
             signatureImage.src = ""; // Clear the src
             if (file) { // If a file was selected but invalid type
                 alert("Please select a valid image file for the signature (JPG, PNG).");

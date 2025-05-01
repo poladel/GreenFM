@@ -7,6 +7,11 @@
     <div class="flex-1">
         <div class="pt-5 pl-16 pr-4 lg:pl-[14vw]">
 
+            <!-- Add Tailwind Spinner HTML (hidden by default) -->
+            <div id="loading-spinner" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-[10000]"> <!-- High z-index -->
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-solid border-gray-200 border-t-green-500"></div>
+            </div>
+
             <!-------------------- CONTENTS START -------------------->
             <!-- Add a wrapper div for centering the tabs -->
             <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
@@ -294,6 +299,11 @@
                                     <input type="text" id="submissionProponentCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
                                 </fieldset>
                                 <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
+                                    <legend class="font-semibold px-2 text-sm text-gray-600">Faculty/Staff Adviser</legend>
+                                    <input type="text" id="submissionFacultyStaffName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
+                                    <input type="text" id="submissionFacultyStaffDept" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Department">
+                                </fieldset>
+                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Executive Producer</legend>
                                     <input type="text" id="submissionExecProducerName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
                                     <input type="text" id="submissionExecProducerCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
@@ -302,12 +312,7 @@
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Creative Staff</legend>
                                     <input type="text" id="submissionCreativeStaffName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
                                     <input type="text" id="submissionCreativeStaffCYS" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="CYS">
-                                </fieldset>
-                                <fieldset class="border border-gray-300 p-4 rounded-lg bg-white">
-                                    <legend class="font-semibold px-2 text-sm text-gray-600">Faculty/Staff Adviser</legend>
-                                    <input type="text" id="submissionFacultyStaffName" class="w-full p-2 mb-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Name">
-                                    <input type="text" id="submissionFacultyStaffDept" class="w-full p-2 rounded border border-gray-300 bg-gray-100 text-sm cursor-not-allowed" readonly placeholder="Department">
-                                </fieldset>
+                                </fieldset>                
                             </div>
 
                              <div class="mb-4">
@@ -326,6 +331,16 @@
                                 <label for="submissionShowObjectives" class="block font-semibold mb-1 text-sm text-gray-600">Show Objectives:</label>
                                 <textarea id="submissionShowObjectives" name="submissionShowObjectives" readonly rows="3" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm box-border bg-gray-200 resize-y cursor-not-allowed"></textarea>
                             </div>
+
+                             <!-- Host/Tech Display Containers -->
+                             <div id="submissionHostContainer" class="mb-4 border border-gray-300 p-4 rounded-lg bg-white">
+                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Hosts:</label>
+                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
+                             </div>
+                             <div id="submissionTechnicalStaffContainer" class="mb-6 border border-gray-300 p-4 rounded-lg bg-white"> <!-- Adjusted margin -->
+                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Technical Staff:</label>
+                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
+                             </div>
 
                              <!-- Contact Info Section -->
                              <fieldset class="border border-gray-300 p-4 rounded-lg mb-6 bg-white"> <!-- Adjusted margin -->
@@ -353,16 +368,6 @@
                                     </div>
                                 </div>
                             </fieldset>
-
-                             <!-- Host/Tech Display Containers -->
-                             <div id="submissionHostContainer" class="mb-4 border border-gray-300 p-4 rounded-lg bg-white">
-                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Hosts:</label>
-                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
-                             </div>
-                             <div id="submissionTechnicalStaffContainer" class="mb-6 border border-gray-300 p-4 rounded-lg bg-white"> <!-- Adjusted margin -->
-                                 <label class="block font-semibold mb-1 text-sm text-gray-600">Technical Staff:</label>
-                                 <p class="text-sm text-gray-500">Select a submission to view details.</p>
-                             </div>
 
                              <div class="mb-6"> <!-- Adjusted margin -->
                                 <label for="submissionProponentSignature" class="block font-semibold mb-1 text-sm text-gray-600">Proponent Signature:</label>
@@ -416,6 +421,5 @@
     <%- include('../partials/footer.ejs') %>
 </div>
 <script src="/js/1-admin/blocktimer.js"></script>
-<%- include('../partials/spinner.ejs') %>
 </body>
 </html>

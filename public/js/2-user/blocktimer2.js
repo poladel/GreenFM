@@ -140,8 +140,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // <<< Listen for schedule updates (for modal/time dropdown) >>>
     socket.on('scheduleUpdate', (data) => {
         console.log('Received scheduleUpdate (Step 2):', data);
-        // If the modal is open, update the button state
-        if (modal.style.display === "block") {
+        // If the modal is open (check using classList), update the button state
+        if (!modal.classList.contains("hidden")) { // Check visibility using Tailwind class
             updateScheduleButtonInModal(data);
         }
         // Also update the main page time dropdown if necessary
@@ -176,6 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             // Fetch current schedules and pending for the selected day/year
             const scheduleResponse = await fetch(`/schedule?schoolYear=${schoolYear}&day=${day}`);
+            // Use string literal for pending submissions filter
             const submissionResponse = await fetch(`/submissions?schoolYear=${schoolYear}&result=Pending&day=${day}`);
 
             if (!scheduleResponse.ok) console.warn(`Failed to fetch schedules for time population: ${scheduleResponse.status}`);
@@ -251,8 +252,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // --- Modal Logic (fetchAndDisplaySchedules, updateScheduleButtonInModal, event listeners) ---
-    // (Keep your existing modal functions and listeners here - they seem okay)
-    // Function to fetch and display schedules within the modal
     async function fetchAndDisplaySchedules() {
         // --- MODIFY LOADING STATE ---
         let loadingElement = modalContentArea.querySelector('#modal-loading-temp');
@@ -262,11 +261,14 @@ document.addEventListener("DOMContentLoaded", function () {
             loadingElement = document.createElement('p');
             loadingElement.id = 'modal-loading-temp';
             loadingElement.textContent = 'Loading schedule...';
+            // Add Tailwind classes for loading text if desired
+            // loadingElement.classList.add('text-center', 'py-4');
             if(closeBtn) closeBtn.insertAdjacentElement('afterend', loadingElement);
             else modalContentArea.prepend(loadingElement);
         }
-        loadingElement.style.display = 'block';
-        if (modalScheduleContainer) modalScheduleContainer.style.display = 'none'; // Hide table container
+        // Use classList for visibility if loadingElement is permanent, or style if temporary
+        loadingElement.classList.remove('hidden'); // Show loading
+        if (modalScheduleContainer) modalScheduleContainer.classList.add('hidden'); // Hide table container using Tailwind
         // --- END MODIFY LOADING STATE ---
 
         try {
@@ -280,6 +282,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!scheduleResponse.ok) throw new Error(`Failed to fetch schedules (${scheduleResponse.status})`);
             const schedules = await scheduleResponse.json();
 
+            // Use string literal for pending submissions filter
             const submissionResponse = await fetch(`/submissions?schoolYear=${selectedSchoolYear}&result=Pending`);
             if (!submissionResponse.ok) throw new Error(`Failed to fetch submissions (${submissionResponse.status})`);
             const submissions = await submissionResponse.json();
@@ -289,9 +292,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const scheduleButtons = modal.querySelectorAll(".availablebtn");
             scheduleButtons.forEach((button) => {
-                button.textContent = "";
-                button.classList.remove("schedulebtn", "pendingbtn", "confirmationbtn", "disabled");
-                button.disabled = false;
+                // Reset state using the update function with a dummy 'delete' action
+                updateScheduleButtonInModal({
+                    action: 'delete', // Use 'delete' to reset to available state
+                    day: button.getAttribute('data-day'),
+                    time: button.getAttribute('data-time'),
+                    schoolYear: selectedSchoolYear // Pass current year for context
+                });
             });
 
             schedules.forEach((schedule) => {
@@ -308,7 +315,8 @@ document.addEventListener("DOMContentLoaded", function () {
             submissions.forEach((submission) => {
                 // Check if the slot is already taken by a confirmed schedule
                 const button = modal.querySelector(`.availablebtn[data-day="${submission.preferredSchedule?.day}"][data-time="${submission.preferredSchedule?.time}"]`);
-                if (button && !button.classList.contains('schedulebtn') && !button.classList.contains('confirmationbtn')) {
+                // Check button exists and is not already styled as booked or confirmation
+                if (button && !button.classList.contains('bg-red-500') && !button.classList.contains('bg-blue-400')) { // Check using Tailwind classes
                     updateScheduleButtonInModal({
                         action: 'pending',
                         day: submission.preferredSchedule?.day,
@@ -329,20 +337,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 const time = selectedTimeDropdownValue;
                 const buttonInModal = modal.querySelector(`.availablebtn[data-day="${day}"][data-time="${time}"]`);
                 if (buttonInModal && !buttonInModal.disabled) { // Check if it's not already booked/pending
+                    // Apply a distinct 'selected' style different from disabled/booked/pending
                     buttonInModal.textContent = "Selected";
-                    buttonInModal.classList.add("disabled"); // Visually indicate selection
-                    buttonInModal.disabled = true; // Prevent clicking the same slot again from modal
+                    buttonInModal.disabled = true; // Disable clicking again
+
+                    // Remove potentially conflicting styles (available and default disabled)
+                    buttonInModal.classList.remove(
+                        'bg-green-600', 'hover:bg-green-800', 'text-white', 'cursor-pointer',
+                        'disabled:bg-gray-200', 'disabled:text-gray-500' // Explicitly remove default disabled styles
+                    );
+                    // Add the desired red selected style
+                    buttonInModal.classList.add('bg-red-600','text-white','cursor-not-allowed'); // Selected style (Red)
                     selectedButton = buttonInModal; // Track the selected button in modal
                 }
             }
 
-            if (loadingElement) loadingElement.remove();
-            if (modalScheduleContainer) modalScheduleContainer.style.display = 'block';
+            if (loadingElement) loadingElement.remove(); // Or loadingElement.classList.add('hidden');
+            if (modalScheduleContainer) modalScheduleContainer.classList.remove('hidden'); // Show table using Tailwind
 
         } catch (error) {
             console.error("MODAL: Error fetching schedules or submissions:", error);
-            if (loadingElement) loadingElement.remove();
-            if (modalScheduleContainer) modalScheduleContainer.style.display = 'none';
+            if (loadingElement) loadingElement.remove(); // Or loadingElement.classList.add('hidden');
+            if (modalScheduleContainer) modalScheduleContainer.classList.add('hidden'); // Hide table on error
 
             errorElement = modalContentArea.querySelector('#modal-error-temp');
             if (!errorElement) {
@@ -352,12 +368,12 @@ document.addEventListener("DOMContentLoaded", function () {
                  if(closeBtn) closeBtn.insertAdjacentElement('afterend', errorElement);
                  else modalContentArea.prepend(errorElement);
             }
-            errorElement.textContent = `Error loading schedule: ${error.message}`;
-            errorElement.style.display = 'block';
+            // Use classList for visibility if errorElement is permanent, or style if temporary
+            errorElement.classList.remove('hidden'); // Show error
         }
     }
 
-    // Function to update a single button within the modal
+    // Function to update a single button within the modal using Tailwind classes
     function updateScheduleButtonInModal(data) {
          const { action, day, time, schoolYear, showTitle, status } = data;
          const currentModalYear = schoolYearDropdown.value; // Check against main dropdown
@@ -369,28 +385,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
          console.log(`Updating MODAL button ${day} ${time} - Action: ${action}, Status: ${status}`);
 
-         // Reset state carefully
-         button.classList.remove("schedulebtn", "pendingbtn", "confirmationbtn", "disabled");
+         // Reset state: remove specific status classes and reset text/disabled
+         button.disabled = false;
          button.textContent = "";
-         button.disabled = false; // Assume available initially
+         button.classList.remove(
+             // Specific status styles to remove
+             'bg-red-500', 'text-white',        // Booked (Accepted) - Note: Using 500 for booked
+             'bg-yellow-400', 'text-black',   // Pending
+             'bg-blue-400', 'text-white',      // Confirmation
+             'bg-red-600', 'text-white',       // Selected (Red) - Ensure this is removed on reset
+             // General disabled/utility styles (some might be re-added)
+             'cursor-not-allowed'
+             // Keep base structural/padding/text-size classes defined in HTML/CSS
+         );
+         // Ensure base available styles are present initially
+         button.classList.add(
+             'bg-green-600', 'hover:bg-green-800', 'text-white', 'cursor-pointer'
+             // Add base structural classes if not already present in HTML
+             // 'border-none', 'py-2', 'px-1', 'rounded-md', 'text-xs', 'w-full'
+         );
+
 
          if (action === 'delete') {
-             // Button becomes available
+             // Style as available (already done by reset + base classes)
          } else if (action === 'pending') {
              button.textContent = `Pending: ${showTitle || 'N/A'}`;
-             button.classList.add("pendingbtn");
-             button.disabled = true; // Pending slots are not selectable
+             button.disabled = true;
+             // Apply pending styles (overrides base green)
+             button.classList.remove('bg-green-600', 'hover:bg-green-800', 'text-white', 'cursor-pointer');
+             button.classList.add('bg-yellow-400', 'text-black', 'cursor-not-allowed'); // Add pending specific styles
          } else if (action === 'create' || action === 'update' || action === 'update_status') {
-             if (status === 'Accepted') {
+             if (status === 'Accepted') { // Use string literal
                  button.textContent = showTitle || 'Scheduled';
-                 button.classList.add("schedulebtn");
-                 button.disabled = true; // Booked slots are not selectable
-             } else if (status === 'Pending Confirmation') {
+                 button.disabled = true;
+                  // Apply booked styles (overrides base green)
+                  button.classList.remove('bg-green-600', 'hover:bg-green-800', 'text-white', 'cursor-pointer');
+                  button.classList.add('bg-red-500', 'text-white', 'cursor-not-allowed'); // Add booked specific styles (Using 500)
+             } else if (status === 'Pending Confirmation') { // Keep this specific string if it's a distinct status
                  button.textContent = `Confirm: ${showTitle || 'N/A'}`;
-                 button.classList.add("confirmationbtn");
-                 button.disabled = true; // Pending confirmation slots are not selectable
+                 button.disabled = true;
+                  // Apply confirmation styles (overrides base green)
+                  button.classList.remove('bg-green-600', 'hover:bg-green-800', 'text-white', 'cursor-pointer');
+                  button.classList.add('bg-blue-400', 'text-white', 'cursor-not-allowed'); // Add confirmation specific styles
              }
-             // If status is something else (e.g., Rejected, or cleared), it remains available
+              // If status is 'Rejected' or anything else, it remains available
          }
 
          // If this update disables the currently selected button in the modal, reset modal selection state
@@ -409,23 +447,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Show modal button listener
-    scheduleBtn.addEventListener("click", async () => {
-        selectedButton = null; // Reset modal selection state when opening
-        await fetchAndDisplaySchedules();
-        modal.style.display = "block";
-    });
+    if (scheduleBtn) { // Check if button exists
+        scheduleBtn.addEventListener("click", async () => {
+            selectedButton = null; // Reset modal selection state when opening
+            await fetchAndDisplaySchedules();
+            modal.classList.remove('hidden'); // Show modal using Tailwind
+        });
+    }
 
     // Modal close button listener
     if (closeBtn) {
         closeBtn.addEventListener("click", () => {
-            modal.style.display = "none";
+            modal.classList.add('hidden'); // Hide modal using Tailwind
         });
     }
 
     // Modal outside click listener
     window.addEventListener("click", (event) => {
         if (event.target === modal) {
-            modal.style.display = "none";
+            modal.classList.add('hidden'); // Hide modal using Tailwind
         }
     });
 
@@ -467,18 +507,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
 
-                // Visually update the button IN THE MODAL
+                // Visually update the button IN THE MODAL using Tailwind
                 if (selectedButton) { // If another button was previously selected in the modal
-                    selectedButton.textContent = ""; // Clear previous selection text
-                    selectedButton.classList.remove("disabled");
-                    selectedButton.disabled = false; // Re-enable previous selection
+                    // Reset previous selection to available state
+                    selectedButton.textContent = "";
+                    selectedButton.disabled = false;
+                    // Changed removal class to match new selected style
+                    selectedButton.classList.remove('bg-red-600','text-white','cursor-not-allowed'); // Remove selected style (Red)
+                    selectedButton.classList.add('bg-green-600','hover:bg-green-800','text-white', 'cursor-pointer'); // Re-add available style
                 }
                 selectedButton = button; // Track the new selection
                 selectedButton.textContent = "Selected";
-                selectedButton.classList.add("disabled");
-                selectedButton.disabled = true; // Disable the newly selected button in the modal
+                // Apply a distinct 'selected' style different from disabled/booked/pending
+                selectedButton.disabled = true; // Disable clicking again
+                selectedButton.classList.remove('bg-green-600','hover:bg-green-800','text-white', 'cursor-pointer');
+                // Changed to red background and white text
+                selectedButton.classList.add('bg-red-600','text-white','cursor-not-allowed'); // Selected style (Red)
 
-                modal.style.display = "none"; // Close the modal
+                modal.classList.add('hidden'); // Hide modal using Tailwind
             }
         });
     }

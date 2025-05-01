@@ -1,13 +1,64 @@
+/* In your main input CSS (e.g., input.css) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer utilities {
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* For Blinking Animation on Step 3 Status */
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
   }
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out;
+  .animate-blink {
+    animation: blink 1.5s infinite;
   }
+
+  /* --- Progress Bar --- */
+
+  /* Base circle style */
+  .progress-bar .circle {
+    position: relative; /* Needed for pseudo-element positioning */
+    z-index: 1;
+    background-clip: padding-box;
+  }
+
+  /* Style for the line segment AFTER each circle (except the last) */
+  .progress-bar .circle:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 50%; /* Center vertically */
+    /* Start just after the right edge of the circle */
+    left: calc(100% + 0px); /* Adjust 0px if there's spacing/border */
+    /* Width is the space between circles (mx-[50px] -> 50px + 50px) */
+    width: 100px;
+    height: 4px; /* Line thickness */
+    background-color: #74B88D; /* Default inactive color */
+    transform: translateY(-50%);
+    z-index: 0; /* Behind the next circle */
+  }
+
+  /* Color the line between 1 and 2 if Step 1 is active */
+  /* Target ::after of the first circle when step-1 is active */
+  .progress-bar.step-1-active .circle:nth-child(1)::after {
+     background-color: #00722A; /* Active color */
+  }
+
+  /* Color the line between 2 and 3 if Step 2 is active */
+  /* Target ::after of the second circle when step-2 is active */
+   .progress-bar.step-2-active .circle:nth-child(2)::after {
+     background-color: #00722A; /* Active color */
+  }
+
+  /* Ensure lines up to the active step are also coloured */
+  /* If Step 2 is active, line 1->2 should be green */
+  .progress-bar.step-2-active .circle:nth-child(1)::after {
+     background-color: #00722A;
+  }
+  /* If Step 3 is active, lines 1->2 and 2->3 should be green */
+  .progress-bar.step-3-active .circle:nth-child(1)::after,
+  .progress-bar.step-3-active .circle:nth-child(2)::after {
+     background-color: #00722A;
+  }
+
 }

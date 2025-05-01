@@ -506,7 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const fetchPosts = async (query = {}) => {
         const params = new URLSearchParams(query);
-        const res = await fetch(`/posts?${params}`);
+        const res = await fetch(`/posts-filter?${params}`);
         const data = await res.text();
         postsContainer.innerHTML = data;
     };
