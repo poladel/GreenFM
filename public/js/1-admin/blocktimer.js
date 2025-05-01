@@ -278,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
     let currentSubmissionId = null; // Store ID of submission being viewed in the form
     let originalSubmissionPreferredDay = null; // Store original day for availability check
     let originalSubmissionPreferredTime = null; // Store original time for availability check
+    let originalSubmissionResult = null; // <<< ADDED: Store original result status
     let permanentSchedules = []; // Store fetched permanent schedules for the current year
     let pendingSubmissions = []; // Store fetched pending submissions for the current year
     let currentScheduleViewYear = null; // Store the year viewed in the main schedule grid
@@ -611,14 +612,17 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
             submissionPreferredTimeSelect.innerHTML = '<option value="" disabled selected>No Times Available</option>';
             submissionPreferredTimeSelect.disabled = true;
         } else {
-            // Enable if slots exist, unless the form is already decided (handled by enableSubmissionForm)
-            const isDecided = submissionResultSelect && submissionResultSelect.value !== 'Pending';
-            submissionPreferredTimeSelect.disabled = isDecided; // Enable/disable based on result status
-             submissionPreferredTimeSelect.classList.toggle('bg-gray-100', isDecided);
-             submissionPreferredTimeSelect.classList.toggle('cursor-not-allowed', isDecided);
+            // Enable if slots exist. Disabling based on original result is handled by enableSubmissionForm.
+            submissionPreferredTimeSelect.disabled = false; // <<< CHANGED: Always enable if slots exist here
+            submissionPreferredTimeSelect.classList.remove('bg-gray-100', 'cursor-not-allowed'); // <<< CHANGED: Remove disabling classes here
+            // const isDecided = submissionResultSelect && submissionResultSelect.value !== 'Pending'; // <<< REMOVED
+            // submissionPreferredTimeSelect.disabled = isDecided; // <<< REMOVED
+            // submissionPreferredTimeSelect.classList.toggle('bg-gray-100', isDecided); // <<< REMOVED
+            // submissionPreferredTimeSelect.classList.toggle('cursor-not-allowed', isDecided); // <<< REMOVED
             if (!submissionPreferredTimeSelect.value && submissionPreferredTimeSelect.options.length > 1 && !timeToSelect) {
                  submissionPreferredTimeSelect.value = ""; // Ensure "Select Time" is chosen if no specific time was pre-selected
             }
+            // Re-apply disabled state if originally decided (handled by calling enableSubmissionForm after this)
         }
     }
 
@@ -846,7 +850,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
                 if (schedule.technicalStaff && schedule.technicalStaff.length > 0) {
                     schedule.technicalStaff.forEach((staff, index) => addTechnicalInput(staff, index === 0));
                 } else {
-                    addTechnicalInput({}, true); // Add one empty tech staff row if none exist
+                    addTechnicalInput({}, true); // Add one empty technical staff row if none exist
                 }
                 updateAddButtonState('Technical');
             }
@@ -1584,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
          // --- Set Result Dropdown ---
          if (submissionResultSelect) {
             let resultValue = submission.result || 'Pending';
-            // --- ADDED: Normalize case to match option values ---
+            // Normalize case to match option values
             if (typeof resultValue === 'string') {
                 if (resultValue.toLowerCase() === 'pending') {
                     resultValue = 'Pending';
@@ -1594,9 +1598,11 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
                     resultValue = 'Rejected';
                 }
             }
-            // --- END ADDED ---
+            // --- Store original result BEFORE setting dropdown ---
+            originalSubmissionResult = resultValue; // <<< ADDED
+            // --- End Store ---
             submissionResultSelect.value = resultValue;
-            console.log(`Set Result dropdown to: ${resultValue}`);
+            console.log(`Set Result dropdown to: ${resultValue}, Original Result: ${originalSubmissionResult}`);
         }
 
          // Show the form (already handled in handleSubmissionSelect success)
@@ -1616,6 +1622,7 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
          currentSubmissionId = null;
          originalSubmissionPreferredDay = null;
          originalSubmissionPreferredTime = null;
+         originalSubmissionResult = null; // <<< ADDED: Reset original result
          // --- End Reset Global State ---
 
          // Clear dynamic content (hosts, tech, signature, fb link)
@@ -1669,37 +1676,39 @@ document.addEventListener('DOMContentLoaded', async function () { // Make top-le
 
       // --- Update enableSubmissionForm ---
       function enableSubmissionForm() {
-          const isDecided = submissionResultSelect && submissionResultSelect.value !== 'Pending';
+          // Disable fields ONLY if the submission was *originally* loaded as Accepted or Rejected
+          const isOriginallyDecided = originalSubmissionResult && originalSubmissionResult !== 'Pending';
+          console.log(`enableSubmissionForm: Original Result = ${originalSubmissionResult}, Is Originally Decided = ${isOriginallyDecided}`);
 
           if (submissionResultSelect) {
-              submissionResultSelect.disabled = isDecided;
-              submissionResultSelect.classList.toggle('bg-gray-100', isDecided);
-              submissionResultSelect.classList.toggle('cursor-not-allowed', isDecided);
+              submissionResultSelect.disabled = isOriginallyDecided;
+              submissionResultSelect.classList.toggle('bg-gray-100', isOriginallyDecided); // Use Tailwind's disabled look
+              submissionResultSelect.classList.toggle('cursor-not-allowed', isOriginallyDecided);
           }
           if (submissionPreferredDaySelect) {
-              submissionPreferredDaySelect.disabled = isDecided;
-              submissionPreferredDaySelect.classList.toggle('bg-gray-100', isDecided);
-              submissionPreferredDaySelect.classList.toggle('cursor-not-allowed', isDecided);
+              submissionPreferredDaySelect.disabled = isOriginallyDecided;
+              submissionPreferredDaySelect.classList.toggle('bg-gray-100', isOriginallyDecided);
+              submissionPreferredDaySelect.classList.toggle('cursor-not-allowed', isOriginallyDecided);
           }
           if (submissionPreferredTimeSelect) {
               // Also disable if no options available (length <= 1 means only placeholder)
               const noOptions = submissionPreferredTimeSelect.options.length <= 1;
-              submissionPreferredTimeSelect.disabled = isDecided || noOptions;
-              submissionPreferredTimeSelect.classList.toggle('bg-gray-100', isDecided || noOptions);
-              submissionPreferredTimeSelect.classList.toggle('cursor-not-allowed', isDecided || noOptions);
+              submissionPreferredTimeSelect.disabled = isOriginallyDecided || noOptions;
+              submissionPreferredTimeSelect.classList.toggle('bg-gray-100', isOriginallyDecided || noOptions);
+              submissionPreferredTimeSelect.classList.toggle('cursor-not-allowed', isOriginallyDecided || noOptions);
           }
 
           if (submitSubmissionButton) {
-              submitSubmissionButton.disabled = isDecided;
-              submitSubmissionButton.classList.toggle('bg-gray-500', isDecided);
-              submitSubmissionButton.classList.toggle('cursor-not-allowed', isDecided);
-              submitSubmissionButton.classList.toggle('bg-green-700', !isDecided);
-              submitSubmissionButton.classList.toggle('hover:bg-green-800', !isDecided);
-              submitSubmissionButton.classList.toggle('text-white', !isDecided);
+              submitSubmissionButton.disabled = isOriginallyDecided;
+              submitSubmissionButton.classList.toggle('bg-gray-500', isOriginallyDecided); // Use a distinct disabled style
+              submitSubmissionButton.classList.toggle('cursor-not-allowed', isOriginallyDecided);
+              submitSubmissionButton.classList.toggle('bg-green-700', !isOriginallyDecided); // Active style
+              submitSubmissionButton.classList.toggle('hover:bg-green-800', !isOriginallyDecided);
+              submitSubmissionButton.classList.toggle('text-white', !isOriginallyDecided); // Ensure text color is correct
           }
           if (cancelSubmissionButton) {
               cancelSubmissionButton.disabled = false; // Cancel should always be enabled when form is shown
-              cancelSubmissionButton.classList.remove('bg-gray-500', 'cursor-not-allowed');
+              cancelSubmissionButton.classList.remove('bg-gray-500', 'cursor-not-allowed'); // Ensure active styles
               cancelSubmissionButton.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
           }
       }
