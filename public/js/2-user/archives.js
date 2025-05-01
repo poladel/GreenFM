@@ -171,3 +171,79 @@ document.getElementById("openModalBtn").addEventListener("click", () => {
     document.body.classList.remove("modal-open");
   });
   
+  document.querySelectorAll('.delete-folder-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const folderId = btn.getAttribute('data-id');
+      if (!confirm('Are you sure you want to delete this folder?')) return;
+  
+      try {
+        const res = await fetch(`/archives/${folderId}`, {
+          method: 'DELETE',
+        });
+  
+        if (res.ok) {
+          alert('Folder deleted successfully.');
+          window.location.reload();
+        } else {
+          alert('Failed to delete folder.');
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('An error occurred while deleting.');
+      }
+    });
+  });
+  
+  document.querySelectorAll('.add-files-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const folderId = form.dataset.id;
+      const formData = new FormData(form);
+  
+      try {
+        const res = await fetch(`/archives/${folderId}/add-files`, {
+          method: 'POST',
+          body: formData
+        });
+  
+        if (res.ok) {
+          alert('Files added successfully!');
+          window.location.reload();
+        } else {
+          alert('Failed to add files.');
+        }
+      } catch (err) {
+        console.error('Add files error:', err);
+        alert('Error while adding files.');
+      }
+    });
+  });
+
+  document.querySelectorAll('.delete-file-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const folderId = btn.dataset.folder;
+      const fileUrl = btn.dataset.url;
+  
+      if (!confirm('Delete this file?')) return;
+  
+      try {
+        const res = await fetch(`/archives/${folderId}/files`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileUrl })
+        });
+  
+        if (res.ok) {
+          alert('File deleted.');
+          window.location.reload();
+        } else {
+          alert('Failed to delete file.');
+        }
+      } catch (err) {
+        console.error('File delete error:', err);
+        alert('An error occurred.');
+      }
+    });
+  });
+
+  

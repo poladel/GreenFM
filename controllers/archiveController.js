@@ -72,3 +72,53 @@ exports.uploadFiles = (req, res) => {
     });
   };
   
+  exports.deleteFolder = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const archive = await Archive.findById(id);
+      if (!archive) {
+        return res.status(404).json({ error: 'Folder not found' });
+      }
+  
+      // Optionally: delete files from Cloudinary
+      /*
+      for (const fileUrl of archive.files) {
+        const publicId = fileUrl.split('/').pop().split('.')[0]; // naive way
+        await cloudinary.uploader.destroy(`archives/${publicId}`, { resource_type: 'auto' });
+      }
+      */
+  
+      await archive.deleteOne();
+      return res.status(200).json({ message: 'Folder deleted' });
+    } catch (err) {
+      console.error('Error deleting folder:', err);
+      return res.status(500).json({ error: 'Failed to delete folder' });
+    }
+  };
+  
+  exports.addFilesToFolder = (req, res) => {
+    upload(req, res, async function (err) {
+      if (err) {
+        console.error('Upload error:', err);
+        return res.status(500).json({ error: 'Upload failed' });
+      }
+  
+      const folderId = req.params.id;
+      const fileUrls = req.files?.map(file => file.path) || [];
+  
+      try {
+        const folder = await Archive.findById(folderId);
+        if (!folder) return res.status(404).json({ error: 'Folder not found' });
+  
+        folder.files.push(...fileUrls);
+        await folder.save();
+  
+        return res.status(200).json({ message: 'Files added', folder });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Could not update folder' });
+      }
+    });
+  };
+  
