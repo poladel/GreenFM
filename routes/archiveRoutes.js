@@ -6,5 +6,6 @@ const archiveController = require('../controllers/archiveController');
 router.get('/archives', archiveController.getArchives);
 router.post('/upload', archiveController.uploadFiles); // Multer handled inside controller
 router.delete('/archives/:id', archiveController.deleteFolder);
+router.post('/archives/:id/add-files', archiveController.addFilesToFolder);
 
 module.exports = router;
