@@ -1,0 +1,264 @@
+body {
+    overflow-x: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+/* --- Filters --- */
+.archive-filters,
+.post-filters {
+    background-color: #fff;
+    padding: 15px 20px;
+    margin: 2vw 4vw 1vw;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.archive-filters input,
+.archive-filters select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+.archive-filters input::placeholder {
+    color: #888;
+}
+
+#filterBtn {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#filterBtn:hover {
+    background-color: #00591F;
+}
+
+/* --- Upload Button --- */
+.upload-container {
+    margin: 1vw 4vw;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.upload-button {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+    background-color: #00591F;
+}
+
+/* --- Modal Styles --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+#modal-upload-form input[type="text"],
+#modal-upload-form input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+#modal-upload-form input::placeholder {
+    color: #888;
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: #000;
+}
+
+/* --- Folders Grid --- */
+.folders-container {
+    margin: 2vw 4vw;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+}
+
+.folder {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    width: 280px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.folder:hover {
+    transform: translateY(-3px);
+}
+
+.folder-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.folder-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.folder-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #00722A;
+}
+
+.folder-contents {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.folder-contents.expanded {
+    display: flex;
+}
+
+.archive-file {
+    max-width: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.archive-video {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+.folder-date {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #777;
+}
+
+.no-archives {
+    margin: 2vw 4vw;
+    font-size: 16px;
+    color: #888;
+}
+
+/* --- File Viewer Modal --- */
+.file-list-modal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.archive-thumb {
+    width: 100px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.full-preview {
+    max-width: 90%;
+    max-height: 80vh;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.single-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.back-button {
+    background: #eee;
+    border: none;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #ddd;
+}

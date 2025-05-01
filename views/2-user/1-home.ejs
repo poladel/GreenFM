@@ -35,7 +35,6 @@
                 <!-------------------- HEADER MENUS -------------------->   
                 <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- CONTENTS START -------------------->               
                 <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
                 <div class="post-container">
                     <form id="post-form" enctype="multipart/form-data">
@@ -78,7 +77,7 @@
                                 
                     <select id="filterYear">
                         <option value="">Year</option>
-                            <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
+                            <% const currentYearHome = new Date().getFullYear(); for (let y = currentYearHome; y >= currentYearHome - 10; y--) { %>
                                 <option value="<%= y %>"><%= y %></option>
                             <% } %>
                     </select>
@@ -118,19 +117,7 @@
                             <li>Loading schedule...</li>
                         </ul>
                     </div>
-
-                    <!-- Editable Form (hidden by default)
-                    <form id="schedule-form" style="display: none;">
-                        <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
-                            <div class="schedule-day" data-day="<%= day %>">
-                                <label><%= day %></label>
-                                <div class="slots"></div>
-                                <button type="button" class="add-slot-btn">+ Add Slot</button>
-                            </div>
-                        <% }); %>
-                        <button type="submit" class="save-schedule-button">Save</button>
-                    </form>
-                </div>  -->
+                </div>
 
                 <!-- Modal -->
                 <div id="media-modal" class="media-modal">
@@ -155,11 +142,7 @@
             </div>
         </div>
 
-        <!-------------------- FOOTER -------------------->
         <%- include('../partials/footer.ejs') %>
-        
         <script src="js/2-user/home.js"></script>
-
     </div>
 </body>
-</html>

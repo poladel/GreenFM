@@ -1,21 +1,101 @@
 <%- include('../partials/header.ejs') %>
 
-    <div class="page-container">
-        <div class="content-wrap">
-            <div class="container">
-                <%- include('../partials/nav.ejs') %>
+<div class="page-container">
+  <div class="content-wrap">
+    <div class="container">
+      <%- include('../partials/nav.ejs') %>
+      <%- include('../partials/menu.ejs') %>
 
-                <!-------------------- HEADER MENUS -------------------->   
-                <%- include('../partials/menu.ejs') %>
+      <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+        <div class="upload-container">
+            <button id="openModalBtn" class="upload-button">Create Folder</button>
+          </div>
+          
+          <!-- Modal -->
+          <div id="uploadModal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <span class="close-btn" id="closeModalBtn">&times;</span>
+              <h3>Create New Folder</h3>
+              <form id="modal-upload-form" enctype="multipart/form-data" action="/upload" method="POST">
+                <input type="text" id="modal-folder-name" name="folderName" placeholder="Folder name..." required>
+                <input type="file" id="modal-file-input" name="files" multiple accept="image/*,video/*">
+                <button type="submit" class="upload-button">Upload</button>
+              </form>
+            </div>
+          </div>          
+      <% } %>
 
-                <!-------------------- CONTENTS START --------------------> 
+      <div class="archive-filters">
+        <input type="text" id="searchInput" placeholder="Search folders...">
+        <select id="filterMonth">
+          <option value="">Month</option>
+          <% for (let m = 0; m < 12; m++) { %>
+            <option value="<%= m %>"><%= new Date(2000, m).toLocaleString('default', { month: 'long' }) %></option>
+          <% } %>
+        </select>
+
+        <select id="filterYear">
+          <option value="">Year</option>
+          <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
+            <option value="<%= y %>"><%= y %></option>
+          <% } %>
+        </select>
+
+        <button id="filterBtn">Filter</button>
+      </div>
+
+      <div class="folders-container" id="folders-container">
+        <% if (archives.length === 0) { %>
+          <p class="no-archives">No archives available yet.</p>
+        <% } else { %>
+          <% archives.forEach(folder => { %>
+            <div class="folder"
+                data-name="<%= folder.folderName ? folder.folderName.toLowerCase() : 'untitled' %>"
+                data-date="<%= new Date(folder.createdAt).toISOString() %>"
+                data-files='<%- JSON.stringify(folder.files || []) %>'>
+              <div class="folder-header">
+                <img src="/img/folder.png" alt="Folder Icon" class="folder-icon">
+                <span class="folder-name"><%= folder.folderName %></span>
+              </div>
+      
+              <div class="folder-contents">
+                <% if (folder.files.length === 0) { %>
+                  <p>No files in this folder.</p>
+                <% } else { %>
+                  <% folder.files.forEach(file => { %>
+                    <% if (file.match(/\.(jpg|jpeg|png|gif)$/i)) { %>
+                      <img src="<%= file %>" alt="File" class="archive-file">
+                    <% } else if (file.match(/\.(mp4|webm|ogg)$/i)) { %>
+                      <video controls class="archive-video">
+                        <source src="<%= file %>" type="video/mp4">
+                        Your browser does not support the video tag.
+                      </video>
+                    <% } else { %>
+                      <a href="<%= file %>" target="_blank">Download File</a>
+                    <% } %>
+                  <% }) %>
+                <% } %>
+              </div>
+      
+              <p class="folder-date">Created: <%= new Date(folder.createdAt).toLocaleDateString() %></p>
+            </div>
+          <% }) %>
+        <% } %>
+
+        <!-- View Files Modal -->
+        <div id="viewFilesModal" class="modal" style="display: none;">
+            <div class="modal-content">
+            <span class="close-btn" id="closeViewModalBtn">&times;</span>
+            <h3>Folder Contents</h3>
+            <div id="previewArea"></div>
             </div>
         </div>
-
-        <!-------------------- FOOTER -------------------->
-        <%- include('../partials/footer.ejs') %>
-        
+        </div>
+      
     </div>
+  </div>
 
+  <%- include('../partials/footer.ejs') %>
+  <script src="js/2-user/archives.js"></script>
+</div>
 </body>
-</html>
