@@ -56,6 +56,9 @@
               <div class="folder-header">
                 <img src="/img/folder.png" alt="Folder Icon" class="folder-icon">
                 <span class="folder-name"><%= folder.folderName %></span>
+                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                  <button class="delete-folder-btn" data-id="<%= folder._id %>">X</button>
+                <% } %>                
               </div>
       
               <div class="folder-contents">
