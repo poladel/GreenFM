@@ -1,107 +1,132 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-    <div class="content-wrap">
-        <div class="container">
-            <%- include('../partials/nav.ejs') %>
+<div class="page-container flex flex-col min-h-screen bg-gray-100"> <!-- Added base background -->
+    <!-- Include nav and menu OUTSIDE the main content wrapper -->
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs', { headerTitle: "PLAYLIST" }) %> <!-- Pass appropriate title -->
 
-            <!-------------------- HEADER MENUS -------------------->   
-            <%- include('../partials/menu.ejs') %>
+    <!-- Main Content Area Wrapper - Takes remaining space and applies padding -->
+    <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
+        <!-- Inner container for max-width and centering -->
+        <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
 
-            <!-------------------- CONTENTS START --------------------> 
-            <div class="playlist-wrapper">
+            <!-------------------- CONTENTS START -------------------->
+            <!-- Playlist Wrapper: Changed to flex-col-reverse default, lg:flex-row -->
+            <div class="playlist-wrapper flex flex-col-reverse lg:flex-row gap-[1.5vw] mb-6">
+
                 <!-- Left Section: Playlist & Genres -->
-                <div class="playlist-container">
+                <!-- Changed lg:flex-[0] to lg:flex-none lg:w-[60%] -->
+                <div class="playlist-container w-full lg:flex-none lg:w-[77%] bg-white p-5 rounded-[15px] shadow-md flex flex-col">
 
-                    <!-- Genre Tabs -->
-                    <div class="genre-tabs">
-                        <button class="genre-btn active" data-genre="All">ALL</button>
-                        <button class="genre-btn" data-genre="OPM">OPM</button>
-                        <button class="genre-btn" data-genre="Pop">POP</button>
-                        <button class="genre-btn" data-genre="K-pop">K-POP</button>
-                        <button class="genre-btn" data-genre="Rock">ROCK</button>
-                        <button class="genre-btn" data-genre="Hip-hop">HIP-HOP</button>
-                        <button class="genre-btn" data-genre="Ballad">BALLAD</button>
-                        <button class="genre-btn" data-genre="Classical">CLASSICAL</button>
-                        <button class="genre-btn" data-genre="Others">OTHERS</button>
-                    </div>
-
-                    <!-- Song List (Grid View) -->
-                    <div class="song-list">
-                        <% playlist.forEach(song => { %>
-                        <div class="song-item" data-genre="<%= song.genre %>">
-                            <div class="song-info">
-                                <div class="song-thumbnail"></div>
-                                <div class="song-text">
-                                    <p class="song-title">
-                                        <a href="<%= song.link %>" target="_blank"><%= song.title %></a>
-                                    </p>
-                                    <p class="song-artist">by: <%= song.singer %></p>
-                                    <p class="song-requester">Requested by <%= song.user.username %></p>
-                                </div>                                
-                            </div>
-                            <div class="song-actions">
-                                <% if (user && (user.email === song.user.email || user.roles === 'Admin')) { %>
-                                    <button class="delete-btn" data-id="<%= song._id %>">❌</button>
-                                <% } %>
-                                <% if (user) { %>
-                                    <button class="fav-btn" data-id="<%= song._id %>">❤️ <%= song.likes.length %></button>
-                                <% } %>
-                            </div>
-                        </div>
+                    <!-- Genre Tabs: Changed flex-wrap to flex-nowrap, added overflow-x-auto and scrollbar-hide -->
+                    <div class="genre-tabs flex flex-nowrap gap-[0.8vw] my-4 overflow-x-auto scrollbar-hide">
+                        <% const genres = ["All", "OPM", "Pop", "K-pop", "Rock", "Hip-hop", "Ballad", "Classical", "Others"]; %>
+                        <% genres.forEach((genre, index) => { %>
+                            <button class="genre-btn <%= index === 0 ? 'active bg-[#00722A] text-white' : 'bg-gray-100 text-gray-700' %> border-none py-2 px-3.5 rounded-[10px] cursor-pointer transition duration-300 text-sm hover:bg-[#00591F] hover:text-white flex-shrink-0" data-genre="<%= genre %>"> <!-- Added flex-shrink-0 -->
+                                <%= genre.toUpperCase() %>
+                            </button>
                         <% }) %>
                     </div>
+
+                    <!-- Song List: Flex column, gap -->
+                    <div class="song-list flex flex-col gap-2.5">
+                        <% if (playlist && playlist.length > 0) { %>
+                            <% playlist.forEach(song => { %>
+                                <!-- Individual Song Item -->
+                                <div class="song-item flex items-center justify-between bg-gray-100 p-2.5 rounded-[10px]" data-genre="<%= song.genre %>">
+                                    <!-- Song Info: Left side -->
+                                    <div class="song-info flex items-center gap-2.5">
+                                        <!-- Thumbnail Placeholder -->
+                                        <div class="song-thumbnail w-10 h-10 bg-gray-300 rounded-md flex-shrink-0">
+                                        </div>
+                                        <!-- Song Text Details -->
+                                        <div class="song-text flex flex-col">
+                                            <p class="song-title font-bold text-gray-800 text-base mb-0 leading-tight">
+                                                <a href="<%= song.link || '#' %>" target="_blank" class="text-blue-600 hover:underline"><%= song.title %></a>
+                                            </p>
+                                            <p class="song-artist text-sm text-gray-900 font-light mt-0 mb-0 leading-tight">by: <%= song.singer %></p>
+                                            <p class="song-requester text-xs text-gray-500 mt-0.5 leading-tight">Requested by <%= song.user?.username || 'Unknown' %></p>
+                                        </div>
+                                    </div>
+                                    <!-- Song Actions: Right side -->
+                                    <div class="song-actions flex gap-2.5 items-center">
+                                         <!-- Delete Button: Conditional rendering -->
+                                         <% if (user && (user.email === song.user?.email || user.roles.includes('Admin'))) { %>
+                                            <button class="delete-btn bg-transparent border-none cursor-pointer text-lg p-1 hover:text-red-600" data-id="<%= song._id %>">❌</button>
+                                         <% } %>
+                                         <!-- Like Button: Conditional rendering -->
+                                         <% if (user) { %>
+                                            <% const userLiked = song.likes && song.likes.some(like => like.email === user.email); %>
+                                            <button class="fav-btn bg-transparent border-none cursor-pointer text-base p-1 flex items-center gap-1 <%= userLiked ? 'text-red-500' : 'text-gray-500' %> hover:text-red-400" data-id="<%= song._id %>">
+                                                <span>❤️</span>
+                                                <span><%= song.likes ? song.likes.length : 0 %></span>
+                                            </button>
+                                         <% } %>
+                                    </div>
+                                </div>
+                            <% }) %>
+                         <% } else { %>
+                             <p class="text-center text-gray-500 py-4">The playlist is currently empty.</p>
+                         <% } %>
+                    </div>
                 </div>
 
-                <!-- Right Section: Request & Most Requested -->
-                <div class="right-panel">
-                    <!-- Request a Song -->
-                    <div class="request-container">
-                        <h3>REQUEST A SONG</h3>
-                        <% if (user) { %>
-                            <form id="playlistForm">
-                                <input type="text" id="songTitle" placeholder="Song Title" required>
-                                <input type="text" id="singer" placeholder="Artist" required>
-                                <select id="genre" required>
-                                    <option value="" disabled selected>Genre</option>
-                                    <option value="OPM">OPM</option>
-                                    <option value="Pop">Pop</option>
-                                    <option value="K-pop">K-pop</option>
-                                    <option value="Rock">Rock</option>
-                                    <option value="Hip-hop">Hip-hop</option>
-                                    <option value="Ballad">Ballad</option>
-                                    <option value="Classical">Classical</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                                <button type="submit">SUBMIT</button>
-                            </form>
-                        <% } else { %>
-                            <p style="color: red;">You must be logged in to request a song.</p>
-                            <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>">
-                                <button>Log In</button>
-                            </a>
-                        <% } %>
-                    </div>
+                <!-- Right Panel: Request & Most Requested -->
+                 <!-- No change needed here, flex-1 works with the adjusted left panel -->
+                 <div class="right-panel w-full lg:flex-1 flex flex-col gap-5">
+                     <!-- Request a Song -->
+                     <div class="request-container bg-white p-3 rounded-[15px] shadow-md">
+                         <h3 class="text-sm font-semibold text-green-700 mb-2.5">REQUEST A SONG</h3>
+                         <% if (user) { %>
+                             <form id="playlistForm" class="flex flex-col gap-2.5">
+                                 <input type="text" id="songTitle" placeholder="Song Title" required class="p-2 border border-gray-300 rounded-lg outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm">
+                                 <input type="text" id="singer" placeholder="Artist" required class="p-2 border border-gray-300 rounded-lg outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm">
+                                 <select id="genre" required class="p-2 border border-gray-300 rounded-lg outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm bg-white">
+                                     <option value="" disabled selected>Genre</option>
+                                     <option value="OPM">OPM</option>
+                                     <option value="Pop">Pop</option>
+                                     <option value="K-pop">K-pop</option>
+                                     <option value="Rock">Rock</option>
+                                     <option value="Hip-hop">Hip-hop</option>
+                                     <option value="Ballad">Ballad</option>
+                                     <option value="Classical">Classical</option>
+                                     <option value="Others">Others</option>
+                                 </select>
+                                 <button type="submit" class="bg-[#00722A] text-white font-bold py-2 border-none rounded-[10px] cursor-pointer hover:bg-[#00591F] text-sm transition duration-200">SUBMIT</button>
+                             </form>
+                         <% } else { %>
+                             <p class="text-red-600 text-sm mb-2">You must be logged in to request a song.</p>
+                             <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>">
+                                 <button class="w-full bg-[#00722A] text-white font-bold py-2 border-none rounded-[10px] cursor-pointer hover:bg-[#00591F] text-sm transition duration-200">Log In</button>
+                             </a>
+                         <% } %>
+                     </div>
 
-                    <!-- Most Requested Songs -->
-                    <div class="most-requested-container">
-                        <h3>MOST REQUESTED SONGS</h3>
-                        <ol>
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            
-            <!-------------------- FOOTER -------------------->
-            <%- include('../partials/footer.ejs') %>
-        </div>
-    </div>
+                     <!-- Most Requested Songs -->
+                      <div class="most-requested-container bg-white p-3 rounded-[15px] shadow-md">
+                          <h3 class="text-sm font-semibold text-green-700 mb-2.5">MOST REQUESTED SONGS</h3>
+                          <ol class="list-decimal pl-5 text-sm space-y-1 text-gray-700">
+                              <!-- JS will populate this -->
+                              <li>Loading...</li>
+                              <li></li>
+                              <li></li>
+                              <li></li>
+                              <li></li>
+                          </ol>
+                      </div>
+                 </div> <!-- End Right Panel -->
+            </div> <!-- End Playlist Wrapper -->
+            <!-------------------- CONTENTS END -------------------->
 
-    <script src="/js/2-user/playlist.js"></script>
+        </div> <!-- End max-w / mx-auto container -->
+    </div> <!-- End content-wrap -->
+
+    <!-------------------- FOOTER -------------------->
+    <%- include('../partials/footer.ejs') %> <!-- Include Footer -->
+
+</div> <!-- End page-container -->
+
+<!-- Keep JS link -->
+<script src="/js/2-user/playlist.js"></script>
 </body>
 </html>
