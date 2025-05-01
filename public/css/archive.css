@@ -1,3 +1,4 @@
+/* --- Base Styles --- */
 body {
     overflow-x: hidden;
     font-family: Arial, sans-serif;
@@ -10,7 +11,7 @@ body.modal-open {
     overflow: hidden;
 }
 
-/* --- Filters --- */
+/* --- Archive Filters --- */
 .archive-filters,
 .post-filters {
     background-color: #fff;
@@ -78,7 +79,7 @@ body.modal-open {
     background-color: #00591F;
 }
 
-/* --- Modal Styles --- */
+/* --- Modal Overlay --- */
 .modal {
     display: none;
     position: fixed;
@@ -103,10 +104,9 @@ body.modal-open {
 }
 
 .modal-content h3 {
-    margin-top: 0;
+    margin: 0 0 20px;
     font-size: 20px;
     color: #333;
-    margin-bottom: 20px;
 }
 
 #modal-upload-form input[type="text"],
@@ -141,7 +141,7 @@ body.modal-open {
     color: #000;
 }
 
-/* --- Folders Grid --- */
+/* --- Folders Grid Layout --- */
 .folders-container {
     margin: 2vw 4vw;
     display: flex;
@@ -170,8 +170,9 @@ body.modal-open {
 .folder-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
     margin-bottom: 15px;
+    gap: 10px;
 }
 
 .folder-icon {
@@ -183,17 +184,37 @@ body.modal-open {
     font-size: 16px;
     font-weight: bold;
     color: #00722A;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.delete-folder-btn {
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    color: #D11A2A;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.delete-folder-btn:hover {
+    color: #A00;
 }
 
 .folder-contents {
     display: none;
-    flex-direction: column;
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
     margin-top: 10px;
+    justify-items: center;
+    align-items: start;
 }
 
 .folder-contents.expanded {
-    display: flex;
+    display: grid;
 }
 
 .archive-file {
@@ -236,10 +257,10 @@ body.modal-open {
 }
 
 .full-preview {
-    max-width: 90%;
+    max-width:300%;
     max-height: 80vh;
     border-radius: 8px;
-    margin-top: 20px;
+    margin-top: 2vw;
 }
 
 .single-preview {
@@ -249,16 +270,22 @@ body.modal-open {
 }
 
 .back-button {
-    background: #eee;
     border: none;
-    padding: 8px 12px;
-    margin-bottom: 10px;
+    margin-bottom: 5vwx;
     cursor: pointer;
     font-weight: bold;
     border-radius: 5px;
-    transition: background-color 0.2s;
 }
 
 .back-button:hover {
     background-color: #ddd;
+}
+
+/* File viewer grid in modal */
+#previewArea {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    padding: 10px;
+    font-size: 8px;
 }
