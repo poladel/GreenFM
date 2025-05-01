@@ -56,7 +56,7 @@
   
   /* Button Styling */
   .poll-options button {
-    background-color: #05af44;
+    background-color: #00722A;  
     color: white;
     padding: 0.6rem 1.2rem;
     border: none;
@@ -401,7 +401,7 @@
 #add-option-button,
 #poll-form button[type="submit"],
 #post-form button[type="submit"] {
-    background-color: #10b981;
+    background-color: #00722A;
     color: white;
     padding: 0.6rem 1.2rem;
     margin-top: 1rem;
@@ -514,7 +514,7 @@
 
 /* Poll Option Highlighting */
 .post-poll ul.poll-options li button.voted {
-    color: rgb(64, 63, 63);
+    color: rgb(230, 246, 0);
 }
 
 /* Poll Toast Styling */
