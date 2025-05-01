@@ -16,16 +16,27 @@ body.modal-open {
 .post-filters {
     background-color: #fff;
     padding: 15px 20px;
-    margin: 2vw 4vw 1vw;
+    margin: 1vw 4vw 1vw;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
+    width: 83vw;
 }
 
-.archive-filters input,
+.archive-filters input {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    width: 50vw;
+}
+
 .archive-filters select {
     padding: 10px;
     border-radius: 10px;
@@ -34,6 +45,7 @@ body.modal-open {
     font-size: 14px;
     color: #333;
     outline: none;
+    width: 12vw;
 }
 
 .archive-filters input::placeholder {
@@ -289,3 +301,99 @@ body.modal-open {
     padding: 10px;
     font-size: 8px;
 }
+
+/* --- Add More Files Modal --- */
+#addFilesModal .modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+#addFilesModal .modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+}
+
+#add-files-form input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #EFEFEF;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+#add-files-form input[type="file"]::file-selector-button {
+    background-color: #00722A;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: bold;
+}
+
+#add-files-form input[type="file"]::file-selector-button:hover {
+    background-color: #00591F;
+}
+
+#add-files-form .upload-button {
+    background-color: #00722A;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+}
+
+#add-files-form .upload-button:hover {
+    background-color: #00591F;
+}
+
+#add-files-form input[type="hidden"] {
+    display: none;
+}
+
+/* Add More Files button */
+.add-files-btn {
+    background-color: #00722A; /* Indigo-600 */
+    color: white;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .add-files-btn:hover {
+    background-color: #00722A; /* Indigo-700 */
+    transform: translateY(-1px);
+  }
+  
+  .add-files-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Optional: If inside modal footer or file list */
+  .add-files-btn-container {
+    text-align: right;
+    margin-top: 1rem;
+  }
+  

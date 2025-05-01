@@ -193,31 +193,7 @@ document.getElementById("openModalBtn").addEventListener("click", () => {
       }
     });
   });
-  
-  document.querySelectorAll('.add-files-form').forEach(form => {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const folderId = form.dataset.id;
-      const formData = new FormData(form);
-  
-      try {
-        const res = await fetch(`/archives/${folderId}/add-files`, {
-          method: 'POST',
-          body: formData
-        });
-  
-        if (res.ok) {
-          alert('Files added successfully!');
-          window.location.reload();
-        } else {
-          alert('Failed to add files.');
-        }
-      } catch (err) {
-        console.error('Add files error:', err);
-        alert('Error while adding files.');
-      }
-    });
-  });
+
 
   document.querySelectorAll('.delete-file-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -246,4 +222,46 @@ document.getElementById("openModalBtn").addEventListener("click", () => {
     });
   });
 
-  
+const addFilesModal = document.getElementById('addFilesModal');
+const closeAddFilesModalBtn = document.getElementById('closeAddFilesModalBtn');
+const addFilesForm = document.getElementById('add-files-form');
+const addFilesFolderIdInput = document.getElementById('add-files-folder-id');
+
+document.querySelectorAll('.add-files-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const folderId = btn.getAttribute('data-id');
+    addFilesFolderIdInput.value = folderId;
+    addFilesModal.style.display = 'block';
+  });
+});
+
+closeAddFilesModalBtn.addEventListener('click', () => {
+  addFilesModal.style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+  if (e.target === addFilesModal) addFilesModal.style.display = 'none';
+});
+
+addFilesForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const folderId = addFilesFolderIdInput.value;
+  const formData = new FormData(addFilesForm);
+
+  try {
+    const res = await fetch(`/archives/${folderId}/add-files`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      alert('Files added successfully!');
+      addFilesModal.style.display = 'none';
+      window.location.reload();
+    } else {
+      alert('Failed to add files.');
+    }
+  } catch (err) {
+    console.error('Add files error:', err);
+    alert('Error adding files.');
+  }
+});

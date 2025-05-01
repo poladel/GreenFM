@@ -81,6 +81,10 @@
               </div>
       
               <p class="folder-date">Created: <%= new Date(folder.createdAt).toLocaleDateString() %></p>
+              <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                <button class="add-files-btn" data-id="<%= folder._id %>">Add More Files</button>
+              <% } %>
+              
             </div>
           <% }) %>
         <% } %>
@@ -93,6 +97,19 @@
             <div id="previewArea"></div>
             </div>
         </div>
+
+        <div id="addFilesModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <span class="close-btn" id="closeAddFilesModalBtn">&times;</span>
+            <h3>Add More Files to Folder</h3>
+            <form id="add-files-form" class="add-files-form" enctype="multipart/form-data">
+              <input type="file" name="files" id="add-files-input" multiple accept="image/*,video/*">
+              <input type="hidden" name="folderId" id="add-files-folder-id">
+              <button type="submit" class="upload-button">Upload</button>
+            </form>
+          </div>
+        </div>
+        
         </div>
       
     </div>
