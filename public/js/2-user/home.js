@@ -2,8 +2,15 @@ function showToast(message) {
     const toast = document.getElementById("toast");
     if (toast) {
         toast.textContent = message;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3000);
+        // Apply show classes
+        toast.classList.remove("invisible", "opacity-0", "bottom-[-100px]");
+        toast.classList.add("visible", "opacity-100", "bottom-[30px]"); // Or bottom-10, etc.
+
+        // Set timeout to hide
+        setTimeout(() => {
+            toast.classList.remove("visible", "opacity-100", "bottom-[30px]");
+            toast.classList.add("invisible", "opacity-0", "bottom-[-100px]");
+        }, 3000);
     }
 }
 
@@ -125,7 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const modalVideo = document.getElementById('modal-video');
 
             if (modal) {
-                modal.style.display = 'none';
+                modal.classList.add('hidden'); // Hide modal
+                modal.classList.remove('flex');
             }
 
             // Stop video if it's playing
@@ -179,20 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentMediaIndex = 0;
 let currentMediaList = [];
 
+// Example modification for openMediaModal
 function openMediaModal(src, type) {
     const modal = document.getElementById('media-modal');
-    const modalImage = document.getElementById('modal-image');
-    const modalVideo = document.getElementById('modal-video');
+    const modalImage = document.getElementById('modal-image'); // Ensure these are defined or fetched
+    const modalVideo = document.getElementById('modal-video'); // Ensure these are defined or fetched
 
-    if (!modal || !modalImage || !modalVideo) {
-        console.warn("Modal elements not found.");
-        return;
-    }
+    if (!modal || !modalImage || !modalVideo) return;
 
+    // Set src and display block/none for image/video
     if (type === 'image') {
         modalImage.src = src;
         modalImage.style.display = 'block';
         modalVideo.style.display = 'none';
+        modalVideo.pause(); // Pause video if switching to image
+        modalVideo.currentTime = 0;
     } else if (type === 'video') {
         modalVideo.src = src;
         modalVideo.style.display = 'block';
@@ -200,11 +209,21 @@ function openMediaModal(src, type) {
     }
 
     currentMediaIndex = currentMediaList.indexOf(src);
-    modal.style.display = 'flex';
+    modal.classList.remove('hidden'); // Show modal
+    modal.classList.add('flex'); // Use flex to center
 
-    // Disable scrolling
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // Disable body scroll
 }
+
+ // Similar changes for Status Modal open/close functions
+  function openStatusModal() {
+      document.getElementById('status-modal').classList.remove('hidden');
+      document.getElementById('status-modal').classList.add('flex'); // Or grid if needed
+  }
+  function closeStatusModal() {
+      document.getElementById('status-modal').classList.add('hidden');
+       document.getElementById('status-modal').classList.remove('flex');
+  }
 
 function navigateMedia(direction) {
     if (currentMediaList.length > 1) {
@@ -218,73 +237,73 @@ let videoFile = null; // Store selected video file
 
 function previewFile(file, type) {
     const previewContainer = document.getElementById('preview-container');
+    if (!previewContainer) return;
 
-    if (type === 'image' && file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.maxWidth = '100px';
-            img.style.margin = '5px';
-            img.style.borderRadius = '8px';
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const previewWrapper = document.createElement('div');
+        // Tailwind for preview wrapper: relative, size, maybe bg
+        previewWrapper.className = 'preview-wrapper relative w-[120px] h-auto border rounded-lg overflow-hidden';
 
-            // Create a delete button for the image preview
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete';
-            deleteButton.classList.add('delete-btn');
-            deleteButton.onclick = () => removeFile(file, 'image', img);
+        let mediaElement;
+        if (type === 'image') {
+            mediaElement = document.createElement('img');
+            mediaElement.src = e.target.result;
+            // Tailwind for image: full size within wrapper, rounded
+            mediaElement.className = 'w-full h-auto block rounded-lg';
+        } else if (type === 'video') {
+            mediaElement = document.createElement('video');
+            mediaElement.src = e.target.result;
+            mediaElement.controls = true;
+             // Tailwind for video
+            mediaElement.className = 'w-full h-auto block rounded-lg';
+        }
 
-            const previewWrapper = document.createElement('div');
-            previewWrapper.classList.add('preview-wrapper');
-            previewWrapper.appendChild(img);
-            previewWrapper.appendChild(deleteButton);
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button'; // Prevent form submission
+        deleteButton.innerText = '✕'; // Use '✕' for smaller look
+         // Tailwind for delete button: absolute positioning, style
+         deleteButton.className = 'delete-btn absolute top-1 right-1 p-1 bg-red-600/80 text-white text-xs rounded-full leading-none w-5 h-5 flex items-center justify-center hover:bg-red-700';
+        deleteButton.onclick = (event) => {
+             event.stopPropagation(); // Prevent triggering other clicks
+             removeFile(file, type, previewWrapper); // Pass wrapper to remove
+         };
 
-            previewContainer.appendChild(previewWrapper);
 
-            // Store the file for later submission
-            imageFiles.push(file);
-        };
-        reader.readAsDataURL(file);
-    } else if (type === 'video' && file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const video = document.createElement('video');
-            video.src = e.target.result;
-            video.controls = true;
-            video.style.maxWidth = '200px';
+        previewWrapper.appendChild(mediaElement);
+        previewWrapper.appendChild(deleteButton);
+        previewContainer.appendChild(previewWrapper);
 
-            // Create a delete button for the video preview
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete';
-            deleteButton.classList.add('delete-btn');
-            deleteButton.onclick = () => removeFile(file, 'video', video);
-
-            const previewWrapper = document.createElement('div');
-            previewWrapper.classList.add('preview-wrapper');
-            previewWrapper.appendChild(video);
-            previewWrapper.appendChild(deleteButton);
-
-            previewContainer.appendChild(previewWrapper);
-
-            // Store the file for later submission
-            videoFile = file;
-        };
-        reader.readAsDataURL(file);
-    }
+        // Store file logic remains the same...
+         if (type === 'image') imageFiles.push(file);
+         else if (type === 'video') videoFile = file;
+    };
+    reader.readAsDataURL(file);
 }
 
-function removeFile(file, type, previewElement) {
-    const previewContainer = document.getElementById('preview-container');
+function removeFile(fileToRemove, type, wrapperElement) {
+    // Remove the preview element
+    wrapperElement.remove();
 
-    // Remove the file from the preview
-    previewContainer.removeChild(previewElement.parentElement);
-
-    // Remove the file from the stored files array
+    // Remove file from internal tracking array/variable
     if (type === 'image') {
-        imageFiles = imageFiles.filter(f => f !== file);
+         imageFiles = imageFiles.filter(f => f !== fileToRemove);
+         // Also remove from the actual file input if possible/needed
+         const imageInput = document.getElementById('image-input');
+         // Create a new DataTransfer object, add remaining files, and assign to input
+          if (imageInput) {
+             const dataTransfer = new DataTransfer();
+             imageFiles.forEach(f => dataTransfer.items.add(f));
+             imageInput.files = dataTransfer.files;
+          }
+
     } else if (type === 'video') {
-        videoFile = null;
+         videoFile = null;
+         const videoInput = document.getElementById('video-input');
+          if (videoInput) videoInput.value = ''; // Clear video input
     }
+     console.log("Remaining image files:", imageFiles);
+     console.log("Video file:", videoFile);
 }
 
 // Function to edit a post

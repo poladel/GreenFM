@@ -1,70 +1,196 @@
 <% posts.forEach(post => { %>
-    <div class="post">
+    <div class="post bg-white rounded-[15px] shadow-md mb-[1.5vw] flex flex-col relative p-5"> <!-- Base post styling -->
         <div class="post-item">
             <div class="post-info">
-                <p class="post-title"><strong><%= post.title %></strong></p>
-                <p class="post-text"><%= post.text %></p>
-                <p class="post-date">Posted on <%= post.createdAt.toLocaleString() %></p>
+                <!-- Post Header (Title) -->
+                <div class="post-header flex justify-between items-center mb-1">
+                    <h3 class="text-lg font-bold text-gray-800"><%= post.title %></h3>
+                    <!-- Date is absolutely positioned -->
+                </div>
+                <!-- Post Text -->
+                <p class="post-text text-base text-gray-700 mb-3"><%= post.text %></p>
+                <!-- Post Date (Absolute) -->
+                <p class="post-date text-[11px] text-gray-400 absolute top-[1.5vw] right-[1.9vw]">Posted on <%= post.createdAt.toLocaleString() %></p>
+
+                <!-- Media Grid Logic -->
                 <%
                     const mediaCount = post.media ? post.media.length : 0;
-                    const mediaClass = mediaCount > 0 
-                        ? `media-${mediaCount > 6 ? 6 : mediaCount}` 
-                        : (post.video ? 'media-1' : '');
+                    const hasVideo = !!post.video;
+                    let gridClasses = 'grid gap-2 mt-3 rounded-[15px]'; // Base grid classes
+                    let itemClasses = 'w-full h-[280px] object-cover rounded-[15px] shadow-sm transition-transform duration-200 cursor-pointer'; // Base item classes
+
+                    if (hasVideo && mediaCount === 0) { // Video only
+                        gridClasses += ' grid-cols-1';
+                        itemClasses += ' object-contain bg-black'; // Video specific contain
+                    } else if (!hasVideo && mediaCount === 1) { // Image only (1)
+                        gridClasses += ' grid-cols-1';
+                         itemClasses += ' object-contain bg-gray-100'; // Image specific contain
+                    } else if (mediaCount === 2) {
+                        gridClasses += ' grid-cols-2';
+                    } else if (mediaCount === 3) {
+                        gridClasses += ' grid-cols-[2fr_1fr] grid-rows-2'; // Tailwind grid template columns/rows
+                    } else if (mediaCount === 4) {
+                        gridClasses += ' grid-cols-2 grid-rows-2';
+                    } else if (mediaCount >= 5) { // Handles 5 or 6 (or more, showing first 6)
+                         gridClasses += ' grid-cols-3 grid-rows-2'; // Show max 6 items in 3x2 grid
+                     }
                 %>
-                <div class="post-media <%= mediaClass %>" id="post-<%= post._id %>">
+                <div class="post-media <%= gridClasses %>" id="post-<%= post._id %>">
                     <% if (post.media && post.media.length > 0) { %>
-                        <% post.media.forEach(media => { %>
-                            <img src="<%= media %>" class="post-media-img" alt="Post Media">
+                        <% post.media.slice(0, 6).forEach((media, index) => { %> <%# Limit to 6 images %>
+                             <%
+                                let mediaItemClasses = itemClasses;
+                                if (mediaCount === 3 && index === 0) {
+                                    mediaItemClasses += ' row-span-2'; // First item spans 2 rows in 3-item layout
+                                }
+                             %>
+                            <img src="<%= media %>" class="post-media-img <%= mediaItemClasses %>" alt="Post Media">
                         <% }) %>
                     <% } %>
                     <% if (post.video) { %>
-                        <video src="<%= post.video %>" controls class="post-media-video"></video>
+                        <%# Special handling if video exists alongside images might be needed %>
+                         <%# For simplicity, if only video, it's handled above. If video + images, it might break the grid or need specific placement. %>
+                        <% if (mediaCount === 0) { %> <%# Only render if no images %>
+                           <video src="<%= post.video %>" controls class="post-media-video <%= itemClasses %> object-contain bg-black"></video>
+                        <% } %>
                     <% } %>
                 </div>
-                
+                <!-- End Media Grid -->
             </div>
-            <div class="post-actions">
-                <% if (user) { %>
-                    <button onclick="toggleLike('<%= post._id %>')" class="like-btn" id="like-btn-<%= post._id %>">
-                        ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
-                    </button>
-                <% } %>
-                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
-                    <button class="edit-btn" onclick="editPost('<%= post._id %>', '<%= post.title %>', '<%= post.text %>')">Edit</button>
-                    <button class="delete-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
-                <% } %>
-            </div>
-            <div class="post-comments">
-                <% if (user) { %>
-                    <form onsubmit="submitComment(event, '<%= post._id %>')">
-                        <input type="text" class="comment-input" placeholder="Write a comment..." required>
-                        <button type="submit" class="comment-btn">Comment</button>
-                    </form>
-                <% } %>
-                <div class="comment-list" id="comments-<%= post._id %>">
-                    <% post.comments && post.comments.forEach(comment => { %>
-                        <div class="comment" id="comment-<%= comment._id %>">
-                            <strong><%= comment.username %>:</strong> <span class="comment-text"><%= comment.text %></span>
-                        
-                            <!-- Admins and Staff (and author) can delete -->
-                            <% if (user && (user.username === comment.username || (Array.isArray(user.roles) ? user.roles.includes('Admin') || user.roles.includes('Staff') : user.roles === 'Admin' || user.roles === 'Staff'))) { %>
-                                <button class="delete-comment-btn" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">Delete</button>
-                            <% } %>
 
-                            <!-- Only the comment author can edit -->
-                            <% if (user && user.username === comment.username) { %>
-                                <button class="edit-comment-btn" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
-                            <% } %>
-                        
-                            <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form" style="display:none;">
-                                <input type="text" class="edit-comment-input" value="<%= comment.text %>" required />
-                                <button type="submit">Save</button>
-                                <button type="button" onclick="cancelEditComment('<%= comment._id %>')">Cancel</button>
-                            </form>
-                        </div>                        
-                    <% }) %>
-                </div>
-            </div>
-        </div>
-    </div>
+            <!-- Post Actions -->
+            <div class="post-actions flex gap-2.5 items-center mt-2.5 flex-wrap">
+                 <% if (user) { %>
+                     <button onclick="toggleLike('<%= post._id %>')" class="like-btn bg-gray-100 text-gray-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-gray-300" id="like-btn-<%= post._id %>">
+                         ❤️ <span id="like-count-<%= post._id %>"><%= post.likes ? post.likes.length : 0 %></span>
+                     </button>
+                 <% } %>
+                 <% if (user && (user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
+                    <button class="edit-btn bg-blue-100 text-blue-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-blue-200"
+                            data-post-id="<%= post._id %>"
+                            data-post-title="<%- post.title.replace(/"/g, '&quot;') %>" <%# Store title, HTML escape quotes %>
+                            data-post-text="<%- post.text.replace(/"/g, '&quot;') %>"   <%# Store text, HTML escape quotes %>
+                            onclick="handleEditClick(this)"> <%# Call a helper function passing the button itself %>
+                        Edit
+                    </button>
+                    <button class="delete-btn bg-red-100 text-red-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-red-200" onclick="deletePost('<%= post._id %>')">Delete</button>
+                 <% } %>
+             </div>
+
+            <!-- Comments Section -->
+             <div class="post-comments mt-4 pt-2.5 border-t border-gray-300">
+                 <% if (user) { %>
+                     <form onsubmit="submitComment(event, '<%= post._id %>')" class="flex gap-2 items-center">
+                         <input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" placeholder="Write a comment..." required>
+                         <button type="submit" class="comment-btn py-2 px-3.5 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-sm hover:bg-[#00591F]">Comment</button>
+                     </form>
+                 <% } %>
+                 <div class="comment-list mt-2.5 space-y-2"> <!-- Added space-y for spacing between comments -->
+                     <% post.comments && post.comments.forEach(comment => { %>
+                         <div class="comment bg-gray-50 p-2 rounded-[10px] text-sm relative border-b border-gray-200 last:border-b-0" id="comment-<%= comment._id %>">
+                             <div class="comment-content">
+                                 <strong class="text-green-700"><%= comment.username %>:</strong>
+                                 <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700"><%= comment.text %></span>
+                             </div>
+                             <div class="comment-actions absolute top-2 right-2 flex gap-2"> <!-- Actions container -->
+                                  <!-- Edit Button (Author Only) -->
+                                  <% if (user && user.username === comment.username) { %>
+                                     <button class="edit-comment-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
+                                 <% } %>
+                                 <!-- Delete Button (Author, Admin, Staff) -->
+                                 <% if (user && (user.username === comment.username || user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
+                                     <button class="delete-comment-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">Delete</button>
+                                 <% } %>
+                             </div>
+                              <!-- Edit Form (Hidden by default) -->
+                             <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form hidden flex gap-1.5 mt-1">
+                                 <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500" value="<%= comment.text %>" required />
+                                 <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F]">Save</button>
+                                 <button type="button" onclick="cancelEditComment('<%= comment._id %>')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs">Cancel</button>
+                             </form>
+                         </div>
+                     <% }) %>
+                 </div>
+             </div> <!-- End post-comments -->
+        </div> <!-- End post-item -->
+    </div> <!-- End post -->
 <% }) %>
+
+<!-- Include the logic to open the media modal -->
+<script>
+ document.addEventListener('click', (event) => {
+     const modal = document.getElementById('media-modal'); // Ensure modal exists
+     if (!modal) return;
+
+     const target = event.target;
+     let src = null;
+     let type = null;
+     let mediaElements = []; // To store elements for navigation
+
+     // Find the parent post media container
+     const postMediaContainer = target.closest('.post-media');
+
+     if (postMediaContainer) {
+          // Get all images and videos within this specific post's media container
+          mediaElements = Array.from(postMediaContainer.querySelectorAll('.post-media-img, .post-media-video'));
+          currentMediaList = mediaElements.map(el => el.src); // Update global list for navigation
+     }
+
+
+     if (target.classList.contains('post-media-img')) {
+         src = target.src;
+         type = 'image';
+     } else if (target.classList.contains('post-media-video')) {
+         src = target.src;
+         type = 'video';
+     }
+
+     if (src && type) {
+          console.log("Opening modal for:", type, src);
+          console.log("Media list for navigation:", currentMediaList);
+         openMediaModal(src, type); // Assuming openMediaModal exists in home.js
+     }
+ });
+
+ // Ensure editPost function handles quotes correctly (already done in provided JS)
+ // Ensure toggleLike/deletePost/comment functions exist in home.js
+</script>
+
+<script>
+    // This function is called when the Edit button is clicked
+    function handleEditClick(buttonElement) {
+        // Retrieve the data stored in the data attributes
+        const postId = buttonElement.dataset.postId;
+        const postTitle = buttonElement.dataset.postTitle; // Browser automatically decodes HTML entities like &quot;
+        const postText = buttonElement.dataset.postText;   // Browser automatically decodes HTML entities like &quot;
+
+        // Now call your original editPost function with the retrieved data
+        // Ensure the editPost function exists in your home.js or globally
+        if (typeof editPost === 'function') {
+            editPost(postId, postTitle, postText);
+        } else {
+            console.error('editPost function is not defined.');
+            // Fallback or error handling if editPost isn't available
+            alert('Error: Cannot initiate edit.');
+        }
+    }
+
+    // Ensure your original editPost function still exists (likely in home.js)
+    // It looks something like this:
+    /*
+    async function editPost(postId, currentTitle, currentText) {
+        console.log('Editing post', postId, currentTitle, currentText);
+        const newTitle = prompt('Edit Title:', currentTitle);
+        const newText = prompt('Edit Text:', currentText); // prompt automatically handles basic text display
+
+        if (newTitle !== null && newText !== null && newTitle.trim() && newText.trim()) {
+            updatePost(postId, newTitle, newText); // Assuming updatePost exists
+        } else {
+            // Handle cancellation or empty input
+            if (newTitle !== null || newText !== null) { // Only alert if not cancelled
+                 alert('Both title and text are required.');
+            }
+        }
+    }
+    */
+</script>

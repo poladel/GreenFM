@@ -1986,3 +1986,161 @@ function populateDisplayGroup(containerElement, prefix, data, isFaculty = false)
            containerElement.appendChild(placeholder);
        }
 }
+
+// --- Function to create Host/Technical Staff input group ---
+// Find and update the function responsible for creating these fields.
+// It might be named createHostInputGroup, createTechnicalInputGroup, or a generic createPersonInputGroup.
+// Example assuming a generic function:
+function createPersonInputGroup(containerId, personType, index, data = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const groupDiv = document.createElement('div');
+    // Apply the responsive grid classes to the group container
+    groupDiv.className = 'person-input-group grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,0.5fr)_minmax(0,0.5fr)_minmax(0,1fr)_auto] gap-y-2 lg:gap-x-3 lg:items-center relative'; // Added _auto for remove button column
+
+    const lastName = data.lastName || '';
+    const firstName = data.firstName || '';
+    const mi = data.mi || '';
+    const suffix = data.suffix || '';
+    const cys = data.cys || '';
+
+    // Base classes for inputs
+    const inputBaseClasses = 'w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500';
+
+    groupDiv.innerHTML = `
+        <input type="text" name="${personType}[${index}].lastName" placeholder="Last Name" required class="${inputBaseClasses}" value="${lastName}">
+        <input type="text" name="${personType}[${index}].firstName" placeholder="First Name" required class="${inputBaseClasses}" value="${firstName}">
+        <input type="text" name="${personType}[${index}].mi" placeholder="M.I." class="${inputBaseClasses}" value="${mi}">
+        <input type="text" name="${personType}[${index}].suffix" placeholder="Suffix" class="${inputBaseClasses}" value="${suffix}">
+        <input type="text" name="${personType}[${index}].cys" placeholder="CYS" class="${inputBaseClasses}" value="${cys}">
+        <button type="button" class="remove-person-btn bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded text-xs lg:absolute lg:right-[-35px] lg:top-1/2 lg:-translate-y-1/2 w-full lg:w-auto" onclick="removePersonInputGroup(this)">×</button>
+    `; // Adjusted remove button positioning for large screens
+
+    container.appendChild(groupDiv);
+    updateAddButtonStates(); // Update button states after adding
+}
+
+// --- Function to remove Host/Technical Staff input group ---
+// Ensure this function exists or create it
+function removePersonInputGroup(button) {
+    const groupDiv = button.closest('.person-input-group');
+    if (groupDiv) {
+        groupDiv.remove();
+        updateAddButtonStates(); // Update button states after removing
+        // Optional: Renumber remaining inputs if necessary, though backend should handle gaps
+    }
+}
+
+// --- Function to update Add Host/Tech buttons ---
+// Ensure this function exists or create it
+function updateAddButtonStates() {
+    const hostContainer = document.getElementById('hosts-container');
+    const techContainer = document.getElementById('technical-container');
+    const addHostBtn = document.getElementById('addHostButton');
+    const addTechBtn = document.getElementById('addTechnicalButton');
+
+    const hostCount = hostContainer ? hostContainer.querySelectorAll('.person-input-group').length : 0;
+    const techCount = techContainer ? techContainer.querySelectorAll('.person-input-group').length : 0;
+
+    if (addHostBtn) {
+        addHostBtn.disabled = hostCount >= 4; // Max 4 hosts
+    }
+    if (addTechBtn) {
+        addTechBtn.disabled = techCount >= 2; // Max 2 tech staff
+    }
+}
+
+// --- Event Listeners for Add Buttons ---
+// Ensure these listeners call the updated createPersonInputGroup
+document.addEventListener('DOMContentLoaded', () => {
+    // ... other DOMContentLoaded code ...
+
+    const addHostBtn = document.getElementById('addHostButton');
+    const addTechBtn = document.getElementById('addTechnicalButton');
+    const hostContainer = document.getElementById('hosts-container');
+    const techContainer = document.getElementById('technical-container');
+
+    if (addHostBtn && hostContainer) {
+        addHostBtn.addEventListener('click', () => {
+            const index = hostContainer.querySelectorAll('.person-input-group').length;
+            if (index < 4) { // Check limit before adding
+                createPersonInputGroup('hosts-container', 'hosts', index);
+            }
+        });
+    }
+
+    if (addTechBtn && techContainer) {
+        addTechBtn.addEventListener('click', () => {
+            const index = techContainer.querySelectorAll('.person-input-group').length;
+             if (index < 2) { // Check limit before adding
+                createPersonInputGroup('technical-container', 'technicalStaff', index);
+             }
+        });
+    }
+
+    // Initialize button states on load
+    updateAddButtonStates();
+
+    // ... other DOMContentLoaded code ...
+});
+
+
+// --- Update populateScheduleModal ---
+// Ensure this function clears and repopulates hosts/tech staff correctly
+// using the createPersonInputGroup function when loading existing data.
+function populateScheduleModal(schedule) {
+    // ... existing code to populate other fields ...
+
+    const hostContainer = document.getElementById('hosts-container');
+    const techContainer = document.getElementById('technical-container');
+
+    // Clear existing dynamic fields
+    if (hostContainer) hostContainer.innerHTML = '';
+    if (techContainer) techContainer.innerHTML = '';
+
+    // Populate hosts
+    if (schedule.hosts && schedule.hosts.length > 0) {
+        schedule.hosts.forEach((host, index) => {
+            createPersonInputGroup('hosts-container', 'hosts', index, host);
+        });
+    } else {
+         // Optionally add one empty host group if none exist? Or leave empty.
+         // createPersonInputGroup('hosts-container', 'hosts', 0);
+    }
+
+    // Populate technical staff
+    if (schedule.technicalStaff && schedule.technicalStaff.length > 0) {
+        schedule.technicalStaff.forEach((tech, index) => {
+            createPersonInputGroup('technical-container', 'technicalStaff', index, tech);
+        });
+    } else {
+        // Optionally add one empty tech group if none exist? Or leave empty.
+        // createPersonInputGroup('technical-container', 'technicalStaff', 0);
+    }
+
+    updateAddButtonStates(); // Ensure buttons are correct after populating
+
+    // ... rest of populateScheduleModal ...
+}
+
+// --- Update resetScheduleModal ---
+// Ensure this function also clears the dynamic host/tech containers
+function resetScheduleModal() {
+    // ... existing code to reset other fields ...
+
+    const hostContainer = document.getElementById('hosts-container');
+    const techContainer = document.getElementById('technical-container');
+
+    // Clear dynamic fields
+    if (hostContainer) hostContainer.innerHTML = '';
+    if (techContainer) techContainer.innerHTML = '';
+
+    // Optionally add one empty host/tech group back if desired for new entries
+    // createPersonInputGroup('hosts-container', 'hosts', 0);
+    // createPersonInputGroup('technical-container', 'technicalStaff', 0);
+
+    updateAddButtonStates(); // Reset button states
+
+    // ... rest of resetScheduleModal ...
+}

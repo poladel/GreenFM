@@ -173,42 +173,54 @@
 
                                 <fieldset class="border border-gray-300 p-4 rounded-lg mb-4"> <!-- Grouped with fieldset -->
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Executive Producer</legend>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2"> <!-- Grid layout -->
-                                        <input type="text" id="execProducerLastName" name="executiveProducer.lastName" placeholder="Last Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="execProducerFirstName" name="executiveProducer.firstName" placeholder="First Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="execProducerMI" name="executiveProducer.mi" placeholder="M.I." class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="execProducerSuffix" name="executiveProducer.suffix" placeholder="Suffix" class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="execProducerCYS" name="executiveProducer.cys" placeholder="CYS" class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    <%# Responsive Grid: 1 col default, 5 cols on lg screens %>
+                                    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,0.5fr)_minmax(0,0.5fr)_minmax(0,1fr)] gap-y-2 lg:gap-x-3 lg:items-center">
+                                        <%# Last Name %>
+                                        <input type="text" id="execProducerLastName" name="executiveProducer.lastName" placeholder="Last Name" required class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# First Name %>
+                                        <input type="text" id="execProducerFirstName" name="executiveProducer.firstName" placeholder="First Name" required class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# M.I. %>
+                                        <input type="text" id="execProducerMI" name="executiveProducer.mi" placeholder="M.I." class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# Suffix %>
+                                        <input type="text" id="execProducerSuffix" name="executiveProducer.suffix" placeholder="Suffix" class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# CYS %>
+                                        <input type="text" id="execProducerCYS" name="executiveProducer.cys" placeholder="CYS" class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
                                     </div>
                                 </fieldset>
 
                                 <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Host/s</legend>
                                     <p class="text-xs text-gray-600 mt-1 mb-3">Weekly rotation allowed (max 2 sets). Max four (4) hosts total.</p> <!-- Adjusted margins -->
-                                    <div id="hosts-container" class="space-y-3 mb-3">
-                                        <!-- Host fields added by JS -->
+                                    <div id="hosts-container" class="space-y-4"> <%# Increased spacing for stacked view %>
+                                        <!-- Host fields added by JS - JS needs to generate the responsive grid structure -->
                                     </div>
-                                    <button type="button" id="addHostButton" class="bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Host</button> <!-- Corrected ID, adjusted styles -->
+                                    <button type="button" id="addHostButton" class="mt-3 bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Host</button> <!-- Added margin top -->
                                 </fieldset>
 
                                 <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Technical Staff/s</legend>
                                     <p class="text-xs text-gray-600 mt-1 mb-3">Max two (2) technical staff per episode.</p>
-                                    <div id="technical-container" class="space-y-3 mb-3">
-                                       <!-- Technical staff fields added by JS -->
+                                    <div id="technical-container" class="space-y-4"> <%# Increased spacing for stacked view %>
+                                       <!-- Technical staff fields added by JS - JS needs to generate the responsive grid structure -->
                                     </div>
-                                    <button type="button" id="addTechnicalButton" class="bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Technical Staff</button> <!-- Corrected ID, adjusted styles -->
+                                    <button type="button" id="addTechnicalButton" class="mt-3 bg-blue-600 hover:enabled:bg-blue-700 text-white py-1.5 px-3 border-none rounded-md font-semibold text-xs cursor-pointer transition duration-300 hover:enabled:scale-103 disabled:bg-gray-400 disabled:cursor-not-allowed">+ Add Technical Staff</button> <!-- Added margin top -->
                                 </fieldset>
 
                                 <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
                                     <legend class="font-semibold px-2 text-sm text-gray-600">Creative Staff</legend>
                                     <p class="text-xs text-gray-600 mt-1 mb-3">One (1) creative staff for publicity materials.</p>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
-                                        <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName" placeholder="Last Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="creativeStaffFirstName" name="creativeStaff.firstName" placeholder="First Name" required class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="creativeStaffMI" name="creativeStaff.mi" placeholder="M.I." class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix" placeholder="Suffix" class="p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
-                                        <input type="text" id="creativeStaffCYS" name="creativeStaff.cys" placeholder="CYS" class="md:col-span-2 p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                    <%# Responsive Grid: 1 col default, 5 cols on lg screens %>
+                                    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,0.5fr)_minmax(0,0.5fr)_minmax(0,1fr)] gap-y-2 lg:gap-x-3 lg:items-center">
+                                        <%# Last Name %>
+                                        <input type="text" id="creativeStaffLastName" name="creativeStaff.lastName" placeholder="Last Name" required class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# First Name %>
+                                        <input type="text" id="creativeStaffFirstName" name="creativeStaff.firstName" placeholder="First Name" required class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# M.I. %>
+                                        <input type="text" id="creativeStaffMI" name="creativeStaff.mi" placeholder="M.I." class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# Suffix %>
+                                        <input type="text" id="creativeStaffSuffix" name="creativeStaff.suffix" placeholder="Suffix" class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
+                                        <%# CYS %>
+                                        <input type="text" id="creativeStaffCYS" name="creativeStaff.cys" placeholder="CYS" class="w-full p-2 rounded-lg border border-gray-300 text-sm box-border focus:ring-green-500 focus:border-green-500">
                                     </div>
                                 </fieldset>
 
