@@ -192,34 +192,45 @@ exports.updatePost = async (req, res) => {
     const { title, text } = req.body;
     const postId = req.params.id;
     const userId = req.user._id;
+    const userRoles = req.user.roles || []; // Get user roles
 
-    const post = await ForumPost.findOne({
-      _id: postId,
-      userId,
-      isDeleted: { $ne: true }
-    });
+    // Find the post first
+    const post = await ForumPost.findById(postId);
 
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        error: 'Post not found or unauthorized'
-      });
+    if (!post || post.isDeleted) {
+      return res.status(404).json({ success: false, error: 'Post not found' });
     }
 
-    post.title = title?.trim() || post.title;
-    post.text = text?.trim() || post.text;
-    post.media = req.uploadedMedia?.length ? req.uploadedMedia : post.media;
+    // Check permissions: Owner OR Admin/Staff
+    const isOwner = post.userId.toString() === userId.toString();
+    const isAdminOrStaff = userRoles.includes('Admin') || userRoles.includes('Staff');
+
+    if (!isOwner && !isAdminOrStaff) {
+      return res.status(403).json({ success: false, error: 'Not authorized to update this post' });
+    }
+
+    // Update fields if provided
+    if (title !== undefined) post.title = title.trim();
+    if (text !== undefined) post.text = text.trim(); // Allow empty text
+    
+    // Note: Media is NOT updated here as per current frontend logic
+    // If media update is needed later, handleFileUploads would need to be added back
+    // conditionally or a separate route created.
+    
     post.updatedAt = new Date();
+    post.edited = true; // Mark as edited
 
     await post.save();
+    
+    // Populate user details for the response
     const populatedPost = await ForumPost.populate(post, {
       path: 'userId',
-      select: 'username profilePicture'
+      select: 'username profilePicture' // Adjust fields as needed
     });
 
     res.json({
       success: true,
-      post: populatedPost.toObject()
+      post: populatedPost.toObject() // Send back the updated post object
     });
   } catch (error) {
     console.error('Update post error:', error);
@@ -235,19 +246,27 @@ exports.deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
+    const userRoles = req.user.roles || []; // Get user roles
 
-    const post = await ForumPost.findOneAndUpdate(
-      { _id: postId, userId, isDeleted: { $ne: true } },
-      { isDeleted: true, deletedAt: new Date() },
-      { new: true }
-    );
+    // Find the post first
+    const post = await ForumPost.findById(postId);
 
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        error: 'Post not found or unauthorized'
-      });
+    if (!post || post.isDeleted) { // Check if already soft-deleted
+        return res.status(404).json({ success: false, error: 'Post not found' });
     }
+
+    // Check permissions: Owner OR Admin/Staff
+    const isOwner = post.userId.toString() === userId.toString();
+    const isAdminOrStaff = userRoles.includes('Admin') || userRoles.includes('Staff');
+
+    if (!isOwner && !isAdminOrStaff) {
+        return res.status(403).json({ success: false, error: 'Not authorized to delete this post' });
+    }
+
+    // Perform soft delete
+    post.isDeleted = true;
+    post.deletedAt = new Date();
+    await post.save();
 
     res.json({ success: true, message: 'Post deleted successfully' });
   } catch (error) {
@@ -264,32 +283,34 @@ exports.deletePost = async (req, res) => {
 exports.toggleLike = async (req, res) => {
   try {
     const postId = req.params.id;
-    const userId = req.user?._id || req.session?.userId || null;
+    // Use req.user which is set by requireAuth
+    const userId = req.user?._id; 
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' });
+      // This case might not be reached if requireAuth works correctly, but good practice
+      return res.status(401).json({ success: false, error: 'Authentication required' });
     }
 
     const post = await ForumPost.findById(postId);
     if (!post || post.isDeleted) {
-      return res.status(404).json({
-        success: false,
-        error: 'Post not found'
-      });
+      return res.status(404).json({ success: false, error: 'Post not found' });
     }
 
-    const likeIndex = post.likes.findIndex(id => id.toString() === userId.toString());
-    const liked = likeIndex === -1;
-
-    if (liked) {
+    const userIdString = userId.toString();
+    const likeIndex = post.likes.findIndex(id => id.toString() === userIdString);
+    
+    if (likeIndex === -1) {
+      // User hasn't liked yet, add like
       post.likes.push(userId);
     } else {
+      // User has liked, remove like
       post.likes.splice(likeIndex, 1);
     }
 
     await post.save();
 
-    res.json({ success: true, likes: post.likes });
+    // Return the updated array of likes (or just the count if preferred)
+    res.json({ success: true, likes: post.likes }); 
   } catch (error) {
     console.error('Toggle like error:', error);
     res.status(500).json({
@@ -399,22 +420,36 @@ exports.updateComment = async (req, res) => {
 
 exports.deleteComment = async (req, res) => {
   const { id: postId, commentId } = req.params;
+  const userId = req.user._id; // Get current user ID
+  const userRoles = req.user.roles || []; // Get user roles
 
   try {
-    const post = await ForumPost.findOneAndUpdate(
-      { _id: postId, "comments._id": commentId },
-      { $set: { "comments.$.isDeleted": true } }, // Soft-delete
-      { new: true }
-    );
-
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Comment not found' });
+    const post = await ForumPost.findById(postId);
+    if (!post || post.isDeleted) {
+        return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    res.json({ success: true });
+    const comment = post.comments.id(commentId);
+    if (!comment || comment.isDeleted) { // Check if comment exists and isn't already deleted
+        return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    // Check permissions: Comment Owner OR Admin/Staff
+    const isOwner = comment.userId.toString() === userId.toString();
+    const isAdminOrStaff = userRoles.includes('Admin') || userRoles.includes('Staff');
+
+    if (!isOwner && !isAdminOrStaff) {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+    }
+
+    // Perform soft delete on the subdocument
+    comment.isDeleted = true; 
+    await post.save(); // Save the parent document
+
+    res.json({ success: true, message: 'Comment deleted successfully' });
   } catch (error) {
     console.error('❌ Error in deleteComment:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error while deleting comment' });
   }
 };
 

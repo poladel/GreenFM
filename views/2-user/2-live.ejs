@@ -15,8 +15,8 @@
             <!-- Removed fixed lg height, let content determine height more naturally -->
             <div class="live-container flex flex-col lg:flex-row gap-[1vw] lg:items-start">
 
-                <!-- Video Section: Removed default flex, added lg:flex lg:flex-col. Use p-2 default, lg:p-[1.5vh] -->
-                <div class="video-section lg:flex-1 bg-white rounded-[15px] p-2 lg:p-[1.5vh] shadow-md lg:flex lg:flex-col lg:h-auto mb-4 lg:mb-0"> <!-- Removed flex flex-col, added lg:flex lg:flex-col. Changed padding -->
+                <!-- Video Section: Replaced lg:flex-1 with lg:w-1/4 -->
+                <div class="video-section lg:w-3/4 bg-white rounded-[15px] p-2 lg:p-[1.5vh] shadow-md lg:flex lg:flex-col lg:h-auto mb-4 lg:mb-0"> <!-- Changed lg:flex-1 to lg:w-1/4 -->
                     <!-- Added aspect-video to enforce 16:9 ratio -->
                     <div class="video-wrapper w-full aspect-video"> <!-- Removed flex-grow, added aspect-video -->
                         <iframe
@@ -28,8 +28,8 @@
                     </div>
                 </div>
 
-                <!-- Comments Section: Removed min-h-[50vh] and lg:min-h-0 -->
-                <div class="comments-section lg:flex-3 bg-white rounded-[15px] p-[1vw] shadow-md flex flex-col lg:h-[calc(100vh-150px)]"> <!-- Removed min-h-[50vh], lg:min-h-0 -->
+                <!-- Comments Section: Replaced lg:flex-3 with lg:w-3/4 -->
+                <div class="comments-section lg:w-1/4 bg-white rounded-[15px] p-[1vw] shadow-md flex flex-col lg:h-[calc(100vh-150px)]"> <!-- Changed lg:flex-3 to lg:w-3/4 -->
                     <div id="live-comments" class="flex flex-col h-full">
                         <h3 class="mt-0 mb-2.5 text-[1.2em] text-gray-800 font-semibold">💬 Live Comments</h3>
 
