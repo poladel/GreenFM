@@ -1,205 +1,215 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-  <div class="content-wrap">
-    <div class="container">
-      <%- include('../partials/nav.ejs') %>
+<body class="bg-gray-100"> <!-- Apply base background -->
+    <div class="page-container flex flex-col min-h-screen">
+        <!-- Nav and Menu moved outside content-wrap -->
+        <%- include('../partials/nav.ejs') %>
+        <%- include('../partials/menu.ejs', { headerTitle: "JOIN GREEN FM" }) %> <!-- Pass header title -->
 
-                <!-- HEADER -->
-                <div class="form-title-container">
-                    <h3 class="form-title">JOIN GREEN FM</h3>
-                </div>
-                
+        <!-- Apply standard padding to content-wrap -->
+        <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
+
+            <!-- Adjusted max-width and added mx-auto for centering within padded area -->
+            <div class="join-main-content max-w-6xl 2xl:max-w-screen-xl mx-auto pb-6 space-y-6">
+
+                <!-------------------- CONTENTS START -------------------->
+
                 <!-- PROGRESS BAR -->
-                <div class="progress-bar">
-                    <div class="circle circle-1">1</div>
-                    <div class="circle circle-2">2</div>
-                    <div class="circle circle-3">3</div>
-                </div>                                            
-
-                <form id="joingreenfmForm1">
-                <!-- FORMS START -->
-                        <div class="form-container1">
-                            <label>Full Name</label>
-                            <div class="name-section">
-                                <input type="text" name="lastName" placeholder="Last Name" value="<%= user.lastName %>" required>
-                                <input type="text" name="firstName" placeholder="First Name" value="<%= user.firstName %>" required>
-                                <input type="text" name="middleInitial" placeholder="M.I" value="<%= user.middleInitial ? user.middleInitial : '' %>">
-                                <input type="text" name="suffix" placeholder="Suffix" value="<%= user.suffix ? user.suffix : '' %>">
-                            </div>
-
-                            <label>Student Number</label>
-                            <input type="text" id="studentNumber" name="studentNumber" value="<%= user.studentNumber ? user.studentNumber : '' %>" required>
-
-                            <label>DLSU-D Email</label>
-                            <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" value="<%= user.dlsudEmail ? user.dlsudEmail : '' %>" required>
-
-                            <label>College</label>
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CLAC" required> CLAC - College of Liberal Arts and Communication</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CBAA"> CBAA - College of Business Administration and Accountancy</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CCJE"> CCJE - College of Criminal Justice Education</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="COED"> COED - College of Education</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CEAT"> CEAT - College of Engineering, Architecture, and Technology</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="COSC"> COSC - College of Science</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CICS"> CICS - College of Information and Computer Studies</label>
-                                </div>
-                                <div class="radio-item">
-                                    <label><input type="radio" name="college" value="CTHM"> CTHM - College of Tourism and Hospitality Management</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form 2 -->
-                        <div class="form-container2">
-                            <label>Program</label>
-                            <select name="program" required>
-                                <option value="" disabled selected>Select your program</option>
-                                
-                                <optgroup label="CLAC">
-                                    <option value="Communication">Communication</option>
-                                    <option value="Digital and Multimedia Journalism">Digital and Multimedia Journalism</option>
-                                    <option value="Philosophy">Philosophy</option>
-                                    <option value="Political Science">Political Science</option>
-                                    <option value="Internal Development">Internal Development</option>
-                                    <option value="BA Psychology">BA Psychology</option>
-                                    <option value="BS Psychology">BS Psychology</option>
-                                </optgroup>
-
-                                <optgroup label="CBAA">
-                                    <option value="Accountancy">Accountancy</option>
-                                    <option value="Management Accounting">Management Accounting</option>  
-                                    <option value="Entrepreneurship w/ Specialization in Agripreneurship">Entrepreneurship w/ Specialization in Agripreneurship</option>
-                                    <option value="Entrepreneurship w/ Specialization in Food Entrepreneurship">Entrepreneurship w/ Specialization in Food Entrepreneurship</option>
-                                    <option value="Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics">Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics</option>
-                                    <option value="Business Ad Major in Business Economics">Business Ad Major in Business Economics</option>
-                                    <option value="Business Ad Major in Human Resource Development w/ Specialization in Business Analytics">Business Ad Major in Human Resource Development w/ Specialization in Business Analytics</option>
-                                    <option value="Business Ad Major in Marketing Management w/ Specialization in Business Analytics">Business Ad Major in Marketing Management w/ Specialization in Business Analytics</option>
-                                    <option value="Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications">Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications</option>
-                                </optgroup>
-                                
-                                <optgroup label="CCJE">
-                                    <option value="Criminology">Criminology</option>
-                                    <option value="Forensic Science">Forensic Science</option>
-                                </optgroup>
-                                
-                                <optgroup label="COED">
-                                    <option value="Early Childhood Education">Early Childhood Education</option>
-                                    <option value="Special Needs Education">Special Needs Education</option>
-                                    <option value="Secondary Education">Secondary Education</option>
-                                    <option value="Physical Education">Physical Education</option>
-                                    <option value="Certificate in Teaching Program">Certificate in Teaching Program</option>
-                                    <option value="Certificate in Teaching Values Education">Certificate in Teaching Values Education</option>
-                                    <option value="Certificate in Sign Language">Certificate in Sign Language</option>
-                                    <option value="Certificate in Teaching Early Childhood Learners">Certificate in Teaching Early Childhood Learners</option>
-                                </optgroup>
-                                
-                                <optgroup label="CEAT">
-                                    <option value="Architecture">Architecture</option>
-                                    <option value="Civil Engineering">Civil Engineering</option>
-                                    <option value="Computer Engineering">Computer Engineering</option>
-                                    <option value="Electrical Engineering">Electrical Engineering</option>
-                                    <option value="Electronics Engineering">Electronics Engineering</option>
-                                    <option value="Industrial Engineering">Industrial Engineering</option>
-                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
-                                    <option value="Sanitary Engineering">Sanitary Engineering</option>
-                                    <option value="Multimedia Arts">Multimedia Arts</option>
-                                </optgroup>
-
-                                <optgroup label="COSC">
-                                    <option value="Biology w/ Specialization in Animal Biology">Biology w/ Specialization in Animal Biology</option>
-                                    <option value="Biology w/ Specialization in Cell and Molecular Biology">Biology w/ Specialization in Cell and Molecular Biology</option>
-                                    <option value="Biology w/ Specialization in Environmental Science">Biology w/ Specialization in Environmental Science</option>
-                                    <option value="Biology w/ Specialization in Medical Biology">CiBiology w/ Specialization in Medical Biology</option>
-                                    <option value="Biology w/ Specialization in Microbiology">Biology w/ Specialization in Microbiology</option>
-                                    <option value="Biology w/ Specialization in Plant Biology">Biology w/ Specialization in Plant Biology</option>
-                                    <option value="Applied Mathematics">Applied Mathematics</option>
-                                </optgroup>
-
-                                <optgroup label="CICS">
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Information Technology">Information Technology</option>
-                                </optgroup>
-
-                                <optgroup label="CTHM">
-                                    <option value="Hospitality Management">Hospitality Management</option>
-                                    <option value="Tourism Management">Tourism Management</option>
-                                </optgroup>
-                            </select>
-
-                            <label>College Year</label>
-                            <ul class="radio-group">
-                                <li class="radio-item">
-                                    <label><input type="radio" name="collegeYear" value="1st Year" required> 1st Year</label>
-                                </li>
-                                <li class="radio-item">
-                                    <label><input type="radio" name="collegeYear" value="2nd Year"> 2nd Year</label>
-                                </li>
-                                <li class="radio-item">
-                                    <label><input type="radio" name="collegeYear" value="3rd Year"> 3rd Year</label>
-                                </li>
-                                <li class="radio-item">
-                                    <label><input type="radio" name="collegeYear" value="4th Year"> 4th Year</label>
-                                </li>
-                                <li class="radio-item">
-                                    <label><input type="radio" name="collegeYear" value="5th Year"> 5th Year</label>
-                                </li>
-                            </ul>
-
-                            <label>Section</label>
-                            <input type="text" name="section" placeholder="CYS" required>
-
-                            <label>Facebook Profile URL</label>
-                            <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required>
-
-                            <label>Affiliated Organizations</label>
-                            <textarea name="affiliatedOrgsList.listInput" id="affiliatedOrgsListListInput" rows="4" cols="50" placeholder="List down the organizations you belong to, both internal (within the University) and external (outside the University)."></textarea>
-                            <p><input type="checkbox" id="affiliatedOrgsListNotApplicable" name="affiliatedOrgsList.notApplicable"> Not Applicable</p>
-                        </div>
-                        
-                        <!-- Form 3 -->
-                        <div class="form-container3">
-                            <!-------------------- 2 - DEPARTMENT PREFERENCE -------------------->
-                            <label>Preferred Department</label>
-                            <div class="radio-group">
-                                <label><input type="radio" name="preferredDepartment" value="News and Public Affairs" required> News and Public Affairs</label>
-                                <label><input type="radio" name="preferredDepartment" value="Music and Entertainment"> Music and Entertainment</label>
-                                <label><input type="radio" name="preferredDepartment" value="Operations and Logistics"> Operations and Logistics</label>
-                                <label><input type="radio" name="preferredDepartment" value="Creatives and Promotions"> Creatives and Promotions</label>
-                            </div>
-                            <label>Reasons for Staff Application</label>
-                            <textarea name="staffApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for Green FM?" required></textarea>
-    
-                            <label>Reasons for Department Application</label>
-                            <textarea name="departmentApplicationReasons" rows="4" cols="50" placeholder="Why did you apply for your chosen department?" required></textarea>
-    
-                            <label>Green FM Contribution</label>
-                            <textarea name="greenFmContribution" rows="4" cols="50" placeholder="What can you contribute to Green FM as it transitions from purely hybrid to traditional programming??" required></textarea>
-                        </div>
+                <!-- Added step-1-active class -->
+                <div class="progress-bar step-1-active flex justify-center my-5 relative">
+                    <!-- Circle 1 Active - Updated classes -->
+                    <div class="circle active relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        1
+                        <!-- Line span removed - handled by CSS ::after -->
+                    </div>
+                    <!-- Circle 2 Inactive - Updated classes -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        2
+                        <!-- Line span removed - handled by CSS ::after -->
+                    </div>
+                    <!-- Circle 3 Inactive - Updated classes -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        3
+                        <!-- No line after Circle 3 -->
                     </div>
                 </div>
-                <div class="submit-button">
-                    <button type="submit" class="submit">NEXT</button> 
-                </div>
-            </form>
-        
-        <!-------------------- FOOTER -------------------->
-  <%- include('../partials/footer.ejs') %>
-</div>
 
-<script src="js/2-user/joingreenfm.js"></script>
+                <form id="joingreenfmForm1" class="space-y-6"> <!-- Use space-y for consistent spacing between containers -->
+
+                    <!-- Form Container 1 -->
+                    <!-- Removed custom margins/width, relies on parent centering -->
+                    <div class="form-container1 bg-white p-5 rounded-xl shadow-md">
+                        <label class="block font-bold mb-1.5 text-sm">Full Name</label>
+                        <div class="name-section flex flex-col md:flex-row gap-2.5 mb-4">
+                            <input type="text" name="lastName" placeholder="Last Name" value="<%= user.lastName %>" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm">
+                            <input type="text" name="firstName" placeholder="First Name" value="<%= user.firstName %>" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm">
+                            <input type="text" name="middleInitial" placeholder="M.I" value="<%= user.middleInitial ? user.middleInitial : '' %>" class="w-full md:w-16 p-2.5 border border-greenfm-border-light rounded text-sm">
+                            <input type="text" name="suffix" placeholder="Suffix" value="<%= user.suffix ? user.suffix : '' %>" class="w-full md:w-16 p-2.5 border border-greenfm-border-light rounded text-sm">
+                        </div>
+
+                        <label class="block font-bold mb-1.5 text-sm">Student Number</label>
+                        <input type="text" id="studentNumber" name="studentNumber" value="<%= user.studentNumber ? user.studentNumber : '' %>" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm mb-4">
+
+                        <label class="block font-bold mb-1.5 text-sm">DLSU-D Email</label>
+                        <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" value="<%= user.dlsudEmail ? user.dlsudEmail : '' %>" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm mb-4">
+
+                        <label class="block font-bold mb-1.5 text-sm">College</label>
+                        <div class="radio-group flex flex-col gap-1 mb-4">
+                            <!-- Repeat for each college -->
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CLAC" required class="mr-2"> CLAC - College of Liberal Arts and Communication</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CBAA" class="mr-2"> CBAA - College of Business Administration and Accountancy</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CCJE" class="mr-2"> CCJE - College of Criminal Justice Education</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="COED" class="mr-2"> COED - College of Education</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CEAT" class="mr-2"> CEAT - College of Engineering, Architecture, and Technology</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="COSC" class="mr-2"> COSC - College of Science</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CICS" class="mr-2"> CICS - College of Information and Computer Studies</label>
+                            </div>
+                            <div class="radio-item">
+                                <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="college" value="CTHM" class="mr-2"> CTHM - College of Tourism and Hospitality Management</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Container 2 -->
+                    <!-- Removed custom margins/width -->
+                    <div class="form-container2 bg-white p-5 rounded-xl shadow-md">
+                        <label class="block font-bold mb-1.5 text-sm">Program</label>
+                        <select name="program" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm mb-4">
+                            <option value="" disabled selected>Select your program</option>
+                            <!-- Optgroups and Options -->
+                            <optgroup label="CLAC">
+                                <option value="Communication">Communication</option>
+                                <option value="Digital and Multimedia Journalism">Digital and Multimedia Journalism</option>
+                                <option value="Philosophy">Philosophy</option>
+                                <option value="Political Science">Political Science</option>
+                                <option value="Internal Development">Internal Development</option>
+                                <option value="BA Psychology">BA Psychology</option>
+                                <option value="BS Psychology">BS Psychology</option>
+                            </optgroup>
+                            <optgroup label="CBAA">
+                                <option value="Accountancy">Accountancy</option>
+                                <option value="Management Accounting">Management Accounting</option>
+                                <option value="Entrepreneurship w/ Specialization in Agripreneurship">Entrepreneurship w/ Specialization in Agripreneurship</option>
+                                <option value="Entrepreneurship w/ Specialization in Food Entrepreneurship">Entrepreneurship w/ Specialization in Food Entrepreneurship</option>
+                                <option value="Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics">Business Ad Major in Business and Operations Management w/ Specialization in Business Analytics</option>
+                                <option value="Business Ad Major in Business Economics">Business Ad Major in Business Economics</option>
+                                <option value="Business Ad Major in Human Resource Development w/ Specialization in Business Analytics">Business Ad Major in Human Resource Development w/ Specialization in Business Analytics</option>
+                                <option value="Business Ad Major in Marketing Management w/ Specialization in Business Analytics">Business Ad Major in Marketing Management w/ Specialization in Business Analytics</option>
+                                <option value="Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications">Business Ad Major in Marketing Management w/ Specialization in Integrated Marketing Communications</option>
+                            </optgroup>
+                            <optgroup label="CCJE">
+                                <option value="Criminology">Criminology</option>
+                                <option value="Forensic Science">Forensic Science</option>
+                            </optgroup>
+                            <optgroup label="COED">
+                                <option value="Early Childhood Education">Early Childhood Education</option>
+                                <option value="Special Needs Education">Special Needs Education</option>
+                                <option value="Secondary Education">Secondary Education</option>
+                                <option value="Physical Education">Physical Education</option>
+                                <option value="Certificate in Teaching Program">Certificate in Teaching Program</option>
+                                <option value="Certificate in Teaching Values Education">Certificate in Teaching Values Education</option>
+                                <option value="Certificate in Sign Language">Certificate in Sign Language</option>
+                                <option value="Certificate in Teaching Early Childhood Learners">Certificate in Teaching Early Childhood Learners</option>
+                            </optgroup>
+                            <optgroup label="CEAT">
+                                <option value="Architecture">Architecture</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Computer Engineering">Computer Engineering</option>
+                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                <option value="Electronics Engineering">Electronics Engineering</option>
+                                <option value="Industrial Engineering">Industrial Engineering</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Sanitary Engineering">Sanitary Engineering</option>
+                                <option value="Multimedia Arts">Multimedia Arts</option>
+                            </optgroup>
+                            <optgroup label="COSC">
+                                <option value="Biology w/ Specialization in Animal Biology">Biology w/ Specialization in Animal Biology</option>
+                                <option value="Biology w/ Specialization in Cell and Molecular Biology">Biology w/ Specialization in Cell and Molecular Biology</option>
+                                <option value="Biology w/ Specialization in Environmental Science">Biology w/ Specialization in Environmental Science</option>
+                                <option value="Biology w/ Specialization in Medical Biology">CiBiology w/ Specialization in Medical Biology</option>
+                                <option value="Biology w/ Specialization in Microbiology">Biology w/ Specialization in Microbiology</option>
+                                <option value="Biology w/ Specialization in Plant Biology">Biology w/ Specialization in Plant Biology</option>
+                                <option value="Applied Mathematics">Applied Mathematics</option>
+                            </optgroup>
+                            <optgroup label="CICS">
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                            </optgroup>
+                            <optgroup label="CTHM">
+                                <option value="Hospitality Management">Hospitality Management</option>
+                                <option value="Tourism Management">Tourism Management</option>
+                            </optgroup>
+                        </select>
+
+                        <label class="block font-bold mb-1.5 text-sm">College Year</label>
+                        <ul class="radio-group flex flex-col md:flex-row md:flex-wrap gap-y-1 gap-x-4 mb-4">
+                            <li class="radio-item"><label class="inline-flex items-center font-normal text-sm"><input type="radio" name="collegeYear" value="1st Year" required class="mr-2"> 1st Year</label></li>
+                            <li class="radio-item"><label class="inline-flex items-center font-normal text-sm"><input type="radio" name="collegeYear" value="2nd Year" class="mr-2"> 2nd Year</label></li>
+                            <li class="radio-item"><label class="inline-flex items-center font-normal text-sm"><input type="radio" name="collegeYear" value="3rd Year" class="mr-2"> 3rd Year</label></li>
+                            <li class="radio-item"><label class="inline-flex items-center font-normal text-sm"><input type="radio" name="collegeYear" value="4th Year" class="mr-2"> 4th Year</label></li>
+                            <li class="radio-item"><label class="inline-flex items-center font-normal text-sm"><input type="radio" name="collegeYear" value="5th Year" class="mr-2"> 5th Year</label></li>
+                        </ul>
+
+                        <label class="block font-bold mb-1.5 text-sm">Section</label>
+                        <input type="text" name="section" placeholder="CYS" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm mb-4">
+
+                        <label class="block font-bold mb-1.5 text-sm">Facebook Profile URL</label>
+                        <input type="text" name="facebookUrl" placeholder="http://www.facebook.com/" required class="w-full p-2.5 border border-greenfm-border-light rounded text-sm mb-4">
+
+                        <label class="block font-bold mb-1.5 text-sm">Affiliated Organizations</label>
+                        <textarea name="affiliatedOrgsList.listInput" id="affiliatedOrgsListListInput" rows="4" placeholder="List down the organizations..." class="w-full p-2.5 border border-gray-300 rounded text-xs resize-y mb-2"></textarea>
+                        <p class="text-sm text-gray-600"><label class="inline-flex items-center"><input type="checkbox" id="affiliatedOrgsListNotApplicable" name="affiliatedOrgsList.notApplicable" class="mr-2"> Not Applicable</label></p>
+                    </div>
+
+                    <!-- Form Container 3 -->
+                    <!-- Removed custom margins/width -->
+                    <div class="form-container3 bg-white p-5 rounded-xl shadow-md">
+                        <label class="block font-bold mb-1.5 text-sm">Preferred Department</label>
+                        <div class="radio-group flex flex-col gap-1 mb-4">
+                            <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="preferredDepartment" value="News and Public Affairs" required class="mr-2"> News and Public Affairs</label>
+                            <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="preferredDepartment" value="Music and Entertainment" class="mr-2"> Music and Entertainment</label>
+                            <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="preferredDepartment" value="Operations and Logistics" class="mr-2"> Operations and Logistics</label>
+                            <label class="inline-flex items-center font-normal text-sm"><input type="radio" name="preferredDepartment" value="Creatives and Promotions" class="mr-2"> Creatives and Promotions</label>
+                        </div>
+
+                        <label class="block font-bold mb-1.5 text-sm">Reasons for Staff Application</label>
+                        <textarea name="staffApplicationReasons" rows="4" placeholder="Why did you apply for Green FM?" required class="w-full p-2.5 border border-gray-300 rounded text-xs resize-y mb-4"></textarea>
+
+                        <label class="block font-bold mb-1.5 text-sm">Reasons for Department Application</label>
+                        <textarea name="departmentApplicationReasons" rows="4" placeholder="Why did you apply for your chosen department?" required class="w-full p-2.5 border border-gray-300 rounded text-xs resize-y mb-4"></textarea>
+
+                        <label class="block font-bold mb-1.5 text-sm">Green FM Contribution</label>
+                        <textarea name="greenFmContribution" rows="4" placeholder="What can you contribute...?" required class="w-full p-2.5 border border-gray-300 rounded text-xs resize-y mb-4"></textarea>
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <!-- Updated classes to match blocktimer -->
+                    <div class="submit-button flex justify-end">
+                        <button type="submit" class="submit bg-[#00722A] text-white py-2.5 px-5 border-none rounded-[10px] cursor-pointer text-base hover:bg-[#00591d]">NEXT</button>
+                    </div>
+                </form>
+
+                <!-------------------- CONTENTS END -------------------->
+
+            </div> <!-- End join-main-content -->
+        </div> <!-- End content-wrap -->
+
+        <%- include('../partials/footer.ejs') %> <!-- Include Footer -->
+    </div> <!-- End page-container -->
+
+    <script src="/js/2-user/joingreenfm.js"></script>
 </body>
 </html>

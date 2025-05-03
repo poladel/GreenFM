@@ -1,114 +1,125 @@
 <%- include('../partials/header.ejs') %>
 
-  <div class="page-container">
-    <div class="content-wrap">
-      <div class="container">
+<body class="bg-gray-100"> <!-- Apply base background -->
+    <div class="page-container flex flex-col min-h-screen">
+        <!-- Nav and Menu moved outside content-wrap -->
         <%- include('../partials/nav.ejs') %>
+        <%- include('../partials/menu.ejs', { headerTitle: "JOIN GREEN FM" }) %> <!-- Pass header title -->
 
-          <!-- HEADER -->
-          <div class="form-title-container">
-            <h3 class="form-title">JOIN GREEN FM</h3>
-          </div>
+        <!-- Apply standard padding to content-wrap -->
+        <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
 
-          <!-- PROGRESS BAR -->
-          <div class="progress-bar">
-            <div class="circle circle-1">1</div>
-            <div class="circle circle-2">2</div>
-            <div class="circle circle-3">3</div>
-          </div>
+            <!-- Adjusted max-width and added mx-auto for centering within padded area -->
+            <div class="join-main-content max-w-6xl 2xl:max-w-screen-xl mx-auto pb-6 space-y-6">
 
-          <form id="joingreenfmForm2" method="POST" action="/JoinGFM-Step2">
+                <!-------------------- CONTENTS START -------------------->
 
-            <!-- ADD HIDDEN INPUTS HERE -->
-            <input type="hidden" id="preferredDepartmentHidden" value="<%= applicationData?.preferredDepartment || '' %>">
-            <input type="hidden" id="currentYearHidden" value="<%= currentYear || '' %>">
-            <!-- END HIDDEN INPUTS -->
-             
-            <div class="form-content">
-              <!-- Summary Container -->
-              <div class="summary-container">
-                <h4 class="summary-title">Summary</h4>
-                <div class="summary-details">
-                  <label class="summary-label">Full Name:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.lastName || '' %>,
-                      <%= applicationData?.firstName || '' %>
-                        <%= applicationData?.mi || '' %>
-                          <%= applicationData?.suffix || '' %>
-                  </span>
+                <!-- PROGRESS BAR -->
+                <!-- Added step-2-active class -->
+                <div class="progress-bar step-2-active flex justify-center my-5 relative">
+                    <!-- Circle 1 Inactive - Updated classes -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        1
+                        <!-- Line span removed -->
+                    </div>
+                    <!-- Circle 2 Active - Updated classes -->
+                    <div class="circle active relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        2
+                        <!-- Line span removed -->
+                    </div>
+                    <!-- Circle 3 Inactive - Updated classes -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        3
+                        <!-- No line after Circle 3 -->
+                    </div>
                 </div>
-                <div class="summary-details">
-                  <label class="summary-label">DLSU-D Email:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.dlsudEmail || '' %>
-                  </span>
-                </div>
-                <div class="summary-details">
-                  <label class="summary-label">College:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.college || '' %>
-                  </span>
-                </div>
-                <div class="summary-details">
-                  <label class="summary-label">Program:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.program || '' %>
-                  </span>
-                </div>
-                <div class="summary-details">
-                  <label class="summary-label">College Year:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.collegeYear || '' %>
-                  </span>
-                </div>
-                <div class="summary-details">
-                  <label class="summary-label">Section:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.section || '' %>
-                  </span>
-                </div>
-                <div class="summary-details">
-                  <label class="summary-label">Preferred Department:</label>
-                  <span class="summary-value">
-                    <%= applicationData?.preferredDepartment || '' %>
-                  </span>
-                </div>
-                <div class="summary-space"></div>
-              </div>
 
-              <!-- Date and Time Container -->
-              <div class="date-time-container">
-                <h4 class="date-time-title">Select Date & Time</h4>
-                <div class="date-time-fields">
-                  <label for="preferredDate">Preferred Date:</label>
-                  <select id="preferredDate" name="preferredSchedule[date]" required>
-                      <!-- Options populated dynamically or statically -->
-                  </select>
-                </div>
-                <div class="date-time-fields">
-                  <label for="preferredTime">Preferred Time:</label>
-                  <select id="preferredTime" name="preferredSchedule[time]" required disabled>
-                      <!-- Options populated dynamically or statically -->
-                      <option value="" disabled selected>Select a date first</option>
-                      <option value="7:00-8:00">7:00 AM - 8:00 AM</option>
-                      <option value="8:00-9:00">8:00 AM - 9:00 AM</option>
-                      <!-- ... other time slots ... -->
-                  </select>
-                </div>
-                <div class="summary-space"></div>
-              </div>
-            </div>
+                <form id="joingreenfmForm2" method="POST" action="/JoinGFM-Step2">
 
-            <div class="submit-button">
-              <button type="submit" class="submit">NEXT</button>
-            </div>
-          </form>
+                    <!-- Hidden inputs -->
+                    <input type="hidden" id="preferredDepartmentHidden" value="<%= applicationData?.preferredDepartment || '' %>">
+                    <input type="hidden" id="currentYearHidden" value="<%= currentYear || '' %>">
 
-          <!-------------------- FOOTER -------------------->
-          <%- include('../partials/footer.ejs') %>
-      </div>
-    </div>
-  </div>
-  <script src="js/2-user/joingreenfm2.js"></script>
-  </body>
+                    <!-- Form Content Layout -->
+                    <!-- Removed custom margins, use standard Tailwind spacing/flex -->
+                    <div class="form-content flex flex-col lg:flex-row justify-between items-start gap-6">
+
+                        <!-- Summary Container -->
+                        <!-- Adjusted width using Tailwind fractions/percentages -->
+                        <div class="summary-container bg-white w-full lg:w-[40%] p-4 shadow-md rounded-xl">
+                            <h4 class="summary-title font-semibold text-lg mb-3 text-greenfm-primary">Summary</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">Full Name:</label>
+                                    <span class="summary-value text-gray-800 ml-1">
+                                         <%= applicationData?.lastName || '' %>, <%= applicationData?.firstName || '' %> <%= applicationData?.mi || '' %> <%= applicationData?.suffix || '' %>
+                                    </span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">DLSU-D Email:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.dlsudEmail || 'N/A' %></span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">College:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.college || 'N/A' %></span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">Program:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.program || 'N/A' %></span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">College Year:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.collegeYear || 'N/A' %></span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">Section:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.section || 'N/A' %></span>
+                                </div>
+                                <div class="summary-details">
+                                    <label class="summary-label font-semibold text-gray-600">Preferred Department:</label>
+                                    <span class="summary-value text-gray-800 ml-1"><%= applicationData?.preferredDepartment || 'N/A' %></span>
+                                </div>
+                            </div>
+                            <!-- Removed summary-space div, use padding/margins if needed -->
+                        </div>
+
+                        <!-- Date and Time Container -->
+                        <!-- Adjusted width -->
+                         <div class="date-time-container bg-white w-full lg:w-[60%] p-4 shadow-md rounded-xl">
+                            <h4 class="date-time-title font-semibold text-lg mb-3 text-greenfm-primary">Select Assessment Date & Time</h4>
+                            <div class="date-time-fields mb-3">
+                                <label for="preferredDate" class="block font-bold mb-1 text-sm text-gray-700">Preferred Date:</label>
+                                <select id="preferredDate" name="preferredSchedule[date]" required class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-greenfm-primary focus:border-greenfm-primary">
+                                    <option value="" disabled selected>Loading available dates...</option>
+                                    <!-- Options populated by joingreenfm2.js -->
+                                </select>
+                            </div>
+                            <div class="date-time-fields mb-3">
+                                <label for="preferredTime" class="block font-bold mb-1 text-sm text-gray-700">Preferred Time:</label>
+                                <select id="preferredTime" name="preferredSchedule[time]" required disabled class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100 focus:ring-greenfm-primary focus:border-greenfm-primary disabled:cursor-not-allowed">
+                                    <option value="" disabled selected>Select a date first</option>
+                                    <!-- Options populated by joingreenfm2.js -->
+                                </select>
+                            </div>
+                            <!-- Removed summary-space div -->
+                        </div>
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <!-- Removed custom margins, use standard Tailwind spacing -->
+                     <div class="submit-button flex justify-end mt-6">
+                        <button type="submit" class="submit bg-[#00722A] text-white py-2.5 px-5 border-none rounded-[10px] cursor-pointer text-base hover:bg-[#00591d]">NEXT</button>
+                    </div>
+                </form>
+
+                <!-------------------- CONTENTS END -------------------->
+
+            </div> <!-- End join-main-content -->
+        </div> <!-- End content-wrap -->
+
+        <%- include('../partials/footer.ejs') %> <!-- Include Footer -->
+    </div> <!-- End page-container -->
+
+    <script src="/js/2-user/joingreenfm2.js"></script>
+</body>
 </html>

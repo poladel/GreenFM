@@ -13,15 +13,14 @@
         <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
 
             <!-- PROGRESS BAR -->
-            <!-- Adjusted margins: Removed ml, adjusted mt -->
-            <div class="progress-bar step-2-active flex justify-center my-5 mt-5 mb-0 relative">
-                <!-- Step 1 Inactive -->
-                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-[50px] text-[25px] relative">1</div>
-                <!-- Step 2 Active -->
-                <div class="circle active flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold mx-[50px] text-[25px] relative">2</div>
-                <!-- Step 3 Inactive -->
-                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-[50px] text-[25px] relative">3</div>
-                 <!-- CSS in input.css handles the lines based on step-2-active -->
+            <!-- Ensure step-X-active class is present -->
+            <div class="progress-bar step-2-active flex justify-center my-5 relative">
+                <!-- Step 1 Inactive - Updated margin -->
+                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-4 md:mx-[50px] text-[25px] relative">1</div>
+                <!-- Step 2 Active - Updated margin -->
+                <div class="circle active flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold mx-4 md:mx-[50px] text-[25px] relative">2</div>
+                <!-- Step 3 Inactive - Updated margin -->
+                <div class="circle inactive flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold mx-4 md:mx-[50px] text-[25px] relative">3</div>
             </div>
 
             <form id="blocktimerForm2">
@@ -197,8 +196,6 @@
     <%- include('../partials/footer.ejs') %> <!-- Include Footer -->
 </div> <!-- End page-container -->
 
-<script src="/js/2-user/blocktimer2.js"></script> <!-- Keep JS -->
-<script src="/js/3-logreg/auth.js" defer></script>
-
+<script src="/js/2-user/blocktimer2.js"></script>
 </body>
 </html>

@@ -1,29 +1,60 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container">
-  <div class="content-wrap">
-    <div class="container">
-      <%- include('../partials/nav.ejs') %>
+<body class="bg-gray-100"> <!-- Apply base background -->
+    <div class="page-container flex flex-col min-h-screen">
+        <!-- Nav and Menu moved outside content-wrap -->
+        <%- include('../partials/nav.ejs') %>
+        <%- include('../partials/menu.ejs', { headerTitle: "JOIN GREEN FM - APPLICATION STATUS" }) %> <!-- Pass header title -->
+
+        <!-- Apply standard padding to content-wrap -->
+        <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
+
+            <!-- Adjusted max-width and added mx-auto for centering within padded area -->
+            <div class="join-main-content max-w-6xl 2xl:max-w-screen-xl mx-auto pb-6 space-y-6">
 
                 <!-------------------- CONTENTS START -------------------->
-                <div class="form-title-container">
-                    <h3 class="form-title">JOIN GREEN FM - APPLICATION STATUS</h3>
-                </div>
-                <div class="form-questions-container">
-                    <!-- Status will be loaded here -->
-                    <div id="staff-application-status">
-                        <p>Loading application status...</p>
+
+                <!-- PROGRESS BAR -->
+                <!-- Added step-3-active class -->
+                <div class="progress-bar step-3-active flex justify-center my-5 relative">
+                    <!-- Circle 1 Inactive -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        1
+                        <!-- Line span removed -->
+                    </div>
+                    <!-- Circle 2 Inactive -->
+                    <div class="circle inactive relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#74B88D] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        2
+                        <!-- Line span removed -->
+                    </div>
+                    <!-- Circle 3 Active -->
+                    <div class="circle active relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full bg-[#00722A] text-white font-bold text-[25px] mx-4 md:mx-[50px]">
+                        3
+                        <!-- No line after Circle 3 -->
                     </div>
                 </div>
-                 <!-------------------- CONTENTS END -------------------->
-            </div>
-        </div>
 
-        <!-------------------- FOOTER -------------------->
+                <!-- STATUS CONTAINER -->
+                <!-- Removed custom margins/width, relies on parent centering -->
+                 <div class="form-questions-container px-4 py-6 md:px-6 md:py-8 mx-auto w-full max-w-[800px] min-h-[250px] flex justify-center items-center flex-col text-base text-gray-700 text-center bg-white rounded-xl shadow-md">
+                    <!-- Status will be loaded here -->
+                    <div id="staff-application-status">
+                        <p class="m-0 text-gray-600 text-base">Loading application status...</p>
+                        <!-- Tailwind styles will be applied to dynamically added content by JS if needed -->
+                        <!-- Example for buttons added by JS: -->
+                        <!-- <button class="acknowledge-staff-btn mt-4 px-4 py-2 bg-[#00722A] text-white rounded-[10px] hover:bg-[#00591d]">Acknowledge</button> -->
+                    </div>
+                </div>
+
+                <!-------------------- CONTENTS END -------------------->
+
+            </div> <!-- End join-main-content -->
+        </div> <!-- End content-wrap -->
+
         <%- include('../partials/footer.ejs') %>
-         <%- include('../partials/spinner.ejs') %> <%# Include spinner %>
-    </div>
+        <%- include('../partials/spinner.ejs') %> <%# Include spinner %>
+    </div> <!-- End page-container -->
 
-    <script src="/js/2-user/joingreenfm3.js"></script> <%# Link the new JS file %>
+    <script src="/js/2-user/joingreenfm3.js"></script>
 </body>
 </html>

@@ -230,8 +230,8 @@ exports.acknowledgeResult = async (req, res) => {
         const oldRole = userToUpdate.roles; // Capture old role (string)
 
         // <<< UPDATE FLAGS AND ROLE HERE >>>
-        userToUpdate.completedJoinGFMStep1 = true;
-        userToUpdate.completedJoinGFMStep2 = true;
+        userToUpdate.completedJoinGFMStep1 = false;
+        userToUpdate.completedJoinGFMStep2 = false;
         userToUpdate.roles = 'Staff'; // Assign the string 'Staff' (assuming single role schema)
         userToUpdate.department = submission.preferredDepartment;
         // <<< END UPDATE >>>

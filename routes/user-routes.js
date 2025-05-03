@@ -57,6 +57,44 @@ userRoutes.forEach(userRoute => {
     router.get(userRoute.path, routeMiddleware, async (req, res, next) => {
         try {
             console.log(`Handling route: ${userRoute.path}`);
+            const user = res.locals.user; // Get user from middleware
+
+            // <<< Add redirection logic specifically for /JoinGFM-Step3 >>>
+            if (userRoute.path === '/JoinBlocktimer-Step3') {
+                if (!user) {
+                    // Should be handled by requireAuth, but as a safeguard
+                    return res.redirect('/LogIn');
+                }
+                if (!user.completedBlocktimerStep1) {
+                    console.log('Step 1 not completed. Redirecting to Step 1.');
+                    return res.redirect('/JoinBlocktimer-Step1');
+                }
+                if (!user.completedBlocktimerStep2) {
+                    console.log('Step 1 completed but Step 2 not. Redirecting to Step 2.');
+                    return res.redirect('/JoinBlocktimer-Step2');
+                }
+                // If both steps 1 and 2 are complete, proceed to render Step 3 below
+            }
+            // <<< End of /JoinGFM-Step3 specific logic >>>
+
+            // <<< Add redirection logic specifically for /JoinGFM-Step3 >>>
+            if (userRoute.path === '/JoinGFM-Step3') {
+                if (!user) {
+                    // Should be handled by requireAuth, but as a safeguard
+                    return res.redirect('/LogIn');
+                }
+                if (!user.completedJoinGFMStep1) {
+                    console.log('Step 1 not completed. Redirecting to Step 1.');
+                    return res.redirect('/JoinGFM-Step1');
+                }
+                if (!user.completedJoinGFMStep2) {
+                    console.log('Step 1 completed but Step 2 not. Redirecting to Step 2.');
+                    return res.redirect('/JoinGFM-Step2');
+                }
+                // If both steps 1 and 2 are complete, proceed to render Step 3 below
+            }
+            // <<< End of /JoinGFM-Step3 specific logic >>>
+
 
             let playlist = [];
             if (userRoute.path === '/Playlist') {
@@ -97,7 +135,7 @@ userRoutes.forEach(userRoute => {
             return res.render(userRoute.view, {
                 pageTitle: userRoute.pageTitle,
                 cssFile: userRoute.cssFile,
-                user: res.locals.user, // Pass user data (might be null for public routes)
+                user: user, // Pass user data (might be null for public routes)
                 headerTitle: userRoute.headerTitle,
                 currentPath: req.path, // Pass currentPath if needed
                 playlist // Pass playlist if applicable

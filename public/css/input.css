@@ -3,6 +3,59 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+    /* ... other component styles ... */
+
+    .progress-bar {
+        @apply flex justify-center my-5 relative;
+    }
+
+    .progress-bar .circle {
+        /* Standardized responsive margins */
+        @apply relative flex justify-center items-center w-[8vh] h-[8vh] rounded-full text-white font-bold text-[25px] mx-4 md:mx-[50px];
+    }
+
+    .progress-bar .circle.active {
+        @apply bg-[#00722A]; /* GreenFM Primary */
+    }
+
+    .progress-bar .circle.inactive {
+        @apply bg-[#74B88D]; /* GreenFM Secondary/Inactive */
+    }
+
+    /* Line connecting circles - Explicit styles */
+    /* Apply only to circles that are NOT the last child */
+    .progress-bar .circle:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        height: 4px; /* Using h-1 equivalent */
+        top: 50%;
+        left: 100%;
+        transform: translateY(-50%);
+        background-color: #74B88D; /* Default inactive color */
+        width: 100px; /* Default width for md+ screens (matches 50px + 50px margin) */
+    }
+
+    /* Adjust line width for smaller screens (below md) */
+    /* Apply only to circles that are NOT the last child */
+    @media (max-width: 767px) {
+        .progress-bar .circle:not(:last-child)::after {
+            width: 32px; /* Width for smaller screens (matches 1rem + 1rem margin from mx-4) */
+        }
+    }
+
+    /* Color the line based on active steps - Targets the ::after of the preceding circle */
+    .progress-bar.step-1-active .circle:nth-child(1)::after,
+    .progress-bar.step-2-active .circle:nth-child(1)::after,
+    .progress-bar.step-2-active .circle:nth-child(2)::after,
+    .progress-bar.step-3-active .circle:nth-child(1)::after,
+    .progress-bar.step-3-active .circle:nth-child(2)::after {
+        background-color: #00722A; /* Active color */
+    }
+
+    /* ... other component styles ... */
+}
+
 @layer utilities {
   /* For Blinking Animation on Step 3 Status */
   @keyframes blink {
@@ -15,50 +68,6 @@
   }
 
   /* --- Progress Bar --- */
-
-  /* Base circle style */
-  .progress-bar .circle {
-    position: relative; /* Needed for pseudo-element positioning */
-    z-index: 1;
-    background-clip: padding-box;
-  }
-
-  /* Style for the line segment AFTER each circle (except the last) */
-  .progress-bar .circle:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 50%; /* Center vertically */
-    /* Start just after the right edge of the circle */
-    left: calc(100% + 0px); /* Adjust 0px if there's spacing/border */
-    /* Width is the space between circles (mx-[50px] -> 50px + 50px) */
-    width: 100px;
-    height: 4px; /* Line thickness */
-    background-color: #74B88D; /* Default inactive color */
-    transform: translateY(-50%);
-    z-index: 0; /* Behind the next circle */
-  }
-
-  /* Color the line between 1 and 2 if Step 1 is active */
-  /* Target ::after of the first circle when step-1 is active */
-  .progress-bar.step-1-active .circle:nth-child(1)::after {
-     background-color: #00722A; /* Active color */
-  }
-
-  /* Color the line between 2 and 3 if Step 2 is active */
-  /* Target ::after of the second circle when step-2 is active */
-   .progress-bar.step-2-active .circle:nth-child(2)::after {
-     background-color: #00722A; /* Active color */
-  }
-
-  /* Ensure lines up to the active step are also coloured */
-  /* If Step 2 is active, line 1->2 should be green */
-  .progress-bar.step-2-active .circle:nth-child(1)::after {
-     background-color: #00722A;
-  }
-  /* If Step 3 is active, lines 1->2 and 2->3 should be green */
-  .progress-bar.step-3-active .circle:nth-child(1)::after,
-  .progress-bar.step-3-active .circle:nth-child(2)::after {
-     background-color: #00722A;
-  }
+  /* Styles moved to @layer components */
 
 }

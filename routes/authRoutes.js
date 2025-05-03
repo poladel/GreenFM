@@ -4,8 +4,17 @@ const { checkAuth } = require('./api/check-auth.js');
 
 const router = Router();
 
+// Middleware to redirect logged-in users from /LogIn
+const redirectIfLoggedIn = (req, res, next) => {
+    if (res.locals.user) { // Check if user is set by checkUser middleware
+        return res.redirect('/');
+    }
+    next(); // Proceed to the login page if not logged in
+};
+
 // Define login and registration routes
-router.get('/LogIn', authController.login_get);
+// Apply the middleware before the controller for GET /LogIn
+router.get('/LogIn', redirectIfLoggedIn, authController.login_get);
 router.post('/LogIn', authController.login_post);
 router.get('/Register', authController.register_get);
 router.post('/Register', authController.register_post);
