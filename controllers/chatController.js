@@ -53,7 +53,13 @@ exports.sendMessage = async (req, res) => {
         await message.save();
 
         const fullMessage = await message.populate('sender', 'username');
-        req.io.to(chatId).emit('newMessage', fullMessage);
+
+        // --- TEMPORARY DEBUGGING CHANGE ---
+        // req.io.to(chatId).emit('newMessage', fullMessage); // Original line
+        console.log(`[DEBUG] Broadcasting message globally instead of to room ${chatId}`);
+        req.io.emit('newMessage', fullMessage); // Broadcast to ALL connected clients
+        // --- END TEMPORARY CHANGE ---
+
 
         res.status(201).json(fullMessage);
     } catch (err) {

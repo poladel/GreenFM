@@ -110,7 +110,10 @@ io.on('connection', async (socket) => {
     // Existing joinRoom logic (can be kept for other purposes)
     socket.on('joinRoom', roomId => {
         socket.join(roomId);
-        console.log(`🔗 Socket ${socket.id} joined generic room ${roomId}`);
+        // --- DEBUGGING START ---
+        console.log(`[DEBUG] Socket ${socket.id} attempting to join room ${roomId}`);
+        // You can add more checks here later if needed, e.g., verify roomId format
+        // --- DEBUGGING END ---
     });
 
     socket.on('disconnect', () => {
