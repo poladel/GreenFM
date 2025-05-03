@@ -12,13 +12,18 @@
             <!-------------------- CONTENTS START -------------------->
              <!-- Max-width wrapper for content alignment -->
              <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
+
+                 <!-- Toggle Button for Small Screens -->
+                 <button id="sidebar-toggle" class="md:hidden bg-green-700 text-white py-2 px-4 rounded-md mb-3 font-semibold">
+                     Toggle Inbox
+                 </button>
+
                  <!-- Styles from .chat-wrapper - Removed px-[4vw], Added mt-2 -->
-                <div class="chat-wrapper flex flex-col md:flex-row gap-5 mt-2">
+                <div class="chat-wrapper flex flex-col md:flex-row gap-5 mt-2 md:mt-0"> <!-- Removed mt-2 on md+ -->
 
                     <!-- Sidebar -->
-                    <!-- Styles from .chat-sidebar, h2, #open-new-chat, .chat-room -->
-                     <!-- Removed overflow-y-auto from here, kept h-[75vh] and flex flex-col -->
-                     <div class="chat-sidebar flex-shrink-0 md:flex-basis-1/4 bg-white p-4 rounded-[15px] shadow-lg h-[75vh] flex flex-col space-y-3">
+                    <!-- Added ID, initially hidden on small screens, flex on md+ -->
+                     <div id="chat-sidebar-container" class="chat-sidebar flex-shrink-0 md:flex-basis-1/4 bg-white p-4 rounded-[15px] shadow-lg h-[75vh] flex flex-col space-y-3 hidden md:flex">
                         <button id="open-new-chat" type="button" class="bg-green-700 text-white border-none py-2 px-4 rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-green-900 transition duration-200 ease-in-out self-start">Start New Chat</button>
                         <h2 class="mt-4 text-2xl text-green-700 font-semibold border-t pt-3">Inbox</h2>
                         <!-- Added overflow-y-auto and scrollbar-hide to this div -->
@@ -42,8 +47,8 @@
                     </div>
 
                     <!-- Chat Area -->
-                    <!-- Styles from .chat-area, #messages, #message-form, #message-input, button -->
-                    <div class="chat-area flex-1 flex flex-col bg-white rounded-[15px] shadow-lg h-[75vh] overflow-hidden p-4">
+                    <!-- Adjusted width/flex properties -->
+                    <div class="chat-area w-full md:flex-1 flex flex-col bg-white rounded-[15px] shadow-lg h-[75vh] overflow-hidden p-4">
                         <!-- Messages Container - Added scrollbar-hide class (requires tailwindcss-scrollbar-hide plugin or manual CSS) -->
                          <div id="messages" class="flex-1 overflow-y-auto flex flex-col p-4 bg-white rounded-lg mb-4 scrollbar-hide space-y-3">
                              <!-- Messages will be loaded here by chat.js -->
@@ -60,9 +65,11 @@
                              <!-- </div> -->
                          </div>
                         <!-- Message Input Form -->
-                        <form id="message-form" class="flex pt-3 border-t border-gray-300">
-                            <input id="message-input" type="text" placeholder="Type your message..." class="flex-1 py-2.5 px-3.5 text-base rounded-full border border-gray-300 mr-2.5 focus:outline-none focus:ring-1 focus:ring-green-500"/>
-                            <button type="submit" class="py-2.5 px-5 bg-green-800 text-white border-none rounded-full font-semibold cursor-pointer hover:bg-green-900 transition duration-200 ease-in-out">Send</button>
+                        <form id="message-form" class="flex pt-3 border-t border-gray-300 items-center"> <!-- Added items-center -->
+                            <!-- Added min-w-0 to allow shrinking -->
+                            <input id="message-input" type="text" placeholder="Type your message..." class="flex-1 py-2.5 px-3.5 text-base rounded-full border border-gray-300 mr-1.5 sm:mr-2.5 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-0"/> <!-- Reduced mr on smallest screens, added min-w-0 -->
+                            <!-- Added flex-shrink-0 -->
+                            <button type="submit" class="py-2.5 px-4 sm:px-5 bg-green-800 text-white border-none rounded-full font-semibold cursor-pointer hover:bg-green-900 transition duration-200 ease-in-out flex-shrink-0">Send</button> <!-- Reduced px on smallest screens, added flex-shrink-0 -->
                         </form>
                     </div>
                 </div>

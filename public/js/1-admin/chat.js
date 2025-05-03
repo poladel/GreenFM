@@ -10,6 +10,9 @@ const messagesDiv = document.getElementById('messages');
 const modal = document.getElementById('new-chat-modal');
 const modalBackdrop = document.getElementById('modal-backdrop');
 const spinner = document.getElementById('loading-spinner'); // Get spinner element
+const sidebarToggleBtn = document.getElementById('sidebar-toggle'); // Get toggle button
+const sidebarContainer = document.getElementById('chat-sidebar-container'); // Get sidebar
+const chatAreaContainer = document.querySelector('.chat-area'); // Get chat area
 
 console.log('👤 Current User ID:', currentUserId);
 
@@ -28,6 +31,30 @@ function hideSpinner() {
     }
 }
 // --- END SPINNER FUNCTIONS ---
+
+// --- Sidebar Toggle Logic ---
+if (sidebarToggleBtn && sidebarContainer && chatAreaContainer) {
+    sidebarToggleBtn.addEventListener('click', () => {
+        const isSidebarHidden = sidebarContainer.classList.toggle('hidden');
+        chatAreaContainer.classList.toggle('hidden', !isSidebarHidden); // Hide chat area if sidebar is NOT hidden
+
+        // Optional: Change button text based on state
+        if (isSidebarHidden) {
+            sidebarToggleBtn.textContent = 'Show Inbox';
+        } else {
+            sidebarToggleBtn.textContent = 'Hide Inbox';
+        }
+    });
+
+    // Ensure initial state on small screens (sidebar hidden, chat area visible)
+    // Note: Tailwind's `md:flex` and `md:flex-1` handle visibility on larger screens
+    if (window.innerWidth < 768) { // Tailwind's md breakpoint
+        sidebarContainer.classList.add('hidden');
+        chatAreaContainer.classList.remove('hidden');
+        sidebarToggleBtn.textContent = 'Show Inbox';
+    }
+}
+// --- END Sidebar Toggle Logic ---
 
 // --- Socket Connection Handling ---
 socket.on('connect', () => {
@@ -61,6 +88,16 @@ document.querySelectorAll('.chat-room').forEach(room => {
         } else {
             console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
         }
+
+        // --- NEW: Hide sidebar and show chat area on small screens after clicking a room ---
+        if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+            sidebarContainer.classList.add('hidden');
+            chatAreaContainer.classList.remove('hidden');
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.textContent = 'Show Inbox';
+            }
+        }
+        // --- END NEW ---
     });
 });
 
@@ -440,11 +477,30 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                          loadMessages();
                          document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-gray-200', 'text-black')); // Use neutral active state
                          newChatDiv.classList.add('bg-gray-200', 'text-black'); // Apply neutral active state
+
+                        // --- NEW: Hide sidebar and show chat area on small screens after clicking new chat ---
+                        if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+                            sidebarContainer.classList.add('hidden');
+                            chatAreaContainer.classList.remove('hidden');
+                            if (sidebarToggleBtn) {
+                                sidebarToggleBtn.textContent = 'Show Inbox';
+                            }
+                        }
+                        // --- END NEW ---
                     });
-                     chatSidebarList.appendChild(newChatDiv); // Add to the list container
-                     newChatDiv.click(); // Automatically switch to the new chat
+                    chatSidebarList.appendChild(newChatDiv); // Add to the list container
+                    newChatDiv.click(); // Automatically switch to the new chat
                  } else {
                      existingRoom.click(); // Switch to the existing chat
+                     // --- NEW: Hide sidebar and show chat area on small screens after clicking existing chat ---
+                     if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+                         sidebarContainer.classList.add('hidden');
+                         chatAreaContainer.classList.remove('hidden');
+                         if (sidebarToggleBtn) {
+                             sidebarToggleBtn.textContent = 'Show Inbox';
+                         }
+                     }
+                     // --- END NEW ---
                  }
             }
              // --- End dynamic add ---
@@ -522,4 +578,14 @@ window.addEventListener('DOMContentLoaded', () => {
         messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat or start a new one.</p>';
         hideSpinner(); // Hide spinner if no chats to load
     }
+
+    // --- NEW: Hide sidebar and show chat area on small screens after initial load ---
+    if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+        sidebarContainer.classList.add('hidden');
+        chatAreaContainer.classList.remove('hidden');
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.textContent = 'Show Inbox';
+        }
+    }
+    // --- END NEW ---
 });
