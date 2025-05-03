@@ -1317,6 +1317,10 @@ video {
   height: 75vh;
 }
 
+.h-\[44px\] {
+  height: 44px;
+}
+
 .max-h-\[100px\] {
   max-height: 100px;
 }
@@ -1339,6 +1343,10 @@ video {
 
 .max-h-full {
   max-height: 100%;
+}
+
+.max-h-24 {
+  max-height: 6rem;
 }
 
 .min-h-\[250px\] {
@@ -1547,6 +1555,10 @@ video {
 
 .flex-shrink-0 {
   flex-shrink: 0;
+}
+
+.shrink {
+  flex-shrink: 1;
 }
 
 .flex-grow {
@@ -1884,6 +1896,10 @@ video {
 
 .overflow-x-hidden {
   overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden;
 }
 
 .truncate {
@@ -2442,6 +2458,21 @@ video {
 .px-\[4vw\] {
   padding-left: 4vw;
   padding-right: 4vw;
+}
+
+.px-1\.5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 
 .pb-2 {
@@ -3264,6 +3295,16 @@ video {
 .group:hover .group-hover\:text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.group:hover .group-hover\:text-gray-700 {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity, 1));
+}
+
+.group.bg-green-800 .group-\[\.bg-green-800\]\:text-gray-200 {
+  --tw-text-opacity: 1;
+  color: rgb(229 231 235 / var(--tw-text-opacity, 1));
 }
 
 @media (min-width: 640px) {

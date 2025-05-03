@@ -36,7 +36,8 @@
                                         <% const otherUser = chat.users.find(u => u._id.toString() !== user._id.toString()); %>
                                         <% if (otherUser) { %>
                                             <%= otherUser.username %>
-                                            <span class="text-xs text-gray-500 group-hover:text-gray-200">(<%= otherUser.roles %>)</span>
+                                            <!-- Added group-[.bg-green-800]:text-gray-200 -->
+                                            <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(<%= otherUser.roles %>)</span>
                                          <% } else { %>
                                              Chat with Unknown User
                                          <% } %>
@@ -65,11 +66,16 @@
                              <!-- </div> -->
                          </div>
                         <!-- Message Input Form -->
-                        <form id="message-form" class="flex pt-3 border-t border-gray-300 items-center"> <!-- Added items-center -->
-                            <!-- Added min-w-0 to allow shrinking -->
-                            <input id="message-input" type="text" placeholder="Type your message..." class="flex-1 py-2.5 px-3.5 text-base rounded-full border border-gray-300 mr-1.5 sm:mr-2.5 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-0"/> <!-- Reduced mr on smallest screens, added min-w-0 -->
+                        <!-- Changed items-center to items-end -->
+                        <form id="message-form" class="flex pt-3 border-t border-gray-300 items-end">
+                            <!-- Changed input to textarea, added classes for styling and behavior -->
+                            <textarea id="message-input"
+                                      placeholder="Type your message..."
+                                      rows="1"
+                                      class="flex-1 py-2.5 px-3.5 text-base rounded-2xl border border-gray-300 mr-1.5 sm:mr-2.5 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-0 resize-none overflow-y-hidden max-h-24"
+                                      style="height: 44px;" ></textarea> <!-- Initial height matching button, resize-none, overflow-hidden -->
                             <!-- Added flex-shrink-0 -->
-                            <button type="submit" class="py-2.5 px-4 sm:px-5 bg-green-800 text-white border-none rounded-full font-semibold cursor-pointer hover:bg-green-900 transition duration-200 ease-in-out flex-shrink-0">Send</button> <!-- Reduced px on smallest screens, added flex-shrink-0 -->
+                            <button type="submit" class="py-2.5 px-4 sm:px-5 bg-green-800 text-white border-none rounded-full font-semibold cursor-pointer hover:bg-green-900 transition duration-200 ease-in-out flex-shrink-0 h-[44px]">Send</button> <!-- Fixed height to match initial textarea height -->
                         </form>
                     </div>
                 </div>

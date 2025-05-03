@@ -13,6 +13,8 @@ const spinner = document.getElementById('loading-spinner'); // Get spinner eleme
 const sidebarToggleBtn = document.getElementById('sidebar-toggle'); // Get toggle button
 const sidebarContainer = document.getElementById('chat-sidebar-container'); // Get sidebar
 const chatAreaContainer = document.querySelector('.chat-area'); // Get chat area
+const messageInput = document.getElementById('message-input'); // Get the textarea
+const messageForm = document.getElementById('message-form'); // Get the form
 
 console.log('👤 Current User ID:', currentUserId);
 
@@ -82,9 +84,9 @@ document.querySelectorAll('.chat-room').forEach(room => {
             allMessagesLoaded = false; // Reset flag
             loadedMessageIds.clear(); // Clear loaded message tracking
             loadMessages();
-            // Optional: Add active state styling
-            document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-gray-200', 'text-black')); // Use a neutral active state
-            room.classList.add('bg-gray-200', 'text-black'); // Apply neutral active state
+            // Update active state styling
+            document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
+            room.classList.add('bg-green-800', 'text-white'); // Apply new active state
         } else {
             console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
         }
@@ -198,11 +200,45 @@ messagesDiv.addEventListener('scroll', () => {
 });
 
 
+// --- Textarea Auto-Resize and Enter Key Submission ---
+if (messageInput && messageForm) {
+    const initialHeight = messageInput.style.height; // Store initial height
+
+    messageInput.addEventListener('input', () => {
+        messageInput.style.height = 'auto'; // Temporarily shrink to get correct scrollHeight
+        const scrollHeight = messageInput.scrollHeight;
+        // Consider border/padding if needed, but scrollHeight usually accounts for it
+        messageInput.style.height = `${scrollHeight}px`;
+
+        // Optional: Reset to initial height if empty
+        if (messageInput.value.trim() === '') {
+            messageInput.style.height = initialHeight;
+        }
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+        // Submit on Enter key press (without Shift)
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent newline in textarea
+            messageForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); // Trigger form submission
+        }
+    });
+
+     // Reset height after form submission
+     messageForm.addEventListener('submit', () => {
+        // Use setTimeout to allow the value to clear before resetting height
+        setTimeout(() => {
+            messageInput.style.height = initialHeight;
+        }, 0);
+    });
+}
+// --- END Textarea Auto-Resize ---
+
 // Send new message
-document.getElementById('message-form').addEventListener('submit', async e => {
+messageForm.addEventListener('submit', async e => { // Changed selector to messageForm
     e.preventDefault();
-    const input = document.getElementById('message-input');
-    const content = input.value.trim();
+    // const input = document.getElementById('message-input'); // Already have messageInput
+    const content = messageInput.value.trim(); // Use messageInput
     if (!content || !currentChatId) return;
 
     // Optimistic UI update
@@ -217,7 +253,8 @@ document.getElementById('message-form').addEventListener('submit', async e => {
     // Render with optimistic flag and class
     messagesDiv.insertAdjacentHTML('beforeend', renderMessage(optimisticMessage, currentUserId, true));
     scrollToBottom();
-    input.value = ''; // Clear input immediately
+    messageInput.value = ''; // Clear input immediately
+    // Height reset is handled by the 'submit' listener added above
 
     try {
         const res = await fetch(`/chat/message/${currentChatId}`, {
@@ -238,7 +275,7 @@ document.getElementById('message-form').addEventListener('submit', async e => {
                 tempElement.classList.add('opacity-50', 'border', 'border-red-500'); // Example failure style
             }
             alert("Failed to send message: " + (message.error || 'Unknown error'));
-            // Optionally, restore input value: input.value = content;
+            // Optionally, restore input value: messageInput.value = content;
         }
         // Success: rely on socket listener 'newMessage' to replace optimistic message
     } catch (err) {
@@ -249,7 +286,7 @@ document.getElementById('message-form').addEventListener('submit', async e => {
              tempElement.classList.add('opacity-50', 'border', 'border-red-500'); // Example failure style
         }
         alert("Network error sending message.");
-        // Optionally, restore input value: input.value = content;
+        // Optionally, restore input value: messageInput.value = content;
     }
 });
 
@@ -462,7 +499,8 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                          roomHTML = `<strong class="text-[#38761d] group-hover:text-white">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`; // Use hex color
                      } else {
                          const otherUser = chat.users.find(u => u._id.toString() !== currentUserId);
-                         roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200">(${otherUser.roles || 'User'})</span>` : 'New Chat';
+                         // Added group-[.bg-green-800]:text-gray-200 to the span
+                         roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>` : 'New Chat';
                      }
                      newChatDiv.innerHTML = roomHTML;
 
@@ -475,8 +513,9 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                          allMessagesLoaded = false;
                          loadedMessageIds.clear();
                          loadMessages();
-                         document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-gray-200', 'text-black')); // Use neutral active state
-                         newChatDiv.classList.add('bg-gray-200', 'text-black'); // Apply neutral active state
+                         // Update active state styling
+                         document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
+                         newChatDiv.classList.add('bg-green-800', 'text-white'); // Apply new active state
 
                         // --- NEW: Hide sidebar and show chat area on small screens after clicking new chat ---
                         if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
@@ -488,8 +527,8 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                         }
                         // --- END NEW ---
                     });
-                    chatSidebarList.appendChild(newChatDiv); // Add to the list container
-                    newChatDiv.click(); // Automatically switch to the new chat
+                     chatSidebarList.appendChild(newChatDiv); // Add to the list container
+                     newChatDiv.click(); // Automatically switch to the new chat
                  } else {
                      existingRoom.click(); // Switch to the existing chat
                      // --- NEW: Hide sidebar and show chat area on small screens after clicking existing chat ---
@@ -536,56 +575,78 @@ document.getElementById('user-search').addEventListener('input', (e) => {
 
 // Auto-load last active or first chat on page load
 window.addEventListener('DOMContentLoaded', () => {
-    showSpinner(); // Show spinner on initial load
-    const savedChatId = localStorage.getItem('activeChatId');
-    let chatToClick = null;
+    // Don't show spinner immediately, only when a chat is clicked
+    // showSpinner();
 
-    if (savedChatId) {
-        // Set currentChatId early so the 'connect' handler can use it if needed
-        currentChatId = savedChatId;
-        console.log(`[DEBUG] Restored currentChatId from localStorage: ${currentChatId}`);
-        chatToClick = document.querySelector(`.chat-room[data-id="${savedChatId}"]`);
-    }
-    // If no saved chat or saved chat not found, find the first one
-    if (!chatToClick) {
-        chatToClick = document.querySelector('.chat-room');
-        if (chatToClick) {
-            // Set currentChatId if loading the first chat
-            currentChatId = chatToClick.dataset.id;
-            console.log(`[DEBUG] Set currentChatId to first chat: ${currentChatId}`);
-        }
-    }
+    // --- REMOVED AUTO-SELECTION LOGIC ---
+    // const savedChatId = localStorage.getItem('activeChatId');
+    // let chatToClick = null;
+    //
+    // if (savedChatId) {
+    //     // Set currentChatId early so the 'connect' handler can use it if needed
+    //     currentChatId = savedChatId;
+    //     console.log(`[DEBUG] Restored currentChatId from localStorage: ${currentChatId}`);
+    //     chatToClick = document.querySelector(`.chat-room[data-id="${savedChatId}"]`);
+    // }
+    // // If no saved chat or saved chat not found, find the first one
+    // if (!chatToClick) {
+    //     chatToClick = document.querySelector('.chat-room');
+    //     if (chatToClick) {
+    //         // Set currentChatId if loading the first chat
+    //         currentChatId = chatToClick.dataset.id;
+    //         console.log(`[DEBUG] Set currentChatId to first chat: ${currentChatId}`);
+    //     }
+    // }
+    //
+    // // If the socket is already connected when DOMContentLoaded runs, ensure it joins the room.
+    // // If it connects later, the 'connect' event handler will manage joining.
+    // if (socket.connected && currentChatId) {
+    //     console.log(`[DEBUG] Socket already connected on load. Emitting joinRoom for ${currentChatId}`);
+    //     socket.emit('joinRoom', currentChatId);
+    // }
+    //
+    // if (chatToClick) {
+    //     // Simulate click to load messages and set active styles, but avoid re-emitting joinRoom
+    //     // We manually set currentChatId and emit joinRoom above or in the 'connect' handler
+    //     const roomElement = chatToClick;
+    //     messagesPage = 1;
+    //     allMessagesLoaded = false;
+    //     loadedMessageIds.clear();
+    //     loadMessages(); // Load messages for the determined chat
+    //     document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-gray-200', 'text-black'));
+    //     roomElement.classList.add('bg-gray-200', 'text-black');
+    //
+    //     // --- NEW: Hide sidebar and show chat area on small screens after initial load ---
+    //     if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+    //         sidebarContainer.classList.add('hidden');
+    //         chatAreaContainer.classList.remove('hidden');
+    //         if (sidebarToggleBtn) {
+    //             sidebarToggleBtn.textContent = 'Show Inbox';
+    //         }
+    //     }
+    //     // --- END NEW ---
+    // } else {
+    //     // No chats available
+    //     messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat or start a new one.</p>';
+    //     hideSpinner(); // Hide spinner if no chats to load
+    // }
+    // --- END REMOVED AUTO-SELECTION LOGIC ---
 
-    // If the socket is already connected when DOMContentLoaded runs, ensure it joins the room.
-    // If it connects later, the 'connect' event handler will manage joining.
-    if (socket.connected && currentChatId) {
-        console.log(`[DEBUG] Socket already connected on load. Emitting joinRoom for ${currentChatId}`);
-        socket.emit('joinRoom', currentChatId);
-    }
+    // Set initial prompt in the message area
+    messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat to start messaging.</p>';
+    // Ensure spinner is hidden if it was shown by mistake or by other logic
+    hideSpinner();
 
-    if (chatToClick) {
-        // Simulate click to load messages and set active styles, but avoid re-emitting joinRoom
-        // We manually set currentChatId and emit joinRoom above or in the 'connect' handler
-        const roomElement = chatToClick;
-        messagesPage = 1;
-        allMessagesLoaded = false;
-        loadedMessageIds.clear();
-        loadMessages(); // Load messages for the determined chat
-        document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-gray-200', 'text-black'));
-        roomElement.classList.add('bg-gray-200', 'text-black');
-    } else {
-        // No chats available
-        messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat or start a new one.</p>';
-        hideSpinner(); // Hide spinner if no chats to load
-    }
-
-    // --- NEW: Hide sidebar and show chat area on small screens after initial load ---
-    if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
-        sidebarContainer.classList.add('hidden');
-        chatAreaContainer.classList.remove('hidden');
+    // Ensure correct initial state for mobile toggle
+    if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer) {
+        sidebarContainer.classList.add('hidden'); // Start with sidebar hidden on mobile
+        chatAreaContainer.classList.remove('hidden'); // Start with chat area visible on mobile
         if (sidebarToggleBtn) {
             sidebarToggleBtn.textContent = 'Show Inbox';
         }
+    } else if (sidebarContainer && chatAreaContainer) {
+         // Ensure correct state for desktop (sidebar visible, chat area visible)
+         sidebarContainer.classList.remove('hidden');
+         chatAreaContainer.classList.remove('hidden');
     }
-    // --- END NEW ---
 });
