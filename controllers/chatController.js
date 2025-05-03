@@ -162,3 +162,94 @@ exports.createNewChat = async (req, res) => {
         res.status(500).json({ error: 'Failed to create chat' });
     }
 };
+
+exports.deleteChat = async (req, res) => {
+    const { chatId } = req.params;
+    const currentUserId = res.locals.user._id;
+
+    try {
+        const chat = await Chat.findById(chatId).populate('users', '_id'); // Populate only IDs needed for emit
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+
+        // Authorization: Ensure the current user is part of the chat
+        const isParticipant = chat.users.some(user => user._id.equals(currentUserId));
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You are not authorized to delete this chat.' });
+        }
+
+        // --- Emit deletion event BEFORE deleting ---
+        // This ensures participants are notified even if subsequent steps fail slightly
+        const participantIds = chat.users.map(user => user._id.toString());
+        participantIds.forEach(userId => {
+            console.log(`[DEBUG] Emitting chatDeleted (${chatId}) to user room: ${userId}`);
+            req.io.to(userId).emit('chatDeleted', chatId);
+        });
+        // --- End Emit ---
+
+        // Delete the chat document
+        await Chat.findByIdAndDelete(chatId);
+
+        // Optional: Delete associated messages (consider performance implications for large chats)
+        // await Message.deleteMany({ chat: chatId });
+        // console.log(`[DEBUG] Deleted messages for chat ${chatId}`);
+
+        console.log(`[DEBUG] Chat ${chatId} deleted successfully by user ${currentUserId}.`);
+        res.status(200).json({ message: 'Chat deleted successfully.' });
+
+    } catch (err) {
+        console.error('Error deleting chat:', err);
+        res.status(500).json({ error: 'Failed to delete chat.' });
+    }
+};
+
+exports.renameChat = async (req, res) => {
+    const { chatId } = req.params;
+    const { groupName } = req.body;
+    const currentUserId = res.locals.user._id;
+
+    if (!groupName || groupName.trim() === '') {
+        return res.status(400).json({ error: 'Group name cannot be empty.' });
+    }
+
+    try {
+        const chat = await Chat.findById(chatId);
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+
+        if (!chat.isGroupChat) {
+            return res.status(400).json({ error: 'Only group chats can be renamed.' });
+        }
+
+        // Authorization: Ensure the current user is part of the chat
+        const isParticipant = chat.users.some(userId => userId.equals(currentUserId));
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You are not authorized to rename this chat.' });
+        }
+
+        chat.groupName = groupName.trim();
+        await chat.save();
+
+        // Populate users before emitting
+        const updatedChat = await chat.populate('users', 'username roles');
+
+        // --- Emit rename event ---
+        const participantIds = updatedChat.users.map(user => user._id.toString());
+        participantIds.forEach(userId => {
+            console.log(`[DEBUG] Emitting chatRenamed (${chatId}) to user room: ${userId}`);
+            req.io.to(userId).emit('chatRenamed', updatedChat);
+        });
+        // --- End Emit ---
+
+        console.log(`[DEBUG] Chat ${chatId} renamed to "${groupName.trim()}" by user ${currentUserId}.`);
+        res.status(200).json(updatedChat); // Send back the updated chat
+
+    } catch (err) {
+        console.error('Error renaming chat:', err);
+        res.status(500).json({ error: 'Failed to rename chat.' });
+    }
+};

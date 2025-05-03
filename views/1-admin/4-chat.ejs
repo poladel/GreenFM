@@ -52,13 +52,28 @@
                     <!-- Adjusted width/flex properties -->
                     <div class="chat-area w-full md:flex-1 flex flex-col bg-white rounded-[15px] shadow-lg h-[75vh] overflow-hidden p-4">
                         <!-- Chat Header -->
-                        <div id="chat-header" class="pb-3 border-b border-gray-300 mb-3">
+                        <!-- Added relative positioning and flex for alignment -->
+                        <div id="chat-header" class="relative flex justify-between items-center pb-3 border-b border-gray-300 mb-3">
                             <h2 id="chat-name" class="text-lg font-semibold text-gray-700 truncate">Select a chat</h2>
-                            <!-- Add more details like user status or group members count if needed -->
+                            <!-- Gear Icon and Dropdown -->
+                            <div class="relative">
+                                <!-- Gear Button (Initially hidden, shown when a chat is active) -->
+                                <button id="chat-options-btn" class="hidden text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L7.86 5.85A7.96 7.96 0 005.85 7.86L3.17 8.51c-1.56.38-1.56 2.6 0 2.98l2.68.65A7.96 7.96 0 007.86 14.15l.65 2.68c.38 1.56 2.6 1.56 2.98 0l.65-2.68a7.96 7.96 0 002.01-2.01l2.68-.65c1.56-.38 1.56-2.6 0-2.98l-2.68-.65A7.96 7.96 0 0012.14 5.85l-.65-2.68zm-1.49 6.33a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
+                                        <path d="M10 3a1 1 0 011 1v.01a1 1 0 11-2 0V4a1 1 0 011-1zm0 14a1 1 0 01-1-1v-.01a1 1 0 112 0V16a1 1 0 01-1 1zm8-8a1 1 0 01-1 1h-.01a1 1 0 110-2H17a1 1 0 011 1zm-14 0a1 1 0 011-1h.01a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                                    </svg>
+                                </button>
+                                <!-- Dropdown Menu (Initially hidden) -->
+                                <div id="chat-options-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                    <button id="rename-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Rename Chat</button>
+                                    <button id="delete-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Delete Chat</button>
+                                </div>
+                            </div>
                         </div>
-                        <!-- Messages Container - Added scrollbar-hide class (requires tailwindcss-scrollbar-hide plugin or manual CSS) -->
-                         <div id="messages" class="flex-1 overflow-y-auto flex flex-col p-4 bg-white rounded-lg mb-4 scrollbar-hide space-y-3">
-                             <!-- Messages will be loaded here by chat.js -->
+                        <!-- Messages Container -->
+                        <div id="messages" class="flex-1 overflow-y-auto flex flex-col p-4 bg-white rounded-lg mb-4 scrollbar-hide space-y-3">
+                            <!-- Messages will be loaded here by chat.js -->
                              <!-- Example structure (handled by JS renderMessage): -->
                              <!-- <div class="message flex flex-col mb-2.5 items-end"> -->
                              <!--   <div class="bubble p-2.5 px-3.5 rounded-2xl max-w-[70%] break-words shadow-sm text-[0.95rem] bg-gray-100 text-gray-800"> -->

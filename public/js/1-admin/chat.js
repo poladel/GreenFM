@@ -16,6 +16,12 @@ const chatAreaContainer = document.querySelector('.chat-area'); // Get chat area
 const messageInput = document.getElementById('message-input'); // Get the textarea
 const messageForm = document.getElementById('message-form'); // Get the form
 const chatHeaderName = document.getElementById('chat-name'); // Get chat name element
+const chatOptionsBtn = document.getElementById('chat-options-btn'); // Gear button
+const chatOptionsDropdown = document.getElementById('chat-options-dropdown'); // Dropdown menu
+const renameChatBtn = document.getElementById('rename-chat-btn'); // Rename button in dropdown
+const deleteChatBtn = document.getElementById('delete-chat-btn'); // Delete button in dropdown
+
+let currentChatIsGroup = false; // Track if the current chat is a group chat
 
 console.log('👤 Current User ID:', currentUserId);
 
@@ -71,6 +77,90 @@ socket.on('connect', () => {
 
 // --- END Socket Connection Handling ---
 
+// --- Chat Options Dropdown Logic ---
+if (chatOptionsBtn && chatOptionsDropdown) {
+    chatOptionsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing immediately
+        chatOptionsDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown if clicking outside
+    document.addEventListener('click', (e) => {
+        if (!chatOptionsDropdown.classList.contains('hidden') && !chatOptionsBtn.contains(e.target) && !chatOptionsDropdown.contains(e.target)) {
+            chatOptionsDropdown.classList.add('hidden');
+        }
+    });
+}
+
+// --- Action Handlers ---
+if (deleteChatBtn) {
+    deleteChatBtn.addEventListener('click', async () => {
+        chatOptionsDropdown.classList.add('hidden'); // Hide dropdown
+        if (!currentChatId) return;
+
+        const confirmation = confirm(`Are you sure you want to delete this chat? This action cannot be undone.`);
+        if (confirmation) {
+            showSpinner();
+            try {
+                const res = await fetch(`/chat/${currentChatId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    // Success handled by socket event 'chatDeleted'
+                    console.log(`[DEBUG] Delete request for chat ${currentChatId} successful.`);
+                    // No need to emit from client, server emits after successful deletion
+                } else {
+                    const errorData = await res.json();
+                    alert(`Failed to delete chat: ${errorData.error || 'Unknown error'}`);
+                }
+            } catch (err) {
+                console.error('❌ Error deleting chat:', err);
+                alert('An error occurred while deleting the chat.');
+            } finally {
+                hideSpinner();
+            }
+        }
+    });
+}
+
+if (renameChatBtn) {
+    renameChatBtn.addEventListener('click', async () => {
+        chatOptionsDropdown.classList.add('hidden'); // Hide dropdown
+        if (!currentChatId || !currentChatIsGroup) return;
+
+        const currentName = chatHeaderName.textContent.replace('[Group]', '').trim(); // Get current name from header
+        const newName = prompt("Enter the new group name:", currentName);
+
+        if (newName && newName.trim() !== '' && newName.trim() !== currentName) {
+            const confirmation = confirm(`Rename group to "${newName.trim()}"?`);
+            if (confirmation) {
+                showSpinner();
+                try {
+                    const res = await fetch(`/chat/${currentChatId}/rename`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ groupName: newName.trim() })
+                    });
+                    if (res.ok) {
+                        // Success handled by socket event 'chatRenamed'
+                        console.log(`[DEBUG] Rename request for chat ${currentChatId} successful.`);
+                         // No need to emit from client, server emits after successful rename
+                    } else {
+                        const errorData = await res.json();
+                        alert(`Failed to rename chat: ${errorData.error || 'Unknown error'}`);
+                    }
+                } catch (err) {
+                    console.error('❌ Error renaming chat:', err);
+                    alert('An error occurred while renaming the chat.');
+                } finally {
+                    hideSpinner();
+                }
+            }
+        } else if (newName !== null) { // User didn't cancel but entered empty or same name
+            alert("Please enter a valid new name different from the current one.");
+        }
+    });
+}
+// --- End Action Handlers ---
+
 // Handle chat room click
 document.querySelectorAll('.chat-room').forEach(room => {
     room.addEventListener('click', async () => {
@@ -89,21 +179,28 @@ document.querySelectorAll('.chat-room').forEach(room => {
             document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
             room.classList.add('bg-green-800', 'text-white'); // Apply new active state
 
-            // Update chat header name
+            // --- Update Header and Options ---
+            currentChatIsGroup = room.textContent.includes('[Group]'); // Check if it's a group chat
             if (chatHeaderName) {
-                // Extract name, removing the role span if present
-                const nameElement = room.cloneNode(true); // Clone to avoid modifying original
+                // Extract name, removing the role span or [Group] prefix
+                const nameElement = room.cloneNode(true);
                 const roleSpan = nameElement.querySelector('span');
-                if (roleSpan) {
-                    roleSpan.remove(); // Remove the role span
-                }
-                chatHeaderName.textContent = nameElement.textContent.trim(); // Set header text
+                const groupStrong = nameElement.querySelector('strong');
+                if (roleSpan) roleSpan.remove();
+                if (groupStrong) groupStrong.remove(); // Remove [Group] prefix for header
+                chatHeaderName.textContent = nameElement.textContent.trim();
             }
+            // Show/hide dropdown options based on chat type
+            if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden'); // Show gear icon
+            if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup); // Show rename only for groups
+            if (deleteChatBtn) deleteChatBtn.classList.remove('hidden'); // Always show delete for now
+            // --- End Update Header and Options ---
 
         } else {
             console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
         }
 
+        // --- Hide sidebar on small screens ---
         // --- NEW: Hide sidebar and show chat area on small screens after clicking a room ---
         if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
             sidebarContainer.classList.add('hidden');
@@ -422,15 +519,20 @@ socket.on('newChatCreated', (chat) => {
             document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white'));
             newChatDiv.classList.add('bg-green-800', 'text-white');
 
-            // Update chat header name
+            // --- Update Header and Options ---
+            currentChatIsGroup = chat.isGroupChat; // Use chat data
             if (chatHeaderName) {
                 const nameElement = newChatDiv.cloneNode(true);
                 const roleSpan = nameElement.querySelector('span');
-                const groupStrong = nameElement.querySelector('strong'); // Check for group strong tag
+                const groupStrong = nameElement.querySelector('strong');
                 if (roleSpan) roleSpan.remove();
-                if (groupStrong) groupStrong.remove(); // Remove [Group] prefix for header
+                if (groupStrong) groupStrong.remove();
                 chatHeaderName.textContent = nameElement.textContent.trim();
             }
+            if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden');
+            if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup);
+            if (deleteChatBtn) deleteChatBtn.classList.remove('hidden');
+            // --- End Update Header and Options ---
         } else {
              console.log(`[DEBUG] Clicked already active dynamically added room: ${currentChatId}. No join emitted.`);
         }
@@ -456,6 +558,56 @@ socket.on('newChatCreated', (chat) => {
     }, 3000); // Adjust time as needed
 
 });
+
+// Listen for deleted chats
+socket.on('chatDeleted', (deletedChatId) => {
+    console.log(`[DEBUG] Received chatDeleted event for chat ID: ${deletedChatId}`);
+    const roomElement = document.querySelector(`.chat-room[data-id="${deletedChatId}"]`);
+    if (roomElement) {
+        roomElement.remove();
+        console.log(`[DEBUG] Removed chat room ${deletedChatId} from sidebar.`);
+    }
+
+    // If the deleted chat was the currently active one, reset the view
+    if (deletedChatId === currentChatId) {
+        currentChatId = null;
+        currentChatIsGroup = false;
+        localStorage.removeItem('activeChatId');
+        messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat to start messaging.</p>';
+        if (chatHeaderName) chatHeaderName.textContent = 'Select a chat';
+        if (chatOptionsBtn) chatOptionsBtn.classList.add('hidden'); // Hide gear icon
+        if (chatOptionsDropdown) chatOptionsDropdown.classList.add('hidden'); // Hide dropdown
+        messageInput.value = ''; // Clear message input
+        // Optionally, trigger sidebar toggle on mobile if needed
+    }
+});
+
+// Listen for renamed chats
+socket.on('chatRenamed', (updatedChat) => {
+    console.log(`[DEBUG] Received chatRenamed event for chat ID: ${updatedChat._id}`);
+    const roomElement = document.querySelector(`.chat-room[data-id="${updatedChat._id}"]`);
+    if (roomElement) {
+        // Rebuild the inner HTML for the chat room
+        let roomHTML = '';
+        if (updatedChat.isGroupChat) {
+            roomHTML = `<strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> ${updatedChat.groupName || 'Unnamed Group'}`;
+        } else {
+            // This part shouldn't be reached if only groups can be renamed, but included for completeness
+            const otherUser = updatedChat.users.find(u => u._id.toString() !== currentUserId);
+            roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>` : 'Chat with Unknown User';
+        }
+        roomElement.innerHTML = roomHTML;
+        console.log(`[DEBUG] Updated chat room ${updatedChat._id} name in sidebar.`);
+    }
+
+    // If the renamed chat is the currently active one, update the header
+    if (updatedChat._id === currentChatId) {
+        if (chatHeaderName) {
+            chatHeaderName.textContent = updatedChat.groupName || 'Unnamed Group'; // Update header directly
+        }
+    }
+});
+
 
 // --- End Socket Listeners ---
 
@@ -592,73 +744,42 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
              }
 
             // --- Dynamically add to sidebar ---
-            const chatSidebarList = document.querySelector('.chat-sidebar > div.space-y-2'); // Target the list container
+            const chatSidebarList = document.querySelector('.chat-sidebar > div.space-y-2');
             if(chatSidebarList) {
-                 // Avoid adding duplicates if it already exists (e.g., a private chat)
                  const existingRoom = chatSidebarList.querySelector(`.chat-room[data-id="${chat._id}"]`);
                  if (!existingRoom) {
-                    const newChatDiv = document.createElement('div');
-                    newChatDiv.classList.add('chat-room', 'bg-white', 'p-2.5', 'mt-2', 'rounded-lg', 'cursor-pointer', 'transition', 'duration-200', 'ease-in-out', 'hover:bg-[#38761d]', 'hover:text-white', 'group'); // Added group
-                    newChatDiv.dataset.id = chat._id;
-
-                    let roomHTML = '';
-                     if (chat.isGroupChat) {
-                         // Added group-[.bg-green-800]:text-gray-200 to the strong tag
-                         roomHTML = `<strong class="text-[#38761d] group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`; // Use hex color
-                     } else {
-                         const otherUser = chat.users.find(u => u._id.toString() !== currentUserId);
-                         // Added group-[.bg-green-800]:text-gray-200 to the span
-                         roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>` : 'New Chat';
-                     }
-                     newChatDiv.innerHTML = roomHTML;
+                    // ... (existing code for creating newChatDiv and roomHTML) ...
 
                     newChatDiv.addEventListener('click', async () => {
-                        // Logic to switch chat (same as existing room click handler)
-                         currentChatId = newChatDiv.dataset.id;
-                         localStorage.setItem('activeChatId', currentChatId);
-                         socket.emit('joinRoom', currentChatId);
-                         messagesPage = 1;
-                         allMessagesLoaded = false;
-                         loadedMessageIds.clear();
-                         loadMessages();
+                        // ... (existing code for switching chat) ...
                          // Update active state styling
-                         document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
-                         newChatDiv.classList.add('bg-green-800', 'text-white'); // Apply new active state
+                         document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white'));
+                         newChatDiv.classList.add('bg-green-800', 'text-white');
 
-                         // Update chat header name
+                         // --- Update Header and Options ---
+                         currentChatIsGroup = chat.isGroupChat; // Use chat data
                          if (chatHeaderName) {
-                             // Extract name, removing the role span if present
-                             const nameElement = newChatDiv.cloneNode(true); // Clone to avoid modifying original
+                             const nameElement = newChatDiv.cloneNode(true);
                              const roleSpan = nameElement.querySelector('span');
-                             if (roleSpan) {
-                                 roleSpan.remove(); // Remove the role span
-                             }
-                             chatHeaderName.textContent = nameElement.textContent.trim(); // Set header text
+                             const groupStrong = nameElement.querySelector('strong');
+                             if (roleSpan) roleSpan.remove();
+                             if (groupStrong) groupStrong.remove();
+                             chatHeaderName.textContent = nameElement.textContent.trim();
                          }
+                         if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden');
+                         if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup);
+                         if (deleteChatBtn) deleteChatBtn.classList.remove('hidden');
+                         // --- End Update Header and Options ---
 
-                        // --- NEW: Hide sidebar and show chat area on small screens after clicking new chat ---
-                        if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
-                            sidebarContainer.classList.add('hidden');
-                            chatAreaContainer.classList.remove('hidden');
-                            if (sidebarToggleBtn) {
-                                sidebarToggleBtn.textContent = 'Show Inbox';
-                            }
-                        }
-                        // --- END NEW ---
+                        // --- Hide sidebar on small screens ---
+                        // ... (existing code) ...
                     });
-                     chatSidebarList.appendChild(newChatDiv); // Add to the list container
+                     chatSidebarList.appendChild(newChatDiv);
                      newChatDiv.click(); // Automatically switch to the new chat
                  } else {
                      existingRoom.click(); // Switch to the existing chat
-                     // --- NEW: Hide sidebar and show chat area on small screens after clicking existing chat ---
-                     if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
-                         sidebarContainer.classList.add('hidden');
-                         chatAreaContainer.classList.remove('hidden');
-                         if (sidebarToggleBtn) {
-                             sidebarToggleBtn.textContent = 'Show Inbox';
-                         }
-                     }
-                     // --- END NEW ---
+                     // --- Hide sidebar on small screens ---
+                     // ... (existing code) ...
                  }
             }
              // --- End dynamic add ---
@@ -771,4 +892,12 @@ window.addEventListener('DOMContentLoaded', () => {
          sidebarContainer.classList.remove('hidden');
          chatAreaContainer.classList.remove('hidden');
     }
+});
+
+// Auto-load last active or first chat on page load
+window.addEventListener('DOMContentLoaded', () => {
+    // ... (existing code for initial prompts and mobile toggle) ...
+    // Ensure gear icon and dropdown are hidden initially
+    if (chatOptionsBtn) chatOptionsBtn.classList.add('hidden');
+    if (chatOptionsDropdown) chatOptionsDropdown.classList.add('hidden');
 });
