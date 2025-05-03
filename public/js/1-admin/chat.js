@@ -303,6 +303,7 @@ messageForm.addEventListener('submit', async e => { // Changed selector to messa
     }
 });
 
+// --- Socket Listeners ---
 
 // Real-time messages
 socket.on('newMessage', message => {
@@ -360,10 +361,103 @@ socket.on('newMessage', message => {
         // Optionally, indicate new message in another chat room in the sidebar
         const roomElement = document.querySelector(`.chat-room[data-id="${message.chat}"]`);
         if (roomElement) {
-            roomElement.classList.add('font-bold', 'text-blue-600'); // Example notification style
+            // Changed text-blue-600 to text-green-600
+            roomElement.classList.add('font-bold', 'text-green-600'); // Example notification style
         }
     }
 });
+
+// Listen for newly created chats where the current user is a participant
+socket.on('newChatCreated', (chat) => {
+    console.log('[DEBUG] Received newChatCreated event:', chat);
+
+    const chatSidebarList = document.querySelector('.chat-sidebar > div.space-y-2');
+    if (!chatSidebarList) {
+        console.error('[DEBUG] Chat sidebar list not found.');
+        return;
+    }
+
+    // Check if the chat room already exists in the sidebar
+    const existingRoom = chatSidebarList.querySelector(`.chat-room[data-id="${chat._id}"]`);
+    if (existingRoom) {
+        console.log(`[DEBUG] Chat room ${chat._id} already exists in the sidebar. Skipping.`);
+        return;
+    }
+
+    // --- Create and append the new chat room element (similar to createNewChat success) ---
+    const newChatDiv = document.createElement('div');
+    // Add base classes + group class for hover/active states
+    newChatDiv.classList.add('chat-room', 'bg-white', 'p-2.5', 'mt-2', 'rounded-lg', 'cursor-pointer', 'transition', 'duration-200', 'ease-in-out', 'hover:bg-green-700', 'hover:text-white', 'group');
+    newChatDiv.dataset.id = chat._id;
+
+    let roomHTML = '';
+    if (chat.isGroupChat) {
+        // Apply selected state styling for the [Group] text
+        roomHTML = `<strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`;
+    } else {
+        // Find the other user in a private chat
+        const otherUser = chat.users.find(u => u._id.toString() !== currentUserId);
+        if (otherUser) {
+            // Apply selected state styling for the role span
+            roomHTML = `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>`;
+        } else {
+            roomHTML = 'Chat with Unknown User'; // Fallback
+        }
+    }
+    newChatDiv.innerHTML = roomHTML;
+
+    // Attach the click listener (same logic as existing rooms and dynamically added rooms)
+    newChatDiv.addEventListener('click', async () => {
+        const newChatId = newChatDiv.dataset.id;
+        if (newChatId !== currentChatId) {
+            console.log(`[DEBUG] Joining new room from dynamically added chat: ${newChatId}`);
+            currentChatId = newChatId;
+            localStorage.setItem('activeChatId', currentChatId);
+            socket.emit('joinRoom', currentChatId);
+            messagesPage = 1;
+            allMessagesLoaded = false;
+            loadedMessageIds.clear();
+            loadMessages();
+            // Update active state styling
+            document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white'));
+            newChatDiv.classList.add('bg-green-800', 'text-white');
+
+            // Update chat header name
+            if (chatHeaderName) {
+                const nameElement = newChatDiv.cloneNode(true);
+                const roleSpan = nameElement.querySelector('span');
+                const groupStrong = nameElement.querySelector('strong'); // Check for group strong tag
+                if (roleSpan) roleSpan.remove();
+                if (groupStrong) groupStrong.remove(); // Remove [Group] prefix for header
+                chatHeaderName.textContent = nameElement.textContent.trim();
+            }
+        } else {
+             console.log(`[DEBUG] Clicked already active dynamically added room: ${currentChatId}. No join emitted.`);
+        }
+
+        // Hide sidebar on small screens after click
+        if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
+            sidebarContainer.classList.add('hidden');
+            chatAreaContainer.classList.remove('hidden');
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.textContent = 'Show Inbox';
+            }
+        }
+    });
+
+    // Append the new chat room to the sidebar list
+    chatSidebarList.appendChild(newChatDiv);
+    console.log(`[DEBUG] Dynamically added new chat room ${chat._id} to sidebar.`);
+
+    // Optional: Add a visual cue that it's a new chat? (e.g., temporary highlight)
+    newChatDiv.classList.add('animate-pulse'); // Example: Add a pulse animation
+    setTimeout(() => {
+        newChatDiv.classList.remove('animate-pulse'); // Remove animation after a delay
+    }, 3000); // Adjust time as needed
+
+});
+
+// --- End Socket Listeners ---
 
 // Render one message using Tailwind classes
 // Added isOptimistic flag

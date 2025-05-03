@@ -96,42 +96,65 @@ exports.renderAdminView = async (req, res) => {
 
 exports.createNewChat = async (req, res) => {
     const { userIds, groupName } = req.body;
-    const currentUserId = res.locals.user._id;
+    const currentUserId = res.locals.user._id; // Creator's ID
 
     if (!userIds || userIds.length === 0) {
         return res.status(400).json({ error: 'No users selected.' });
     }
 
+    // Ensure userIds are distinct and don't include the creator initially for easier logic
+    const uniqueOtherUserIds = [...new Set(userIds)].filter(id => id.toString() !== currentUserId.toString());
+
+    if (uniqueOtherUserIds.length === 0 && !groupName) {
+        // Trying to create a private chat with only self? Or group chat with only self?
+        return res.status(400).json({ error: 'Cannot create a chat with only yourself.' });
+    }
+
     try {
         let chat;
+        let allParticipantIds; // To store all IDs including the creator
 
-        if (userIds.length === 1 && !groupName) {
+        if (uniqueOtherUserIds.length === 1 && !groupName) {
             // Private one-on-one chat
-            const userId = userIds[0];
+            const otherUserId = uniqueOtherUserIds[0];
+            allParticipantIds = [currentUserId, otherUserId];
 
             chat = await Chat.findOne({
                 isGroupChat: false,
-                users: { $all: [currentUserId, userId], $size: 2 }
+                users: { $all: allParticipantIds, $size: 2 }
             });
 
             if (!chat) {
                 chat = await Chat.create({
                     isGroupChat: false,
-                    users: [currentUserId, userId]
+                    users: allParticipantIds
                 });
             }
         } else {
             // Group chat
-            const allUserIds = [...userIds, currentUserId]; // add self
+            allParticipantIds = [currentUserId, ...uniqueOtherUserIds]; // Add creator back
 
             chat = await Chat.create({
                 isGroupChat: true,
-                users: allUserIds,
-                groupName: groupName || 'New Group'
+                users: allParticipantIds,
+                groupName: groupName || 'New Group' // Default group name if empty
             });
         }
 
-        const populatedChat = await chat.populate('users', 'username');
+        const populatedChat = await chat.populate('users', 'username roles'); // Populate roles too
+
+        // --- Emit to other participants ---
+        if (populatedChat) {
+            allParticipantIds.forEach(userId => {
+                // Don't emit back to the creator, their client handles it
+                if (userId.toString() !== currentUserId.toString()) {
+                    console.log(`[DEBUG] Emitting newChatCreated to user room: ${userId}`);
+                    req.io.to(userId.toString()).emit('newChatCreated', populatedChat);
+                }
+            });
+        }
+        // --- End Emit ---
+
         res.status(201).json(populatedChat);
 
     } catch (err) {
