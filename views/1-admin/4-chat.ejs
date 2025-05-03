@@ -31,7 +31,8 @@
                             <% chats.forEach(chat => { %>
                                 <div class="chat-room bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group" data-id="<%= chat._id %>"> <!-- Added group class -->
                                     <% if (chat.isGroupChat) { %>
-                                        <strong class="text-green-700 group-hover:text-white">[Group]</strong> <%= chat.groupName %>
+                                        <!-- Added group-[.bg-green-800]:text-gray-200 -->
+                                        <strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> <%= chat.groupName %>
                                     <% } else { %>
                                         <% const otherUser = chat.users.find(u => u._id.toString() !== user._id.toString()); %>
                                         <% if (otherUser) { %>
@@ -50,6 +51,11 @@
                     <!-- Chat Area -->
                     <!-- Adjusted width/flex properties -->
                     <div class="chat-area w-full md:flex-1 flex flex-col bg-white rounded-[15px] shadow-lg h-[75vh] overflow-hidden p-4">
+                        <!-- Chat Header -->
+                        <div id="chat-header" class="pb-3 border-b border-gray-300 mb-3">
+                            <h2 id="chat-name" class="text-lg font-semibold text-gray-700 truncate">Select a chat</h2>
+                            <!-- Add more details like user status or group members count if needed -->
+                        </div>
                         <!-- Messages Container - Added scrollbar-hide class (requires tailwindcss-scrollbar-hide plugin or manual CSS) -->
                          <div id="messages" class="flex-1 overflow-y-auto flex flex-col p-4 bg-white rounded-lg mb-4 scrollbar-hide space-y-3">
                              <!-- Messages will be loaded here by chat.js -->

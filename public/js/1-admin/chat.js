@@ -15,6 +15,7 @@ const sidebarContainer = document.getElementById('chat-sidebar-container'); // G
 const chatAreaContainer = document.querySelector('.chat-area'); // Get chat area
 const messageInput = document.getElementById('message-input'); // Get the textarea
 const messageForm = document.getElementById('message-form'); // Get the form
+const chatHeaderName = document.getElementById('chat-name'); // Get chat name element
 
 console.log('👤 Current User ID:', currentUserId);
 
@@ -87,6 +88,18 @@ document.querySelectorAll('.chat-room').forEach(room => {
             // Update active state styling
             document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
             room.classList.add('bg-green-800', 'text-white'); // Apply new active state
+
+            // Update chat header name
+            if (chatHeaderName) {
+                // Extract name, removing the role span if present
+                const nameElement = room.cloneNode(true); // Clone to avoid modifying original
+                const roleSpan = nameElement.querySelector('span');
+                if (roleSpan) {
+                    roleSpan.remove(); // Remove the role span
+                }
+                chatHeaderName.textContent = nameElement.textContent.trim(); // Set header text
+            }
+
         } else {
             console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
         }
@@ -496,7 +509,8 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
 
                     let roomHTML = '';
                      if (chat.isGroupChat) {
-                         roomHTML = `<strong class="text-[#38761d] group-hover:text-white">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`; // Use hex color
+                         // Added group-[.bg-green-800]:text-gray-200 to the strong tag
+                         roomHTML = `<strong class="text-[#38761d] group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`; // Use hex color
                      } else {
                          const otherUser = chat.users.find(u => u._id.toString() !== currentUserId);
                          // Added group-[.bg-green-800]:text-gray-200 to the span
@@ -516,6 +530,17 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                          // Update active state styling
                          document.querySelectorAll('.chat-room').forEach(r => r.classList.remove('bg-green-800', 'text-white')); // Remove new active state
                          newChatDiv.classList.add('bg-green-800', 'text-white'); // Apply new active state
+
+                         // Update chat header name
+                         if (chatHeaderName) {
+                             // Extract name, removing the role span if present
+                             const nameElement = newChatDiv.cloneNode(true); // Clone to avoid modifying original
+                             const roleSpan = nameElement.querySelector('span');
+                             if (roleSpan) {
+                                 roleSpan.remove(); // Remove the role span
+                             }
+                             chatHeaderName.textContent = nameElement.textContent.trim(); // Set header text
+                         }
 
                         // --- NEW: Hide sidebar and show chat area on small screens after clicking new chat ---
                         if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
@@ -632,8 +657,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // }
     // --- END REMOVED AUTO-SELECTION LOGIC ---
 
-    // Set initial prompt in the message area
+    // Set initial prompt in the message area and header
     messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat to start messaging.</p>';
+    if (chatHeaderName) {
+        chatHeaderName.textContent = 'Select a chat'; // Initial header text
+    }
     // Ensure spinner is hidden if it was shown by mistake or by other logic
     hideSpinner();
 
