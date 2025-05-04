@@ -1,6 +1,10 @@
 <%- include('../partials/header.ejs') %>
 
-<div class="page-container flex flex-col min-h-screen bg-gray-100"> <!-- Added base background -->
+<!-- Add user email and roles to body data attributes if user exists -->
+<body data-user-email="<%= typeof user !== 'undefined' && user ? user.email : '' %>"
+      data-user-roles="<%= typeof user !== 'undefined' && user && user.roles ? (Array.isArray(user.roles) ? user.roles.join(',') : user.roles) : '' %>">
+
+<div class="page-container flex flex-col min-h-screen bg-gray-100">
     <!-- Include nav and menu OUTSIDE the main content wrapper -->
     <%- include('../partials/nav.ejs') %>
     <%- include('../partials/menu.ejs', { headerTitle: "PLAYLIST" }) %> <!-- Pass appropriate title -->
@@ -32,8 +36,8 @@
                     <div class="song-list flex flex-col gap-2.5">
                         <% if (playlist && playlist.length > 0) { %>
                             <% playlist.forEach(song => { %>
-                                <!-- Individual Song Item -->
-                                <div class="song-item flex items-center justify-between bg-gray-100 p-2.5 rounded-[10px]" data-genre="<%= song.genre %>">
+                                <!-- Individual Song Item - ADD data-song-id -->
+                                <div class="song-item flex items-center justify-between bg-gray-100 p-2.5 rounded-[10px]" data-genre="<%= song.genre %>" data-song-id="<%= song._id %>">
                                     <!-- Song Info: Left side -->
                                     <div class="song-info flex items-center gap-2.5">
                                         <!-- Thumbnail Placeholder -->
@@ -50,14 +54,21 @@
                                     </div>
                                     <!-- Song Actions: Right side -->
                                     <div class="song-actions flex gap-2.5 items-center">
-                                         <!-- Delete Button: Conditional rendering -->
-                                         <% if (user && (user.email === song.user?.email || user.roles.includes('Admin'))) { %>
-                                            <button class="delete-btn bg-transparent border-none cursor-pointer text-lg p-1 hover:text-red-600" data-id="<%= song._id %>">❌</button>
+                                         <%# Log user roles and type for debugging - Can be removed after fix %>
+                                         <% if (user) { %>
+                                            <%# console.log(`User roles debug: Value = ${JSON.stringify(user.roles)}, Type = ${typeof user.roles}, IsArray = ${Array.isArray(user.roles)}`); %>
+                                         <% } else { %>
+                                            <%# console.log('User roles debug: No user object'); %>
+                                         <% } %>
+                                         <!-- Delete Button - REMOVE data-id -->
+                                         <%# Check if user exists, is the owner, OR is an Admin/Staff (handling both string and array roles) %>
+                                         <% if (user && (user.email === song.user?.email || (typeof user.roles === 'string' && (user.roles === 'Admin' || user.roles === 'Staff')) || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                                            <button class="delete-btn bg-transparent border-none cursor-pointer text-lg p-1 hover:text-red-600">❌</button>
                                          <% } %>
                                          <!-- Like Button: Conditional rendering -->
                                          <% if (user) { %>
                                             <% const userLiked = song.likes && song.likes.some(like => like.email === user.email); %>
-                                            <button class="fav-btn bg-transparent border-none cursor-pointer text-base p-1 flex items-center gap-1 <%= userLiked ? 'text-red-500' : 'text-gray-500' %> hover:text-red-400" data-id="<%= song._id %>">
+                                            <button class="fav-btn bg-transparent border-none cursor-pointer text-base p-1 flex items-center gap-1 <%= userLiked ? 'text-red-500' : 'text-gray-500' %> hover:text-red-400">
                                                 <span>❤️</span>
                                                 <span><%= song.likes ? song.likes.length : 0 %></span>
                                             </button>
@@ -66,7 +77,8 @@
                                 </div>
                             <% }) %>
                          <% } else { %>
-                             <p class="text-center text-gray-500 py-4">The playlist is currently empty.</p>
+                             <!-- Add class for JS targeting -->
+                             <p class="text-center text-gray-500 py-4 empty-playlist-message">The playlist is currently empty.</p>
                          <% } %>
                     </div>
                 </div>
@@ -96,7 +108,7 @@
                              </form>
                          <% } else { %>
                              <p class="text-red-600 text-sm mb-2">You must be logged in to request a song.</p>
-                             <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath) %>">
+                             <a href="/LogIn?redirect=<%= encodeURIComponent(currentPath || '/Playlist') %>"> <!-- Ensure currentPath is passed or fallback -->
                                  <button class="w-full bg-[#00722A] text-white font-bold py-2 border-none rounded-[10px] cursor-pointer hover:bg-[#00591F] text-sm transition duration-200">Log In</button>
                              </a>
                          <% } %>
@@ -106,12 +118,7 @@
                       <div class="most-requested-container bg-white p-3 rounded-[15px] shadow-md">
                           <h3 class="text-sm font-semibold text-green-700 mb-2.5">MOST REQUESTED SONGS</h3>
                           <ol class="list-decimal pl-5 text-sm space-y-1 text-gray-700">
-                              <!-- JS will populate this -->
                               <li>Loading...</li>
-                              <li></li>
-                              <li></li>
-                              <li></li>
-                              <li></li>
                           </ol>
                       </div>
                  </div> <!-- End Right Panel -->
@@ -126,7 +133,9 @@
 
 </div> <!-- End page-container -->
 
-<!-- Keep JS link -->
+<!-- ADDED: Socket.IO Client Library -->
+<script src="/socket.io/socket.io.js"></script>
+<!-- Keep playlist JS link -->
 <script src="/js/2-user/playlist.js"></script>
 </body>
 </html>
