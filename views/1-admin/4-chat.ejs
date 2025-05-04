@@ -24,26 +24,42 @@
                     <!-- Sidebar -->
                     <!-- Added ID, initially hidden on small screens, flex on md+ -->
                      <div id="chat-sidebar-container" class="chat-sidebar flex-shrink-0 md:flex-basis-1/4 bg-white p-4 rounded-[15px] shadow-lg h-[75vh] flex flex-col space-y-3 hidden md:flex">
-                        <button id="open-new-chat" type="button" class="bg-green-700 text-white border-none py-2 px-4 rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-green-900 transition duration-200 ease-in-out self-start">Start New Chat</button>
+                        <%# Button Group %>
+                        <div class="flex space-x-2">
+                            <button id="open-new-chat" type="button" class="flex-1 bg-green-700 text-white border-none py-2 px-4 rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-green-900 transition duration-200 ease-in-out">New Chat</button>
+                            <%# Changed flex-1 to flex-none, added width/height, padding, and SVG icon %>
+                            <button id="open-archived-chats" type="button" title="Archived Chats" class="flex-none w-10 h-10 p-2 bg-gray-500 text-white border-none rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-gray-700 transition duration-200 ease-in-out flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                </svg>
+                            </button>
+                        </div>
                         <h2 class="mt-4 text-2xl text-green-700 font-semibold border-t pt-3">Inbox</h2>
                         <!-- Added overflow-y-auto and scrollbar-hide to this div -->
                         <div class="flex-grow space-y-2 overflow-y-auto scrollbar-hide"> <!-- Wrapper for chat rooms is now scrollable -->
                             <% chats.forEach(chat => { %>
-                                <div class="chat-room bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group" data-id="<%= chat._id %>"> <!-- Added group class -->
-                                    <% if (chat.isGroupChat) { %>
-                                        <!-- Added group-[.bg-green-800]:text-gray-200 -->
-                                        <strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> <%= chat.groupName %>
-                                    <% } else { %>
-                                        <% const otherUser = chat.users.find(u => u._id.toString() !== user._id.toString()); %>
-                                        <% if (otherUser) { %>
-                                            <%= otherUser.username %>
+                                <%# Check if the chat is NOT archived by the current user %>
+                                <% if (!chat.archivedBy || !chat.archivedBy.some(id => id.equals(user._id))) { %>
+                                    <!-- Add data-creator-id attribute -->
+                                    <div class="chat-room bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group"
+                                         data-id="<%= chat._id %>"
+                                         data-creator-id="<%= chat.creator ? chat.creator._id.toString() : '' %>"
+                                         data-latest-message-timestamp="<%= chat.updatedAt.toISOString() %>"> <!-- Added creator ID -->
+                                        <% if (chat.isGroupChat) { %>
                                             <!-- Added group-[.bg-green-800]:text-gray-200 -->
-                                            <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(<%= otherUser.roles %>)</span>
-                                         <% } else { %>
-                                             Chat with Unknown User
-                                         <% } %>
-                                    <% } %>
-                                </div>
+                                            <strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> <%= chat.groupName %>
+                                        <% } else { %>
+                                            <% const otherUser = chat.users.find(u => u._id.toString() !== user._id.toString()); %>
+                                            <% if (otherUser) { %>
+                                                <%= otherUser.username %>
+                                                <!-- Added group-[.bg-green-800]:text-gray-200 -->
+                                                <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(<%= otherUser.roles %>)</span>
+                                             <% } else { %>
+                                                 Chat with Unknown User
+                                             <% } %>
+                                        <% } %>
+                                    </div>
+                                <% } %>
                             <% }) %>
                         </div>
                     </div>
@@ -67,7 +83,8 @@
                                 <!-- Dropdown Menu (Initially hidden) -->
                                 <div id="chat-options-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
                                     <button id="rename-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Rename Chat</button>
-                                    <button id="delete-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Delete Chat</button>
+                                    <%# Renamed button and updated ID %>
+                                    <button id="archive-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-orange-50">Archive Chat</button>
                                 </div>
                             </div>
                         </div>
@@ -130,6 +147,21 @@
                         <button type="button" id="close-modal" class="w-full p-2.5 rounded-lg border-none box-border bg-gray-500 text-white font-bold transition duration-200 ease-in-out hover:bg-gray-700 text-sm">Cancel</button>
                     </form>
                 </div>
+
+                <!-- Archived Chats Modal -->
+                <div id="archived-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-[999] hidden"></div>
+                <div id="archived-chats-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[500px] hidden flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="mt-0 text-green-700 text-xl font-semibold">Archived Chats</h3>
+                        <button type="button" id="close-archived-modal" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                    </div>
+                    <!-- Archived Chat List Container -->
+                    <div id="archived-chat-list" class="max-h-[60vh] overflow-y-auto space-y-2">
+                        <!-- Archived chats will be loaded here by JS -->
+                        <p class="text-center text-gray-500 py-4">Loading archived chats...</p>
+                    </div>
+                </div>
+                <!-- End Archived Chats Modal -->
 
              </div> <!-- End max-width wrapper -->
              <!-------------------- CONTENTS END -------------------->

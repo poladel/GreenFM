@@ -35,6 +35,7 @@ exports.sendMessage = async (req, res) => {
     const { chatId } = req.params;
     const { content } = req.body;
     const user = req.user || res.locals.user;
+    const currentUserId = user._id; // Use consistent variable name
 
     console.log('Sending message to chat:', chatId);
     console.log('Message content:', content);
@@ -45,21 +46,61 @@ exports.sendMessage = async (req, res) => {
     }
 
     try {
+        // --- Check and Unarchive if necessary ---
+        let chat = await Chat.findById(chatId); // Use 'let' to allow reassignment
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+
+        const archiveIndex = chat.archivedBy.findIndex(userId => userId.equals(currentUserId));
+        if (archiveIndex > -1) {
+            // User has archived this chat, unarchive it first
+            chat.archivedBy.splice(archiveIndex, 1);
+            await chat.save();
+            console.log(`[DEBUG] Chat ${chatId} automatically unarchived by user ${currentUserId} upon sending message.`);
+
+            // Populate the chat to send back to the client for adding to the main list
+            const populatedChat = await chat.populate([
+                { path: 'users', select: 'username roles' },
+                { path: 'creator', select: '_id' }
+            ]);
+
+            // Emit unarchive event ONLY to the user who is sending the message
+            console.log(`[DEBUG] Emitting chatUnarchived (${chatId}) to user room: ${currentUserId.toString()} before sending message.`);
+            req.io.to(currentUserId.toString()).emit('chatUnarchived', populatedChat);
+            // Give a small delay to allow the client to process the unarchive event before the message arrives
+            await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay, adjust if needed
+        }
+        // --- End Check and Unarchive ---
+
+        // Proceed with sending the message
         const message = new Message({
             chat: chatId,
-            sender: user._id,
+            sender: currentUserId,
             content
         });
         await message.save();
 
+        // --- Update Chat Timestamp ---
+        // Ensure 'chat' is the latest version if it was modified during unarchive
+        chat = await Chat.findByIdAndUpdate(chatId, { updatedAt: Date.now() }, { new: true });
+        if (!chat) {
+             // This case should be rare if the chat existed before, but handle it
+             console.error(`[ERROR] Chat ${chatId} not found after attempting to update timestamp.`);
+             // Decide how to proceed - maybe just log and continue emitting message?
+        } else {
+            console.log(`[DEBUG] Updated timestamp for chat ${chatId}.`);
+        }
+        // --- End Update Chat Timestamp ---
+
+
         const fullMessage = await message.populate('sender', 'username');
 
-        // --- TEMPORARY DEBUGGING CHANGE ---
-        // req.io.to(chatId).emit('newMessage', fullMessage); // Original line
-        console.log(`[DEBUG] Broadcasting message globally instead of to room ${chatId}`);
-        req.io.emit('newMessage', fullMessage); // Broadcast to ALL connected clients
-        // --- END TEMPORARY CHANGE ---
-
+        // Emit only to the specific chat room
+        // --- ADD THIS LOG ---
+        console.log(`[SERVER DEBUG] Attempting to emit 'newMessage' to room: ${chatId}`);
+        // --- END ADDED LOG ---
+        req.io.to(chatId).emit('newMessage', fullMessage);
 
         res.status(201).json(fullMessage);
     } catch (err) {
@@ -72,8 +113,16 @@ exports.renderAdminView = async (req, res) => {
     const user = res.locals.user;
 
     try {
-        // Fetch chats and users for the admin view
-        const chats = await Chat.find({ users: user._id }).populate('users');
+        // Fetch chats for the user that they haven't archived
+        const chats = await Chat.find({
+            users: user._id,
+            archivedBy: { $ne: user._id } // Filter out chats archived by the current user
+        })
+        .sort({ updatedAt: -1 }) // Sort by most recent activity
+        .populate('users', 'username roles')
+        .populate('creator', '_id')
+        .populate('archivedBy', '_id');
+
         const users = await User.find({
             roles: { $in: ['Admin', 'Staff'] },
             _id: { $ne: user._id }
@@ -85,7 +134,7 @@ exports.renderAdminView = async (req, res) => {
             user,
             headerTitle: 'CHAT',
             currentPath: req.path,
-            chats,
+            chats, // This list now excludes archived chats
             users
         });
     } catch (error) {
@@ -94,114 +143,292 @@ exports.renderAdminView = async (req, res) => {
     }
 };
 
-exports.createNewChat = async (req, res) => {
-    const { userIds, groupName } = req.body;
-    const currentUserId = res.locals.user._id; // Creator's ID
-
-    if (!userIds || userIds.length === 0) {
-        return res.status(400).json({ error: 'No users selected.' });
-    }
-
-    // Ensure userIds are distinct and don't include the creator initially for easier logic
-    const uniqueOtherUserIds = [...new Set(userIds)].filter(id => id.toString() !== currentUserId.toString());
-
-    if (uniqueOtherUserIds.length === 0 && !groupName) {
-        // Trying to create a private chat with only self? Or group chat with only self?
-        return res.status(400).json({ error: 'Cannot create a chat with only yourself.' });
-    }
+// Fetch chats archived by the current user
+exports.getArchivedChats = async (req, res) => {
+    const currentUserId = res.locals.user._id;
 
     try {
+        const archivedChats = await Chat.find({
+            users: currentUserId, // Ensure user is part of the chat
+            archivedBy: currentUserId // Ensure chat is archived by this user
+        })
+        .sort({ updatedAt: -1 }) // Sort by most recent activity
+        .populate('users', 'username roles') // Populate users for display
+        .populate('creator', '_id'); // Populate creator if needed
+
+        res.status(200).json(archivedChats);
+
+    } catch (err) {
+        console.error('Error fetching archived chats:', err);
+        res.status(500).json({ error: 'Failed to fetch archived chats.' });
+    }
+};
+
+exports.createNewChat = async (req, res) => {
+    // --- Add Entry Log ---
+    console.log('[!!!] ENTERING createNewChat function.');
+    // --- End Entry Log ---
+
+    console.log('[DEBUG] createNewChat called.');
+    const { userIds, groupName } = req.body;
+    const currentUserId = res.locals.user._id;
+    console.log('[DEBUG] createNewChat - Request Body:', req.body);
+    console.log('[DEBUG] createNewChat - Creator ID:', currentUserId);
+
+    // --- Input Validation ---
+    if (!userIds || !Array.isArray(userIds)) {
+        console.error('[DEBUG] createNewChat - Error: userIds is missing or not an array.');
+        return res.status(400).json({ error: 'User IDs must be provided as an array.' });
+    }
+    if (userIds.length === 0) {
+        console.error('[DEBUG] createNewChat - Error: No users selected.');
+        return res.status(400).json({ error: 'No users selected.' });
+    }
+    const uniqueOtherUserIds = [...new Set(userIds)]
+        .map(id => id.toString())
+        .filter(id => id !== currentUserId.toString());
+    console.log('[DEBUG] createNewChat - Unique Other User IDs:', uniqueOtherUserIds);
+    if (uniqueOtherUserIds.length === 0 && !groupName) {
+        console.error('[DEBUG] createNewChat - Error: Cannot create chat with only self unless it\'s a named group.');
+        return res.status(400).json({ error: 'Cannot create a chat with only yourself unless a group name is provided.' });
+    }
+    // --- End Input Validation ---
+
+    // --- Check for req.io ---
+    if (!req.io) {
+        console.error('[CRITICAL] req.io is not available in createNewChat. Check server setup/middleware.');
+        // Proceed but log the critical issue
+    }
+    // --- End check ---
+
+    let populatedChat; // Define populatedChat outside the try block
+    let operationDescription = 'initializing'; // <<< MOVE DECLARATION HERE
+
+    try {
+        console.log('[DEBUG] createNewChat - Entering try block.');
         let chat;
-        let allParticipantIds; // To store all IDs including the creator
+        // let operationDescription = 'initializing'; // <<< REMOVE FROM HERE
+        let allParticipantIds;
+        const isPotentiallyPrivate = uniqueOtherUserIds.length === 1 && !groupName;
 
-        if (uniqueOtherUserIds.length === 1 && !groupName) {
-            // Private one-on-one chat
+        if (isPotentiallyPrivate) {
+            // --- Private one-on-one chat ---
+            console.log('[DEBUG] createNewChat - Handling private chat.');
             const otherUserId = uniqueOtherUserIds[0];
-            allParticipantIds = [currentUserId, otherUserId];
+            allParticipantIds = [currentUserId.toString(), otherUserId]; // Ensure strings for query
+            console.log('[DEBUG] createNewChat - Private chat participants:', allParticipantIds);
 
+            console.log('[DEBUG] createNewChat - Finding existing private chat...');
             chat = await Chat.findOne({
                 isGroupChat: false,
                 users: { $all: allParticipantIds, $size: 2 }
             });
 
             if (!chat) {
-                chat = await Chat.create({
-                    isGroupChat: false,
-                    users: allParticipantIds
+                operationDescription = 'creating new private chat';
+                console.log('[DEBUG] createNewChat - No existing private chat found. Creating new one...');
+                chat = new Chat({
+                    users: allParticipantIds,
+                    creator: currentUserId,
+                    isGroupChat: false
                 });
+                await chat.save();
+                if (!chat) throw new Error('Failed to save new private chat.'); // Check after save
+                console.log('[DEBUG] createNewChat - New private chat created:', chat._id);
+            } else {
+                operationDescription = 'unarchiving existing private chat';
+                console.log('[DEBUG] createNewChat - Existing private chat found:', chat._id);
+                // --- Unarchive for both participants if found ---
+                const initialArchivedCount = chat.archivedBy.length;
+                chat.archivedBy = chat.archivedBy.filter(userId => !allParticipantIds.includes(userId.toString()));
+                if (chat.archivedBy.length < initialArchivedCount) {
+                    await chat.save();
+                    if (!chat) throw new Error('Failed to save unarchived private chat.'); // Check after save
+                    console.log('[DEBUG] createNewChat - Unarchived existing private chat for participants.');
+                }
+                // --- End Unarchive ---
             }
-        } else {
-            // Group chat
-            allParticipantIds = [currentUserId, ...uniqueOtherUserIds]; // Add creator back
+            // --- End Private one-on-one chat ---
 
-            chat = await Chat.create({
-                isGroupChat: true,
+        } else {
+            // --- Group chat or chat with self (if groupName is provided) ---
+            console.log('[DEBUG] createNewChat - Creating group chat.');
+            allParticipantIds = [currentUserId.toString(), ...uniqueOtherUserIds]; // Ensure strings
+            console.log('[DEBUG] createNewChat - Group chat participants:', allParticipantIds);
+
+            operationDescription = 'creating new group chat';
+            chat = new Chat({
+                groupName: groupName || 'Unnamed Group', // Use provided name or default
                 users: allParticipantIds,
-                groupName: groupName || 'New Group' // Default group name if empty
+                creator: currentUserId,
+                isGroupChat: true
             });
+            await chat.save();
+            if (!chat) throw new Error('Failed to save new group chat.'); // Check after save
+            console.log('[DEBUG] createNewChat - New group chat created:', chat._id);
+            // --- End Group chat ---
         }
 
-        const populatedChat = await chat.populate('users', 'username roles'); // Populate roles too
+        // --- Check if chat object is valid before populating ---
+        if (!chat || !chat._id) {
+             operationDescription = 'validating chat object before population';
+             console.error('[ERROR] createNewChat - Chat object is invalid before population.');
+             throw new Error('Chat creation or retrieval resulted in an invalid object.');
+        }
+        // --- End Check ---
+
+        operationDescription = 'populating chat details';
+        console.log('[DEBUG] createNewChat - Populating chat details...');
+        // Populate the existing chat object directly
+        populatedChat = await chat.populate([
+            { path: 'users', select: 'username roles' },
+            { path: 'creator', select: '_id' }
+        ]);
+
+        // --- Check if populatedChat is valid ---
+        if (!populatedChat) {
+            console.error(`[ERROR] createNewChat - Failed to populate chat details for chat ID: ${chat._id}.`);
+            throw new Error('Failed to populate chat details after creation/retrieval.');
+        }
+        console.log('[DEBUG] createNewChat - Population complete.');
+        // --- End Check ---
 
         // --- Emit to other participants ---
-        if (populatedChat) {
-            allParticipantIds.forEach(userId => {
-                // Don't emit back to the creator, their client handles it
-                if (userId.toString() !== currentUserId.toString()) {
-                    console.log(`[DEBUG] Emitting newChatCreated to user room: ${userId}`);
-                    req.io.to(userId.toString()).emit('newChatCreated', populatedChat);
-                }
+        operationDescription = 'emitting socket events';
+        if (req.io) {
+            const otherParticipantIds = populatedChat.users
+                .map(user => user._id.toString())
+                .filter(id => id !== currentUserId.toString());
+
+            console.log(`[DEBUG] createNewChat - Emitting 'newChatCreated' to other participants: ${otherParticipantIds.join(', ')}`);
+            otherParticipantIds.forEach(userId => {
+                req.io.to(userId).emit('newChatCreated', populatedChat);
             });
+        } else {
+             console.warn('[DEBUG] createNewChat - req.io not available, skipping socket emission.');
         }
         // --- End Emit ---
 
+        operationDescription = 'sending success response';
+        console.log('[DEBUG] createNewChat - Sending success response.');
+        // --- Add Pre-Response Log ---
+        console.log('[!!!] Attempting to send 201 response.');
+        // --- End Pre-Response Log ---
         res.status(201).json(populatedChat);
+        // --- Add Post-Response Log ---
+        console.log('[!!!] Successfully sent 201 response.');
+        // --- End Post-Response Log ---
 
     } catch (err) {
-        console.error('Error creating chat:', err);
-        res.status(500).json({ error: 'Failed to create chat' });
+        // --- Updated Error Logging ---
+        console.error(`[ERROR] createNewChat - Error during operation: ${operationDescription}. Details:`, err);
+        // --- Add Pre-Error Response Log ---
+        console.log('[!!!] Attempting to send 500 response.');
+        // --- End Pre-Error Response Log ---
+        res.status(500).json({
+            error: 'Failed to create or find chat.',
+            operation: operationDescription,
+            details: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
+         // --- Add Post-Error Response Log ---
+         console.log('[!!!] Successfully sent 500 response.');
+         // --- End Post-Error Response Log ---
     }
+    // --- Add Exit Log ---
+    console.log('[!!!] EXITING createNewChat function.');
+    // --- End Exit Log ---
 };
 
-exports.deleteChat = async (req, res) => {
+exports.archiveChat = async (req, res) => {
     const { chatId } = req.params;
     const currentUserId = res.locals.user._id;
 
     try {
-        const chat = await Chat.findById(chatId).populate('users', '_id'); // Populate only IDs needed for emit
+        const chat = await Chat.findById(chatId);
 
         if (!chat) {
             return res.status(404).json({ error: 'Chat not found.' });
         }
 
-        // Authorization: Ensure the current user is part of the chat
-        const isParticipant = chat.users.some(user => user._id.equals(currentUserId));
+        // Authorization: Check if user is a participant
+        const isParticipant = chat.users.some(userId => userId.equals(currentUserId));
         if (!isParticipant) {
-            return res.status(403).json({ error: 'You are not authorized to delete this chat.' });
+            return res.status(403).json({ error: 'You are not authorized to archive this chat.' });
         }
 
-        // --- Emit deletion event BEFORE deleting ---
-        // This ensures participants are notified even if subsequent steps fail slightly
-        const participantIds = chat.users.map(user => user._id.toString());
-        participantIds.forEach(userId => {
-            console.log(`[DEBUG] Emitting chatDeleted (${chatId}) to user room: ${userId}`);
-            req.io.to(userId).emit('chatDeleted', chatId);
-        });
-        // --- End Emit ---
+        // Add user to archivedBy array if not already present
+        if (!chat.archivedBy.some(userId => userId.equals(currentUserId))) {
+            chat.archivedBy.push(currentUserId);
+            await chat.save();
+            console.log(`[DEBUG] Chat ${chatId} archived by user ${currentUserId}.`);
 
-        // Delete the chat document
-        await Chat.findByIdAndDelete(chatId);
+            // --- Emit archive event ONLY to the user who archived ---
+            // Use the user-specific room (assuming user ID is used as room name)
+            console.log(`[DEBUG] Emitting chatArchived (${chatId}) to user room: ${currentUserId.toString()}`);
+            req.io.to(currentUserId.toString()).emit('chatArchived', chatId);
+            // --- End Emit ---
 
-        // Optional: Delete associated messages (consider performance implications for large chats)
-        // await Message.deleteMany({ chat: chatId });
-        // console.log(`[DEBUG] Deleted messages for chat ${chatId}`);
-
-        console.log(`[DEBUG] Chat ${chatId} deleted successfully by user ${currentUserId}.`);
-        res.status(200).json({ message: 'Chat deleted successfully.' });
+            res.status(200).json({ message: 'Chat archived successfully.' });
+        } else {
+            console.log(`[DEBUG] Chat ${chatId} was already archived by user ${currentUserId}.`);
+            // Optionally emit event anyway to ensure client UI is consistent
+            req.io.to(currentUserId.toString()).emit('chatArchived', chatId);
+            res.status(200).json({ message: 'Chat was already archived.' });
+        }
 
     } catch (err) {
-        console.error('Error deleting chat:', err);
-        res.status(500).json({ error: 'Failed to delete chat.' });
+        console.error('Error archiving chat:', err);
+        res.status(500).json({ error: 'Failed to archive chat.' });
+    }
+};
+
+exports.unarchiveChat = async (req, res) => {
+    const { chatId } = req.params;
+    const currentUserId = res.locals.user._id;
+
+    try {
+        const chat = await Chat.findById(chatId);
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+
+        // Check if the user actually archived this chat
+        const archiveIndex = chat.archivedBy.findIndex(userId => userId.equals(currentUserId));
+
+        if (archiveIndex > -1) {
+            // Remove user from archivedBy array
+            chat.archivedBy.splice(archiveIndex, 1);
+            await chat.save();
+            console.log(`[DEBUG] Chat ${chatId} unarchived by user ${currentUserId}.`);
+
+            // Populate the chat to send back to the client for adding to the main list
+            const populatedChat = await chat.populate([
+                { path: 'users', select: 'username roles' },
+                { path: 'creator', select: '_id' }
+            ]);
+
+            // --- Emit unarchive event ONLY to the user who unarchived ---
+            console.log(`[DEBUG] Emitting chatUnarchived (${chatId}) to user room: ${currentUserId.toString()}`);
+            req.io.to(currentUserId.toString()).emit('chatUnarchived', populatedChat); // Send populated chat
+            // --- End Emit ---
+
+            res.status(200).json({ message: 'Chat unarchived successfully.', chat: populatedChat });
+        } else {
+            console.log(`[DEBUG] Chat ${chatId} was not archived by user ${currentUserId}.`);
+            // Still return success, maybe the UI was out of sync
+            const populatedChat = await chat.populate([
+                { path: 'users', select: 'username roles' },
+                { path: 'creator', select: '_id' }
+            ]);
+            req.io.to(currentUserId.toString()).emit('chatUnarchived', populatedChat); // Emit anyway for consistency
+            res.status(200).json({ message: 'Chat was not archived by this user.', chat: populatedChat });
+        }
+
+    } catch (err) {
+        console.error('Error unarchiving chat:', err);
+        res.status(500).json({ error: 'Failed to unarchive chat.' });
     }
 };
 
@@ -234,13 +461,14 @@ exports.renameChat = async (req, res) => {
         chat.groupName = groupName.trim();
         await chat.save();
 
-        // Populate users before emitting
-        const updatedChat = await chat.populate('users', 'username roles');
+        // Populate creator along with users before emitting
+        const updatedChat = await chat.populate('users', 'username roles').populate('creator', '_id');
 
         // --- Emit rename event ---
         const participantIds = updatedChat.users.map(user => user._id.toString());
         participantIds.forEach(userId => {
             console.log(`[DEBUG] Emitting chatRenamed (${chatId}) to user room: ${userId}`);
+            // Ensure creator is included in the emitted data
             req.io.to(userId).emit('chatRenamed', updatedChat);
         });
         // --- End Emit ---

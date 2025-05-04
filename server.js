@@ -59,18 +59,40 @@ mongoose.connection.on('error', err => console.error('MongoDB connection error:'
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: '*' } // Adjust for production
+    cors: corsOptions // Use your CORS options here too
 });
 
-// Share io instance across all requests
+// --- IMPORTANT: Make io accessible to routes ---
+// This middleware attaches io to each request object
 app.use((req, res, next) => {
+    // --- Add Logging ---
+    console.log(`[Middleware] Attaching io for request: ${req.method} ${req.originalUrl}`);
+    // --- End Logging ---
     req.io = io;
     next();
 });
+// --- End io attachment ---
 
 // Socket.IO connection handling
 io.on('connection', async (socket) => {
     console.log('🟢 Socket connected:', socket.id);
+
+    // --- Define 'joinRoom' listener EARLY ---
+    socket.on('joinRoom', roomId => {
+        // --- DETAILED LOGGING ---
+        console.log(`[SERVER JOIN DEBUG] Received 'joinRoom' event for room: ${roomId} from socket: ${socket.id}`);
+        try {
+            socket.join(roomId);
+            console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} successfully joined room: ${roomId}`);
+            // Log all rooms the socket is currently in
+            console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+        } catch (error) {
+            console.error(`[SERVER JOIN ERROR] Error joining room ${roomId} for socket ${socket.id}:`, error);
+        }
+        // --- END DETAILED LOGGING ---
+    });
+    // --- END Define 'joinRoom' listener ---
+
 
     // --- NEW: Join user-specific room based on JWT ---
     // Attempt to get token from auth payload or cookie
@@ -88,13 +110,17 @@ io.on('connection', async (socket) => {
             if (user) {
                 userEmail = user.email;
                 userRoles = user.roles || []; // Ensure roles is an array
-                socket.join(userId); // Join room based on user ID (requires user ID to be string)
-                console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) joined room ${userId}`);
+                // --- Use the 'joinRoom' event defined above ---
+                socket.emit('joinRoom', userId); // Emit to self to trigger the listener
+                // socket.join(userId); // Join room based on user ID (requires user ID to be string) - Replaced by emit
+                console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) requested join for user room ${userId}`);
 
                 // Join admin room if user is admin
                 if (userRoles.includes('Admin')) {
-                    socket.join('admin_room');
-                    console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) joined admin_room`);
+                    // --- Use the 'joinRoom' event defined above ---
+                    socket.emit('joinRoom', 'admin_room'); // Emit to self to trigger the listener
+                    // socket.join('admin_room'); // Replaced by emit
+                    console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) requested join for admin_room`);
                 }
             } else {
                 console.log(`⚠️ Socket ${socket.id}: User not found for token ID ${userId}`);
@@ -107,15 +133,7 @@ io.on('connection', async (socket) => {
     }
     // --- END NEW ---
 
-    // Existing joinRoom logic (can be kept for other purposes)
-    socket.on('joinRoom', roomId => {
-        socket.join(roomId);
-        // --- DEBUGGING START ---
-        console.log(`[DEBUG] Socket ${socket.id} attempting to join room ${roomId}`);
-        // You can add more checks here later if needed, e.g., verify roomId format
-        // --- DEBUGGING END ---
-    });
-
+    // Existing disconnect logic
     socket.on('disconnect', () => {
         console.log('🔌 Socket disconnected:', socket.id);
     });
@@ -162,7 +180,7 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.set('view engine', 'ejs');
 
 // Auth Middleware applied globally
-app.get('*', checkUser);
+app.get('*', checkUser); // Ensure this doesn't interfere unexpectedly
 
 // Routes
 app.use(root);
@@ -189,7 +207,7 @@ app.use(contactRoutes);
 app.use(manageRoutes);
 app.use('/live', liveRoutes);
 app.use('/', statusRoutes);
-app.use('/chat', chatRoutes);
+app.use('/chat', chatRoutes); // Ensure chatRoutes is used *after* the req.io middleware
 
 // 404 Fallback
 app.all('*', (req, res) => {

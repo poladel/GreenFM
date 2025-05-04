@@ -11,8 +11,14 @@ const chatSchema = new Schema({
     users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     messages: [messageSchema],
     isGroupChat: { type: Boolean, default: false },
-    groupName: { type: String, default: '' }
-});
+    groupName: { type: String, default: '' },
+    creator: { type: Schema.Types.ObjectId, ref: 'User' },
+    lastMessage: { type: Schema.Types.ObjectId, ref: 'Message' },
+    archivedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+}, { timestamps: true });
+
+// Index for faster querying of user chats
+chatSchema.index({ users: 1 });
 
 const Chat = mongoose.model('Chat', chatSchema);
 module.exports = Chat;
