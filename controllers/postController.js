@@ -8,10 +8,19 @@ const User = require('../models/User'); // Import User model
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
+        // Determine resource type based on MIME type
+        let resourceType = 'auto';
+        if (file.mimetype.startsWith('image')) {
+            resourceType = 'image';
+        } else if (file.mimetype.startsWith('video')) {
+            resourceType = 'video';
+        }
+        // Add more types if needed, e.g., 'raw' for other files
+
         return {
             folder: 'uploads',
-            format: file.mimetype.split('/')[1], // Dynamically set format
-            resource_type: "auto"
+            // format: file.mimetype.split('/')[1], // <<< REMOVE THIS LINE >>> Let Cloudinary auto-detect format
+            resource_type: resourceType // Use determined resource type
         };
     }
 });
@@ -75,7 +84,10 @@ const createPost = async (req, res) => {
         res.json({ success: true, message: "Post submitted successfully." }); // Changed response
 
     } catch (err) {
-        console.error('🔴 Error saving post:', err);
+        // --- Enhanced Error Logging ---
+        console.error('🔴 Error in createPost controller:', err); // Log the full error object
+        console.error('🔴 Error Stack:', err.stack); // Log the stack trace
+        // --- End Enhanced Error Logging ---
         res.status(500).json({ error: `Failed to create post: ${err.message}` });
     }
 };

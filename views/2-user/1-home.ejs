@@ -481,8 +481,8 @@
                             return `<img src="${media}" class="post-media-img ${mediaItemClasses}" alt="Post Media" data-src="${media}" data-type="image">`;
                         }).join('');
                     }
-                    if (post.video && mediaCount === 0) {
-                        mediaHTML += `<video src="${post.video}" controls class="post-media-video ${itemClasses}" data-src="${post.video}" data-type="video"></video>`;
+                    if (post.video) { // Always add video if it exists
+                        mediaHTML += `<video src="${post.video}" controls class="post-media-video ${itemClasses} object-contain bg-black" data-src="${post.video}" data-type="video"></video>`;
                     }
 
                     const escapedTitle = post.title.replace(/"/g, '&quot;');

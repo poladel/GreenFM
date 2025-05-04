@@ -23,15 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateScheduleList();
 
+    // --- Get references to add buttons ---
+    // Assign to the globally declared variables (remove 'const')
+    addImageButton = document.getElementById('add-image-button');
+    addVideoButton = document.getElementById('add-video-button');
+    // --- End get references ---
+
     // Check if the admin-only elements exist
-    const addImageButton = document.getElementById('add-image-button');
-    const addVideoButton = document.getElementById('add-video-button');
+    // Remove these const declarations as they shadow the global ones
+    // const addImageButton = document.getElementById('add-image-button'); // <<< REMOVE THIS LINE >>>
+    // const addVideoButton = document.getElementById('add-video-button'); // <<< REMOVE THIS LINE >>>
     const imageInput = document.getElementById('image-input');
     const videoInput = document.getElementById('video-input');
     const postForm = document.getElementById('post-form');
     const closeModalButton = document.querySelector('.close-modal');
 
     // Add event listeners only if the elements exist
+    // Now uses the correctly assigned global variables
     if (addImageButton && imageInput) {
         addImageButton.addEventListener('click', () => {
             imageInput.click();
@@ -108,13 +116,32 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('title', titleValue);
             formData.append('text', textValue);
 
-            for (let file of imageInput.files) {
+            // --- Use imageFiles array instead of imageInput.files ---
+            console.log("Appending files from imageFiles array:", imageFiles); // Add log
+            for (let file of imageFiles) { // <<< CHANGE HERE: Use imageFiles array
                 formData.append('media', file);
             }
+            // --- End change ---
 
+            // --- Log FormData entries for debugging ---
+            console.log("FormData entries for 'media':");
+            let mediaCount = 0;
+            for (let pair of formData.entries()) {
+                if (pair[0] === 'media') {
+                    console.log("- File:", pair[1].name, "Size:", pair[1].size);
+                    mediaCount++;
+                }
+            }
+            console.log(`Total 'media' entries appended: ${mediaCount}`);
+            // --- End log ---
+
+
+            // --- Keep video logic as is ---
             if (videoInput.files.length > 0) {
                 formData.append('video', videoInput.files[0]);
             }
+            // --- End video logic ---
+
 
             try {
                 const response = await fetch('/post', {
@@ -135,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (imageInput) imageInput.value = '';
                     if (videoInput) videoInput.value = '';
 
+                    // --- Reset button states after successful post ---
+                    updateAddButtonStates();
+                    // --- End reset button states ---
+
                 } else {
                     showToast(result.error || 'Failed to post'); // Use showToast
                 }
@@ -148,6 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- End re-enable button ---
             }
         });
+        // --- Initial button state check ---
+        updateAddButtonStates(); // Set initial state based on empty form
+        // --- End initial check ---
     } else {
         console.warn("Element with ID 'post-form' not found. This is expected if no admin is logged in.");
     }
@@ -258,8 +292,31 @@ function navigateMedia(direction) {
     }
 }
 
+// --- Constants for file limits ---
+const MAX_IMAGES = 6;
+const MAX_VIDEOS = 1;
+
+// --- Global references to add buttons (ensure they are fetched in DOMContentLoaded) ---
+let addImageButton = null;
+let addVideoButton = null;
+
 let imageFiles = []; // Store selected image files
 let videoFile = null; // Store selected video file
+
+// --- Helper function to update add button disabled states ---
+function updateAddButtonStates() {
+    if (addImageButton) {
+        addImageButton.disabled = imageFiles.length >= MAX_IMAGES;
+        addImageButton.classList.toggle('opacity-50', addImageButton.disabled); // Optional visual cue
+        addImageButton.classList.toggle('cursor-not-allowed', addImageButton.disabled); // Optional visual cue
+    }
+    if (addVideoButton) {
+        addVideoButton.disabled = videoFile !== null;
+        addVideoButton.classList.toggle('opacity-50', addVideoButton.disabled); // Optional visual cue
+        addVideoButton.classList.toggle('cursor-not-allowed', addVideoButton.disabled); // Optional visual cue
+    }
+}
+// --- End helper function ---
 
 function previewFile(file, type) {
     const previewContainer = document.getElementById('preview-container');
@@ -301,8 +358,14 @@ function previewFile(file, type) {
         previewContainer.appendChild(previewWrapper);
 
         // Store file logic remains the same...
-         if (type === 'image') imageFiles.push(file);
-         else if (type === 'video') videoFile = file;
+         if (type === 'image') {
+             imageFiles.push(file);
+         } else if (type === 'video') {
+             videoFile = file;
+         }
+         // --- Update button states after adding a file ---
+         updateAddButtonStates();
+         // --- End update button states ---
     };
     reader.readAsDataURL(file);
 }
@@ -314,14 +377,14 @@ function removeFile(fileToRemove, type, wrapperElement) {
     // Remove file from internal tracking array/variable
     if (type === 'image') {
          imageFiles = imageFiles.filter(f => f !== fileToRemove);
-         // Also remove from the actual file input if possible/needed
-         const imageInput = document.getElementById('image-input');
-         // Create a new DataTransfer object, add remaining files, and assign to input
-          if (imageInput) {
-             const dataTransfer = new DataTransfer();
-             imageFiles.forEach(f => dataTransfer.items.add(f));
-             imageInput.files = dataTransfer.files;
-          }
+         // --- REMOVE DataTransfer logic ---
+         // const imageInput = document.getElementById('image-input');
+         // if (imageInput) {
+         //    const dataTransfer = new DataTransfer();
+         //    imageFiles.forEach(f => dataTransfer.items.add(f));
+         //    imageInput.files = dataTransfer.files;
+         // }
+         // --- END REMOVAL ---
 
     } else if (type === 'video') {
          videoFile = null;
@@ -330,6 +393,10 @@ function removeFile(fileToRemove, type, wrapperElement) {
     }
      console.log("Remaining image files:", imageFiles);
      console.log("Video file:", videoFile);
+
+     // --- Update button states after removing a file ---
+     updateAddButtonStates();
+     // --- End update button states ---
 }
 
 // Function to edit a post

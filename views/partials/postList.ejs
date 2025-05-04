@@ -49,11 +49,7 @@
                         <% }) %>
                     <% } %>
                     <% if (post.video) { %>
-                        <%# Special handling if video exists alongside images might be needed %>
-                         <%# For simplicity, if only video, it's handled above. If video + images, it might break the grid or need specific placement. %>
-                        <% if (mediaCount === 0) { %> <%# Only render if no images %>
-                           <video src="<%= post.video %>" controls class="post-media-video <%= itemClasses %> object-contain bg-black"></video>
-                        <% } %>
+                        <video src="<%= post.video %>" controls class="post-media-video <%= itemClasses %> object-contain bg-black"></video>
                     <% } %>
                 </div>
                 <!-- End Media Grid -->
