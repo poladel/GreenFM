@@ -1,74 +1,109 @@
 <%- include('../partials/header.ejs') %>
-<div class="page-container">
-  <div class="content-wrap">
-    <div class="container">
-      <%- include('../partials/nav.ejs') %>   
-      <%- include('../partials/menu.ejs') %>
+<!-- REMOVE <link rel="stylesheet" href="css/contact.css"> -->
 
-      <!-- Contact Info Section -->
-      <div class="contact-container">
-        <div class="contact-info">
-          <h2>Get in Touch</h2>
-          <p>Any tips, inquiries, comments or suggestions that you have in mind? Email us at <strong>dlsudgreenfm@dlsud.edu.ph</strong>, or fill out the necessary information below.</p>
-          <div class="info-item">
-            <div class="icon">
-              <img src="img/location.png" alt="Location Icon" width="24" height="24">
-            </div>
-            <p>Address<br>De La Salle University, JFH Building, Dasmariñas, Cavite</p>
-          </div>
-          <div class="info-item">
-            <div class="icon">
-              <img src="img/phone-call.png" alt="Phone Icon" width="24" height="24">
-            </div>
-            <p>Phone Number<br>09123456789</p>
-          </div>
-          <div class="info-item">
-            <div class="icon">
-              <img src="img/paper-plane.png" alt="Email Icon" width="24" height="24">
-            </div>
-            <p>E-Mail<br>dlsudgreenfm@dlsud.edu.ph</p>
-          </div>
-        </div>
+<div class="page-container flex flex-col min-h-screen">
+    <!-- Nav and Menu moved outside content-wrap -->
+    <%- include('../partials/nav.ejs') %>
+    <%- include('../partials/menu.ejs', { headerTitle: "CONTACT US" }) %>
 
-        <!-- Contact Form Section -->
-        <div class="contact-form">
-          <h2>Send a Message</h2>
-          <form id="contactForm" action="/send" method="POST">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" 
-              value="<%= user ? `${user.firstName || ''} ${user.middleInitial || ''} ${user.lastName || ''}`.trim() : '' %>" 
-              required>
+    <!-- Apply standard padding to content-wrap -->
+    <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">
 
-            <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" 
-              value="<%= user && user.email ? user.email : '' %>" required>
+            <!-- Add max-width centering container -->
+            <div class="max-w-6xl 2xl:max-w-screen-xl mx-auto">
 
-            <label for="message">Message</label>
-            <textarea id="message" rows="4" name="message" placeholder="Write something..." required></textarea>
-              
-            <button type="submit">Submit</button>
-          </form>
-        </div>
-      </div>
+                <!-- Contact Container -->
+                 <!-- Added py-6 for vertical spacing -->
+                <div class="contact-container flex flex-col lg:flex-row gap-5 w-full px-4 lg:px-0 py-6">
 
-      <!-- Map Section with Updated Link -->
-      <div class="map">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d406.3454872193692!2d120.96218529974512!3d14.321215043300805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397d50062de0b17%3A0x27acdc22b8150de!2s95.9%20DLSU-D%20Green%20FM!5e0!3m2!1sen!2sph!4v1730914335971!5m2!1sen!2sph" 
-          width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" 
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-      </div>
-    </div>
-  </div>
-</div>
+                    <!-- Contact Info Section -->
+                     <!-- Adjusted padding: py-5 px-2 sm:px-3 md:p-5 -->
+                    <div class="contact-info flex-1 bg-white py-5 px-2 sm:px-3 md:p-5 rounded-xl shadow-md flex flex-col justify-center items-center space-y-4">
+                        <h2 class="text-green-800 text-xl sm:text-2xl font-bold text-center">Get in Touch</h2> <!-- Reduced base text size -->
+                        <p class="text-gray-600 text-sm sm:text-base leading-relaxed text-center px-2">Any tips, inquiries, comments or suggestions that you have in mind? Email us at <strong class="font-semibold">dlsudgreenfm@dlsud.edu.ph</strong>, or fill out the necessary information below.</p> <!-- Reduced base text size -->
+                        <!-- Info Items -->
+                        <div class="info-item flex items-center justify-center text-sm sm:text-base md:text-lg text-gray-800"> <!-- Reduced base text size -->
+                            <!-- Adjusted icon container size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                            <div class="icon mr-1 text-green-800 text-2xl flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0">
+                                <!-- Adjusted icon size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                                <img src="/img/location.png" alt="Location Icon" class="w-5 h-5 sm:w-6 sm:h-6">
+                            </div>
+                            <!-- Added break-words -->
+                            <p class="text-xs sm:text-sm md:text-base text-center leading-tight m-0 p-0 break-words">Address<br>De La Salle University, JFH Building, Dasmariñas, Cavite</p>
+                        </div>
+                        <div class="info-item flex items-center justify-center text-sm sm:text-base md:text-lg text-gray-800"> <!-- Reduced base text size -->
+                            <!-- Adjusted icon container size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                            <div class="icon mr-1 text-green-800 text-2xl flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0">
+                                 <!-- Adjusted icon size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                                 <img src="/img/phone-call.png" alt="Phone Icon" class="w-5 h-5 sm:w-6 sm:h-6">
+                             </div>
+                             <!-- Added break-words -->
+                            <p class="text-xs sm:text-sm md:text-base text-center leading-tight m-0 p-0 break-words">Phone Number<br>09123456789</p>
+                        </div>
+                        <div class="info-item flex items-center justify-center text-sm sm:text-base md:text-lg text-gray-800"> <!-- Reduced base text size -->
+                             <!-- Adjusted icon container size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                             <div class="icon mr-1 text-green-800 text-2xl flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0">
+                                 <!-- Adjusted icon size: w-5 h-5 base, sm:w-6 sm:h-6 -->
+                                 <img src="/img/paper-plane.png" alt="Email Icon" class="w-5 h-5 sm:w-6 sm:h-6">
+                             </div>
+                             <!-- Added break-words -->
+                            <p class="text-xs sm:text-sm md:text-base text-center leading-tight m-0 p-0 break-words">E-Mail<br>dlsudgreenfm@dlsud.edu.ph</p>
+                        </div>
+                        <!-- End Info Items -->
+                    </div>
 
-<!-------------------- FOOTER -------------------->
-<%- include('../partials/footer.ejs') %>
+                    <!-- Contact Form Section -->
+                    <div class="contact-form flex-1 bg-white p-5 rounded-xl shadow-md">
+                        <h2 class="text-green-800 text-2xl mb-4 font-bold text-center">Send a Message</h2>
+                        <form id="contactForm" action="/send" method="POST">
+                            <div class="mb-4">
+                                <label for="name" class="block font-bold mt-4 mb-2 text-gray-800 text-base">Name</label>
+                                 <input type="text" id="name" name="name"
+                                       value="<%= user ? `${user.firstName || ''} ${user.middleInitial || ''} ${user.lastName || ''}`.trim() : '' %>"
+                                       required
+                                       class="w-full p-3 mt-2 border border-gray-300 rounded-lg text-base transition duration-300 focus:border-green-700 focus:outline-none focus:ring-1 focus:ring-green-700">
+                             </div>
+
+                             <div class="mb-4">
+                                <label for="email" class="block font-bold mt-4 mb-2 text-gray-800 text-base">E-mail</label>
+                                <input type="email" id="email" name="email"
+                                       value="<%= user && user.email ? user.email : '' %>" required
+                                       class="w-full p-3 mt-2 border border-gray-300 rounded-lg text-base transition duration-300 focus:border-green-700 focus:outline-none focus:ring-1 focus:ring-green-700">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="message" class="block font-bold mt-4 mb-2 text-gray-800 text-base">Message</label>
+                                <textarea id="message" rows="4" name="message" placeholder="Write something..." required
+                                       class="w-full p-3 mt-2 border border-gray-300 rounded-lg text-base transition duration-300 resize-none focus:border-green-700 focus:outline-none focus:ring-1 focus:ring-green-700"></textarea>
+                            </div>
+
+                             <button type="submit"
+                                    class="w-full bg-green-800 text-white p-3 border-none rounded-lg text-lg cursor-pointer mt-5 font-bold transition duration-300 hover:bg-green-900">
+                                Submit
+                             </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Map Section -->
+                <!-- Added w-full and adjusted margins -->
+                <div class="map w-full h-[250px] md:h-[350px] lg:h-[400px] rounded-xl overflow-hidden shadow-lg mt-8 mb-8 px-4 lg:px-0">
+                     <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d406.3454872193692!2d120.96218529974512!3d14.321215043300805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397d50062de0b17%3A0x27acdc22b8150de!2s95.9%20DLSU-D%20Green%20FM!5e0!3m2!1sen!2sph!4v1730914335971!5m2!1sen!2sph"
+                            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+
+            </div> <!-- End max-width container -->
+
+    </div> <!-- End content-wrap -->
+
+    <!-- Footer Styling from .footer applied in partial -->
+    <%- include('../partials/footer.ejs') %>
+</div> <!-- End page-container -->
 
 <!-- Add SweetAlert and custom script -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script src="js/2-user/contact.js"></script>
+<script src="/js/2-user/contact.js"></script> <!-- Keep JS -->
 </body>
-
 </html>
