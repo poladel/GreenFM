@@ -428,6 +428,21 @@
                 });
                 // --- End Listener for Live Status Updates ---
 
+                // --- Listener for Schedule Updates (from Admin) ---
+                socket.on('scheduleUpdate', (data) => {
+                    console.log(`[Socket] Received 'scheduleUpdate' event:`, data);
+                    // The updateScheduleList function already fetches today's schedule
+                    // based on the current day and configured school year.
+                    // Simply re-running it should reflect the changes.
+                    if (typeof updateScheduleList === 'function') {
+                        console.log("[Socket] 'scheduleUpdate': Calling updateScheduleList() to refresh Today's Schedule.");
+                        updateScheduleList();
+                    } else {
+                        console.error("[Socket] 'scheduleUpdate': updateScheduleList function not found.");
+                    }
+                });
+                // --- End Listener for Schedule Updates ---
+
                 // --- Helper function to create Post HTML (matching postList.ejs) ---
                 function createPostElement(post, currentUser) {
                     if (!post || !post.userId || !currentUser) return null;

@@ -700,6 +700,26 @@ document.addEventListener("DOMContentLoaded", () => {
 }); // End DOMContentLoaded
 
 //-------Scheduled Shows-----------//
+
+// Define the fixed order of time slots
+const FIXED_TIME_SLOTS = [
+    "9:10-9:55",
+    "10:00-10:55",
+    "11:00-11:55",
+    "12:01-12:55",
+    "1:00-1:55",
+    "2:00-2:55",
+    "3:00-3:55",
+    "4:00-4:50"
+];
+
+// Helper function to get the sort index based on the fixed time slots
+function getTimeSlotIndex(timeString) {
+    const index = FIXED_TIME_SLOTS.indexOf(timeString);
+    return index === -1 ? FIXED_TIME_SLOTS.length : index; // Place unknown slots at the end
+}
+
+
 function updateScheduleList() {
     const scheduleList = document.getElementById('schedule-list');
 
@@ -725,7 +745,10 @@ function updateScheduleList() {
             let schoolYear = data.schoolYear;
 
             // Normalize the schoolYear format to "2024-2025"
-            schoolYear = schoolYear.split('/')[1].split(' ')[0] + '-' + schoolYear.split('/')[2];
+            // Ensure this normalization matches the format stored in the Schedule documents
+            if (schoolYear && schoolYear.includes('/')) { // Basic check if normalization is needed
+                 schoolYear = schoolYear.split('/')[1].split(' ')[0] + '-' + schoolYear.split('/')[2];
+            }
             console.log('Normalized school year:', schoolYear); // Debugging log
 
             // Use the fetched school year to get the schedule
@@ -738,13 +761,24 @@ function updateScheduleList() {
             return res.json();
         })
         .then((todaySchedule) => {
-            console.log('Today\'s schedule:', todaySchedule); // Debugging log
+            console.log('Today\'s schedule (unsorted):', todaySchedule); // Debugging log
 
             if (todaySchedule && todaySchedule.length > 0) {
+                // --- Sort the schedule based on the fixed time slot order ---
+                todaySchedule.sort((a, b) => {
+                    const indexA = getTimeSlotIndex(a.time);
+                    const indexB = getTimeSlotIndex(b.time);
+                    return indexA - indexB;
+                });
+                console.log('Today\'s schedule (sorted):', todaySchedule); // Debugging log
+                // --- End sorting ---
+
                 scheduleList.innerHTML = ''; // Clear the loading message
                 todaySchedule.forEach((item) => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${item.time}: ${item.showDetails.title}`;
+                    // Ensure item.showDetails and item.showDetails.title exist
+                    const title = item.showDetails?.title || 'Untitled Show';
+                    listItem.textContent = `${item.time}: ${title}`;
                     scheduleList.appendChild(listItem);
                 });
             } else {

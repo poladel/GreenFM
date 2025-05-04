@@ -2051,41 +2051,6 @@ function updateAddButtonStates() {
     }
 }
 
-// --- Event Listeners for Add Buttons ---
-// Ensure these listeners call the updated createPersonInputGroup
-document.addEventListener('DOMContentLoaded', () => {
-    // ... other DOMContentLoaded code ...
-
-    const addHostBtn = document.getElementById('addHostButton');
-    const addTechBtn = document.getElementById('addTechnicalButton');
-    const hostContainer = document.getElementById('hosts-container');
-    const techContainer = document.getElementById('technical-container');
-
-    if (addHostBtn && hostContainer) {
-        addHostBtn.addEventListener('click', () => {
-            const index = hostContainer.querySelectorAll('.person-input-group').length;
-            if (index < 4) { // Check limit before adding
-                createPersonInputGroup('hosts-container', 'hosts', index);
-            }
-        });
-    }
-
-    if (addTechBtn && techContainer) {
-        addTechBtn.addEventListener('click', () => {
-            const index = techContainer.querySelectorAll('.person-input-group').length;
-             if (index < 2) { // Check limit before adding
-                createPersonInputGroup('technical-container', 'technicalStaff', index);
-             }
-        });
-    }
-
-    // Initialize button states on load
-    updateAddButtonStates();
-
-    // ... other DOMContentLoaded code ...
-});
-
-
 // --- Update populateScheduleModal ---
 // Ensure this function clears and repopulates hosts/tech staff correctly
 // using the createPersonInputGroup function when loading existing data.
