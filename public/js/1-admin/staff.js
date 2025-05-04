@@ -887,8 +887,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     const errorText = await response.text();
                     console.error("Non-JSON error response:", errorText);
+                    // *** Pass the status code in the error message ***
                     errorData = { message: `Server returned non-JSON response (Status: ${response.status})` };
                 }
+                 // *** Pass the status code in the error message ***
                 throw new Error(errorData.message || `Failed to update result (${response.status})`);
             }
 
@@ -902,7 +904,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error("Error saving submission result:", error);
-            alert(`Error saving result: ${error.message}`);
+            // *** ADDED: Toastify notification for permission errors ***
+            let toastMessage = `Error saving result: ${error.message}`;
+            if (error.message && (error.message.includes("Forbidden") || error.message.includes("Status: 403"))) {
+                 toastMessage = "Only Admins can update submission results.";
+            }
+
+            Toastify({
+                text: toastMessage,
+                duration: 5000, // Longer duration for errors
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#dc3545", // Red for errors
+                style: { color: "white" },
+                stopOnFocus: true,
+            }).showToast();
+            // *** END ADDED ***
+            // alert(`Error saving result: ${error.message}`); // Replaced alert with Toastify
         } finally {
             hideSpinner();
         }
@@ -1097,8 +1115,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appStartDate && assessStartDate && new Date(assessStartDate) < new Date(appStartDate)) { alert("Assessment Period start date cannot be before the Application Period start date."); return false; }
         // Ensure assessment starts after application ends if both are provided
         if (appEndDate && assessStartDate && new Date(assessStartDate) <= new Date(appEndDate)) { alert("Assessment Period start date must be after the Application Period end date."); return false; }
-
-
         // <<< CHECK IF SAVING FOR CURRENT YEAR WHEN APP PERIOD HAS ENDED >>>
         const actualCurrentYear = new Date().getFullYear().toString();
         // Only perform this check if the user is trying to save an application period
