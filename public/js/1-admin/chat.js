@@ -1274,10 +1274,8 @@ socket.on('newChatCreated', (chat) => {
                 console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
                 // Ensure the active styles are correctly applied even if clicking the same room again
                 // (This helps if some other action incorrectly removed styles)
-                // --- FIX: Use newChatDiv instead of room ---
                 newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES);
                 newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
-                // --- END FIX ---
                 // --- REMOVE old notification style cleanup ---
                 // room.classList.remove('font-bold', 'text-green-600');
                  // --- HIDE UNREAD DOT ---
@@ -1963,7 +1961,9 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
 
                             // --- Update Header and Options ---
                             // ... (header/options update) ...
-                            currentChatIsGroup = unarchivedChat.isGroupChat;
+                            // --- FIX: Use chat object directly for group status ---
+                            currentChatIsGroup = chat.isGroupChat;
+                            // --- END FIX ---
                             if (chatHeaderName) {
                                 const nameElement = newChatDiv.cloneNode(true);
                                 const roleSpan = nameElement.querySelector('span');
@@ -1980,7 +1980,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                             if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
 
                         } else {
-                            console.log(`[DEBUG] Clicked already active (unarchived) room: ${currentChatId}. No join emitted.`);
+                            console.log(`[DEBUG] Clicked already active (manually created) room: ${currentChatId}. No join emitted.`);
                              // ... (ensure active styles, hide dot) ...
                              newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES);
                              newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
@@ -1990,8 +1990,10 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                              }
                         }
 
-                        // Hide sidebar on small screens
-                        // ... (sidebar hiding logic) ...
+                        // Hide sidebar on small screens (This is handled by the click handler itself)
+                        // ... (sidebar hiding logic already present in click handler) ...
+                        // --- REMOVE redundant logic here, keep it in the main click handler ---
+                        /*
                         if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer && !sidebarContainer.classList.contains('hidden')) {
                             sidebarContainer.classList.add('hidden');
                             chatAreaContainer.classList.remove('hidden');
@@ -1999,6 +2001,8 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                                 sidebarToggleBtn.textContent = 'Show Sidebar';
                             }
                         }
+                        */
+                       // --- END REMOVE ---
                     });
 
                     // --- Append TEMPORARILY ---
@@ -2014,15 +2018,29 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                 sortChatSidebar(); // <-- CALL SORT FUNCTION
                 console.log(`[DEBUG] Re-sorted sidebar after ${isNewElement ? 'adding' : 'updating'} chat ${chat._id}.`);
 
-                // --- Auto-click if current user is the creator ---
+                // --- Auto-click the chat ---
                 // Find the element *again* after sorting
                 const finalChatElement = chatSidebarList.querySelector(`.chat-room[data-id="${chat._id}"]`);
-                if (finalChatElement && isCreator) { // Use isCreator flag
-                    console.log(`[DEBUG] Current user is creator of chat ${chat._id}. Simulating click.`);
+                if (finalChatElement) { // Click regardless of creator status now
+                    console.log(`[DEBUG] Simulating click on newly created/found chat ${chat._id}.`);
                     // Use setTimeout to ensure the element is fully in the DOM and listener attached
                     setTimeout(() => {
                         finalChatElement.click();
-                    }, 0);
+
+                        // --- ADDED: Explicitly hide sidebar on small screens AFTER click ---
+                        if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer) {
+                            console.log('[DEBUG] Small screen detected after new chat click. Hiding sidebar.');
+                            sidebarContainer.classList.add('hidden');
+                            chatAreaContainer.classList.remove('hidden');
+                            if (sidebarToggleBtn) {
+                                sidebarToggleBtn.textContent = 'Show Sidebar';
+                            }
+                        }
+                        // --- END ADDED ---
+
+                    }, 0); // Minimal delay is fine
+                } else {
+                    console.error(`[DEBUG] Could not find final chat element ${chat._id} after sorting to simulate click.`);
                 }
                 // --- End auto-click ---
             }, 50); // Delay remains
