@@ -435,49 +435,106 @@ exports.unarchiveChat = async (req, res) => {
 exports.renameChat = async (req, res) => {
     const { chatId } = req.params;
     const { groupName } = req.body;
-    const currentUserId = res.locals.user._id;
+    const currentUser = res.locals.user; // Get the full user object
+    const currentUserId = currentUser._id;
+    // --- Add Entry Log ---
+    console.log(`[RENAME DEBUG] Entering renameChat for chat ${chatId} with name "${groupName}" by user ${currentUserId}`);
 
     if (!groupName || groupName.trim() === '') {
+        console.log(`[RENAME DEBUG] Error: Group name cannot be empty.`);
         return res.status(400).json({ error: 'Group name cannot be empty.' });
     }
 
     try {
+        // --- Log before findById ---
+        console.log(`[RENAME DEBUG] Finding chat by ID: ${chatId}`);
         const chat = await Chat.findById(chatId);
 
         if (!chat) {
+            console.log(`[RENAME DEBUG] Error: Chat not found.`);
             return res.status(404).json({ error: 'Chat not found.' });
         }
+        // --- Log after findById ---
+        console.log(`[RENAME DEBUG] Chat found. isGroupChat: ${chat.isGroupChat}`);
 
         if (!chat.isGroupChat) {
+            console.log(`[RENAME DEBUG] Error: Not a group chat.`);
             return res.status(400).json({ error: 'Only group chats can be renamed.' });
         }
 
         // Authorization: Ensure the current user is part of the chat
         const isParticipant = chat.users.some(userId => userId.equals(currentUserId));
+        console.log(`[RENAME DEBUG] Is user ${currentUserId} a participant? ${isParticipant}`);
         if (!isParticipant) {
+            console.log(`[RENAME DEBUG] Error: User not authorized.`);
             return res.status(403).json({ error: 'You are not authorized to rename this chat.' });
         }
 
         chat.groupName = groupName.trim();
+        // --- Log before save ---
+        console.log(`[RENAME DEBUG] Attempting to save chat with new name: "${chat.groupName}"`);
         await chat.save();
+        // --- Log after save ---
+        console.log(`[RENAME DEBUG] Chat saved successfully.`);
 
         // Populate creator along with users before emitting
-        const updatedChat = await chat.populate('users', 'username roles').populate('creator', '_id');
+        // --- Log before populate ---
+        console.log(`[RENAME DEBUG] Attempting to populate users and creator.`);
+        const updatedChat = await chat.populate([
+             { path: 'users', select: 'username roles' },
+             { path: 'creator', select: '_id' } // Ensure creator is populated
+        ]);
+        // --- Log after populate ---
+        if (!updatedChat) {
+             console.error(`[RENAME ERROR] Failed to populate chat after saving!`);
+             throw new Error('Population failed after saving chat.'); // Throw error to be caught
+        }
+        console.log(`[RENAME DEBUG] Population successful.`);
+        // --- End Check ---
 
-        // --- Emit rename event ---
-        const participantIds = updatedChat.users.map(user => user._id.toString());
-        participantIds.forEach(userId => {
-            console.log(`[DEBUG] Emitting chatRenamed (${chatId}) to user room: ${userId}`);
-            // Ensure creator is included in the emitted data
-            req.io.to(userId).emit('chatRenamed', updatedChat);
+        // --- Create and Save System Message ---
+        const systemMessageContent = `${currentUser.username} renamed the group to "${groupName.trim()}"`;
+        const systemMessage = new Message({
+            chat: chatId,
+            sender: null, // Or a specific system user ID if you have one
+            content: systemMessageContent,
+            isSystemMessage: true // Flag to identify system messages
         });
-        // --- End Emit ---
+        await systemMessage.save();
+        console.log(`[RENAME DEBUG] System message saved for chat ${chatId}.`);
+        // --- End Create and Save System Message ---
+
+
+        // --- Emit rename event TO THE CHAT ROOM ---
+        // const participantIds = updatedChat.users.map(user => user._id.toString()); // No longer needed for emit target
+        // --- Log before emit ---
+        console.log(`[RENAME DEBUG] Preparing to emit 'chatRenamed' to chat room: ${chatId}`);
+        // participantIds.forEach(userId => { // Remove loop
+        //     console.log(`[RENAME EMIT DEBUG] Emitting chatRenamed (${chatId}) to user room: ${userId}`);
+        //     req.io.to(userId).emit('chatRenamed', updatedChat);
+        // });
+        req.io.to(chatId).emit('chatRenamed', updatedChat); // Emit to the chat room ID
+        // --- Log after emit ---
+        console.log(`[RENAME DEBUG] Finished emitting 'chatRenamed' to room ${chatId}.`);
+        // --- End Emit rename event ---
+
+
+        // --- Emit the NEW system message ---
+        console.log(`[RENAME DEBUG] Preparing to emit 'newMessage' (system) to chat room: ${chatId}`);
+        // We don't need to populate sender for system messages
+        req.io.to(chatId).emit('newMessage', systemMessage.toObject()); // Send the plain object
+        console.log(`[RENAME DEBUG] Finished emitting system 'newMessage' to room ${chatId}.`);
+        // --- End Emit system message ---
+
 
         console.log(`[DEBUG] Chat ${chatId} renamed to "${groupName.trim()}" by user ${currentUserId}.`);
+        // --- Log before sending response ---
+        console.log(`[RENAME DEBUG] Sending 200 success response.`);
         res.status(200).json(updatedChat); // Send back the updated chat
 
     } catch (err) {
-        console.error('Error renaming chat:', err);
-        res.status(500).json({ error: 'Failed to rename chat.' });
+        // --- Log the caught error ---
+        console.error('[RENAME ERROR] Error caught in renameChat:', err);
+        res.status(500).json({ error: 'Failed to rename chat.', details: err.message });
     }
 };

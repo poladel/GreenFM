@@ -41,7 +41,7 @@
                                 <%# Check if the chat is NOT archived by the current user %>
                                 <% if (!chat.archivedBy || !chat.archivedBy.some(id => id.equals(user._id))) { %>
                                     <!-- Add data-creator-id attribute -->
-                                    <div class="chat-room bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group"
+                                    <div class="chat-room relative bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group"
                                          data-id="<%= chat._id %>"
                                          data-creator-id="<%= chat.creator ? chat.creator._id.toString() : '' %>"
                                          data-latest-message-timestamp="<%= chat.updatedAt.toISOString() %>"> <!-- Added creator ID -->
@@ -58,6 +58,10 @@
                                                  Chat with Unknown User
                                              <% } %>
                                         <% } %>
+
+                                        <!-- ADD THIS SPAN FOR THE UNREAD DOT -->
+                                        <span class="unread-dot w-2.5 h-2.5 bg-blue-500 rounded-full absolute top-2 right-2 hidden"></span>
+                                        <!-- END ADDED SPAN -->
                                     </div>
                                 <% } %>
                             <% }) %>

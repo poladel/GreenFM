@@ -1321,6 +1321,10 @@ video {
   height: 0.5rem;
 }
 
+.h-2\.5 {
+  height: 0.625rem;
+}
+
 .max-h-24 {
   max-height: 6rem;
 }
@@ -1487,6 +1491,10 @@ video {
 
 .w-2 {
   width: 0.5rem;
+}
+
+.w-2\.5 {
+  width: 0.625rem;
 }
 
 .min-w-0 {
