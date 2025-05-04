@@ -562,6 +562,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
             clearErrors(); // Clear previous errors
 
+            // --- Basic Validation (Client-Side) ---
+            const rolesValue = rolesSelect.value;
+            const departmentValue = departmentSelect.value;
+
+            let validationFailed = false; // Flag to track validation status
+
+            if (!rolesValue) {
+                 showError(rolesSelect, 'Role is required.');
+                 validationFailed = true;
+            }
+            // *** ADDED: Check department if role requires it ***
+            if ((rolesValue === 'Staff' || rolesValue === 'Admin') && !departmentValue) {
+                showError(departmentSelect, 'Department is required for Staff/Admin roles.');
+                validationFailed = true;
+            }
+            // *** END ADDED CHECK ***
+
+            // If validation failed, stop processing and reset button if needed
+            if (validationFailed) {
+                // No loading state was applied yet, so just return
+                return;
+            }
+            // --- End Basic Validation ---
+
+
             // --- Add Loading State ---
             submitButton.disabled = true;
             submitButton.dataset.processing = 'true'; // Custom attribute to track state
@@ -577,19 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // --- End Loading State ---
 
 
-            // Basic Validation & Data Prep
-            const rolesValue = rolesSelect.value;
-            const departmentValue = departmentSelect.value;
-
-            if (!rolesValue) {
-                 showError(rolesSelect, 'Role is required.');
-                 return;
-            }
-            if ((rolesValue === 'Staff' || rolesValue === 'Admin') && !departmentValue) {
-                showError(departmentSelect, 'Department is required for Staff/Admin.');
-                return; // Prevent submission
-            }
-
+            // Data Prep (Moved after validation)
             const updatedData = {
                 // username: usernameInput.value, // Usually not updated here
                 // email: emailInput.value,       // Usually not updated here
