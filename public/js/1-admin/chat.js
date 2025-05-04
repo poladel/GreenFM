@@ -559,6 +559,29 @@ if (membersModalBackdrop) {
 // --- End Members Modal Logic ---
 
 
+// --- Global Unread Status Function ---
+function updateGlobalUnreadStatus() {
+    // Get the element *inside* the function, or ensure it's passed/available globally *after* DOMContentLoaded
+    const globalDot = document.getElementById('global-chat-unread-dot'); // Get element here
+    if (!globalDot) {
+        console.warn('[DEBUG] Global unread dot element not found when updating status.');
+        return; // Exit if the global dot element doesn't exist
+    }
+
+    // Check if *any* individual chat room dot is visible (i.e., does NOT have the 'hidden' class)
+    const anyUnread = document.querySelector('.chat-room .unread-dot:not(.hidden)');
+
+    if (anyUnread) {
+        globalDot.classList.remove('hidden'); // Show global dot
+        console.log('[DEBUG] Global unread dot SHOWN.');
+    } else {
+        globalDot.classList.add('hidden'); // Hide global dot
+        console.log('[DEBUG] Global unread dot HIDDEN.');
+    }
+}
+// --- End Global Unread Status Function ---
+
+
 // --- REVISED: Handle chat room click
 document.querySelectorAll('.chat-room').forEach(room => {
     room.addEventListener('click', async () => {
@@ -590,6 +613,9 @@ document.querySelectorAll('.chat-room').forEach(room => {
             if (unreadDot) {
                 unreadDot.classList.add('hidden');
                 console.log(`[DEBUG] Hid unread dot for newly active chat ${newChatId}`);
+                // --- UPDATE GLOBAL DOT after hiding individual dot ---
+                updateGlobalUnreadStatus();
+                // --- END UPDATE ---
             }
             // --- END HIDE UNREAD DOT ---
 
@@ -658,6 +684,9 @@ document.querySelectorAll('.chat-room').forEach(room => {
              if (unreadDot) {
                  unreadDot.classList.add('hidden');
                  console.log(`[DEBUG] Ensured unread dot is hidden for already active chat ${currentChatId}`);
+                 // --- UPDATE GLOBAL DOT after ensuring dot is hidden ---
+                 updateGlobalUnreadStatus();
+                 // --- END UPDATE ---
              }
              // --- END HIDE UNREAD DOT ---
         }
@@ -938,11 +967,12 @@ socket.on('newMessage', message => {
                 potentiallyMovedRoomElement.classList.remove('active-chat', ...ACTIVE_CHAT_CLASSES);
                 potentiallyMovedRoomElement.classList.add(...INACTIVE_CHAT_CLASSES);
                 // --- SHOW DOT ---
-                // The dot should show because a new message arrived for an inactive chat,
-                // making its latestMessageTimestamp > lastViewed timestamp in localStorage.
                 if (unreadDot) {
                     unreadDot.classList.remove('hidden');
                     console.log(`[DEBUG] Made unread dot visible for inactive chat ${message.chat}`);
+                    // --- UPDATE GLOBAL DOT after showing individual dot ---
+                    updateGlobalUnreadStatus();
+                    // --- END UPDATE ---
                 } else {
                     console.warn(`[DEBUG] Unread dot not found for inactive chat ${message.chat} after sorting.`);
                 }
@@ -951,10 +981,6 @@ socket.on('newMessage', message => {
             console.warn(`[DEBUG] Could not find room element ${message.chat} after sorting to update styles/dot.`);
         }
 
-    } else if (!roomElement) {
-        console.warn(`[DEBUG] Could not find chat room element for ${message.chat} to update timestamp or sort.`);
-    } else if (!messageTimestamp) {
-        console.warn(`[DEBUG] Message for chat ${message.chat} lacks createdAt timestamp. Cannot sort.`);
     }
     // --- End Update Timestamp and Re-sort ---
 
@@ -1030,7 +1056,9 @@ socket.on('newChatCreated', (chat) => {
             if (unreadDot) unreadDot.classList.remove('hidden');
             console.log(`[DEBUG] Showing dot for existing chat ${chat._id} (user not creator).`);
         }
-        // --- END SHOW DOT ---
+        // --- UPDATE GLOBAL DOT ---
+        updateGlobalUnreadStatus();
+        // --- END UPDATE ---
 
     } else {
         // --- Create the new chat room element ---
@@ -1049,12 +1077,11 @@ socket.on('newChatCreated', (chat) => {
 
         let roomHTML = '';
         if (chat.isGroupChat) {
-            // Apply selected state styling for the [Group] text
-            roomHTML = `<strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`;
+            roomHTML = `<strong class="text-green-700 group-hover:text-white group-[.active-chat]:text-gray-200">[Group]</strong> ${chat.groupName || 'Unnamed Group'}`;
         } else {
             // Find the other user in a private chat
             const otherUser = chat.users.find(u => u._id.toString() !== currentUserId);
-            roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>` : 'Chat with Unknown User';
+            roomHTML = otherUser ? `${otherUser.username} <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.active-chat]:text-gray-200 ml-1">(${otherUser.roles || 'User'})</span>` : 'Chat with Unknown User';
         }
         newChatDiv.innerHTML = roomHTML;
 
@@ -1066,6 +1093,9 @@ socket.on('newChatCreated', (chat) => {
         newChatDiv.appendChild(unreadDotSpan);
         if (!isCreator) {
             console.log(`[DEBUG] Showing dot for new chat ${chat._id} (user not creator).`);
+            // --- UPDATE GLOBAL DOT ---
+            updateGlobalUnreadStatus();
+            // --- END UPDATE ---
         }
         // --- END ADD UNREAD DOT SPAN ---
 
@@ -1308,6 +1338,9 @@ socket.on('chatUnarchived', (unarchivedChat) => {
             newChatDiv.appendChild(unreadDotSpan);
             if (isUnread) {
                  console.log(`[DEBUG] Showing dot for unarchived chat ${chatId} (unread).`);
+                 // --- UPDATE GLOBAL DOT ---
+                 updateGlobalUnreadStatus();
+                 // --- END UPDATE ---
             }
             // --- END ADD UNREAD DOT SPAN ---
 
@@ -1418,6 +1451,9 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                 if (isUnread && chatId !== currentChatId) {
                     console.log(`[DEBUG] Showing dot for existing unarchived chat ${chatId} (unread).`);
                 }
+                // --- UPDATE GLOBAL DOT after potentially changing dot ---
+                updateGlobalUnreadStatus();
+                // --- END UPDATE ---
             }
             // --- End Check ---
         }
@@ -1464,6 +1500,9 @@ socket.on('chatRenamed', (updatedChat) => {
 
         roomElement.innerHTML = roomHTML; // Replace the entire inner content
         console.log(`[RENAME CLIENT DEBUG] Updated chat room ${updatedChat._id} name and structure in sidebar. Dot hidden: ${dotHiddenClass !== ''}`);
+        // --- UPDATE GLOBAL DOT after rebuilding dot ---
+        updateGlobalUnreadStatus();
+        // --- END UPDATE ---
         // --- End Rebuild ---
     } else {
          console.warn(`[RENAME CLIENT DEBUG] Could not find room element for chat ID: ${updatedChat._id} to update name.`);
@@ -1773,6 +1812,9 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                     newChatDiv.appendChild(unreadDotSpan);
                     if (!isCreator) {
                          console.log(`[DEBUG] Showing dot for manually created chat ${chat._id} (user not creator).`);
+                         // --- UPDATE GLOBAL DOT ---
+                         updateGlobalUnreadStatus();
+                         // --- END UPDATE ---
                     }
                     // --- END ADD UNREAD DOT SPAN ---
 
@@ -1782,6 +1824,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                         const newChatId = newChatDiv.dataset.id;
                         const creatorId = newChatDiv.dataset.creatorId; // Get creator ID from data attribute
 
+                        // Only proceed if the chat ID actually changes
                         if (newChatId !== currentChatId) {
                             console.log(`[DEBUG] Joining new room: ${newChatId}`);
 
@@ -1941,6 +1984,9 @@ function sortChatSidebar() {
 
 // Auto-load last active or first chat on page load
 window.addEventListener('DOMContentLoaded', () => {
+    // --- MOVE VARIABLE DECLARATION HERE ---
+    // const globalChatUnreadDot = document.getElementById('global-chat-unread-dot'); // No longer needed here if fetched inside function
+
     // --- Sort Chat List by Latest Message Timestamp ---
     // NOTE: For initial sorting to work correctly, the server-side template
     // MUST render the 'data-latest-message-timestamp' attribute with the
@@ -2013,8 +2059,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
     console.log('[DEBUG] Finished checking unread status on load.');
+    // --- UPDATE GLOBAL DOT after initial check ---
+    updateGlobalUnreadStatus(); // This call will now work correctly
+    // --- END UPDATE ---
     // --- End Check Unread Status ---
-
 
     // --- HIDE MESSAGE FORM INITIALLY ---
     if (messageForm) {

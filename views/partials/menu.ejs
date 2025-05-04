@@ -12,9 +12,12 @@
         </div>
 
         <!-- Chat Icon Container -->
-        <div class="chat-search-container bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
+        <!-- Added relative positioning to the container -->
+        <div class="chat-search-container relative bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
             <a href="/Chat" class="flex items-center justify-center w-full h-full">
                 <img src="/img/email.png" alt="Chat Icon" class="icon w-5 h-auto">
+                <!-- Global Unread Dot -->
+                <span id="global-chat-unread-dot" class="w-2.5 h-2.5 bg-blue-500 rounded-full absolute top-1.5 right-1.5 hidden"></span>
             </a>
         </div>
 
