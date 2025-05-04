@@ -92,13 +92,20 @@ function hideSpinner() {
 if (sidebarToggleBtn && sidebarContainer && chatAreaContainer) {
     sidebarToggleBtn.addEventListener('click', () => {
         const isSidebarHidden = sidebarContainer.classList.toggle('hidden');
-        chatAreaContainer.classList.toggle('hidden', !isSidebarHidden); // Hide chat area if sidebar is NOT hidden
+        // On small screens, toggling sidebar also toggles chat area visibility
+        if (window.innerWidth < 768) {
+            chatAreaContainer.classList.toggle('hidden', !isSidebarHidden);
+        } else {
+            // On larger screens, ensure chat area is always visible when toggling sidebar
+            chatAreaContainer.classList.remove('hidden');
+        }
+
 
         // Optional: Change button text based on state
         if (isSidebarHidden) {
-            sidebarToggleBtn.textContent = 'Show Inbox';
+            sidebarToggleBtn.textContent = 'Show Sidebar';
         } else {
-            sidebarToggleBtn.textContent = 'Hide Inbox';
+            sidebarToggleBtn.textContent = 'Hide Sidebar';
         }
     });
 
@@ -107,8 +114,37 @@ if (sidebarToggleBtn && sidebarContainer && chatAreaContainer) {
     if (window.innerWidth < 768) { // Tailwind's md breakpoint
         sidebarContainer.classList.add('hidden');
         chatAreaContainer.classList.remove('hidden');
-        sidebarToggleBtn.textContent = 'Show Inbox';
+        sidebarToggleBtn.textContent = 'Show Sidebar';
+    } else {
+        // Ensure initial state on large screens (sidebar visible, chat area visible)
+        sidebarContainer.classList.remove('hidden'); // Explicitly remove hidden if starting large
+        chatAreaContainer.classList.remove('hidden'); // Explicitly remove hidden if starting large
+        sidebarToggleBtn.textContent = 'Hide Sidebar'; // Default text for large screens
     }
+
+    // --- ADD RESIZE LISTENER ---
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            // If screen becomes large (md breakpoint or larger)
+            // Ensure both sidebar and chat area are visible, overriding any 'hidden' class from JS toggle
+            sidebarContainer.classList.remove('hidden');
+            chatAreaContainer.classList.remove('hidden');
+            // Reset button text to default for large screens
+            sidebarToggleBtn.textContent = 'Hide Sidebar';
+        } else {
+            // If screen becomes small (< md breakpoint)
+            // Re-apply the state based on whether the sidebar *was* hidden just before resize
+            // If sidebar is currently NOT hidden (meaning it was visible on large screen), hide it.
+            if (!sidebarContainer.classList.contains('hidden')) {
+                 sidebarContainer.classList.add('hidden');
+                 chatAreaContainer.classList.remove('hidden'); // Ensure chat area is visible
+                 sidebarToggleBtn.textContent = 'Show Sidebar';
+            }
+            // If it was already hidden (e.g., user clicked Hide on small screen), leave it hidden.
+            // The button text should already be 'Show Sidebar' in this case.
+        }
+    });
+    // --- END RESIZE LISTENER ---
 }
 // --- END Sidebar Toggle Logic ---
 
@@ -697,7 +733,7 @@ document.querySelectorAll('.chat-room').forEach(room => {
             sidebarContainer.classList.add('hidden');
             chatAreaContainer.classList.remove('hidden');
             if (sidebarToggleBtn) {
-                sidebarToggleBtn.textContent = 'Show Inbox';
+                sidebarToggleBtn.textContent = 'Show Sidebar';
             }
         }
         // --- END NEW ---
@@ -1202,7 +1238,7 @@ socket.on('newChatCreated', (chat) => {
                 sidebarContainer.classList.add('hidden');
                 chatAreaContainer.classList.remove('hidden');
                 if (sidebarToggleBtn) {
-                    sidebarToggleBtn.textContent = 'Show Inbox';
+                    sidebarToggleBtn.textContent = 'Show Sidebar';
                 }
             }
             // --- END NEW ---
@@ -1423,7 +1459,7 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                     sidebarContainer.classList.add('hidden');
                     chatAreaContainer.classList.remove('hidden');
                     if (sidebarToggleBtn) {
-                        sidebarToggleBtn.textContent = 'Show Inbox';
+                        sidebarToggleBtn.textContent = 'Show Sidebar';
                     }
                 }
             });
@@ -1898,7 +1934,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                             sidebarContainer.classList.add('hidden');
                             chatAreaContainer.classList.remove('hidden');
                             if (sidebarToggleBtn) {
-                                sidebarToggleBtn.textContent = 'Show Inbox';
+                                sidebarToggleBtn.textContent = 'Show Sidebar';
                             }
                         }
                     });
@@ -2078,12 +2114,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // Ensure spinner is hidden if it was shown by mistake or by other logic
     hideSpinner();
 
-    // Ensure correct initial state for mobile toggle
+    // Ensure correct initial state for mobile toggle (This is now handled better in the Sidebar Toggle Logic section)
+    /* // REMOVE or comment out this block as it's redundant with the improved logic above
     if (window.innerWidth < 768 && sidebarContainer && chatAreaContainer) {
         sidebarContainer.classList.add('hidden'); // Start with sidebar hidden on mobile
         chatAreaContainer.classList.remove('hidden'); // Start with chat area visible on mobile
         if (sidebarToggleBtn) {
-            sidebarToggleBtn.textContent = 'Show Inbox';
+            sidebarToggleBtn.textContent = 'Show Sidebar';
         }
     } else if (sidebarContainer && chatAreaContainer) {
          // Ensure correct state for desktop (sidebar visible, chat area visible)
@@ -2091,7 +2128,8 @@ window.addEventListener('DOMContentLoaded', () => {
          chatAreaContainer.classList.remove('hidden');
          // Reset button text for desktop view if needed
          if (sidebarToggleBtn) {
-             sidebarToggleBtn.textContent = 'Hide Inbox'; // Or whatever the default text is
+             sidebarToggleBtn.textContent = 'Hide Sidebar'; // Or whatever the default text is
          }
     }
+    */
 });
