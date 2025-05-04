@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.querySelector('#user-table tbody');
     const paginationControls = document.getElementById('pagination-controls'); // Get pagination container
     let allUsers = []; // To store all users fetched initially
-    let currentPage = 1;
+    let currentPage = 1; // Initialize currentPage here
     const rowsPerPage = 10; // Set rows per page
 
     // Form elements
@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             allUsers = await response.json();
             console.log("Users fetched:", allUsers.length);
-            currentPage = 1; // Reset to first page after fetching
-            renderFilteredAndPaginatedUsers(); // Initial render
+            // currentPage = 1; // REMOVED: Don't reset page on every fetch
+            renderFilteredAndPaginatedUsers(); // Render based on the current page
         } catch (error) {
             console.error('Error fetching users:', error);
             if (tableBody) {
@@ -297,6 +297,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Adjust API endpoint if needed
             const response = await fetch(`/users/${userId}`, { method: 'DELETE' });
 
+            // *** ADDED: Log the actual status code received ***
+            console.log(`[handleDeleteClick] Response status for user ${userId}: ${response.status}`);
+            // *** END ADDED LOG ***
+
             // Check content type before parsing (important if server sends HTML on error)
             const contentType = response.headers.get("content-type");
             let responseData = {}; // Default to empty object
@@ -313,6 +317,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 // Use message from JSON if available, otherwise throw generic error
+                // *** ADDED: Log before throwing error based on !response.ok ***
+                console.log(`[handleDeleteClick] Response not OK (Status: ${response.status}). Throwing error.`);
+                // *** END ADDED LOG ***
                 throw new Error(responseData.message || `Delete failed with status: ${response.status}`);
             }
 
@@ -334,12 +341,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } catch (error) {
             console.error('Error deleting user:', error);
+
+            // --- Refined Error Message ---
+            let toastMessage = `Failed to delete user: ${error.message}`;
+            // Check if the error message suggests a permission issue (e.g., from a 403 response)
+            // The exact message might depend on what the middleware sends back on failure.
+            // We check for the specific JSON message or the status code if available.
+            // Note: Accessing response status directly in catch might require changes if error isn't a Response object.
+            // Let's rely on the message generated from the try block for now.
+            if (error.message && (error.message.includes("Forbidden") || error.message.includes("status: 403"))) {
+                 toastMessage = "Failed to delete user: Only Admins can perform this action.";
+            } else if (error.message && error.message.includes("status: 400") && error.message.includes("cannot delete their own account")) {
+                 toastMessage = "Failed to delete user: Admins cannot delete their own account.";
+            }
+            // --- End Refined Error Message ---
+
             Toastify({
-                text: `Failed to delete user: ${error.message}`,
+                text: toastMessage, // Use the potentially modified message
                 duration: 5000,
                 gravity: "top",
                 position: "right",
-                backgroundColor: "#407133", // Updated background color
+                backgroundColor: "#dc3545", // Use red for errors
                 style: { // Add style for text color
                     color: "white"
                 }
@@ -483,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
         applyInputStyles(firstNameInput, false);
         applyInputStyles(middleInitialInput, false);
         applyInputStyles(suffixInput, false);
-        applyInputStyles(dlsudEmailInput, false);
+        applyInputStyles(dlsudEmail, false);
         applyInputStyles(studentNumberInput, false);
         applySelectStyles(rolesSelect, false);
         applySelectStyles(departmentSelect, false);
@@ -656,18 +678,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     handleUserUpdate(responseData); // Use the data returned from the API
                  } else {
                      console.warn("API update successful, but response data missing _id. Fetching all users to refresh.");
+                     // Call fetchAllUsers without resetting the page
                      await fetchAllUsers(); // Fallback to refetching all users
                  }
 
             } catch (error) {
                 console.error('Error updating user:', error);
+                // Check if the error message indicates an access denied issue (based on the previous try block's error)
+                let toastMessage = `Failed to update user: ${error.message}`;
+                if (error.message && error.message.includes("Server returned an unexpected response")) {
+                    toastMessage = "Failed to update user: Only Admins can perform this action.";
+                }
+
                 Toastify({
-                    text: `Failed to update user: ${error.message}`,
+                    text: toastMessage, // Use the potentially modified message
                     duration: 5000,
                     close: true,
                     gravity: "top",
                     position: "right",
-                    backgroundColor: "#407133", // Updated background color
+                    backgroundColor: "#dc3545", // Use a red color for errors
                     style: { // Add style for text color
                         color: "white"
                     },
@@ -766,15 +795,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 2. Re-render the table and pagination based on the current filter/page
         // Check if the deletion might cause the current page to become empty
-        const totalFilteredBeforeDelete = allUsers.filter(user => { /* apply current filters */ }).length;
-        const maxPageAfterDelete = Math.ceil((totalFilteredBeforeDelete -1) / rowsPerPage);
+        // First, filter the *remaining* users based on current search/role filters
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedRole = roleFilterSelect ? roleFilterSelect.value : '';
+        const filteredUsersAfterDelete = allUsers.filter(user => {
+             if (!user) return false;
+             const searchMatch = (
+                 (user.username || '').toLowerCase().includes(searchTerm) ||
+                 (user.email || '').toLowerCase().includes(searchTerm) ||
+                 `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchTerm)
+             );
+             const roleString = (Array.isArray(user.roles) ? user.roles.join(' ') : user.roles || '').toLowerCase();
+             const roleMatch = !selectedRole || roleString.includes(selectedRole.toLowerCase());
+             return searchMatch && roleMatch;
+         });
+
+        const totalFilteredCountAfterDelete = filteredUsersAfterDelete.length;
+        const maxPageAfterDelete = Math.ceil(totalFilteredCountAfterDelete / rowsPerPage);
+
+        // Adjust currentPage ONLY if it's now beyond the last page
         if (currentPage > maxPageAfterDelete && maxPageAfterDelete > 0) {
+            console.log(`Current page ${currentPage} is now empty after delete. Moving to page ${maxPageAfterDelete}.`);
             currentPage = maxPageAfterDelete; // Go to the new last page
         } else if (maxPageAfterDelete === 0) {
-            currentPage = 1; // Reset to page 1 if no users left
+             console.log(`No users left after delete. Resetting to page 1.`);
+            currentPage = 1; // Reset to page 1 if no users left matching filters
         }
+        // Otherwise, currentPage remains the same
 
-        renderFilteredAndPaginatedUsers(); // Use the combined render function
+        renderFilteredAndPaginatedUsers(); // Render with potentially adjusted currentPage
 
         // 3. Reset form if the deleted user was being edited
         const selectedUserId = userIdInput.value;

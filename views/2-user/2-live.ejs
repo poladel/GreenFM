@@ -3,7 +3,8 @@
 <div class="page-container flex flex-col min-h-screen bg-gray-100"> <!-- Added base background -->
     <!-- Include nav and menu OUTSIDE the main content wrapper -->
     <%- include('../partials/nav.ejs') %>
-    <%- include('../partials/menu.ejs', { headerTitle: "LIVE" }) %> <!-- Pass appropriate title -->
+
+    <%- include('../partials/menu.ejs') %> <!-- Keep reverted include -->
 
     <!-- Main Content Area Wrapper - Takes remaining space and applies padding -->
     <div class="content-wrap flex-1 pt-5 pl-16 pr-4 lg:pl-[14vw]">

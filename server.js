@@ -11,6 +11,7 @@ const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const Chat = require('./models/Chat'); // Ensure Chat model is required
 
 // Custom modules
 const connectDB = require('./config/dbConn');
@@ -66,7 +67,7 @@ const io = new Server(server, {
 // This middleware attaches io to each request object
 app.use((req, res, next) => {
     // --- Add Logging ---
-    console.log(`[Middleware] Attaching io for request: ${req.method} ${req.originalUrl}`);
+    // console.log(`[Middleware] Attaching io for request: ${req.method} ${req.originalUrl}`);
     // --- End Logging ---
     req.io = io;
     next();
@@ -74,80 +75,236 @@ app.use((req, res, next) => {
 // --- End io attachment ---
 
 // Socket.IO connection handling
-io.on('connection', async (socket) => {
-    console.log('🟢 Socket connected:', socket.id);
+io.on('connection', (socket) => {
+    // console.log(`[SERVER IO] Socket connected: ${socket.id}`);
 
-    // --- Define 'joinRoom' listener EARLY ---
-    // This listener handles joins requested *by the client* (e.g., for sidebar rooms)
-    socket.on('joinRoom', roomId => {
-        // --- DETAILED LOGGING ---
-        console.log(`[SERVER JOIN DEBUG] Received 'joinRoom' event for room: ${roomId} from socket: ${socket.id}`);
+    // --- Handle Authentication and Room Joining ---
+    socket.on('authenticate', async (userId) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            // console.error(`[SERVER AUTH] Invalid userId ('${userId}') received from socket ${socket.id}. Disconnecting.`);
+            socket.disconnect(true); // Disconnect invalid connections
+            return;
+        }
+
+        // Store userId on the socket object
+        socket.userId = userId;
+        // console.log(`[SERVER AUTH] Socket ${socket.id} authenticated for user ${userId}`);
+
+        try {
+            // Join user-specific room
+            socket.join(userId);
+            // console.log(`[SERVER JOIN] Socket ${socket.id} joined user room: ${userId}`);
+
+            // Fetch roles and join admin room if applicable
+            const user = await User.findById(userId).select('roles').lean();
+            if (user && user.roles && user.roles.includes('Admin')) {
+                socket.join('admin_room');
+                // console.log(`[SERVER JOIN] Socket ${socket.id} (Admin) joined admin_room`);
+            }
+            // console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+
+        } catch (error) {
+            // console.error(`[SERVER JOIN ERROR] Error joining rooms for user ${userId} on socket ${socket.id}:`, error);
+        }
+    });
+    // --- End Authentication Handling ---
+
+
+    // --- Handle Client Joining Specific Chat Rooms ---
+    socket.on('joinRoom', async (roomId) => {
+        if (!roomId || !mongoose.Types.ObjectId.isValid(roomId)) {
+             console.error(`[SERVER JOIN] Invalid roomId ('${roomId}') from socket ${socket.id}.`);
+             return;
+        }
+        // Optional: Verify user has access to this room before joining
+        // const hasAccess = await checkUserAccessToChat(socket.userId, roomId);
+        // if (!hasAccess) {
+        //     console.warn(`[SERVER JOIN] User ${socket.userId} denied access to room ${roomId}.`);
+        //     return;
+        // }
+
         try {
             socket.join(roomId);
-            console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} successfully joined room: ${roomId}`);
-            // Log all rooms the socket is currently in
-            console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+            // console.log(`[SERVER JOIN] Socket ${socket.id} (User: ${socket.userId || 'N/A'}) joined chat room: ${roomId}`);
+            // console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
         } catch (error) {
-            console.error(`[SERVER JOIN ERROR] Error joining room ${roomId} for socket ${socket.id}:`, error);
+            console.error(`[SERVER JOIN ERROR] Error joining chat room ${roomId} for socket ${socket.id}:`, error);
         }
-        // --- END DETAILED LOGGING ---
     });
-    // --- END Define 'joinRoom' listener ---
+    // --- End Client Joining Chat Rooms ---
 
+    // --- Handle Updating Last Viewed Timestamp ---
+    socket.on('updateLastViewed', async (data) => {
+        const { chatId } = data;
+        const userId = socket.userId; // Get userId from the authenticated socket
 
-    // --- NEW: Join user-specific room based on JWT ---
-    // Attempt to get token from auth payload or cookie
-    const token = socket.handshake.auth?.token || socket.handshake.headers.cookie?.split('jwt=')[1]?.split(';')[0];
-    let userEmail = null;
-    let userId = null;
-    let userRoles = [];
-
-    if (token && process.env.ACCESS_TOKEN_SECRET) { // Check if token and secret exist
-        try {
-            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-            userId = decoded.id;
-            // Fetch user details to get email and roles
-            const user = await User.findById(userId).select('email roles').lean(); // Use lean for performance
-            if (user) {
-                userEmail = user.email;
-                userRoles = user.roles || []; // Ensure roles is an array
-
-                // --- Directly join user-specific room ---
-                try {
-                    socket.join(userId); // Join room based on user ID
-                    console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} (User: ${userEmail}) directly joined user room: ${userId}`);
-                    console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
-                } catch (error) {
-                    console.error(`[SERVER JOIN ERROR] Error directly joining user room ${userId} for socket ${socket.id}:`, error);
-                }
-                // --- End Direct Join ---
-
-                // Join admin room if user is admin
-                if (userRoles.includes('Admin')) {
-                    // --- Directly join admin room ---
-                    try {
-                        socket.join('admin_room');
-                        console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} (User: ${userEmail}) directly joined admin_room`);
-                        console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
-                    } catch (error) {
-                        console.error(`[SERVER JOIN ERROR] Error directly joining admin_room for socket ${socket.id}:`, error);
-                    }
-                    // --- End Direct Join ---
-                }
-            } else {
-                console.log(`⚠️ Socket ${socket.id}: User not found for token ID ${userId}`);
-            }
-        } catch (err) {
-            console.log(`⚠️ Socket ${socket.id}: Invalid token - ${err.message}`);
+        if (!userId || !chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
+            console.error(`[SERVER LAST VIEWED] Invalid data for updateLastViewed from socket ${socket.id}:`, { userId, chatId });
+            return;
         }
-    } else {
-        console.log(`⚠️ Socket ${socket.id}: No token or ACCESS_TOKEN_SECRET found.`);
-    }
-    // --- END NEW ---
+
+        try {
+            const updatePath = `chatLastViewed.${chatId}`;
+            await User.findByIdAndUpdate(userId, { $set: { [updatePath]: new Date() } });
+            // console.log(`[SERVER LAST VIEWED] Updated last viewed for user ${userId}, chat ${chatId}`);
+
+            // Optional: Re-check global unread status for this user after update
+            // (This ensures the dot hides immediately if this was the last unread chat)
+            // Find chats where the user is a member
+            const userChats = await Chat.find({ users: userId }).select('_id updatedAt').lean();
+            const user = await User.findById(userId).select('chatLastViewed').lean();
+            const lastViewedMap = user?.chatLastViewed || new Map();
+            let hasUnread = false;
+            for (const chat of userChats) {
+                const chatIdString = chat._id.toString();
+                const lastViewedTime = lastViewedMap instanceof Map ? lastViewedMap.get(chatIdString) : lastViewedMap[chatIdString];
+                const lastMessageTime = chat.updatedAt;
+                const lastViewedDate = lastViewedTime ? new Date(lastViewedTime) : new Date(0);
+                const lastMessageDate = lastMessageTime ? new Date(lastMessageTime) : new Date(0);
+                if (lastMessageDate > lastViewedDate) {
+                    hasUnread = true;
+                    break;
+                }
+            }
+            // console.log(`[SERVER LAST VIEWED] Re-checked unread status for user ${userId}: ${hasUnread}. Emitting 'updateGlobalUnread'.`);
+            socket.emit('updateGlobalUnread', { hasUnread: hasUnread });
+
+        } catch (error) {
+            console.error(`[SERVER LAST VIEWED] Error updating last viewed for user ${userId}, chat ${chatId}:`, error);
+        }
+    });
+    // --- End Update Last Viewed ---
+
+
+    // --- DETAILED LOGGING FOR checkGlobalUnread ---
+    socket.on('checkGlobalUnread', async (data) => {
+        // Use socket.userId established during authentication
+        const userId = socket.userId;
+        // console.log(`[SERVER IO] Received 'checkGlobalUnread' from socket ${socket.id} for user: ${userId}`);
+
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            // This check might be redundant if authentication disconnects invalid users, but good for safety
+            console.error(`[SERVER IO] Invalid or missing userId ('${userId}') on authenticated socket ${socket.id} for checkGlobalUnread.`);
+            return;
+        }
+
+        try {
+            // Find chats where the user is a member AND not archived for this user
+            // Assuming 'archivedBy' is an array of user IDs who archived the chat
+            const userChats = await Chat.find({
+                users: userId,
+                archivedBy: { $ne: userId } // Exclude chats archived by the user
+            }).select('_id updatedAt').lean();
+
+            // console.log(`[SERVER IO] Found ${userChats.length} active chats for user ${userId}.`);
+
+            if (userChats.length === 0) {
+                console.log(`[SERVER IO] No active chats found for user ${userId}. Emitting updateGlobalUnread: false.`);
+                socket.emit('updateGlobalUnread', { hasUnread: false });
+                return;
+            }
+
+            // Fetch last viewed times
+            const user = await User.findById(userId).select('chatLastViewed').lean();
+            // Ensure lastViewedMap is treated as a plain object if not a Map
+            const lastViewedData = user?.chatLastViewed;
+            let lastViewedMap = {};
+            if (lastViewedData instanceof Map) {
+                lastViewedMap = Object.fromEntries(lastViewedData);
+            } else if (typeof lastViewedData === 'object' && lastViewedData !== null) {
+                lastViewedMap = lastViewedData; // Assume it's already a plain object
+            }
+
+            // console.log(`[SERVER IO] User's last viewed map:`, lastViewedMap);
+
+            let hasUnread = false;
+            for (const chat of userChats) {
+                const chatIdString = chat._id.toString();
+                const lastViewedTime = lastViewedMap[chatIdString]; // Access as plain object property
+                const lastMessageTime = chat.updatedAt;
+
+                const lastViewedDate = lastViewedTime ? new Date(lastViewedTime) : new Date(0);
+                const lastMessageDate = lastMessageTime ? new Date(lastMessageTime) : new Date(0);
+
+                if (lastMessageDate > lastViewedDate) {
+                    // console.log(`[SERVER IO] Chat ${chatIdString} is UNREAD for user ${userId}. Last message: ${lastMessageDate.toISOString()}, Last viewed: ${lastViewedDate.toISOString()}`);
+                    hasUnread = true;
+                    break;
+                } else {
+                     console.log(`[SERVER IO] Chat ${chatIdString} is READ for user ${userId}. Last message: ${lastMessageDate.toISOString()}, Last viewed: ${lastViewedDate.toISOString()}`);
+                }
+            }
+
+            // console.log(`[SERVER IO] Final unread status for user ${userId}: ${hasUnread}. Emitting 'updateGlobalUnread' to socket ${socket.id}.`);
+            socket.emit('updateGlobalUnread', { hasUnread: hasUnread });
+
+        } catch (error) {
+            console.error(`[SERVER IO] Error processing checkGlobalUnread for user ${userId} on socket ${socket.id}:`, error);
+        }
+    });
+    // --- END DETAILED LOGGING ---
+
+    // --- Refine newMessage Handling ---
+    // This might live in chatController or directly here. Ensure it uses user-specific rooms.
+    // Example if handled directly in server.js:
+    socket.on('clientSendMessage', async (data) => { // Assuming client emits 'clientSendMessage'
+        const { chatId, content /* other fields */ } = data;
+        const senderId = socket.userId; // Get sender from authenticated socket
+
+        if (!senderId || !chatId || !content) {
+            console.error(`[SERVER IO - clientSendMessage] Invalid message data from socket ${socket.id}:`, data);
+            // Optionally emit an error back to sender
+            return;
+        }
+
+        // console.log(`[SERVER IO - clientSendMessage] Received message for chat ${chatId} from user ${senderId}`);
+
+        try {
+            // 1. Save the message (replace with your actual saving logic)
+            // const savedMessage = await saveMessageFunction({ chatId, senderId, content });
+            // const populatedMessage = await populateMessageFunction(savedMessage);
+            const populatedMessage = { // Placeholder
+                 _id: new mongoose.Types.ObjectId(),
+                 chat: chatId,
+                 sender: { _id: senderId, username: 'User' /* other sender fields */ },
+                 content: content,
+                 createdAt: new Date(),
+                 updatedAt: new Date(), // Ensure updatedAt is set
+                 isSystemMessage: false,
+                 toObject: function() { return this; } // Mock toObject for consistency
+            };
+
+            // 2. Emit to the chat room
+            const targetRoom = chatId.toString();
+            // console.log(`[SERVER IO EMIT] Attempting to emit 'newMessage' to room: ${targetRoom}`);
+            const socketsInRoom = await io.in(targetRoom).allSockets();
+            // console.log(`[SERVER IO EMIT] Sockets currently in room ${targetRoom}:`, Array.from(socketsInRoom));
+            io.to(targetRoom).emit('newMessage', populatedMessage.toObject());
+            // console.log(`[SERVER IO EMIT] Successfully emitted 'newMessage' to room ${targetRoom}.`);
+
+            // 3. Trigger global unread check for recipients
+            const chat = await Chat.findById(targetRoom).select('users').lean();
+            if (chat && chat.users) {
+                chat.users.forEach(userId => {
+                    const userIdString = userId.toString();
+                    if (userIdString !== senderId) { // Don't notify the sender
+                        // console.log(`[SERVER IO TRIGGER] Emitting 'triggerGlobalUnreadCheck' to user room: ${userIdString}`);
+                        io.to(userIdString).emit('triggerGlobalUnreadCheck'); // Emit to user-specific room
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error('[SERVER IO ERROR] Failed to process or emit clientSendMessage:', error);
+            // Optionally emit an error back to sender
+        }
+    });
+    // --- End refine newMessage Handling ---
+
 
     // Existing disconnect logic
-    socket.on('disconnect', () => {
-        console.log('🔌 Socket disconnected:', socket.id);
+    socket.on('disconnect', (reason) => {
+        console.log(`[SERVER IO] Socket disconnected: ${socket.id}. Reason: ${reason}. User ID was: ${socket.userId || 'N/A'}`);
     });
 
     // Existing newComment logic

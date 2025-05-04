@@ -108,26 +108,33 @@ userRoutes.forEach(userRoute => {
                 return res.render(userRoute.view, {
                     pageTitle: userRoute.pageTitle,
                     cssFile: userRoute.cssFile,
-                    user: res.locals.user,
+                    user: user, // <<< Ensure user is passed here
                     headerTitle: userRoute.headerTitle,
                     currentPath: req.path,
                     archives
                 });
-            }            
+            }
 
             // Handle restricted routes (This check might be redundant if requireAuth/checkRoles handle it)
             if (userRoute.restricted) {
-                const user = res.locals.user; // Note: res.locals.user is set by checkUser, which runs on GET *
-                if (!user || (userRoute.roles && !user.roles.includes(user.roles))) { // Ensure user exists before checking roles
+                // const user = res.locals.user; // Already defined above
+                if (!user || (userRoute.roles && !user.roles.some(role => userRoute.roles.includes(role)))) { // Check if user exists and has *any* of the required roles
                     return res.render('restricted', {
                         message: 'Access Denied: Insufficient Permissions',
-                        redirectUrl: '/'
+                        redirectUrl: '/',
+                        user: user // Pass user even to restricted page if available
                     });
                 }
             }
 
+
             // Delegate to controller if specified
             if (userRoute.controller) {
+                // Ensure controllers also receive user if needed, or pass it in res.locals
+                // If the controller renders, it needs to pass the user object itself.
+                // If it just fetches data and calls next(), the final render below handles it.
+                // For safety, let's assume controllers might render or need user data.
+                // res.locals.user = user; // Ensure it's available if controller calls next() then another middleware renders
                 return userRoute.controller(req, res, next);
             }
 
@@ -135,7 +142,7 @@ userRoutes.forEach(userRoute => {
             return res.render(userRoute.view, {
                 pageTitle: userRoute.pageTitle,
                 cssFile: userRoute.cssFile,
-                user: user, // Pass user data (might be null for public routes)
+                user: user, // <<< Ensure user is passed here
                 headerTitle: userRoute.headerTitle,
                 currentPath: req.path, // Pass currentPath if needed
                 playlist // Pass playlist if applicable
@@ -143,7 +150,12 @@ userRoutes.forEach(userRoute => {
 
         } catch (error) {
             console.error(`Error handling route ${userRoute.path}:`, error);
-            res.status(500).send('Server Error');
+            // Pass user to error page if possible
+            res.status(500).render('error', { // Assuming you have an error.ejs view
+                 message: 'Server Error',
+                 error: process.env.NODE_ENV === 'development' ? error : {}, // Show details only in dev
+                 user: res.locals.user // Pass user to error page
+            });
         }
     });
 });

@@ -8,12 +8,18 @@ const sendEmail = require('../config/mailer'); // <<< ADD THIS IMPORT (Adjust pa
 exports.getSubmissionYears = async (req, res) => {
     try {
         const years = await ApplyStaff.distinct('schoolYear');
-        // Sort years if needed, e.g., descending
-        years.sort((a, b) => b.localeCompare(a));
-        res.status(200).json(years);
+        // Filter out null/undefined/empty values and sort descending
+        const validYears = years
+            .filter(year => year !== null && typeof year !== 'undefined' && year !== '')
+            .map(year => year.toString()) // Ensure they are strings
+            .sort((a, b) => b.localeCompare(a)); // Sort descending (e.g., "2025", "2024")
+
+        console.log("[Controller getSubmissionYears] Found distinct years:", validYears);
+        res.status(200).json(validYears); // Send the array as JSON
     } catch (error) {
         console.error("Error fetching distinct submission years:", error);
-        res.status(500).json({ message: "Failed to fetch submission years" });
+        // FIX: Ensure error response is JSON
+        res.status(500).json({ success: false, message: "Failed to fetch submission years", error: error.message });
     }
 };
 

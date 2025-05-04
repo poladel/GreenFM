@@ -7,7 +7,10 @@
     <div class="page-container flex flex-col min-h-screen">
         <!-- Nav and Menu moved outside content-wrap -->
         <%- include('../partials/nav.ejs') %>
-        <%- include('../partials/menu.ejs', { headerTitle: "FORUM", user: user, currentPath: currentPath }) %> <!-- Pass user and currentPath -->
+
+        <!-- Log user object before including menu -->
+        <!-- Removed diagnostic log -->
+        <%- include('../partials/menu.ejs') %> <!-- Keep reverted include -->
 
         <!-- Apply standard padding to content-wrap -->
         <div class="content-wrap flex-1 pl-16 pr-4 lg:pl-[14vw]">

@@ -16,7 +16,7 @@ const adminRoute = [
 adminRoute.forEach(adminRoute => {
     router.get(adminRoute.path, requireAuth, checkRoles(adminRoute.roles), async (req, res, next) => {
         try {
-            const user = res.locals.user;
+            const user = res.locals.user; // User object from middleware
 
             // Restriction check
             if (adminRoute.restricted && (!user || (adminRoute.roles && !adminRoute.roles.includes(user.roles)))) {
@@ -29,7 +29,7 @@ adminRoute.forEach(adminRoute => {
             // Special case: if Chat page, load additional data
             if (adminRoute.path === '/Chat') {
                 // Fetch existing chats for the logged-in user
-                const chats = await Chat.find({ users: user._id }).populate('users');
+                const chats = await Chat.find({ users: user._id, archivedBy: { $ne: user._id } }).populate('users').sort({ updatedAt: -1 }); // Sort by recent activity, exclude archived
 
                 // Fetch all Admin and Staff users except current user
                 const users = await User.find({
@@ -40,11 +40,11 @@ adminRoute.forEach(adminRoute => {
                 return res.render(adminRoute.view, {
                     pageTitle: adminRoute.pageTitle,
                     cssFile: adminRoute.cssFile,
-                    user,
+                    user: user, // Already passing user
                     headerTitle: adminRoute.headerTitle,
                     currentPath: req.path,
-                    chats,   // List of chats
-                    users    // List of other users
+                    chats,
+                    users
                 });
             }
 
@@ -54,7 +54,7 @@ adminRoute.forEach(adminRoute => {
                 return res.render(adminRoute.view, {
                     pageTitle: adminRoute.pageTitle,
                     cssFile: adminRoute.cssFile,
-                    user,
+                    user: user, // Already passing user
                     headerTitle: adminRoute.headerTitle,
                     currentPath: req.path,
                     adminDepartment: adminDepartment // Pass the department to the template
@@ -65,14 +65,19 @@ adminRoute.forEach(adminRoute => {
             return res.render(adminRoute.view, {
                 pageTitle: adminRoute.pageTitle,
                 cssFile: adminRoute.cssFile,
-                user,
+                user: user, // Already passing user
                 headerTitle: adminRoute.headerTitle,
                 currentPath: req.path
             });
 
         } catch (error) {
             console.error(`Error handling route ${adminRoute.path}:`, error);
-            res.status(500).send('Server Error');
+             // Pass user to error page if possible
+            res.status(500).render('error', { // Assuming you have an error.ejs view
+                 message: 'Server Error',
+                 error: process.env.NODE_ENV === 'development' ? error : {}, // Show details only in dev
+                 user: res.locals.user // Pass user to error page too
+            });
         }
     });
 });

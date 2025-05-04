@@ -13,7 +13,7 @@ router.get('/users/:id', requireAuth, checkRoles(['Admin', 'Staff']), accountCon
 router.get('/user', requireAuth, checkRoles(['Admin', 'Staff']), accountController.getCurrentUser); // Assuming this is for the logged-in user's own data
 
 // Route to update (patch) user data
-router.patch('/users/:id', requireAuth, checkRoles(['Admin', 'Staff']), accountController.patchUser);
+router.patch('/users/:id', requireAuth, checkRoles(['Admin']), accountController.patchUser);
 
 // --- Add Delete Route ---
 // Only Admins can delete users

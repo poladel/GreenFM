@@ -596,25 +596,27 @@ if (membersModalBackdrop) {
 
 
 // --- Global Unread Status Function ---
+/* // Commented out - This logic should be handled by menu.ejs based on server events
 function updateGlobalUnreadStatus() {
     // Get the element *inside* the function, or ensure it's passed/available globally *after* DOMContentLoaded
-    const globalDot = document.getElementById('global-chat-unread-dot'); // Get element here
+    const globalDot = document.getElementById('global-chat-unread-dot');
     if (!globalDot) {
-        console.warn('[DEBUG] Global unread dot element not found when updating status.');
-        return; // Exit if the global dot element doesn't exist
+        console.warn('[Chat.js] Global unread dot element not found.');
+        return;
     }
 
     // Check if *any* individual chat room dot is visible (i.e., does NOT have the 'hidden' class)
     const anyUnread = document.querySelector('.chat-room .unread-dot:not(.hidden)');
 
     if (anyUnread) {
-        globalDot.classList.remove('hidden'); // Show global dot
-        console.log('[DEBUG] Global unread dot SHOWN.');
+        // console.log('[Chat.js] Found unread chats, showing global dot.');
+        globalDot.classList.remove('hidden');
     } else {
-        globalDot.classList.add('hidden'); // Hide global dot
-        console.log('[DEBUG] Global unread dot HIDDEN.');
+        // console.log('[Chat.js] No unread chats found, hiding global dot.');
+        globalDot.classList.add('hidden');
     }
 }
+*/
 // --- End Global Unread Status Function ---
 
 
@@ -650,7 +652,7 @@ document.querySelectorAll('.chat-room').forEach(room => {
                 unreadDot.classList.add('hidden');
                 console.log(`[DEBUG] Hid unread dot for newly active chat ${newChatId}`);
                 // --- UPDATE GLOBAL DOT after hiding individual dot ---
-                updateGlobalUnreadStatus();
+                // updateGlobalUnreadStatus(); // Remove this call
                 // --- END UPDATE ---
             }
             // --- END HIDE UNREAD DOT ---
@@ -721,7 +723,7 @@ document.querySelectorAll('.chat-room').forEach(room => {
                  unreadDot.classList.add('hidden');
                  console.log(`[DEBUG] Ensured unread dot is hidden for already active chat ${currentChatId}`);
                  // --- UPDATE GLOBAL DOT after ensuring dot is hidden ---
-                 updateGlobalUnreadStatus();
+                 // updateGlobalUnreadStatus(); // Remove this call
                  // --- END UPDATE ---
              }
              // --- END HIDE UNREAD DOT ---
@@ -1007,7 +1009,7 @@ socket.on('newMessage', message => {
                     unreadDot.classList.remove('hidden');
                     console.log(`[DEBUG] Made unread dot visible for inactive chat ${message.chat}`);
                     // --- UPDATE GLOBAL DOT after showing individual dot ---
-                    updateGlobalUnreadStatus();
+                    // updateGlobalUnreadStatus(); // Remove this call
                     // --- END UPDATE ---
                 } else {
                     console.warn(`[DEBUG] Unread dot not found for inactive chat ${message.chat} after sorting.`);
@@ -1093,7 +1095,7 @@ socket.on('newChatCreated', (chat) => {
             console.log(`[DEBUG] Showing dot for existing chat ${chat._id} (user not creator).`);
         }
         // --- UPDATE GLOBAL DOT ---
-        updateGlobalUnreadStatus();
+        // updateGlobalUnreadStatus(); // Remove this call
         // --- END UPDATE ---
 
     } else {
@@ -1130,7 +1132,7 @@ socket.on('newChatCreated', (chat) => {
         if (!isCreator) {
             console.log(`[DEBUG] Showing dot for new chat ${chat._id} (user not creator).`);
             // --- UPDATE GLOBAL DOT ---
-            updateGlobalUnreadStatus();
+            // updateGlobalUnreadStatus(); // Remove this call
             // --- END UPDATE ---
         }
         // --- END ADD UNREAD DOT SPAN ---
@@ -1375,7 +1377,7 @@ socket.on('chatUnarchived', (unarchivedChat) => {
             if (isUnread) {
                  console.log(`[DEBUG] Showing dot for unarchived chat ${chatId} (unread).`);
                  // --- UPDATE GLOBAL DOT ---
-                 updateGlobalUnreadStatus();
+                 // updateGlobalUnreadStatus(); // Remove this call
                  // --- END UPDATE ---
             }
             // --- END ADD UNREAD DOT SPAN ---
@@ -1488,7 +1490,7 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                     console.log(`[DEBUG] Showing dot for existing unarchived chat ${chatId} (unread).`);
                 }
                 // --- UPDATE GLOBAL DOT after potentially changing dot ---
-                updateGlobalUnreadStatus();
+                // updateGlobalUnreadStatus(); // Remove this call
                 // --- END UPDATE ---
             }
             // --- End Check ---
@@ -1537,7 +1539,7 @@ socket.on('chatRenamed', (updatedChat) => {
         roomElement.innerHTML = roomHTML; // Replace the entire inner content
         console.log(`[RENAME CLIENT DEBUG] Updated chat room ${updatedChat._id} name and structure in sidebar. Dot hidden: ${dotHiddenClass !== ''}`);
         // --- UPDATE GLOBAL DOT after rebuilding dot ---
-        updateGlobalUnreadStatus();
+        // updateGlobalUnreadStatus(); // Remove this call
         // --- END UPDATE ---
         // --- End Rebuild ---
     } else {
@@ -1571,6 +1573,9 @@ socket.on('memberAdded', ({ chatId, addedUser, updatedMembers, creatorId }) => {
         // Fetch potential users again as the added user should be removed from that list
         openMembersModal(); // Re-fetch and re-render everything
     }
+   
+
+   
     // Optional: Update participant count in header if displayed
 });
 
@@ -1849,7 +1854,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                     if (!isCreator) {
                          console.log(`[DEBUG] Showing dot for manually created chat ${chat._id} (user not creator).`);
                          // --- UPDATE GLOBAL DOT ---
-                         updateGlobalUnreadStatus();
+                         // updateGlobalUnreadStatus(); // Remove this call
                          // --- END UPDATE ---
                     }
                     // --- END ADD UNREAD DOT SPAN ---
@@ -2096,7 +2101,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     console.log('[DEBUG] Finished checking unread status on load.');
     // --- UPDATE GLOBAL DOT after initial check ---
-    updateGlobalUnreadStatus(); // This call will now work correctly
+    // updateGlobalUnreadStatus(); // This call will now work correctly
     // --- END UPDATE ---
     // --- End Check Unread Status ---
 

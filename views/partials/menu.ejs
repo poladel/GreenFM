@@ -51,6 +51,10 @@
     </div> <!-- End Inner container -->
 </div> <!-- End Outer container -->
 
+<!-- Include Socket.IO Client - Make sure this is loaded only once per page -->
+<!-- If Socket.IO is already loaded globally (e.g., in header/footer), you can remove this line -->
+<script src="/socket.io/socket.io.js"></script>
+
 <!-- Keep the existing JavaScript for dropdown toggle -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -88,6 +92,134 @@
                     }
                 }
             });
+        }
+    });
+</script>
+
+<!-- Script for Global Unread Chat Dot -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // console.log('[Global Unread] DOMContentLoaded.'); // Log DOM ready
+
+        // --- CORRECTED USER CHECK ---
+        // Use the EJS-injected userId to determine login status for this script block
+        const userId = '<%= user?._id %>'; // Safely access user._id using EJS
+        const userLoggedIn = userId && userId !== 'undefined' && userId !== ''; // Check if userId has a value
+        // --- END CORRECTION ---
+
+        const globalChatUnreadDot = document.getElementById('global-chat-unread-dot');
+
+        // console.log(`[Global Unread] User Logged In Check (based on userId='${userId}'): ${userLoggedIn}`); // Updated log message
+
+        if (!globalChatUnreadDot) {
+            console.error('[Global Unread] Dot element #global-chat-unread-dot not found!');
+            return;
+        }
+
+        if (userLoggedIn) {
+            // const userId = '<%= user?._id %>'; // Already defined above
+            // console.log(`[Global Unread] User ID found: ${userId}`);
+
+            if (typeof io === 'undefined') {
+                console.error('[Global Unread] Socket.IO client (io) not loaded!');
+                globalChatUnreadDot.classList.add('hidden'); // Ensure hidden if io missing
+                return;
+            }
+
+            // console.log('[Global Unread] Socket.IO client found. Attempting connection...');
+            const socket = io(); // Connect to Socket.IO
+
+            const updateDotVisibility = (hasUnread) => {
+                // console.log(`[Global Unread] updateDotVisibility called with: ${hasUnread}`);
+                if (!globalChatUnreadDot) {
+                    console.error('[Global Unread] Dot element not found inside updateDotVisibility!');
+                    return;
+                }
+
+                if (hasUnread) {
+                    globalChatUnreadDot.classList.remove('hidden');
+                    // console.log('[Global Unread] Dot should be VISIBLE (removed hidden class).');
+
+                    // --- CSS Debugging ---
+                    // Force reflow/repaint before checking styles (might help in some browsers)
+                    void globalChatUnreadDot.offsetWidth;
+
+                    const computedStyle = window.getComputedStyle(globalChatUnreadDot);
+                    // console.log('[Global Unread CSS Check] Computed display:', computedStyle.display);
+                    // console.log('[Global Unread CSS Check] Computed visibility:', computedStyle.visibility);
+                    // console.log('[Global Unread CSS Check] Computed opacity:', computedStyle.opacity);
+                    // console.log('[Global Unread CSS Check] Computed position:', computedStyle.position);
+                    // console.log('[Global Unread CSS Check] Computed top/right:', computedStyle.top, computedStyle.right);
+                    // --- End CSS Debugging ---
+
+                    // --- Temporary Force Visibility (for debugging) ---
+                    // Uncomment the line below to see if inline styles work, bypassing CSS classes
+                    // globalChatUnreadDot.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; position: absolute !important; top: 0.375rem !important; right: 0.375rem !important; width: 0.625rem; height: 0.625rem; background-color: blue; border-radius: 9999px;';
+                    // --- End Temporary Force ---
+
+                } else {
+                    globalChatUnreadDot.classList.add('hidden');
+                    // console.log('[Global Unread] Dot should be HIDDEN (added hidden class).');
+                    // --- Temporary Force Visibility (Reset) ---
+                    // If you uncommented the force above, uncomment this to reset when hiding
+                    // globalChatUnreadDot.style.cssText = '';
+                    // --- End Temporary Force ---
+                }
+            };
+
+            // --- Function to request unread check ---
+            const checkUnreadStatus = () => {
+                if (socket.connected) {
+                    // console.log('[Global Unread] Emitting checkGlobalUnread for user:', userId);
+                    socket.emit('checkGlobalUnread', { userId: userId });
+                } else {
+                    console.warn('[Global Unread] Cannot check status, socket not connected.');
+                }
+            };
+            // --- End function ---
+
+            socket.on('connect', () => {
+                // console.log('[Global Unread] Socket connected successfully. Socket ID:', socket.id);
+                // --- Authenticate socket with user ID ---
+                // Replace 'authenticate' with your actual event if different
+                // console.log('[Global Unread] Authenticating socket with user ID:', userId);
+                socket.emit('authenticate', userId);
+                // --- End authentication ---
+
+                // Initial check on connect
+                checkUnreadStatus();
+            });
+
+            socket.on('updateGlobalUnread', (data) => {
+                // console.log(`[Global Unread] Received 'updateGlobalUnread' event. Data:`, data);
+                if (typeof data?.hasUnread !== 'undefined') {
+                    updateDotVisibility(data.hasUnread);
+                } else {
+                     console.warn('[Global Unread] Received updateGlobalUnread event with invalid data format:', data);
+                     updateDotVisibility(false); // Hide dot on invalid data
+                }
+            });
+
+            // --- Listen for server trigger ---
+            socket.on('triggerGlobalUnreadCheck', () => {
+                // console.log("[Global Unread] Received 'triggerGlobalUnreadCheck' from server.");
+                checkUnreadStatus(); // Re-check status when triggered
+            });
+            // --- End listener ---
+
+            socket.on('disconnect', (reason) => {
+                // console.log('[Global Unread] Socket disconnected:', reason);
+                updateDotVisibility(false); // Hide dot on disconnect
+            });
+
+            socket.on('connect_error', (err) => {
+                console.error('[Global Unread] Socket connection error:', err.message);
+                updateDotVisibility(false); // Hide dot on connection error
+            });
+
+        } else {
+            // console.log('[Global Unread] User not logged in or user._id missing. Ensuring dot is hidden.');
+            globalChatUnreadDot.classList.add('hidden'); // Ensure dot is hidden if user is not logged in
         }
     });
 </script>

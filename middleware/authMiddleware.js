@@ -145,15 +145,46 @@ const checkUser = async (req, res, next) => {
 // Middleware to check user roles
 const checkRoles = (allowedRoles) => {
     return (req, res, next) => {
-        const user = res.locals.user; // Assuming user info is stored in res.locals.user
-        if (user && user.roles && allowedRoles.includes(user.roles)) {
-            return next();
+        const user = res.locals.user; // Get user from res.locals
+
+        // 1. Check if user exists and has roles defined
+        if (!user || !user.roles) {
+            console.warn(`[checkRoles Middleware] Access denied: User or user.roles undefined for path ${req.originalUrl}.`);
+            // Check if it's likely an API request (accepts JSON) vs a page request
+            if (req.accepts('json') && !req.accepts('html')) {
+                return res.status(401).json({ message: "Authentication error. Please log in again." });
+            } else {
+                return res.render('restricted', {
+                    message: "Authentication error. Please log in again.",
+                    redirectUrl: '/LogIn' // Redirect to login if user data is missing
+                });
+            }
         }
-        // Render the restricted view with an alert message
-        return res.render('restricted', {
-            message: "You do not have permission to access this page. You will be redirected to the home page.",
-            redirectUrl: '/' // Redirect to Home or any other page
-        });
+
+        // 2. Ensure user.roles is treated as an array
+        const userRoles = Array.isArray(user.roles) ? user.roles : [user.roles];
+
+        // 3. Check if any of the user's roles match any of the allowed roles
+        const hasPermission = userRoles.some(role => allowedRoles.includes(role));
+
+        // 4. Grant or deny access
+        if (hasPermission) {
+            console.log(`[checkRoles Middleware] Access granted for user ${user.username} (Roles: ${userRoles.join(', ')}) to path ${req.originalUrl} (Allowed: ${allowedRoles.join(', ')})`);
+            return next(); // User has at least one allowed role
+        } else {
+            console.warn(`[checkRoles Middleware] Access DENIED for user ${user.username} (Roles: ${userRoles.join(', ')}) to path ${req.originalUrl} (Allowed: ${allowedRoles.join(', ')})`);
+            // Check if the request prefers JSON (typical for API calls from JS)
+            if (req.accepts('json') && !req.accepts('html')) {
+                 return res.status(403).json({ message: "Forbidden: You do not have permission to perform this action." });
+            } else {
+                // Render HTML page for regular page navigation attempts
+                // *** FIX: Set status code to 403 when rendering restricted page for role denial ***
+                return res.status(403).render('restricted', {
+                    message: "Forbidden: You do not have permission to access this resource.", // Adjusted message slightly
+                    redirectUrl: '/' // Or maybe redirect to a more appropriate page like '/login' or '/'
+                });
+            }
+        }
     };
 };
 
