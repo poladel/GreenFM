@@ -15,7 +15,7 @@
 
                  <!-- Toggle Button for Small Screens -->
                  <button id="sidebar-toggle" class="md:hidden bg-green-700 text-white py-2 px-4 rounded-md mb-3 font-semibold">
-                     Toggle Inbox
+                     Toggle Inbox <!-- Added default text -->
                  </button>
 
                  <!-- Styles from .chat-wrapper - Removed px-[4vw], Added mt-2 -->
@@ -26,45 +26,51 @@
                      <div id="chat-sidebar-container" class="chat-sidebar flex-shrink-0 md:flex-basis-1/4 bg-white p-4 rounded-[15px] shadow-lg h-[75vh] flex flex-col space-y-3 hidden md:flex">
                         <%# Button Group %>
                         <div class="flex space-x-2">
-                            <button id="open-new-chat" type="button" class="flex-1 bg-green-700 text-white border-none py-2 px-4 rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-green-900 transition duration-200 ease-in-out">New Chat</button>
-                            <%# Changed flex-1 to flex-none, added width/height, padding, and SVG icon %>
-                            <button id="open-archived-chats" type="button" title="Archived Chats" class="flex-none w-10 h-10 p-2 bg-gray-500 text-white border-none rounded-full font-bold cursor-pointer text-[0.95rem] hover:bg-gray-700 transition duration-200 ease-in-out flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                            <button id="open-new-chat" class="flex-1 bg-green-700 hover:bg-green-800 text-white text-sm font-bold py-2 px-3 rounded-lg transition duration-200">
+                                New Chat
+                            </button>
+                            <%# Changed text to folder icon %>
+                            <button id="open-archived-chats" title="Archived Chats" class="flex-shrink-0 bg-gray-500 hover:bg-gray-600 text-white text-sm font-bold py-2 px-3 rounded-lg transition duration-200 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                 </svg>
                             </button>
                         </div>
                         <h2 class="mt-4 text-2xl text-green-700 font-semibold border-t pt-3">Inbox</h2>
                         <!-- Added overflow-y-auto and scrollbar-hide to this div -->
-                        <div class="flex-grow space-y-2 overflow-y-auto scrollbar-hide"> <!-- Wrapper for chat rooms is now scrollable -->
-                            <% chats.forEach(chat => { %>
-                                <%# Check if the chat is NOT archived by the current user %>
-                                <% if (!chat.archivedBy || !chat.archivedBy.some(id => id.equals(user._id))) { %>
-                                    <!-- Add data-creator-id attribute -->
+                        <div class="flex-1 overflow-y-auto scrollbar-hide space-y-2"> <!-- Container for chat rooms -->
+                            <% if (chats && chats.length > 0) { %>
+                                <% chats.forEach(chat => { %>
+                                    <%
+                                        let roomHTML = '';
+                                        let isGroup = chat.isGroupChat;
+                                        let otherUser = null;
+                                        if (!isGroup) {
+                                            otherUser = chat.users.find(u => u._id.toString() !== user._id.toString());
+                                        }
+                                        // Determine timestamp - use updatedAt, fallback to createdAt
+                                        const latestTimestamp = chat.updatedAt ? chat.updatedAt.toISOString() : (chat.createdAt ? chat.createdAt.toISOString() : new Date(0).toISOString());
+                                    %>
                                     <div class="chat-room relative bg-white p-2.5 mt-2 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-green-700 hover:text-white group"
                                          data-id="<%= chat._id %>"
                                          data-creator-id="<%= chat.creator ? chat.creator._id.toString() : '' %>"
-                                         data-latest-message-timestamp="<%= chat.updatedAt.toISOString() %>"> <!-- Added creator ID -->
-                                        <% if (chat.isGroupChat) { %>
-                                            <!-- Added group-[.bg-green-800]:text-gray-200 -->
-                                            <strong class="text-green-700 group-hover:text-white group-[.bg-green-800]:text-gray-200">[Group]</strong> <%= chat.groupName %>
-                                        <% } else { %>
-                                            <% const otherUser = chat.users.find(u => u._id.toString() !== user._id.toString()); %>
-                                            <% if (otherUser) { %>
-                                                <%= otherUser.username %>
-                                                <!-- Added group-[.bg-green-800]:text-gray-200 -->
-                                                <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.bg-green-800]:text-gray-200 ml-1">(<%= otherUser.roles %>)</span>
-                                             <% } else { %>
-                                                 Chat with Unknown User
-                                             <% } %>
-                                        <% } %>
+                                         data-latest-message-timestamp="<%= latestTimestamp %>"> <%# Use latestTimestamp %>
 
-                                        <!-- ADD THIS SPAN FOR THE UNREAD DOT -->
+                                        <% if (isGroup) { %>
+                                            <strong class="text-green-700 group-hover:text-white group-[.active-chat]:text-gray-200">[Group]</strong> <%= chat.groupName || 'Unnamed Group' %>
+                                        <% } else if (otherUser) { %>
+                                            <%# Check if otherUser.roles is an array before joining %>
+                                            <%= otherUser.username %> <span class="text-xs text-gray-500 group-hover:text-gray-200 group-[.active-chat]:text-gray-200 ml-1">(<%= Array.isArray(otherUser.roles) && otherUser.roles.length > 0 ? otherUser.roles.join(', ') : 'User' %>)</span>
+                                        <% } else { %>
+                                            Chat with Unknown User
+                                        <% } %>
+                                        <!-- Unread Dot Span - Initially hidden, JS will manage visibility -->
                                         <span class="unread-dot w-2.5 h-2.5 bg-blue-500 rounded-full absolute top-2 right-2 hidden"></span>
-                                        <!-- END ADDED SPAN -->
                                     </div>
-                                <% } %>
-                            <% }) %>
+                                <% }) %>
+                            <% } else { %>
+                                <p class="text-center text-gray-500 py-4">No active chats found.</p>
+                            <% } %>
                         </div>
                     </div>
 
@@ -74,51 +80,35 @@
                         <!-- Chat Header -->
                         <!-- Added relative positioning and flex for alignment -->
                         <div id="chat-header" class="relative flex justify-between items-center pb-3 border-b border-gray-300 mb-3">
-                            <h2 id="chat-name" class="text-lg font-semibold text-gray-700 truncate">Select a chat</h2>
-                            <!-- Gear Icon and Dropdown -->
+                            <h3 id="chat-name" class="text-lg font-semibold text-green-700">Select a chat</h3>
+                            <!-- Options Button (Gear Icon) - Initially hidden -->
                             <div class="relative">
-                                <!-- Gear Button (Initially hidden, shown when a chat is active) -->
-                                <button id="chat-options-btn" class="hidden text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L7.86 5.85A7.96 7.96 0 005.85 7.86L3.17 8.51c-1.56.38-1.56 2.6 0 2.98l2.68.65A7.96 7.96 0 007.86 14.15l.65 2.68c.38 1.56 2.6 1.56 2.98 0l.65-2.68a7.96 7.96 0 002.01-2.01l2.68-.65c1.56-.38 1.56-2.6 0-2.98l-2.68-.65A7.96 7.96 0 0012.14 5.85l-.65-2.68zm-1.49 6.33a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
-                                        <path d="M10 3a1 1 0 011 1v.01a1 1 0 11-2 0V4a1 1 0 011-1zm0 14a1 1 0 01-1-1v-.01a1 1 0 112 0V16a1 1 0 01-1 1zm8-8a1 1 0 01-1 1h-.01a1 1 0 110-2H17a1 1 0 011 1zm-14 0a1 1 0 011-1h.01a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                                <button id="chat-options-btn" class="text-gray-500 hover:text-green-700 hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </button>
-                                <!-- Dropdown Menu (Initially hidden) -->
-                                <div id="chat-options-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                                    <button id="rename-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Rename Chat</button>
-                                    <button id="see-members-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hidden" role="menuitem">See Members</button>
-                                    <button id="archive-chat-btn" class="hidden w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-orange-50">Archive Chat</button>
-
+                                <!-- Dropdown Menu - Initially hidden -->
+                                <div id="chat-options-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl z-10 hidden py-1">
+                                    <button id="rename-chat-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-100 hidden">Rename Group</button>
+                                    <button id="see-members-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-100 hidden">Manage Members</button>
+                                    <button id="archive-chat-btn" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hidden">Archive Chat</button>
                                 </div>
                             </div>
                         </div>
                         <!-- Messages Container -->
                         <div id="messages" class="flex-1 overflow-y-auto flex flex-col p-4 bg-white rounded-lg mb-4 scrollbar-hide space-y-3">
-                            <!-- Messages will be loaded here by chat.js -->
-                             <!-- Example structure (handled by JS renderMessage): -->
-                             <!-- <div class="message flex flex-col mb-2.5 items-end"> -->
-                             <!--   <div class="bubble p-2.5 px-3.5 rounded-2xl max-w-[70%] break-words shadow-sm text-[0.95rem] bg-gray-100 text-gray-800"> -->
-                             <!--     <strong>Username</strong><p class="mt-1 mb-0">Message content...</p> -->
-                             <!--   </div> -->
-                             <!-- </div> -->
-                             <!-- <div class="message flex flex-col mb-2.5 items-start"> -->
-                             <!--   <div class="bubble p-2.5 px-3.5 rounded-2xl max-w-[70%] break-words shadow-sm text-[0.95rem] bg-green-700 text-white"> -->
-                             <!--     <strong>Other Username</strong><p class="mt-1 mb-0">Other message...</p> -->
-                             <!--   </div> -->
-                             <!-- </div> -->
-                         </div>
+                            <!-- Initial prompt -->
+                            <p class="text-center text-gray-500 m-auto">Select a chat to start messaging.</p>
+                        </div>
                         <!-- Message Input Form -->
                         <!-- Changed items-center to items-end -->
                         <form id="message-form" class="flex pt-3 border-t border-gray-300 items-end">
-                            <!-- Changed input to textarea, added classes for styling and behavior -->
-                            <textarea id="message-input"
-                                      placeholder="Type your message..."
-                                      rows="1"
-                                      class="flex-1 py-2.5 px-3.5 text-base rounded-2xl border border-gray-300 mr-1.5 sm:mr-2.5 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-0 resize-none overflow-y-hidden max-h-24"
-                                      style="height: 44px;" ></textarea> <!-- Initial height matching button, resize-none, overflow-hidden -->
-                            <!-- Added flex-shrink-0 -->
-                            <button type="submit" class="py-2.5 px-4 sm:px-5 bg-green-800 text-white border-none rounded-full font-semibold cursor-pointer hover:bg-green-900 transition duration-200 ease-in-out flex-shrink-0 h-[44px]">Send</button> <!-- Fixed height to match initial textarea height -->
+                            <textarea id="message-input" placeholder="Type your message..." class="flex-1 p-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-green-500 mr-2 text-sm" rows="1"></textarea>
+                            <button type="submit" class="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                Send
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -131,53 +121,63 @@
                  <div id="new-chat-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[400px] hidden flex-col">
                     <h3 class="mt-0 text-green-700 text-center mb-5 text-xl font-semibold">Start New Chat</h3>
                     <form id="new-chat-form" class="flex flex-col">
-                        <input type="text" id="group-name" placeholder="Group Name (optional)" class="w-full mb-3 p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:outline-none focus:ring-1 focus:ring-green-500"/>
-                        <input type="search" id="user-search" placeholder="Search users..." class="w-full mb-3 p-2.5 rounded-lg border border-gray-300 box-border text-sm focus:outline-none focus:ring-1 focus:ring-green-500"/>
-
-                        <!-- User List Container -->
-                         <div id="user-list" class="max-h-[200px] overflow-y-auto mb-4 border border-gray-200 rounded-lg p-2 space-y-2">
-                            <% users.forEach(u => { %>
-                                <!-- Styles from .user-checkbox -->
-                                <div class="user-checkbox">
-                                    <label class="flex items-center text-sm cursor-pointer">
-                                        <input type="checkbox" name="userIds" value="<%= u._id %>" class="mr-2 h-4 w-4 text-green-700 focus:ring-green-500 border-gray-300 rounded">
-                                        <span class="text-gray-700"><%= u.username %> (<%= u.roles %>)</span>
-                                    </label>
-                                </div>
-                            <% }) %>
+                        <div class="mb-4">
+                            <label for="group-name" class="block text-sm font-medium text-gray-700 mb-1">Group Name (optional):</label>
+                            <input type="text" id="group-name" name="groupName" placeholder="Enter group name if desired" class="w-full p-2 rounded-lg border border-gray-300 box-border text-sm focus:outline-none focus:ring-1 focus:ring-green-500">
                         </div>
-
-                        <!-- Modal Buttons -->
-                        <button type="submit" class="w-full mb-3 p-2.5 rounded-lg border-none box-border bg-green-700 text-white font-bold transition duration-200 ease-in-out hover:bg-green-900 text-sm">Start Chat</button>
-                        <button type="button" id="close-modal" class="w-full p-2.5 rounded-lg border-none box-border bg-gray-500 text-white font-bold transition duration-200 ease-in-out hover:bg-gray-700 text-sm">Cancel</button>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Users:</label>
+                            <input type="search" id="user-search" placeholder="Search users..." class="w-full mb-2 p-2 rounded-lg border border-gray-300 box-border text-sm focus:outline-none focus:ring-1 focus:ring-green-500"/>
+                            <div id="user-list" class="max-h-[40vh] overflow-y-auto border border-gray-200 rounded p-2 space-y-1">
+                                <% if (users && users.length > 0) { %>
+                                    <% users.forEach(u => { %>
+                                        <div class="user-checkbox flex items-center p-1.5 hover:bg-gray-100 rounded">
+                                            <input type="checkbox" id="user-<%= u._id %>" name="userIds" value="<%= u._id %>" class="mr-2 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                            <label for="user-<%= u._id %>" class="text-sm text-gray-800 cursor-pointer flex-grow">
+                                                <%# Check if u.roles is an array before joining %>
+                                                <%= u.username %> <span class="text-xs text-gray-500">(<%= Array.isArray(u.roles) && u.roles.length > 0 ? u.roles.join(', ') : 'User' %>)</span>
+                                            </label>
+                                        </div>
+                                    <% }) %>
+                                <% } else { %>
+                                    <p class="text-center text-gray-500">No other users found.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-2">
+                            <button type="button" id="close-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">Cancel</button>
+                            <button type="submit" class="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Chat</button>
+                        </div>
                     </form>
                 </div>
 
                 <!-- START: Add Members Modal -->
                 <div id="members-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-[999] hidden"></div>
-                <div id="members-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[500px] hidden flex-col">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="mt-0 text-green-700 text-xl font-semibold">Manage Group Members</h3>
-                        <button type="button" id="close-members-modal" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                    </div>
+                <div id="members-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[500px] hidden flex-col max-h-[80vh]">
+                    <h3 class="mt-0 text-green-700 text-center mb-5 text-xl font-semibold">Manage Group Members</h3>
 
                     <!-- Current Members Section -->
                     <div class="mb-4">
-                        <h4 class="text-md font-semibold text-gray-600 mb-2">Current Members:</h4>
-                        <div id="current-members-list" class="max-h-[25vh] overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-gray-50">
-                            <!-- Current members will be loaded here by JS -->
+                        <h4 class="text-md font-semibold text-gray-800 mb-2 border-b pb-1">Current Members</h4>
+                        <div id="current-members-list" class="max-h-[25vh] overflow-y-auto space-y-1 pr-2">
+                            <!-- Member items will be populated by JS -->
                             <p class="text-center text-gray-500 py-2">Loading members...</p>
                         </div>
                     </div>
 
                     <!-- Add Members Section -->
-                    <div>
-                        <h4 class="text-md font-semibold text-gray-600 mb-2">Add Members:</h4>
+                    <div class="mb-4">
+                        <h4 class="text-md font-semibold text-gray-800 mb-2 border-b pb-1">Add Members</h4>
                         <input type="search" id="add-member-search" placeholder="Search users to add..." class="w-full mb-2 p-2 rounded-lg border border-gray-300 box-border text-sm focus:outline-none focus:ring-1 focus:ring-green-500"/>
-                        <div id="potential-members-list" class="max-h-[25vh] overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-gray-50">
-                            <!-- Potential members to add will be loaded here by JS -->
+                        <div id="potential-members-list" class="max-h-[25vh] overflow-y-auto space-y-1 pr-2">
+                            <!-- Potential member items will be populated by JS -->
                             <p class="text-center text-gray-500 py-2">Loading users...</p>
                         </div>
+                    </div>
+
+                    <!-- Close Button -->
+                    <div class="flex justify-end mt-auto pt-3 border-t">
+                        <button type="button" id="close-members-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">Close</button>
                     </div>
                 </div>
                 <!-- END: Add Members Modal -->
@@ -185,15 +185,14 @@
 
                 <!-- Archived Chats Modal -->
                 <div id="archived-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-[999] hidden"></div>
-                <div id="archived-chats-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[500px] hidden flex-col">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="mt-0 text-green-700 text-xl font-semibold">Archived Chats</h3>
-                        <button type="button" id="close-archived-modal" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                    </div>
-                    <!-- Archived Chat List Container -->
-                    <div id="archived-chat-list" class="max-h-[60vh] overflow-y-auto space-y-2">
-                        <!-- Archived chats will be loaded here by JS -->
+                <div id="archived-chats-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-5 shadow-xl z-[1000] w-[90vw] max-w-[500px] hidden flex-col max-h-[80vh]">
+                    <h3 class="mt-0 text-green-700 text-center mb-5 text-xl font-semibold">Archived Chats</h3>
+                    <div id="archived-chat-list" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-2">
+                        <!-- Archived chat items will be populated by JS -->
                         <p class="text-center text-gray-500 py-4">Loading archived chats...</p>
+                    </div>
+                    <div class="flex justify-end mt-auto pt-3 border-t">
+                        <button type="button" id="close-archived-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">Close</button>
                     </div>
                 </div>
                 <!-- End Archived Chats Modal -->

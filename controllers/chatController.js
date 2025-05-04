@@ -116,8 +116,7 @@ exports.renderAdminView = async (req, res) => {
         })
         .sort({ updatedAt: -1 }) // Sort by most recent activity
         .populate('users', 'username roles')
-        .populate('creator', '_id')
-        .populate('archivedBy', '_id');
+        .populate('creator', '_id');
 
         const users = await User.find({
             roles: { $in: ['Admin', 'Staff'] },
