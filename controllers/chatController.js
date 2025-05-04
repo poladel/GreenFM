@@ -37,10 +37,6 @@ exports.sendMessage = async (req, res) => {
     const user = req.user || res.locals.user;
     const currentUserId = user._id; // Use consistent variable name
 
-    console.log('Sending message to chat:', chatId);
-    console.log('Message content:', content);
-    console.log('User sending message:', user);
-
     if (!user || !user._id) {
         return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -538,3 +534,235 @@ exports.renameChat = async (req, res) => {
         res.status(500).json({ error: 'Failed to rename chat.', details: err.message });
     }
 };
+
+// --- ADD Member Management Controllers ---
+
+// GET /chat/:chatId/members
+exports.getChatMembersAndPotentialUsers = async (req, res) => {
+    const { chatId } = req.params;
+    const currentUserId = res.locals.user._id;
+
+    try {
+        const chat = await Chat.findById(chatId).populate('users', 'username roles');
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+        if (!chat.isGroupChat) {
+            return res.status(400).json({ error: 'Cannot manage members for non-group chats.' });
+        }
+
+        // Authorization: Ensure current user is a participant
+        const isParticipant = chat.users.some(user => user._id.equals(currentUserId));
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You are not authorized to view members of this chat.' });
+        }
+
+        const memberIds = chat.users.map(user => user._id);
+
+        // Find potential users (Admin/Staff) who are NOT already members
+        const potentialUsers = await User.find({
+            roles: { $in: ['Admin', 'Staff'] },
+            _id: { $nin: memberIds } // Exclude current members
+        }).select('username roles');
+
+        res.status(200).json({
+            members: chat.users,
+            potentialUsers,
+            creatorId: chat.creator // Send creator ID for frontend logic
+        });
+
+    } catch (err) {
+        console.error('[MEMBERS ERROR] Error fetching chat members:', err);
+        res.status(500).json({ error: 'Failed to fetch chat members.', details: err.message });
+    }
+};
+
+// PUT /chat/:chatId/members/add
+exports.addChatMember = async (req, res) => {
+    const { chatId } = req.params;
+    const { userId: userIdToAdd } = req.body; // User ID to add
+    const currentUser = res.locals.user; // User performing the action
+
+    if (!userIdToAdd) {
+        return res.status(400).json({ error: 'User ID to add is required.' });
+    }
+
+    try {
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+        if (!chat.isGroupChat) {
+            return res.status(400).json({ error: 'Cannot add members to non-group chats.' });
+        }
+
+        // Authorization: Any current participant can add (adjust if needed)
+        const isParticipant = chat.users.some(id => id.equals(currentUser._id));
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You are not authorized to add members to this chat.' });
+        }
+
+        // Check if user to add exists and is valid
+        const userToAdd = await User.findById(userIdToAdd);
+        if (!userToAdd) {
+            return res.status(404).json({ error: 'User to add not found.' });
+        }
+
+        // Check if user is already in the chat
+        const alreadyMember = chat.users.some(id => id.equals(userIdToAdd));
+        if (alreadyMember) {
+            return res.status(400).json({ error: 'User is already a member of this chat.' });
+        }
+
+        // Add user
+        chat.users.push(userIdToAdd);
+        // Remove from archivedBy if the added user had previously archived it
+        chat.archivedBy = chat.archivedBy.filter(id => !id.equals(userIdToAdd));
+        // --- Explicitly update timestamp ---
+        chat.updatedAt = Date.now();
+        // --- End update timestamp ---
+        await chat.save();
+
+        // Populate for emitting events
+        const updatedChat = await Chat.findById(chatId).populate([
+            { path: 'users', select: 'username roles' },
+            { path: 'creator', select: '_id' }
+        ]);
+
+        // Create and Save System Message
+        const systemMessageContent = `${currentUser.username} added ${userToAdd.username}`;
+        const systemMessage = new Message({
+            chat: chatId,
+            sender: null,
+            content: systemMessageContent,
+            isSystemMessage: true
+        });
+        await systemMessage.save();
+
+        // Emit events
+        if (req.io) {
+            // Notify chat room about the new member and updated list
+            req.io.to(chatId).emit('memberAdded', {
+                chatId: chatId,
+                addedUser: { _id: userToAdd._id, username: userToAdd.username, roles: userToAdd.roles },
+                updatedMembers: updatedChat.users, // Send the full updated list
+                creatorId: updatedChat.creator._id
+            });
+            // Emit the system message
+            req.io.to(chatId).emit('newMessage', systemMessage.toObject());
+
+            // --- ADD LOG before emitting to added user ---
+            const targetRoom = userIdToAdd.toString();
+            console.log(`[ADD MEMBER EMIT] Attempting to emit 'newChatCreated' for chat ${chatId} to target room: ${targetRoom}`);
+            // --- END ADD LOG ---
+
+            // Notify the added user so the chat appears in their list
+            req.io.to(targetRoom).emit('newChatCreated', updatedChat); // Use newChatCreated
+        }
+
+        console.log(`[MEMBERS DEBUG] User ${currentUser.username} added ${userToAdd.username} to chat ${chatId}`);
+        res.status(200).json({ message: 'Member added successfully.', updatedChat });
+
+    } catch (err) {
+        console.error('[MEMBERS ERROR] Error adding chat member:', err);
+        res.status(500).json({ error: 'Failed to add member.', details: err.message });
+    }
+};
+
+// PUT /chat/:chatId/members/remove
+exports.removeChatMember = async (req, res) => {
+    const { chatId } = req.params;
+    const { userId: userIdToRemove } = req.body; // User ID to remove
+    const currentUser = res.locals.user; // User performing the action
+
+    if (!userIdToRemove) {
+        return res.status(400).json({ error: 'User ID to remove is required.' });
+    }
+    if (currentUser._id.equals(userIdToRemove)) {
+        return res.status(400).json({ error: 'You cannot remove yourself.' }); // Users should archive instead
+    }
+
+    try {
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found.' });
+        }
+        if (!chat.isGroupChat) {
+            return res.status(400).json({ error: 'Cannot remove members from non-group chats.' });
+        }
+
+        // Authorization: Only creator can remove (adjust if Admins should too)
+        if (!chat.creator.equals(currentUser._id)) {
+             // Optional: Check if currentUser is Admin
+             // const isAdmin = currentUser.roles.includes('Admin');
+             // if (!isAdmin) {
+                 return res.status(403).json({ error: 'Only the group creator can remove members.' });
+             // }
+        }
+
+        // Check if user to remove is the creator
+        if (chat.creator.equals(userIdToRemove)) {
+            return res.status(400).json({ error: 'Cannot remove the group creator.' });
+        }
+
+        // Check if user to remove is actually in the chat
+        const memberIndex = chat.users.findIndex(id => id.equals(userIdToRemove));
+        if (memberIndex === -1) {
+            return res.status(400).json({ error: 'User is not a member of this chat.' });
+        }
+
+        // Get username before removing
+        const userToRemove = await User.findById(userIdToRemove).select('username');
+        const usernameRemoved = userToRemove ? userToRemove.username : 'Unknown User';
+
+        // Remove user
+        chat.users.splice(memberIndex, 1);
+        // Also remove from archivedBy list if they are there
+        chat.archivedBy = chat.archivedBy.filter(id => !id.equals(userIdToRemove));
+        // --- Explicitly update timestamp ---
+        chat.updatedAt = Date.now();
+        // --- End update timestamp ---
+        await chat.save();
+
+        // Populate for emitting events
+         const updatedChat = await Chat.findById(chatId).populate([
+            { path: 'users', select: 'username roles' },
+            { path: 'creator', select: '_id' }
+        ]);
+
+
+        // Create and Save System Message
+        const systemMessageContent = `${currentUser.username} removed ${usernameRemoved}`;
+        const systemMessage = new Message({
+            chat: chatId,
+            sender: null,
+            content: systemMessageContent,
+            isSystemMessage: true
+        });
+        await systemMessage.save();
+
+        // Emit events
+        if (req.io) {
+            // Notify chat room about the removed member and updated list
+            req.io.to(chatId).emit('memberRemoved', {
+                chatId: chatId,
+                removedUserId: userIdToRemove,
+                updatedMembers: updatedChat.users, // Send the full updated list
+                creatorId: updatedChat.creator._id
+            });
+            // Emit the system message
+            req.io.to(chatId).emit('newMessage', systemMessage.toObject());
+            // Notify the removed user so they can remove the chat from their UI
+            req.io.to(userIdToRemove.toString()).emit('chatRemovedFrom', chatId);
+        }
+
+        console.log(`[MEMBERS DEBUG] User ${currentUser.username} removed ${usernameRemoved} (ID: ${userIdToRemove}) from chat ${chatId}`);
+        res.status(200).json({ message: 'Member removed successfully.', updatedChat });
+
+    } catch (err) {
+        console.error('[MEMBERS ERROR] Error removing chat member:', err);
+        res.status(500).json({ error: 'Failed to remove member.', details: err.message });
+    }
+};
+
+// --- END Member Management Controllers ---

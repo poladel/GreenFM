@@ -78,6 +78,7 @@ io.on('connection', async (socket) => {
     console.log('🟢 Socket connected:', socket.id);
 
     // --- Define 'joinRoom' listener EARLY ---
+    // This listener handles joins requested *by the client* (e.g., for sidebar rooms)
     socket.on('joinRoom', roomId => {
         // --- DETAILED LOGGING ---
         console.log(`[SERVER JOIN DEBUG] Received 'joinRoom' event for room: ${roomId} from socket: ${socket.id}`);
@@ -110,17 +111,28 @@ io.on('connection', async (socket) => {
             if (user) {
                 userEmail = user.email;
                 userRoles = user.roles || []; // Ensure roles is an array
-                // --- Use the 'joinRoom' event defined above ---
-                socket.emit('joinRoom', userId); // Emit to self to trigger the listener
-                // socket.join(userId); // Join room based on user ID (requires user ID to be string) - Replaced by emit
-                console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) requested join for user room ${userId}`);
+
+                // --- Directly join user-specific room ---
+                try {
+                    socket.join(userId); // Join room based on user ID
+                    console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} (User: ${userEmail}) directly joined user room: ${userId}`);
+                    console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+                } catch (error) {
+                    console.error(`[SERVER JOIN ERROR] Error directly joining user room ${userId} for socket ${socket.id}:`, error);
+                }
+                // --- End Direct Join ---
 
                 // Join admin room if user is admin
                 if (userRoles.includes('Admin')) {
-                    // --- Use the 'joinRoom' event defined above ---
-                    socket.emit('joinRoom', 'admin_room'); // Emit to self to trigger the listener
-                    // socket.join('admin_room'); // Replaced by emit
-                    console.log(`🔗 Socket ${socket.id} (User: ${userEmail}) requested join for admin_room`);
+                    // --- Directly join admin room ---
+                    try {
+                        socket.join('admin_room');
+                        console.log(`[SERVER JOIN SUCCESS] Socket ${socket.id} (User: ${userEmail}) directly joined admin_room`);
+                        console.log(`[SERVER ROOMS DEBUG] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+                    } catch (error) {
+                        console.error(`[SERVER JOIN ERROR] Error directly joining admin_room for socket ${socket.id}:`, error);
+                    }
+                    // --- End Direct Join ---
                 }
             } else {
                 console.log(`⚠️ Socket ${socket.id}: User not found for token ID ${userId}`);

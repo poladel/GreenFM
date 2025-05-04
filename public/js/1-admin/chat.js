@@ -26,6 +26,15 @@ const chatOptionsBtn = document.getElementById('chat-options-btn'); // Gear butt
 const chatOptionsDropdown = document.getElementById('chat-options-dropdown'); // Dropdown menu
 const renameChatBtn = document.getElementById('rename-chat-btn'); // Rename button in dropdown
 const archiveChatBtn = document.getElementById('archive-chat-btn'); // Archive button in dropdown (updated ID)
+// --- ADD MEMBER MANAGEMENT ELEMENTS ---
+const seeMembersBtn = document.getElementById('see-members-btn'); // See Members button in dropdown
+const membersModal = document.getElementById('members-modal'); // The members modal itself
+const membersModalBackdrop = document.getElementById('members-modal-backdrop'); // Members modal backdrop
+const closeMembersModalBtn = document.getElementById('close-members-modal'); // Close button for members modal
+const currentMembersListDiv = document.getElementById('current-members-list'); // Div for current members
+const potentialMembersListDiv = document.getElementById('potential-members-list'); // Div for potential members to add
+const addMemberSearchInput = document.getElementById('add-member-search'); // Search input for adding members
+// --- END MEMBER MANAGEMENT ELEMENTS ---
 const openArchivedChatsBtn = document.getElementById('open-archived-chats'); // Button to open archived modal
 const archivedModal = document.getElementById('archived-chats-modal'); // Archived modal itself
 const archivedModalBackdrop = document.getElementById('archived-modal-backdrop'); // Archived modal backdrop
@@ -192,6 +201,20 @@ if (renameChatBtn) {
         }
     });
 }
+
+// --- ADD See Members Button Listener ---
+if (seeMembersBtn) {
+    seeMembersBtn.addEventListener('click', () => {
+        console.log('[DEBUG] See Members button clicked.'); // <-- ADD LOG
+        chatOptionsDropdown.classList.add('hidden'); // Hide main dropdown
+        if (!currentChatId || !currentChatIsGroup) {
+            console.log('[DEBUG] See Members button: No current group chat selected.'); // <-- ADD LOG
+            return;
+        }
+        openMembersModal();
+    });
+}
+// --- END See Members Button Listener ---
 // --- End Action Handlers ---
 
 // --- Archived Chats Modal Logic ---
@@ -294,7 +317,221 @@ async function handleUnarchive(chatId) {
 }
 // --- End Archived Chats Modal Logic ---
 
-// --- Define consistent classes ---
+// --- Members Modal Logic ---
+async function openMembersModal() {
+    console.log('[DEBUG] openMembersModal function called.'); // <-- ADD LOG
+    if (!membersModal || !membersModalBackdrop || !currentMembersListDiv || !potentialMembersListDiv || !currentChatId) {
+        console.error('[DEBUG] Members modal elements or currentChatId missing:', {
+            membersModalExists: !!membersModal,
+            backdropExists: !!membersModalBackdrop,
+            currentListExists: !!currentMembersListDiv,
+            potentialListExists: !!potentialMembersListDiv,
+            currentChatId
+        }); // <-- ADD DETAILED LOG
+        return;
+    }
+
+    membersModal.classList.remove('hidden');
+    membersModal.classList.add('flex');
+    membersModalBackdrop.classList.remove('hidden');
+    currentMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">Loading members...</p>';
+    potentialMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">Loading users...</p>';
+    if (addMemberSearchInput) addMemberSearchInput.value = ''; // Clear search
+
+    try {
+        const res = await fetch(`/chat/${currentChatId}/members`);
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const { members, potentialUsers, creatorId } = await res.json();
+        renderMembersModalLists(members, potentialUsers, creatorId);
+
+    } catch (err) {
+        console.error('❌ Error fetching chat members:', err);
+        currentMembersListDiv.innerHTML = '<p class="text-center text-red-500 py-2">Failed to load members.</p>';
+        potentialMembersListDiv.innerHTML = '<p class="text-center text-red-500 py-2">Failed to load users.</p>';
+    }
+}
+
+function closeMembersModal() {
+    if (membersModal) {
+        membersModal.classList.add('hidden');
+        membersModal.classList.remove('flex');
+    }
+    if (membersModalBackdrop) {
+        membersModalBackdrop.classList.add('hidden');
+    }
+}
+
+function renderMembersModalLists(members, potentialUsers, creatorId) {
+    if (!currentMembersListDiv || !potentialMembersListDiv) return;
+
+    // Render Current Members
+    currentMembersListDiv.innerHTML = '';
+    if (!members || members.length === 0) {
+        currentMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">No members found.</p>';
+    } else {
+        members.forEach(member => {
+            const isCreator = member._id === creatorId;
+            const isSelf = member._id === currentUserId;
+            // Determine if the current user can remove this member
+            // Rule: Creator or Admin can remove anyone except the creator. Non-creator/admin cannot remove anyone.
+            // Simplified: Only creator can remove anyone (except self/creator). Adjust if Admins should also remove.
+            const canRemove = currentUserId === creatorId && !isCreator && !isSelf;
+
+            const memberDiv = document.createElement('div');
+            memberDiv.className = 'flex items-center justify-between py-1.5 px-2 bg-gray-50 rounded mb-1';
+            memberDiv.innerHTML = `
+                <span class="text-sm ${isCreator ? 'font-bold text-green-700' : ''} ${isSelf ? 'italic' : ''}">
+                    ${member.username} ${isCreator ? '(Creator)' : ''} ${isSelf ? '(You)' : ''}
+                </span>
+                ${canRemove ? `<button class="remove-member-btn bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-0.5 px-1.5 rounded-full transition duration-200" data-user-id="${member._id}" data-username="${member.username}">Remove</button>` : ''}
+            `;
+            currentMembersListDiv.appendChild(memberDiv);
+        });
+        // Add remove button listeners
+        currentMembersListDiv.querySelectorAll('.remove-member-btn').forEach(btn => {
+            btn.addEventListener('click', handleRemoveMember);
+        });
+    }
+
+    // Render Potential Users to Add
+    potentialMembersListDiv.innerHTML = '';
+    if (!potentialUsers || potentialUsers.length === 0) {
+        potentialMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">No users available to add.</p>';
+    } else {
+        potentialUsers.forEach(user => {
+            const userDiv = document.createElement('div');
+            // Add data-username for search filtering
+            userDiv.className = 'potential-user-item flex items-center justify-between py-1.5 px-2 bg-gray-50 rounded mb-1';
+            userDiv.dataset.username = user.username.toLowerCase(); // For search
+
+            // --- ADD CHECK for user.roles ---
+            const rolesText = Array.isArray(user.roles) && user.roles.length > 0
+                ? `(${user.roles.join(', ')})`
+                : '(No Roles)'; // Default text if roles are missing or not an array
+            // --- END CHECK ---
+
+            userDiv.innerHTML = `
+                <span class="text-sm">${user.username} <span class="text-xs text-gray-500">${rolesText}</span></span>
+                <button class="add-member-btn bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-0.5 px-1.5 rounded-full transition duration-200" data-user-id="${user._id}" data-username="${user.username}">Add</button>
+            `;
+            potentialMembersListDiv.appendChild(userDiv);
+        });
+        // Add add button listeners
+        potentialMembersListDiv.querySelectorAll('.add-member-btn').forEach(btn => {
+            btn.addEventListener('click', handleAddMember);
+        });
+    }
+}
+
+async function handleAddMember(e) {
+    const button = e.target;
+    const userIdToAdd = button.dataset.userId;
+    const usernameToAdd = button.dataset.username;
+    if (!currentChatId || !userIdToAdd) return;
+
+    const confirmation = confirm(`Add ${usernameToAdd} to the group?`);
+    if (!confirmation) return;
+
+    button.disabled = true; // Prevent double clicks
+    button.textContent = 'Adding...';
+
+    try {
+        const res = await fetch(`/chat/${currentChatId}/members/add`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userIdToAdd })
+        });
+        const result = await res.json();
+        if (res.ok) {
+            console.log(`[DEBUG] Add member request successful for user ${userIdToAdd}`);
+            // UI update will be handled by socket event 'memberAdded'
+            // Remove user from potential list locally for immediate feedback
+            button.closest('.potential-user-item')?.remove();
+            // Check if potential list is now empty
+             if (potentialMembersListDiv && potentialMembersListDiv.children.length === 0) {
+                 potentialMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">No users available to add.</p>';
+             }
+        } else {
+            alert(`Failed to add member: ${result.error || 'Unknown error'}`);
+            button.disabled = false;
+            button.textContent = 'Add';
+        }
+    } catch (err) {
+        console.error('❌ Error adding member:', err);
+        alert('An error occurred while adding the member.');
+        button.disabled = false;
+        button.textContent = 'Add';
+    }
+}
+
+async function handleRemoveMember(e) {
+    const button = e.target;
+    const userIdToRemove = button.dataset.userId;
+    const usernameToRemove = button.dataset.username;
+    if (!currentChatId || !userIdToRemove) return;
+
+    const confirmation = confirm(`Are you sure you want to remove ${usernameToRemove} from the group?`);
+    if (!confirmation) return;
+
+    button.disabled = true; // Prevent double clicks
+    button.textContent = 'Removing...';
+
+    try {
+        const res = await fetch(`/chat/${currentChatId}/members/remove`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userIdToRemove })
+        });
+        const result = await res.json();
+        if (res.ok) {
+            console.log(`[DEBUG] Remove member request successful for user ${userIdToRemove}`);
+            // UI update will be handled by socket event 'memberRemoved'
+            // Remove member from current list locally for immediate feedback
+            button.closest('.flex')?.remove();
+             // Check if current list is now empty (unlikely but possible)
+             if (currentMembersListDiv && currentMembersListDiv.children.length === 0) {
+                 currentMembersListDiv.innerHTML = '<p class="text-center text-gray-500 py-2">No members found.</p>';
+             }
+        } else {
+            alert(`Failed to remove member: ${result.error || 'Unknown error'}`);
+            button.disabled = false;
+            button.textContent = 'Remove';
+        }
+    } catch (err) {
+        console.error('❌ Error removing member:', err);
+        alert('An error occurred while removing the member.');
+        button.disabled = false;
+        button.textContent = 'Remove';
+    }
+}
+
+// Search/Filter for adding members
+if (addMemberSearchInput && potentialMembersListDiv) {
+    addMemberSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        potentialMembersListDiv.querySelectorAll('.potential-user-item').forEach(item => {
+            const username = item.dataset.username || '';
+            if (username.includes(query)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    });
+}
+
+
+// Add listeners for closing the members modal
+if (closeMembersModalBtn) {
+    closeMembersModalBtn.addEventListener('click', closeMembersModal);
+}
+if (membersModalBackdrop) {
+    membersModalBackdrop.addEventListener('click', closeMembersModal);
+}
+// --- End Members Modal Logic ---
+
 
 // Handle chat room click
 document.querySelectorAll('.chat-room').forEach(room => {
@@ -358,6 +595,9 @@ document.querySelectorAll('.chat-room').forEach(room => {
             // Show/hide dropdown options based on chat type and creator
             if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden'); // Show gear icon
             if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup); // Show rename only for groups
+            // --- ADD: Show/Hide See Members Button ---
+            if (seeMembersBtn) seeMembersBtn.classList.toggle('hidden', !currentChatIsGroup);
+            // --- END ADD ---
 
             // Show archive button (always available for participants)
             if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
@@ -714,8 +954,9 @@ socket.on('newChatCreated', (chat) => {
     if (existingRoom) {
         // --- If chat exists, update timestamp ---
         console.log(`[DEBUG] Chat room ${chat._id} already exists. Updating timestamp.`);
-        // Update timestamp if available (might be same as createdAt)
+        // --- FIX: Prioritize updatedAt for sorting ---
         existingRoom.dataset.latestMessageTimestamp = chat.updatedAt || chat.createdAt || new Date().toISOString();
+        // --- END FIX ---
         chatElement = existingRoom; // Assign existing room to chatElement
         // --- End modification ---
     } else {
@@ -728,7 +969,9 @@ socket.on('newChatCreated', (chat) => {
         // --- Store creator ID on the element ---
         newChatDiv.dataset.creatorId = chat.creator ? chat.creator._id.toString() : '';
         // --- Store initial timestamp ---
-        newChatDiv.dataset.latestMessageTimestamp = chat.createdAt || new Date().toISOString(); // Use creation time
+        // --- FIX: Prioritize updatedAt for sorting ---
+        newChatDiv.dataset.latestMessageTimestamp = chat.updatedAt || chat.createdAt || new Date().toISOString(); // Use update time if available
+        // --- END FIX ---
 
         let roomHTML = '';
         if (chat.isGroupChat) {
@@ -772,13 +1015,17 @@ socket.on('newChatCreated', (chat) => {
                 }
 
                 // 2. Apply new active state to the clicked room
-                room.classList.remove(...INACTIVE_CHAT_CLASSES); // Remove base inactive classes
-                room.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES); // Apply correct active classes
+                // --- FIX: Use newChatDiv instead of room ---
+                newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES); // Remove base inactive classes
+                newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES); // Apply correct active classes
+                // --- END FIX ---
                 // --- REMOVE old notification style cleanup ---
                 // room.classList.remove('font-bold', 'text-green-600');
 
                 // --- HIDE UNREAD DOT on the newly active room ---
-                const unreadDot = room.querySelector('.unread-dot');
+                // --- FIX: Use newChatDiv instead of room ---
+                const unreadDot = newChatDiv.querySelector('.unread-dot');
+                // --- END FIX ---
                 if (unreadDot) {
                     unreadDot.classList.add('hidden');
                 }
@@ -799,10 +1046,14 @@ socket.on('newChatCreated', (chat) => {
 
 
                 // --- Update Header and Options ---
-                currentChatIsGroup = room.textContent.includes('[Group]'); // Check if it's a group chat
+                // --- FIX: Use newChatDiv instead of room ---
+                currentChatIsGroup = newChatDiv.textContent.includes('[Group]'); // Check if it's a group chat
+                // --- END FIX ---
                 if (chatHeaderName) {
                     // Extract name, removing the role span or [Group] prefix
-                    const nameElement = room.cloneNode(true);
+                    // --- FIX: Use newChatDiv instead of room ---
+                    const nameElement = newChatDiv.cloneNode(true);
+                    // --- END FIX ---
                     const roleSpan = nameElement.querySelector('span');
                     const groupStrong = nameElement.querySelector('strong');
                     if (roleSpan) roleSpan.remove();
@@ -812,6 +1063,9 @@ socket.on('newChatCreated', (chat) => {
                 // Show/hide dropdown options based on chat type and creator
                 if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden'); // Show gear icon
                 if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup); // Show rename only for groups
+                // --- ADD: Show/Hide See Members Button ---
+                if (seeMembersBtn) seeMembersBtn.classList.toggle('hidden', !currentChatIsGroup);
+                // --- END ADD ---
 
                 // Show archive button (always available for participants)
                 if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
@@ -821,12 +1075,16 @@ socket.on('newChatCreated', (chat) => {
                 console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
                 // Ensure the active styles are correctly applied even if clicking the same room again
                 // (This helps if some other action incorrectly removed styles)
-                room.classList.remove(...INACTIVE_CHAT_CLASSES);
-                room.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
+                // --- FIX: Use newChatDiv instead of room ---
+                newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES);
+                newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
+                // --- END FIX ---
                 // --- REMOVE old notification style cleanup ---
                 // room.classList.remove('font-bold', 'text-green-600');
                  // --- HIDE UNREAD DOT ---
-                 const unreadDot = room.querySelector('.unread-dot');
+                 // --- FIX: Use newChatDiv instead of room ---
+                 const unreadDot = newChatDiv.querySelector('.unread-dot');
+                 // --- END FIX ---
                  if (unreadDot) {
                      unreadDot.classList.add('hidden');
                  }
@@ -900,6 +1158,7 @@ socket.on('chatArchived', (archivedChatId) => {
         if (chatHeaderName) chatHeaderName.textContent = 'Select a chat';
         if (chatOptionsBtn) chatOptionsBtn.classList.add('hidden'); // Hide gear icon
         if (chatOptionsDropdown) chatOptionsDropdown.classList.add('hidden'); // Hide dropdown
+        if (seeMembersBtn) seeMembersBtn.classList.add('hidden'); // Hide members button
         messageInput.value = ''; // Clear message input
         // Optionally, trigger sidebar toggle on mobile if needed
     }
@@ -971,7 +1230,7 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                 const creatorId = newChatDiv.dataset.creatorId;
 
                 if (newChatId !== currentChatId) {
-                    console.log(`[DEBUG] Joining unarchived room: ${newChatId}`);
+                    console.log(`[DEBUG] Joining new room: ${newChatId}`);
 
                     // Deactivate previous
                     const previouslyActiveRoom = document.querySelector('.chat-room.active-chat');
@@ -995,7 +1254,7 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                     }
                     // --- END HIDE UNREAD DOT ---
 
-                    // ... (rest of click handler: Update state, load messages, update header) ...
+                    // --- Update global state and load data ---
                     currentChatId = newChatId;
                     currentChatCreatorId = creatorId || null;
                     localStorage.setItem('activeChatId', currentChatId);
@@ -1005,8 +1264,10 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                     loadedMessageIds.clear();
                     loadMessages();
 
-                    currentChatIsGroup = unarchivedChat.isGroupChat;
+                    // --- Update Header and Options ---
+                    currentChatIsGroup = unarchivedChat.isGroupChat; // Use unarchivedChat data
                     if (chatHeaderName) {
+                        // Extract name, removing the role span or [Group] prefix
                         const nameElement = newChatDiv.cloneNode(true);
                         const roleSpan = nameElement.querySelector('span');
                         const groupStrong = nameElement.querySelector('strong');
@@ -1017,7 +1278,11 @@ socket.on('chatUnarchived', (unarchivedChat) => {
                     }
                     if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden');
                     if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup);
+                    // --- ADD: Show/Hide See Members Button ---
+                    if (seeMembersBtn) seeMembersBtn.classList.toggle('hidden', !currentChatIsGroup);
+                    // --- END ADD ---
                     if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
+                    // --- End Update Header and Options ---
 
                 } else {
                     console.log(`[DEBUG] Clicked already active (unarchived) room: ${currentChatId}. No join emitted.`);
@@ -1106,220 +1371,85 @@ socket.on('chatRenamed', (updatedChat) => {
         currentChatCreatorId = updatedChat.creator ? updatedChat.creator._id.toString() : null;
         if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
         if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !updatedChat.isGroupChat); // Should remain visible for group chat
+        // --- ADD: Update See Members Button Visibility ---
+        if (seeMembersBtn) seeMembersBtn.classList.toggle('hidden', !updatedChat.isGroupChat);
+        // --- END ADD ---
     }
 });
 
-// --- END Socket Listeners ---
-
-// Function to select a chat room
-/*
-function selectChatRoom(chatId, roomElement) {
-    console.log(`[DEBUG] Selecting chat room: ${chatId}`);
-    const messagesContainer = document.getElementById('messagesContainer');
-    const messageInputContainer = document.getElementById('messageInputContainer');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatHeaderTitle = document.getElementById('chatHeaderTitle');
-    const chatHeaderIcons = document.getElementById('chatHeaderIcons');
-    const renameChatBtn = document.getElementById('renameChatBtn');
-    const archiveChatBtn = document.getElementById('archiveChatBtn'); // Assuming you have this ID
-
-    // --- Clear previous active state ---
-    const previouslyActiveRoom = document.querySelector('.chat-room-item.active-chat');
-    if (previouslyActiveRoom) {
-        previouslyActiveRoom.classList.remove('active-chat', ...ACTIVE_CHAT_CLASSES);
-        previouslyActiveRoom.classList.add(...INACTIVE_CHAT_CLASSES); // Apply inactive styles
-        // Ensure data attribute is removed if you use it
-        // previouslyActiveRoom.removeAttribute('data-active');
+// --- ADD Member Management Socket Listeners ---
+socket.on('memberAdded', ({ chatId, addedUser, updatedMembers, creatorId }) => {
+    console.log(`[SOCKET DEBUG] Received memberAdded for chat ${chatId}, user: ${addedUser.username}`);
+    // Update members modal if it's open and for the current chat
+    if (membersModal && !membersModal.classList.contains('hidden') && chatId === currentChatId) {
+        // Re-render lists (simplest way to ensure consistency)
+        // Fetch potential users again as the added user should be removed from that list
+        openMembersModal(); // Re-fetch and re-render everything
     }
-    // --- End Clear previous active state ---
+    // Optional: Update participant count in header if displayed
+});
 
-    // --- Set new active state ---
-    if (roomElement) {
-        // Remove potential inactive classes before applying active ones
-        roomElement.classList.remove(...INACTIVE_CHAT_CLASSES);
-        roomElement.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES); // Apply new active state
-        // Ensure data attribute is set if you use it
-        // roomElement.setAttribute('data-active', 'true');
+socket.on('memberRemoved', ({ chatId, removedUserId, updatedMembers, creatorId }) => {
+    console.log(`[SOCKET DEBUG] Received memberRemoved for chat ${chatId}, user ID: ${removedUserId}`);
+    // Update members modal if it's open and for the current chat
+    if (membersModal && !membersModal.classList.contains('hidden') && chatId === currentChatId) {
+         // Re-render lists
+         openMembersModal(); // Re-fetch and re-render everything
+    }
+    // Optional: Update participant count in header if displayed
 
-        currentChatId = chatId; // Update the global currentChatId
-
-        // Update chat header
-        const chatData = findChatDataById(chatId); // Helper function to get chat details
-        if (chatData) {
-            chatHeaderTitle.textContent = getChatName(chatData, currentUserId); // Use helper
-            // Show/hide rename button based on group chat status
-            if (renameChatBtn) {
-                renameChatBtn.style.display = chatData.isGroupChat ? 'inline-block' : 'none';
-            }
-             // Update archive button data-id
-             if (archiveChatBtn) {
-                archiveChatBtn.setAttribute('data-id', chatId);
-                archiveChatBtn.style.display = 'inline-block'; // Always show for selected chat? Adjust as needed
-            }
-
-        } else {
-            chatHeaderTitle.textContent = 'Select a Chat';
-             if (renameChatBtn) renameChatBtn.style.display = 'none';
-             if (archiveChatBtn) archiveChatBtn.style.display = 'none';
-        }
-        chatHeader.classList.remove('hidden'); // Show header
-        chatHeaderIcons.classList.remove('hidden'); // Show icons
-
-        // Fetch and display messages
-        fetchMessages(chatId);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to bottom
-
-        // Show message input
-        messageInputContainer.classList.remove('hidden');
-
-        // Join the Socket.IO room for this chat
-        console.log(`[DEBUG] Emitting joinRoom for ${chatId}`);
-        socket.emit('joinRoom', chatId);
-
-    } else {
-        // Handle case where roomElement is not found (e.g., on initial load before selection)
+    // If the current user was the one removed
+    if (removedUserId === currentUserId && chatId === currentChatId) {
+        alert("You have been removed from this group.");
+        // Reset UI similar to archiving the current chat
         currentChatId = null;
-        messagesContainer.innerHTML = '<p class="text-center text-gray-500">Select a chat to view messages.</p>';
-        messageInputContainer.classList.add('hidden');
-        chatHeader.classList.add('hidden'); // Hide header if no chat selected
-        chatHeaderIcons.classList.add('hidden'); // Hide icons
-    }
-}
-*/
+        currentChatIsGroup = false;
+        currentChatCreatorId = null;
+        localStorage.removeItem('activeChatId');
+        messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat to start messaging.</p>';
+        if (chatHeaderName) chatHeaderName.textContent = 'Select a chat';
+        if (chatOptionsBtn) chatOptionsBtn.classList.add('hidden'); // Hide gear icon
+        if (chatOptionsDropdown) chatOptionsDropdown.classList.add('hidden'); // Hide dropdown
+        if (seeMembersBtn) seeMembersBtn.classList.add('hidden'); // Hide members button
+        messageInput.value = ''; // Clear message input
+        closeMembersModal(); // Close modal
 
-// --- Helper function to find chat data (if needed) ---
-/* // REMOVE THIS FUNCTION
-function findChatDataById(chatId) {
-    // Assuming you have a way to access the chat list data, e.g., a global variable `allChats`
-    // This is just an example, adapt to how you store chat data on the client
-    if (window.allChats && Array.isArray(window.allChats)) {
-        return window.allChats.find(chat => chat._id === chatId);
-    }
-    // Fallback: try finding data from the element itself if stored there
-    const roomElement = document.querySelector(`.chat-room-item[data-chat-id="${chatId}"]`);
-    if (roomElement && roomElement.dataset.chatData) {
-        try {
-            return JSON.parse(roomElement.dataset.chatData);
-        } catch (e) {
-            console.error("Error parsing chat data from element:", e);
-        }
-    }
-    return null;
-}
-*/ // END REMOVE FUNCTION
-
-
-// --- Ensure message sending doesn't mess with styles ---
-/* // REMOVE THIS LISTENER
-messageForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const content = messageInput.value.trim();
-
-    if (content && currentChatId) {
-        console.log(`[DEBUG] Sending message to chat ${currentChatId}`);
-        try {
-            const response = await fetch(`/chat/${currentChatId}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add authorization header if needed
-                },
-                body: JSON.stringify({ content }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Send message error:', errorData.error || response.statusText);
-                // Display error to user if needed
-                return; // Stop processing if send failed
-            }
-
-            // Message sent successfully via HTTP, Socket.IO 'newMessage' event will handle UI update
-            messageInput.value = ''; // Clear input field
-
-            // --- IMPORTANT: Do NOT modify chat list item classes here ---
-            // The active state should only change when selectChatRoom is called.
-
-        } catch (error) {
-            console.error('Network error sending message:', error);
-            // Display network error to user if needed
+        // Remove chat from sidebar
+        const roomElement = document.querySelector(`.chat-room[data-id="${chatId}"]`);
+        if (roomElement) {
+            roomElement.remove();
         }
     }
 });
-*/ // END REMOVE LISTENER
 
-// --- Ensure receiving messages doesn't mess with styles ---
-/* // REMOVE THIS LISTENER
-socket.on('newMessage', (message) => {
-    console.log('[DEBUG] Received newMessage event:', message);
-    // Check if the message belongs to the currently selected chat
-    if (message.chat === currentChatId) {
-        appendMessage(message); // Append message to the UI
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll down
-    } else {
-        // Optionally, update unread count or indicator for the non-active chat
-        const chatRoomItem = document.querySelector(`.chat-room-item[data-chat-id="${message.chat}"]`);
-        if (chatRoomItem) {
-            // Example: Add a subtle indicator
-            let unreadIndicator = chatRoomItem.querySelector('.unread-indicator');
-            if (!unreadIndicator) {
-                unreadIndicator = document.createElement('span');
-                unreadIndicator.classList.add('unread-indicator', 'ml-2', 'w-2', 'h-2', 'bg-blue-500', 'rounded-full', 'inline-block');
-                // Find a suitable place to append it, e.g., after the chat name
-                const chatNameElement = chatRoomItem.querySelector('.chat-name'); // Assuming you have this class
-                if (chatNameElement) {
-                    chatNameElement.parentNode.insertBefore(unreadIndicator, chatNameElement.nextSibling);
-                }
-            }
-             // Update last message preview if you have one
-             const lastMessageElement = chatRoomItem.querySelector('.last-message'); // Assuming you have this
-             if (lastMessageElement) {
-                 lastMessageElement.textContent = message.content.substring(0, 30) + (message.content.length > 30 ? '...' : '');
-                 lastMessageElement.classList.remove('text-gray-500'); // Make it less faded if needed
-                 lastMessageElement.classList.add('text-gray-700', 'font-medium');
-             }
-             // Update timestamp
-             const timestampElement = chatRoomItem.querySelector('.chat-timestamp'); // Assuming you have this
-             if (timestampElement) {
-                 timestampElement.textContent = formatTimestamp(message.timestamp || new Date()); // Use helper
-             }
-
-             // --- IMPORTANT: Do NOT modify active/inactive classes here ---
-        }
+// Listener for when the current user is removed from *any* chat (not necessarily the active one)
+socket.on('chatRemovedFrom', (removedChatId) => {
+    console.log(`[SOCKET DEBUG] Received chatRemovedFrom for chat ID: ${removedChatId}`);
+    const roomElement = document.querySelector(`.chat-room[data-id="${removedChatId}"]`);
+    if (roomElement) {
+        roomElement.remove();
+        console.log(`[DEBUG] Removed chat room ${removedChatId} from sidebar due to removal.`);
     }
-     // Move the chat item to the top of the list (optional)
-     const chatToMove = document.querySelector(`.chat-room-item[data-chat-id="${message.chat}"]`);
-     const chatList = document.getElementById('chatList'); // Assuming chat list has this ID
-     if (chatToMove && chatList && chatList.firstChild !== chatToMove) {
-         chatList.insertBefore(chatToMove, chatList.firstChild);
-     }
+    // If the removed chat was the active one, handle it (this might be redundant with 'memberRemoved' but safe)
+    if (removedChatId === currentChatId) {
+        // Reset UI
+        currentChatId = null;
+        currentChatIsGroup = false;
+        currentChatCreatorId = null;
+        localStorage.removeItem('activeChatId');
+        messagesDiv.innerHTML = '<p class="text-center text-gray-500">Select a chat to start messaging.</p>';
+        if (chatHeaderName) chatHeaderName.textContent = 'Select a chat';
+        if (chatOptionsBtn) chatOptionsBtn.classList.add('hidden');
+        if (chatOptionsDropdown) chatOptionsDropdown.classList.add('hidden');
+        if (seeMembersBtn) seeMembersBtn.classList.add('hidden');
+        messageInput.value = '';
+        closeMembersModal();
+    }
 });
-*/ // END REMOVE LISTENER
+// --- END Member Management Socket Listeners ---
 
-// --- Add this helper function if you don't have one ---
-/* // REMOVE THIS FUNCTION
-function formatTimestamp(isoString) {
-    if (!isoString) return '';
-    const date = new Date(isoString);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
 
-    if (isToday) {
-        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-    } else {
-        // Check if yesterday
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday';
-        }
-        // Older than yesterday
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-}
-*/ // END REMOVE FUNCTION
-
-// Render one message using Tailwind classes
+// --- Render one message using Tailwind classes
 // Added isOptimistic flag and handling for system messages
 function renderMessage(message, currentUserId, isOptimistic = false) {
 
@@ -1331,9 +1461,17 @@ function renderMessage(message, currentUserId, isOptimistic = false) {
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
+        // --- ADDED: Specific styling for member add/remove ---
+        // You might want different icons or slightly different text color
+        let systemStyle = "text-gray-500 bg-gray-100"; // Default for rename
+        if (message.content.includes("added") || message.content.includes("removed")) {
+            systemStyle = "text-blue-600 bg-blue-50"; // Style for member changes
+        }
+        // --- END ADDED ---
+
         return `
             <div id="message-${messageId}" class="message system-message flex justify-center my-2.5">
-                <span class="text-center text-gray-500 text-xs italic bg-gray-100 px-2 py-1 rounded-full shadow-sm">
+                <span class="text-center text-xs italic px-2 py-1 rounded-full shadow-sm ${systemStyle}">
                     ${sanitizedContent}
                 </span>
             </div>
@@ -1467,6 +1605,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                  modalBackdrop.classList.add('hidden');
              }
 
+           
             // --- Ensure chat appears and is selected for creator (Fallback/Primary) ---
             console.log(`[DEBUG] Chat creation request successful for ${chat._id}. Ensuring UI update for creator.`);
 
@@ -1486,14 +1625,14 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                 if (!chatElement) {
                     isNewElement = true;
                     console.log(`[DEBUG] Chat element ${chat._id} not found via socket, creating manually.`);
-                    // Create and append the new chat room element (logic adapted from newChatCreated)
+                                       // Create and append the new chat room element (logic adapted from newChatCreated)
                     const newChatDiv = document.createElement('div');
                     // Add relative positioning
                     newChatDiv.classList.add('chat-room', 'relative', ...INACTIVE_CHAT_CLASSES, 'p-2.5', 'mt-2', 'rounded-lg', 'cursor-pointer', 'transition', 'duration-200', 'ease-in-out', 'group');
                     newChatDiv.dataset.id = chat._id;
                     newChatDiv.dataset.creatorId = chat.creator ? chat.creator._id.toString() : '';
                     // --- Store initial timestamp ---
-                    newChatDiv.dataset.latestMessageTimestamp = chat.createdAt || new Date().toISOString();
+                    newChatDiv.dataset.latestMessageTimestamp = chat.createdAt || new Date().toISOString(); // Use creation time
 
                     let roomHTML = '';
                     if (chat.isGroupChat) {
@@ -1541,7 +1680,7 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                             }
                             // --- END HIDE UNREAD DOT ---
 
-                            // ... (rest of click handler: Update state, load messages, update header) ...
+                            // --- Update global state and load data ---
                             currentChatId = newChatId;
                             currentChatCreatorId = creatorId || null;
                             localStorage.setItem('activeChatId', currentChatId);
@@ -1551,8 +1690,10 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                             loadedMessageIds.clear();
                             loadMessages();
 
-                            currentChatIsGroup = newChatDiv.textContent.includes('[Group]');
+                            // --- Update Header and Options ---
+                            currentChatIsGroup = newChatDiv.textContent.includes('[Group]'); // Determine from element
                             if (chatHeaderName) {
+                                // Extract name, removing the role span or [Group] prefix
                                 const nameElement = newChatDiv.cloneNode(true);
                                 const roleSpan = nameElement.querySelector('span');
                                 const groupStrong = nameElement.querySelector('strong');
@@ -1563,15 +1704,19 @@ document.getElementById('new-chat-form').addEventListener('submit', async (e) =>
                             }
                             if (chatOptionsBtn) chatOptionsBtn.classList.remove('hidden');
                             if (renameChatBtn) renameChatBtn.classList.toggle('hidden', !currentChatIsGroup);
+                            // --- ADD: Show/Hide See Members Button ---
+                            if (seeMembersBtn) seeMembersBtn.classList.toggle('hidden', !currentChatIsGroup);
+                            // --- END ADD ---
                             if (archiveChatBtn) archiveChatBtn.classList.remove('hidden');
+                            // --- End Update Header and Options ---
 
                         } else {
-                            console.log(`[DEBUG] Clicked already active room: ${currentChatId}. No join emitted.`);
-                            // Ensure styles are correct
-                            newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES);
-                            newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
-                            // --- REMOVE old notification style cleanup ---
-                            // newChatDiv.classList.remove('font-bold', 'text-green-600');
+                            console.log(`[DEBUG] Clicked already active (unarchived) room: ${currentChatId}. No join emitted.`);
+                             // Ensure styles are correct
+                             newChatDiv.classList.remove(...INACTIVE_CHAT_CLASSES);
+                             newChatDiv.classList.add('active-chat', ...ACTIVE_CHAT_CLASSES);
+                             // --- REMOVE old notification style cleanup ---
+                             // newChatDiv.classList.remove('font-bold', 'text-green-600');
                              // --- HIDE UNREAD DOT ---
                              const unreadDot = newChatDiv.querySelector('.unread-dot');
                              if (unreadDot) {
