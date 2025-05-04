@@ -1,6 +1,6 @@
 <% posts.forEach(post => { %>
-    <div class="post bg-white rounded-[15px] shadow-md mb-[1.5vw] flex flex-col relative p-5" data-post-id="<%= post._id %>"> <!-- Add data-post-id here -->
-        <div class="post-item">
+    <div class="post bg-white rounded-[15px] shadow-md mb-[1.5vw] flex flex-col relative p-5" data-post-id="<%= post._id %>">
+        <div class="post-item overflow-hidden"> <!-- Added overflow-hidden -->
             <div class="post-info">
                 <!-- Post Header (Title) -->
                 <div class="post-header flex justify-between items-center mb-1">
@@ -8,7 +8,7 @@
                     <!-- Date is absolutely positioned -->
                 </div>
                 <!-- Post Text -->
-                <p class="post-text text-base text-gray-700 mb-3"><%= post.text %></p>
+                <p class="post-text text-base text-gray-700 mb-3 break-words"><%= post.text %></p> <!-- Added break-words -->
                 <!-- Post Date (Absolute) -->
                 <p class="post-date text-[11px] text-gray-400 absolute top-[1.5vw] right-[1.9vw]">Posted on <%= post.createdAt.toLocaleString() %></p>
 
@@ -79,21 +79,21 @@
              </div>
 
             <!-- Comments Section -->
-             <div class="post-comments mt-4 pt-2.5 border-t border-gray-300">
+             <div class="post-comments mt-4 pt-2.5 border-t border-gray-300 w-full"> <!-- Ensure it takes full width -->
                  <% if (user) { %>
-                     <form onsubmit="submitComment(event, '<%= post._id %>')" class="flex gap-2 items-center">
-                         <input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" placeholder="Write a comment..." required>
-                         <button type="submit" class="comment-btn py-2 px-3.5 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-sm hover:bg-[#00591F]">Comment</button>
+                     <form onsubmit="submitComment(event, '<%= post._id %>')" class="flex gap-1.5 items-center"> <!-- Reduced gap -->
+                         <input type="text" class="comment-input flex-grow p-1.5 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 min-w-0" placeholder="Write a comment..." required> <!-- Reduced padding, added min-w-0 -->
+                         <button type="submit" class="comment-btn py-1.5 px-3 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-xs hover:bg-[#00591F] flex-shrink-0">Comment</button> <!-- Reduced padding/text size, added flex-shrink-0 -->
                      </form>
                  <% } %>
-                 <div class="comment-list mt-2.5 space-y-2"> <!-- Added space-y for spacing between comments -->
+                 <div class="comment-list mt-2.5 space-y-2">
                      <% post.comments && post.comments.forEach(comment => { %>
                          <div class="comment bg-gray-50 p-2 rounded-[10px] text-sm relative border-b border-gray-200 last:border-b-0" id="comment-<%= comment._id %>">
                              <div class="comment-content">
                                  <strong class="text-green-700"><%= comment.username %>:</strong>
-                                 <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700"><%= comment.text %></span>
+                                 <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700 break-words"><%= comment.text %></span> <!-- Added break-words -->
                              </div>
-                             <div class="comment-actions absolute top-2 right-2 flex gap-2"> <!-- Actions container -->
+                             <div class="comment-actions absolute top-2 right-2 flex gap-2">
                                   <!-- Edit Button (Author Only) -->
                                   <% if (user && user.username === comment.username) { %>
                                      <button class="edit-comment-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
@@ -105,12 +105,17 @@
                              </div>
                               <!-- Edit Form (Hidden by default) -->
                              <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form hidden flex gap-1.5 mt-1">
-                                 <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500" value="<%= comment.text %>" required />
-                                 <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F]">Save</button>
-                                 <button type="button" onclick="cancelEditComment('<%= comment._id %>')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs">Cancel</button>
+                                 <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 min-w-0" value="<%= comment.text %>" required /> <!-- Added min-w-0 -->
+                                 <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F] flex-shrink-0">Save</button> <!-- Added flex-shrink-0 -->
+                                 <button type="button" onclick="cancelEditComment('<%= comment._id %>')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs flex-shrink-0">Cancel</button> <!-- Added flex-shrink-0 -->
                              </form>
                          </div>
                      <% }) %>
+                     <% if (post.comments && post.comments.length > 2) { %> <%# Logic for load more button %>
+                        <button class="load-more-comments text-blue-600 text-sm hover:underline" onclick="loadMoreComments('<%= post._id %>')">View all <%= post.comments.length %> comments</button>
+                     <% } else if (!post.comments || post.comments.length === 0) { %> <%# Show 'No comments' if none exist %>
+                        <p class="text-xs text-gray-500 no-comments">No comments yet.</p>
+                     <% } %>
                  </div>
              </div> <!-- End post-comments -->
         </div> <!-- End post-item -->

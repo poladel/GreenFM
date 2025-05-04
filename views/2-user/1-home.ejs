@@ -118,11 +118,13 @@
                 <!-------------------- CONTENTS END -------------------->
 
                 <!-- Media Modal (Full Screen Overlay) -->
-                <div id="media-modal" class="media-modal hidden fixed inset-0 z-[9999] bg-black/80 justify-center items-center"> <!-- Starts hidden, uses flex for centering -->
+                <%# Added padding (p-4 or p-8) to the overlay itself %>
+                <div id="media-modal" class="media-modal hidden fixed inset-0 z-[9999] bg-black/80 flex justify-center items-center p-4 lg:p-8"> <%# Added padding here %>
                     <span class="close-modal absolute top-2 right-5 text-4xl text-white cursor-pointer z-10">×</span>
-                    <div class="modal-content relative max-w-[90%] max-h-[90%] flex items-center justify-center w-auto h-auto"> <!-- Adjusted for centering content -->
+                    <%# Removed max-w/max-h constraints, let it fill the padded overlay %>
+                    <div class="modal-content relative w-full h-full flex items-center justify-center"> <%# Changed classes %>
                         <button class="nav-arrow left-arrow absolute top-1/2 transform -translate-y-1/2 left-[-3vw] lg:left-[-50px] bg-none border-none text-4xl text-white cursor-pointer p-2.5 z-10">❮</button>
-                        <!-- Media elements: JS will show one at a time -->
+                        <!-- Media elements: JS will show one at a time. Classes ensure it fits within the parent -->
                         <img id="modal-image" class="modal-media block max-w-full max-h-full w-auto h-auto object-contain rounded-lg" style="display: none;">
                         <video id="modal-video" class="modal-media block max-w-full max-h-full w-auto h-auto object-contain rounded-lg" controls style="display: none;"></video>
                         <button class="nav-arrow right-arrow absolute top-1/2 transform -translate-y-1/2 right-[-3vw] lg:right-[-50px] bg-none border-none text-4xl text-white cursor-pointer p-2.5 z-10">❯</button>

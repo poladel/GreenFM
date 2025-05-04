@@ -2439,6 +2439,10 @@ video {
   padding: 4vh;
 }
 
+.p-8 {
+  padding: 2rem;
+}
+
 .px-0 {
   padding-left: 0px;
   padding-right: 0px;
@@ -3901,6 +3905,10 @@ video {
 
   .lg\:p-\[1\.5vh\] {
     padding: 1.5vh;
+  }
+
+  .lg\:p-8 {
+    padding: 2rem;
   }
 
   .lg\:px-0 {
