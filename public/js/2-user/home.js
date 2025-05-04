@@ -15,6 +15,12 @@ function showToast(message) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Ensure body scrolling is enabled on load ---
+    document.body.classList.remove('overflow-hidden');
+    document.body.style.overflow = ''; // Also reset inline style just in case
+    console.log("Ensured body overflow is reset on DOMContentLoaded.");
+    // --- End ensure scrolling ---
+
     updateScheduleList();
 
     // Check if the admin-only elements exist
@@ -62,7 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postForm) {
         postForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-    
+
+            // --- Disable button immediately ---
+            const postButton = postForm.querySelector('.post-button');
+            const originalButtonText = postButton.textContent;
+            postButton.disabled = true;
+            postButton.textContent = 'Posting...'; // Sets the text to "Posting..."
+            // --- End disable button ---
+
             const imageInput = document.getElementById('image-input');
             const videoInput = document.getElementById('video-input');
             const titleValue = document.getElementById('post-title').value.trim();
@@ -111,15 +124,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert('Post uploaded successfully!');
-                    window.location.reload();
+                    // Success: Show message, clear form, rely on socket event for UI update
+                    showToast('Post uploaded successfully!'); // Use showToast instead of alert
                     postForm.reset();
                     document.getElementById('preview-container').innerHTML = '';
+                    // Clear file tracking arrays if used
+                    imageFiles = [];
+                    videoFile = null;
+                    // Reset file inputs (important after clearing previews/arrays)
+                    if (imageInput) imageInput.value = '';
+                    if (videoInput) videoInput.value = '';
+
                 } else {
-                    alert(result.error || 'Failed to post');
+                    showToast(result.error || 'Failed to post'); // Use showToast
                 }
             } catch (error) {
-                alert("Something went wrong!");
+                console.error("Error submitting post:", error); // Log error
+                showToast("Something went wrong!"); // Use showToast
+            } finally {
+                // --- Re-enable button after fetch completes ---
+                postButton.disabled = false;
+                postButton.textContent = originalButtonText; // Restores original text
+                // --- End re-enable button ---
             }
         });
     } else {
@@ -337,19 +363,26 @@ async function updatePost(postId, newTitle, newText) {
         const result = await response.json();
 
         if (response.ok) {
-            alert('Post updated successfully!');
-            window.location.reload();
+            showToast('Post updated successfully!'); // Use showToast
+            // --- REMOVE PAGE RELOAD ---
+            // window.location.reload();
+            // --- The 'post_edited' socket event in 1-home.ejs will handle the UI update ---
         } else {
-            alert(result.error || 'Failed to update post');
+            showToast(result.error || 'Failed to update post'); // Use showToast
         }
     } catch (error) {
-        alert('Failed to update post');
+        console.error('Error updating post:', error); // Log error
+        showToast('Failed to update post'); // Use showToast
     }
 }
 
 // Function to delete a post
 async function deletePost(postId) {
     if (confirm('Are you sure you want to delete this post?')) {
+        // Disable button temporarily if needed (find the button first)
+        const deleteButton = document.querySelector(`.delete-btn[onclick="deletePost('${postId}')"]`);
+        if (deleteButton) deleteButton.disabled = true;
+
         try {
             const response = await fetch(`/post/${postId}`, {
                 method: 'DELETE'
@@ -357,14 +390,20 @@ async function deletePost(postId) {
             const result = await response.json();
 
             if (response.ok) {
-                alert('Post deleted successfully!');
-                window.location.reload();
+                showToast('Post deleted successfully!'); // Use showToast
+                // --- REMOVE PAGE RELOAD ---
+                // window.location.reload();
+                // --- The 'post_deleted' socket event in 1-home.ejs will handle removing the post ---
             } else {
-                alert(result.error || 'Failed to delete post');
+                showToast(result.error || 'Failed to delete post'); // Use showToast
+                if (deleteButton) deleteButton.disabled = false; // Re-enable on failure
             }
         } catch (error) {
-            alert('Failed to delete post');
+            console.error('Error deleting post:', error); // Log error
+            showToast('Failed to delete post'); // Use showToast
+            if (deleteButton) deleteButton.disabled = false; // Re-enable on error
         }
+        // Note: Button remains disabled on success as the element will be removed by the socket event.
     }
 }
 
@@ -402,6 +441,12 @@ async function submitComment(event, postId) {
 
     if (!text) return;
 
+    // Disable input and button during submission
+    const submitButton = form.querySelector('.comment-btn');
+    input.disabled = true;
+    if (submitButton) submitButton.disabled = true;
+
+
     try {
         const res = await fetch(`/post/${postId}/comment`, {
             method: 'POST',
@@ -414,31 +459,31 @@ async function submitComment(event, postId) {
         const result = await res.json();
 
         if (res.ok) {
-            const commentList = document.getElementById(`comments-${postId}`);
-            const newComment = document.createElement('div');
-            newComment.classList.add('comment');
-            newComment.id = `comment-${result.comment._id}`;
-
-            // Check permissions
-            const canDelete = window.user &&
-                (window.user.username === result.comment.username ||
-                (Array.isArray(window.user.roles)
-                ? (window.user.roles.includes('Admin') || window.user.roles.includes('Staff'))
-                : (window.user.roles === 'Admin' || window.user.roles === 'Staff')));
-
-            newComment.innerHTML = `
-                <strong>${result.comment.username}:</strong> ${result.comment.text}
-                ${canDelete ? `<button class="delete-comment-btn" onclick="deleteComment('${postId}', '${result.comment._id}')">🗑️</button>` : ''}
-            `;
-
-            window.location.reload();
+            // Clear the input field
             input.value = '';
+            // The 'new_comment' socket event in 1-home.ejs will handle adding the comment to the UI
+            // No need to manually add it here or reload
+            // const commentList = document.getElementById(`comments-${postId}`); // This ID might not exist
+            // const postElement = form.closest('.post'); // Find parent post element
+            // const commentList = postElement ? postElement.querySelector('.comment-list') : null;
+            // if (commentList) {
+            //     const newCommentElement = createCommentElement(result.comment, window.currentUser, postId); // Assuming createCommentElement and currentUser are accessible
+            //     if (newCommentElement) {
+            //         const noCommentsP = commentList.querySelector('.no-comments');
+            //         if (noCommentsP) noCommentsP.remove();
+            //         commentList.appendChild(newCommentElement); // Or insertBefore load more button
+            //     }
+            // }
         } else {
-            alert(result.error || 'Failed to post comment.');
+            showToast(result.error || 'Failed to post comment.'); // Use showToast
         }
     } catch (err) {
         console.error('Error posting comment:', err);
-        alert('Failed to post comment.');
+        showToast('Failed to post comment.'); // Use showToast
+    } finally {
+        // Re-enable input and button
+        input.disabled = false;
+        if (submitButton) submitButton.disabled = false;
     }
 }
 
@@ -446,6 +491,10 @@ async function deleteComment(postId, commentId) {
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
     console.log(`Attempting to delete comment: PostId=${postId}, CommentId=${commentId}`);
+    // Disable button temporarily if needed
+    const deleteButton = document.querySelector(`.delete-comment-btn[onclick="deleteComment('${postId}', '${commentId}')"]`);
+    if (deleteButton) deleteButton.disabled = true;
+
 
     try {
         const res = await fetch(`/post/${postId}/comment/${commentId}`, {
@@ -455,15 +504,21 @@ async function deleteComment(postId, commentId) {
         const result = await res.json();
 
         if (res.ok) {
-            const commentElement = document.getElementById(`comment-${commentId}`);
-            if (commentElement) commentElement.remove();
+            showToast('Comment deleted successfully.'); // Use showToast
+            // --- REMOVE DIRECT DOM MANIPULATION / RELOAD ---
+            // const commentElement = document.getElementById(`comment-${commentId}`);
+            // if (commentElement) commentElement.remove();
+            // --- The 'comment_deleted' socket event in 1-home.ejs will handle removing the comment ---
         } else {
-            alert(result.error || 'Failed to delete comment.');
+            showToast(result.error || 'Failed to delete comment.'); // Use showToast
+            if (deleteButton) deleteButton.disabled = false; // Re-enable on failure
         }
     } catch (err) {
         console.error('Error deleting comment:', err);
-        alert('Failed to delete comment.');
+        showToast('Failed to delete comment.'); // Use showToast
+        if (deleteButton) deleteButton.disabled = false; // Re-enable on error
     }
+    // Note: Button remains disabled on success as the element will be removed by the socket event.
 }
 
 function enableEditComment(postId, commentId) {
@@ -536,23 +591,47 @@ document.addEventListener("DOMContentLoaded", () => {
         currentPage = page; // Update current page
 
         const params = new URLSearchParams(query);
+        console.log(`[fetchPosts] Fetching with params: ${params.toString()}`); // Log fetch params
         try {
-            // Assuming the endpoint now returns { html: '...', currentPage: ..., totalPages: ... }
             const res = await fetch(`/posts-filter?${params}`);
             const data = await res.json(); // Expect JSON response
 
             if (res.ok) {
+                // --- Add Logging before replacing innerHTML ---
+                console.log(`[fetchPosts] Received HTML for page ${data.currentPage}:`, data.html.substring(0, 500) + "..."); // Log beginning of HTML
+                // Check if the received HTML contains the expected data-post-id attribute structure
+                if (data.html.includes('data-post-id=')) {
+                    console.log("[fetchPosts] Received HTML seems to contain 'data-post-id'.");
+                } else {
+                     console.warn("[fetchPosts] Received HTML might be missing 'data-post-id' attributes!");
+                }
+                // --- End Logging ---
+
                 postsContainer.innerHTML = data.html; // Update posts list
                 renderPaginationControls(data.currentPage, data.totalPages, query); // Update pagination
+
+                // --- Ensure body scrolling is enabled after content update ---
+                document.body.style.overflow = '';
+                console.log("[fetchPosts] Ensured body overflow is reset.");
+                // --- End ensure scrolling ---
+
             } else {
-                console.error("Failed to fetch posts:", data.error);
+                console.error("[fetchPosts] Failed to fetch posts:", data.error);
                 postsContainer.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
                 paginationControls.innerHTML = ''; // Clear pagination on error
+                // --- Ensure body scrolling is enabled even on error ---
+                document.body.style.overflow = '';
+                console.log("[fetchPosts] Ensured body overflow is reset after error.");
+                // --- End ensure scrolling ---
             }
         } catch (error) {
-            console.error("Error during fetch:", error);
+            console.error("[fetchPosts] Error during fetch:", error);
             postsContainer.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
             paginationControls.innerHTML = ''; // Clear pagination on error
+            // --- Ensure body scrolling is enabled even on catch ---
+            document.body.style.overflow = '';
+            console.log("[fetchPosts] Ensured body overflow is reset after catch.");
+            // --- End ensure scrolling ---
         }
     };
 
@@ -616,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // const initialCurrentPage = parseInt(paginationControls.dataset.currentPage || '1');
     // const initialTotalPages = parseInt(paginationControls.dataset.totalPages || '1');
     // renderPaginationControls(initialCurrentPage, initialTotalPages, {});
+    // End DOMContentLoaded
 
 }); // End DOMContentLoaded
 
@@ -681,15 +761,24 @@ function updateScheduleList() {
 //-----Live Now-----//
 // 🟢 Fetch schedule from MongoDB
 function fetchSchedule() {
-    fetch('/schedule')
+    // --- Return the promise chain ---
+    return fetch('/schedule') // Add return
         .then(res => res.json())
         .then(data => {
             if (data) {
+                // Assuming weekSchedule is a global or accessible variable
                 weekSchedule = data;
-                renderScheduleList();
+                // --- Remove non-existent function call ---
+                // renderScheduleList();
             }
+            // Optionally return data if needed by other chains
+            return data;
         })
-        .catch(err => console.error("Failed to fetch schedule:", err));
+        .catch(err => {
+            console.error("Failed to fetch schedule:", err);
+            // Re-throw or handle error appropriately
+            throw err; // Propagate the error if needed
+        });
 }
     // Parse time in "HH:MM"
     function parseTime(str) {
@@ -778,7 +867,9 @@ function fetchSchedule() {
     window.addEventListener('DOMContentLoaded', fetchStatus);
 
     // 🚀 On page load
-    fetchSchedule().then(() => {
-        updateLiveNow();
-        setInterval(updateLiveNow, 60000); // Keep updating every minute
-    });
+    // --- Remove .then() block calling non-existent function ---
+    fetchSchedule(); // Just call fetchSchedule, no need for .then here if updateLiveNow is removed
+    // setInterval might need adjustment if it relied on fetchSchedule completing first
+    // Consider placing setInterval inside updateScheduleList or ensuring weekSchedule is available
+    // setInterval(updateLiveNow, 60000); // Keep updating every minute
+    // --- End removal ---

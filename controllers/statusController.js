@@ -35,6 +35,16 @@ const updateStatus = async (req, res) => {
         status.updatedAt = new Date();
 
         await status.save();
+
+        // --- Emit status update via Socket.IO ---
+        if (req.io) {
+            console.log(`🟢 Emitting 'status_update' event. Live: ${status.live}`);
+            req.io.emit('status_update', { live: status.live }); // Send the new status
+        } else {
+            console.warn("🔴 req.io not found. Cannot emit 'status_update' event.");
+        }
+        // --- End Socket.IO emit ---
+
         res.json({ success: true, status });
     } catch (err) {
         res.status(500).json({ error: 'Failed to update live status' });

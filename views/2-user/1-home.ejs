@@ -146,7 +146,431 @@
 
         <%- include('../partials/footer.ejs') %>
 
-        <script src="/js/2-user/home.js"></script> <!-- Ensure path is correct -->
+        <!-- Include Socket.IO Client Library -->
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- Include the original home.js script -->
+        <script src="/js/2-user/home.js"></script>
+
+        <!-- Add Socket.IO related client-side logic -->
+        <script>
+            // Ensure this runs after the DOM is ready and home.js might have run
+            document.addEventListener('DOMContentLoaded', () => {
+                const socket = io(); // Connect to the server
+                const postsContainer = document.getElementById('posts-container');
+                const postForm = document.getElementById('post-form'); // Might be null
+                const currentUser = <%- user ? JSON.stringify({ _id: user._id.toString(), roles: user.roles, profilePicture: user.profilePicture, username: user.username }) : 'null' %>;
+                const currentUserId = currentUser ? currentUser._id : '';
+
+                console.log('Socket.IO client initialized for home page.');
+
+                // --- Listener for New Posts ---
+                socket.on('new_post', (post) => {
+                    console.log('Received new_post event:', post);
+                    if (postsContainer) {
+                        // *** Check if post element already exists ***
+                        const existingPostElement = postsContainer.querySelector(`.post[data-post-id="${post._id}"]`);
+                        if (!existingPostElement) {
+                            const postElement = createPostElement(post, currentUser);
+                            if (postElement) {
+                                postsContainer.insertAdjacentElement('afterbegin', postElement); // Prepend
+                                console.log(`New post ${post._id} prepended to container.`);
+                                // Event listeners should be handled by home.js via delegation
+                            }
+                        } else {
+                             console.log(`Post ${post._id} already exists in the DOM. Skipping prepend.`);
+                        }
+                    } else {
+                        console.error('Posts container not found.');
+                    }
+                });
+
+                // --- Listener for Post Deletion ---
+                socket.on('post_deleted', (data) => {
+                    const { postId } = data;
+                    // --- Add Detailed Logging ---
+                    console.log(`[Socket] Received 'post_deleted' event for postId: ${postId}`);
+                    if (!postsContainer) {
+                        console.error("[Socket] 'post_deleted': postsContainer not found!");
+                        return;
+                    }
+                    const postSelector = `.post[data-post-id="${postId}"]`;
+                    console.log(`[Socket] 'post_deleted': Attempting to find element with selector: ${postSelector}`);
+                    const postElement = postsContainer.querySelector(postSelector);
+                    // --- End Detailed Logging ---
+
+                    if (postElement) {
+                        postElement.remove();
+                        console.log(`[Socket] 'post_deleted': Successfully removed post element ${postId} from DOM.`);
+                        showToast('Post deleted.', 'info'); // Use the showToast from this script block
+                    } else {
+                        console.warn(`[Socket] 'post_deleted': Post element ${postId} not found in DOM for deletion.`);
+                    }
+                });
+
+                // --- Listener for New Comments ---
+                socket.on('new_comment', (data) => {
+                    const { postId, comment } = data;
+                    console.log(`Received new_comment for post ${postId}:`, comment);
+                    const postElement = postsContainer ? postsContainer.querySelector(`.post[data-post-id="${postId}"]`) : null;
+                    if (postElement) {
+                        const commentsList = postElement.querySelector('.comment-list');
+                        // Check if comment element already exists
+                        if (commentsList && !commentsList.querySelector(`#comment-${comment._id}`)) {
+                            const commentElement = createCommentElement(comment, currentUser, postId); // Pass postId
+                            if (commentElement) {
+                                const noCommentsP = commentsList.querySelector('.no-comments');
+                                if (noCommentsP) noCommentsP.remove();
+
+                                const loadMoreButton = commentsList.querySelector('.load-more-comments');
+                                if (loadMoreButton) {
+                                    commentsList.insertBefore(commentElement, loadMoreButton);
+                                } else {
+                                    commentsList.appendChild(commentElement);
+                                }
+
+                                // Update comment count display (if applicable)
+                                // This depends on where the count is displayed in postList.ejs
+                                // Example: const commentCountSpan = postElement.querySelector('.comment-count');
+                                // if (commentCountSpan) { ... }
+                            }
+                        } else if (!commentsList) {
+                            console.warn(`Comments list not found for post ${postId}`);
+                        } else {
+                            console.log(`Comment ${comment._id} already exists in post ${postId}. Skipping append.`);
+                        }
+                    } else {
+                        console.warn(`Post element not found for comment on post ${postId}`);
+                    }
+                });
+
+                // --- Listener for Comment Deletion ---
+                socket.on('comment_deleted', (data) => {
+                    const { postId, commentId } = data;
+                     // --- Add Detailed Logging ---
+                    console.log(`[Socket] Received 'comment_deleted' event. Data:`, data); // Log the whole data object
+                    if (!postsContainer) {
+                        console.error("[Socket] 'comment_deleted': postsContainer not found!");
+                        return;
+                    }
+                    const postSelector = `.post[data-post-id="${postId}"]`;
+                    console.log(`[Socket] 'comment_deleted': Attempting to find post element with selector: ${postSelector}`);
+                    const postElement = postsContainer.querySelector(postSelector);
+                     // --- End Detailed Logging ---
+
+                    if (postElement) {
+                        const commentSelector = `#comment-${commentId}`;
+                        // --- Add log for the specific selector being used ---
+                        console.log(`[Socket] 'comment_deleted': Using comment selector: "${commentSelector}" within post ${postId}`);
+                        // --- End log ---
+                        const commentElement = postElement.querySelector(commentSelector);
+
+                        if (commentElement) {
+                            commentElement.remove();
+                            console.log(`[Socket] 'comment_deleted': Successfully removed comment element ${commentId} from post ${postId}.`);
+                            // Use the showToast defined within this script's scope
+                            showToast('Comment deleted.', 'info');
+
+                            // Update comment count (if applicable)
+                            // Check if comments list is now empty and add back "No comments yet" message if needed
+                            const commentsList = postElement.querySelector('.comment-list');
+                            const hasLoadMore = commentsList ? commentsList.querySelector('.load-more-comments') : null;
+                            if (commentsList && commentsList.querySelectorAll('.comment').length === 0 && !hasLoadMore) {
+                                const noCommentsP = document.createElement('p');
+                                noCommentsP.className = 'text-xs text-gray-500 no-comments';
+                                noCommentsP.textContent = 'No comments yet.';
+                                commentsList.appendChild(noCommentsP);
+                                console.log(`[Socket] 'comment_deleted': Added 'No comments yet' message back to post ${postId}.`);
+                            }
+                        } else {
+                            console.warn(`[Socket] 'comment_deleted': Comment element with selector "${commentSelector}" not found in post ${postId} for deletion.`);
+                        }
+                    } else {
+                         console.warn(`[Socket] 'comment_deleted': Post element ${postId} not found for comment deletion.`);
+                    }
+                });
+
+                // --- Listener for Comment Editing ---
+                socket.on('comment_edited', (data) => {
+                    const { postId, commentId, text } = data;
+                    console.log(`Received comment_edited event for post ${postId}, comment ${commentId}`);
+                     const postElement = postsContainer ? postsContainer.querySelector(`.post[data-post-id="${postId}"]`) : null;
+                    if (postElement) {
+                        const commentElement = postElement.querySelector(`#comment-${commentId}`);
+                        if (commentElement) {
+                            const commentTextSpan = commentElement.querySelector('.comment-text');
+                            const editForm = commentElement.querySelector('.edit-comment-form');
+                            const commentContent = commentElement.querySelector('.comment-content');
+
+                            if (commentTextSpan) {
+                                commentTextSpan.textContent = text; // Update display text
+                                console.log(`Comment ${commentId} text updated in post ${postId}.`);
+
+                                // Ensure edit form is hidden and content is shown
+                                if (editForm && !editForm.classList.contains('hidden')) {
+                                    editForm.classList.add('hidden');
+                                    if(commentContent) commentContent.classList.remove('hidden');
+                                }
+                                // Update value in edit input as well
+                                const editInput = editForm ? editForm.querySelector('.edit-comment-input') : null;
+                                if (editInput) editInput.value = text;
+
+                                // Optional highlight
+                                commentElement.classList.add('bg-yellow-100');
+                                setTimeout(() => {
+                                    const currentCommentElement = postElement.querySelector(`#comment-${commentId}`);
+                                    if (currentCommentElement) currentCommentElement.classList.remove('bg-yellow-100');
+                                }, 1500);
+                            } else {
+                                 console.warn(`Comment text span not found for comment ${commentId}.`);
+                            }
+                        } else {
+                            console.warn(`Comment element ${commentId} not found in post ${postId} for editing.`);
+                        }
+                    } else {
+                         console.warn(`Post element ${postId} not found for comment editing.`);
+                    }
+                });
+
+                 // --- Listener for Like Updates ---
+                socket.on('post_like_update', (data) => {
+                    const { postId, likeCount, userId, liked } = data;
+                    console.log(`Received post_like_update for post ${postId}:`, data);
+                    const postElement = postsContainer ? postsContainer.querySelector(`.post[data-post-id="${postId}"]`) : null;
+                    if (postElement) {
+                        const likeButton = postElement.querySelector(`#like-btn-${postId}`);
+                        const likeCountSpan = postElement.querySelector(`#like-count-${postId}`);
+
+                        if (likeCountSpan) {
+                            likeCountSpan.textContent = likeCount; // Update count
+                        }
+                        // Update button style only for the user who triggered the like/unlike
+                        if (likeButton && userId === currentUserId) {
+                            // Add/remove a class that indicates the liked state
+                            likeButton.classList.toggle('user-liked', liked);
+                            // Ensure CSS exists to style '.user-liked', e.g., changing heart color or background
+                            console.log(`Like button style updated for user ${userId} on post ${postId}. Liked: ${liked}`);
+                        } else if (likeButton) {
+                             console.log(`Like update for post ${postId} received, but not for current user ${currentUserId}. Count updated only.`);
+                        }
+                    } else {
+                         console.warn(`Post element not found for like update on post ${postId}`);
+                    }
+                });
+
+                // --- Listener for Post Editing ---
+                socket.on('post_edited', (data) => {
+                    const { postId, title, text } = data;
+                    console.log(`[Socket] Received 'post_edited' event for postId: ${postId}`);
+
+                    if (!postsContainer) {
+                        console.error("[Socket] 'post_edited': postsContainer not found!");
+                        return;
+                    }
+                    const postSelector = `.post[data-post-id="${postId}"]`;
+                    const postElement = postsContainer.querySelector(postSelector);
+
+                    if (postElement) {
+                        const titleElement = postElement.querySelector('.post-header h3');
+                        const textElement = postElement.querySelector('.post-text');
+                        const editButton = postElement.querySelector(`.edit-btn[data-post-id="${postId}"]`);
+
+                        if (titleElement) {
+                            titleElement.textContent = title;
+                            console.log(`[Socket] 'post_edited': Updated title for post ${postId}.`);
+                        } else {
+                            console.warn(`[Socket] 'post_edited': Title element not found for post ${postId}.`);
+                        }
+
+                        if (textElement) {
+                            textElement.textContent = text; // Update the text content
+                            console.log(`[Socket] 'post_edited': Updated text for post ${postId}.`);
+                        } else {
+                            console.warn(`[Socket] 'post_edited': Text element not found for post ${postId}.`);
+                        }
+
+                        // Update data attributes on the edit button for subsequent edits
+                        if (editButton) {
+                            // Escape quotes for HTML attribute values
+                            const escapedTitle = title.replace(/"/g, '&quot;');
+                            const escapedText = text.replace(/"/g, '&quot;');
+                            editButton.dataset.postTitle = escapedTitle;
+                            editButton.dataset.postText = escapedText;
+                            console.log(`[Socket] 'post_edited': Updated data attributes on edit button for post ${postId}.`);
+                        } else {
+                             console.warn(`[Socket] 'post_edited': Edit button not found for post ${postId}.`);
+                        }
+
+                        // Optional: Add a temporary highlight
+                        postElement.classList.add('bg-yellow-100', 'transition', 'duration-1000');
+                        setTimeout(() => {
+                            const currentPostElement = postsContainer.querySelector(`.post[data-post-id="${postId}"]`);
+                            if (currentPostElement) {
+                                currentPostElement.classList.remove('bg-yellow-100');
+                            }
+                        }, 1500); // Remove highlight after 1.5 seconds
+
+                    } else {
+                        console.warn(`[Socket] 'post_edited': Post element ${postId} not found in DOM for editing.`);
+                    }
+                });
+                // --- End Listener for Post Editing ---
+
+                // --- Listener for Live Status Updates ---
+                socket.on('status_update', (data) => {
+                    console.log(`[Socket] Received 'status_update' event. Live: ${data.live}`);
+                    // Call the existing function in home.js to update the UI
+                    if (typeof fetchStatus === 'function') {
+                        fetchStatus();
+                    } else {
+                        console.error("[Socket] 'status_update': fetchStatus function not found.");
+                    }
+                });
+                // --- End Listener for Live Status Updates ---
+
+                // --- Helper function to create Post HTML (matching postList.ejs) ---
+                function createPostElement(post, currentUser) {
+                    if (!post || !post.userId || !currentUser) return null;
+                    const postDiv = document.createElement('div');
+                    postDiv.className = 'post bg-white rounded-[15px] shadow-md mb-[1.5vw] flex flex-col relative p-5';
+                    postDiv.dataset.postId = post._id;
+
+                    const postDate = new Date(post.createdAt).toLocaleString();
+                    const profilePic = post.userId.profilePicture || '/img/default-profile.png'; // Default image path
+
+                    const isOwner = currentUser._id === post.userId._id;
+                    const isAdminOrStaff = Array.isArray(currentUser.roles) ? currentUser.roles.includes('Admin') || currentUser.roles.includes('Staff') : currentUser.roles === 'Admin' || currentUser.roles === 'Staff';
+                    const canModify = isOwner || isAdminOrStaff;
+                    const hasLiked = post.likes.includes(currentUser._id);
+
+                    const mediaCount = post.media ? post.media.length : 0;
+                    const hasVideo = !!post.video;
+                    let gridClasses = 'grid gap-2 mt-3 rounded-[15px]';
+                    let itemClasses = 'w-full h-[280px] object-cover rounded-[15px] shadow-sm transition-transform duration-200 cursor-pointer';
+
+                    if (hasVideo && mediaCount === 0) { gridClasses += ' grid-cols-1'; itemClasses += ' object-contain bg-black'; }
+                    else if (!hasVideo && mediaCount === 1) { gridClasses += ' grid-cols-1'; itemClasses += ' object-contain bg-gray-100'; }
+                    else if (mediaCount === 2) { gridClasses += ' grid-cols-2'; }
+                    else if (mediaCount === 3) { gridClasses += ' grid-cols-[2fr_1fr] grid-rows-2'; }
+                    else if (mediaCount === 4) { gridClasses += ' grid-cols-2 grid-rows-2'; }
+                    else if (mediaCount >= 5) { gridClasses += ' grid-cols-3 grid-rows-2'; }
+
+                    let mediaHTML = '';
+                    if (post.media && post.media.length > 0) {
+                        mediaHTML += post.media.slice(0, 6).map((media, index) => {
+                            let mediaItemClasses = itemClasses;
+                            if (mediaCount === 3 && index === 0) mediaItemClasses += ' row-span-2';
+                            // Add data attributes needed by modal logic in home.js
+                            return `<img src="${media}" class="post-media-img ${mediaItemClasses}" alt="Post Media" data-src="${media}" data-type="image">`;
+                        }).join('');
+                    }
+                    if (post.video && mediaCount === 0) {
+                        mediaHTML += `<video src="${post.video}" controls class="post-media-video ${itemClasses}" data-src="${post.video}" data-type="video"></video>`;
+                    }
+
+                    const escapedTitle = post.title.replace(/"/g, '&quot;');
+                    const escapedText = post.text.replace(/"/g, '&quot;');
+
+                    postDiv.innerHTML = `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <div class="post-header flex justify-between items-center mb-1">
+                                    <h3 class="text-lg font-bold text-gray-800">${post.title}</h3>
+                                </div>
+                                <p class="post-text text-base text-gray-700 mb-3">${post.text}</p>
+                                <p class="post-date text-[11px] text-gray-400 absolute top-[1.5vw] right-[1.9vw]">Posted on ${postDate}</p>
+                                <div class="post-media ${gridClasses}" id="post-${post._id}">
+                                    ${mediaHTML}
+                                </div>
+                            </div>
+                            <div class="post-actions flex gap-2.5 items-center mt-2.5 flex-wrap">
+                                ${currentUser._id ? `
+                                    <button onclick="toggleLike('${post._id}')" class="like-btn bg-gray-100 text-gray-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-gray-300 ${hasLiked ? 'user-liked' : ''}" id="like-btn-${post._id}">
+                                        ❤️ <span id="like-count-${post._id}">${post.likes ? post.likes.length : 0}</span>
+                                    </button>
+                                ` : ''}
+                                ${canModify ? `
+                                    <button class="edit-btn bg-blue-100 text-blue-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-blue-200"
+                                            data-post-id="${post._id}"
+                                            data-post-title="${escapedTitle}"
+                                            data-post-text="${escapedText}"
+                                            onclick="handleEditClick(this)">
+                                        Edit
+                                    </button>
+                                    <button class="delete-btn bg-red-100 text-red-700 py-1.5 px-3 border-none rounded-[10px] cursor-pointer text-sm transition duration-200 ease-in-out hover:bg-red-200" onclick="deletePost('${post._id}')">Delete</button>
+                                ` : ''}
+                            </div>
+                            <div class="post-comments mt-4 pt-2.5 border-t border-gray-300">
+                                ${currentUser._id ? `
+                                    <form onsubmit="submitComment(event, '${post._id}')" class="flex gap-2 items-center">
+                                        <input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" placeholder="Write a comment..." required>
+                                        <button type="submit" class="comment-btn py-2 px-3.5 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-sm hover:bg-[#00591F]">Comment</button>
+                                    </form>
+                                ` : ''}
+                                <div class="comment-list mt-2.5 space-y-2">
+                                    ${post.comments && post.comments.length > 0 ? post.comments.slice(0, 2).map(comment => createCommentElement(comment, currentUser, post._id).outerHTML).join('') : '<p class="text-xs text-gray-500 no-comments">No comments yet.</p>'}
+                                    ${post.comments && post.comments.length > 2 ? `<button class="load-more-comments text-blue-600 text-sm hover:underline" onclick="loadMoreComments('${post._id}')">View all ${post.comments.length} comments</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return postDiv;
+                }
+
+                // --- Helper function to create Comment HTML (matching postList.ejs) ---
+                function createCommentElement(comment, currentUser, postId) { // Added postId
+                    if (!comment || !comment.userId || !currentUser) return null;
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment bg-gray-50 p-2 rounded-[10px] text-sm relative border-b border-gray-200 last:border-b-0';
+                    commentDiv.id = `comment-${comment._id}`;
+
+                    const isOwner = currentUser._id === comment.userId;
+                    const isAdminOrStaff = Array.isArray(currentUser.roles) ? currentUser.roles.includes('Admin') || currentUser.roles.includes('Staff') : currentUser.roles === 'Admin' || currentUser.roles === 'Staff';
+                    const canModifyComment = isOwner || isAdminOrStaff;
+
+                    const escapedText = comment.text.replace(/"/g, '&quot;');
+
+                    commentDiv.innerHTML = `
+                        <div class="comment-content">
+                             <strong class="text-green-700">${comment.username}:</strong>
+                             <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700">${comment.text}</span>
+                         </div>
+                         <div class="comment-actions absolute top-2 right-2 flex gap-2">
+                              ${isOwner ? `
+                                 <button class="edit-comment-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0" onclick="enableEditComment('${postId}', '${comment._id}')">Edit</button>
+                             ` : ''}
+                             ${canModifyComment ? `
+                                 <button class="delete-comment-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0" onclick="deleteComment('${postId}', '${comment._id}')">Delete</button>
+                             ` : ''}
+                         </div>
+                         <form onsubmit="editComment(event, '${postId}', '${comment._id}')" class="edit-comment-form hidden flex gap-1.5 mt-1">
+                             <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500" value="${escapedText}" required />
+                             <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F]">Save</button>
+                             <button type="button" onclick="cancelEditComment('${comment._id}')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs">Cancel</button>
+                         </form>
+                    `;
+                    return commentDiv;
+                }
+
+                 // --- Toast Notification Function ---
+                 function showToast(message, type = 'info') {
+                    const toast = document.getElementById('toast');
+                    if (!toast) return;
+                    toast.textContent = message;
+                    toast.className = 'fixed left-1/2 bottom-[-100px] transform -translate-x-1/2 min-w-[200px] text-white text-center text-sm rounded-md px-4 py-3 z-[9999] transition-all duration-500 ease-in-out opacity-0 invisible'; // Reset classes
+                    if (type === 'success') toast.classList.add('bg-green-500');
+                    else if (type === 'error') toast.classList.add('bg-red-500');
+                    else toast.classList.add('bg-blue-500');
+                    toast.classList.remove('bottom-[-100px]', 'opacity-0', 'invisible');
+                    toast.classList.add('bottom-5', 'opacity-100', 'visible');
+                    setTimeout(() => {
+                        toast.classList.remove('bottom-5', 'opacity-100', 'visible');
+                        toast.classList.add('bottom-[-100px]', 'opacity-0', 'invisible');
+                    }, 3000);
+                }
+
+            }); // End DOMContentLoaded
+        </script>
 
     </div> <!-- End page-container -->
 </body>
