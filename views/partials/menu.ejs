@@ -16,7 +16,7 @@
         <div class="chat-search-container relative bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
             <a href="/Chat" class="flex items-center justify-center w-full h-full">
                 <img src="/img/email.png" alt="Chat Icon" class="icon w-5 h-auto">
-                <!-- Global Unread Dot -->
+                <!-- Global Unread Dot - Ensure it starts hidden -->
                 <span id="global-chat-unread-dot" class="w-2.5 h-2.5 bg-blue-500 rounded-full absolute top-1.5 right-1.5 hidden"></span>
             </a>
         </div>
@@ -98,128 +98,239 @@
 
 <!-- Script for Global Unread Chat Dot -->
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // console.log('[Global Unread] DOMContentLoaded.'); // Log DOM ready
-
-        // --- CORRECTED USER CHECK ---
-        // Use the EJS-injected userId to determine login status for this script block
-        const userId = '<%= user?._id %>'; // Safely access user._id using EJS
-        const userLoggedIn = userId && userId !== 'undefined' && userId !== ''; // Check if userId has a value
-        // --- END CORRECTION ---
+    // --- ADD LOG ---
+    console.log('[Menu Script] Script execution started.');
+    // --- END LOG ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ADD LOG ---
+        console.log('[Menu Script] DOMContentLoaded event fired.');
+        // --- ADD MORE LOGS ---
+        console.log('[Menu Script] Checking document.body:', document.body);
+        console.log('[Menu Script] Checking document.body.dataset:', document.body.dataset);
+        // --- CHANGE: Log the correct attribute ---
+        console.log('[Menu Script] Checking document.body.dataset.userId raw value:', document.body.dataset.userId);
+        // --- END CHANGE ---
+        // --- END MORE LOGS ---
 
         const globalChatUnreadDot = document.getElementById('global-chat-unread-dot');
+        // --- CHANGE: Read dataset.userId directly ---
+        const currentUserId = document.body.dataset.userId || null; // Get ID string directly
+        // --- REMOVE: No need to parse JSON just for the ID ---
+        // const rawUserData = document.body.dataset.user; // Get raw string first
+        // let currentUserData = null;
+        // let currentUserId = null;
+        //
+        // // --- ADD: Attempt to parse user data ---
+        // if (rawUserData && rawUserData !== 'null' && rawUserData !== 'undefined') {
+        //     try {
+        //         currentUserData = JSON.parse(rawUserData);
+        //         currentUserId = currentUserData ? currentUserData._id : null;
+        //         console.log('[Menu Script] Successfully parsed user data. User ID:', currentUserId);
+        //     } catch (e) {
+        //         console.error('[Menu Script] Failed to parse user data from body dataset:', e);
+        //         console.error('[Menu Script] Raw data was:', rawUserData);
+        //     }
+        // } else {
+        //     console.warn('[Menu Script] document.body.dataset.user is missing, null, or undefined.', `Raw value: ${rawUserData}`);
+        // }
+        // --- END REMOVE ---
 
-        // console.log(`[Global Unread] User Logged In Check (based on userId='${userId}'): ${userLoggedIn}`); // Updated log message
+        // --- Original log (now uses the direct value) ---
+        // --- CHANGE: Update log message ---
+        console.log('[Menu Script] currentUserId (from dataset.userId):', currentUserId);
+        // --- END CHANGE ---
+        // --- END LOG ---
 
-        if (!globalChatUnreadDot) {
-            console.error('[Global Unread] Dot element #global-chat-unread-dot not found!');
-            return;
-        }
+        let isAuthenticated = false; // Flag to track authentication status
+        let socket; // Define socket in a broader scope
 
-        if (userLoggedIn) {
-            // const userId = '<%= user?._id %>'; // Already defined above
-            // console.log(`[Global Unread] User ID found: ${userId}`);
-
-            if (typeof io === 'undefined') {
-                console.error('[Global Unread] Socket.IO client (io) not loaded!');
-                globalChatUnreadDot.classList.add('hidden'); // Ensure hidden if io missing
+        function updateDotVisibility(hasUnread) {
+            // --- ADD LOG ---
+            console.log(`[Global Unread DEBUG] updateDotVisibility called with hasUnread: ${hasUnread}. Current User: ${currentUserId}`);
+            // --- END LOG ---
+            if (!globalChatUnreadDot) {
+                console.warn('[Global Unread] Dot element not found.');
                 return;
             }
+            // --- ADD LOG before class change ---
+            console.log(`[Global Unread DEBUG] Dot element found. Current classes: ${globalChatUnreadDot.className}`);
+            // --- END LOG ---
+            if (hasUnread) {
+                globalChatUnreadDot.classList.remove('hidden');
+                // --- ADD LOG ---
+                console.log('[Global Unread DEBUG] Dot should be VISIBLE. Classes after update:', globalChatUnreadDot.className);
+                // --- END LOG ---
+            } else {
+                globalChatUnreadDot.classList.add('hidden');
+                // --- ADD LOG ---
+                console.log('[Global Unread DEBUG] Dot should be HIDDEN. Classes after update:', globalChatUnreadDot.className);
+                // --- END LOG ---
+            }
+        }
 
-            // console.log('[Global Unread] Socket.IO client found. Attempting connection...');
-            const socket = io(); // Connect to Socket.IO
+        function checkUnreadStatus() {
+            // console.log('[Global Unread] checkUnreadStatus called.');
+            // --- ADD LOG ---
+            console.log(`[Menu Script] checkUnreadStatus called. Socket defined: ${!!socket}, Connected: ${socket?.connected}, Authenticated: ${isAuthenticated}`);
+            // --- END LOG ---
+            // Ensure socket is defined and connected before emitting
+            // --- MODIFIED CHECK: Ensure currentUserId is valid before proceeding ---
+            if (socket && socket.connected && currentUserId && isAuthenticated) { // Check isAuthenticated flag AND currentUserId
+            // --- END MODIFIED CHECK ---
+                // --- ADD LOG before emit ---
+                console.log(`[Global Unread DEBUG] Emitting 'checkGlobalUnread' for user ${currentUserId}. Socket ID: ${socket.id}`);
+                // --- END LOG ---
+                socket.emit('checkGlobalUnread');
+            } else {
+                // --- UPDATED LOG ---
+                console.log('[Global Unread] Conditions not met for emitting checkGlobalUnread:', {
+                    socketDefined: !!socket,
+                    socketConnected: socket ? socket.connected : 'N/A',
+                    hasUserId: !!currentUserId, // Check the parsed ID
+                    isAuthenticated: isAuthenticated
+                });
+                // --- END UPDATED LOG ---
+                // Ensure dot is hidden if conditions aren't met
+                updateDotVisibility(false);
+            }
+        }
 
-            const updateDotVisibility = (hasUnread) => {
-                // console.log(`[Global Unread] updateDotVisibility called with: ${hasUnread}`);
-                if (!globalChatUnreadDot) {
-                    console.error('[Global Unread] Dot element not found inside updateDotVisibility!');
-                    return;
-                }
-
-                if (hasUnread) {
-                    globalChatUnreadDot.classList.remove('hidden');
-                    // console.log('[Global Unread] Dot should be VISIBLE (removed hidden class).');
-
-                    // --- CSS Debugging ---
-                    // Force reflow/repaint before checking styles (might help in some browsers)
-                    void globalChatUnreadDot.offsetWidth;
-
-                    const computedStyle = window.getComputedStyle(globalChatUnreadDot);
-                    // console.log('[Global Unread CSS Check] Computed display:', computedStyle.display);
-                    // console.log('[Global Unread CSS Check] Computed visibility:', computedStyle.visibility);
-                    // console.log('[Global Unread CSS Check] Computed opacity:', computedStyle.opacity);
-                    // console.log('[Global Unread CSS Check] Computed position:', computedStyle.position);
-                    // console.log('[Global Unread CSS Check] Computed top/right:', computedStyle.top, computedStyle.right);
-                    // --- End CSS Debugging ---
-
-                    // --- Temporary Force Visibility (for debugging) ---
-                    // Uncomment the line below to see if inline styles work, bypassing CSS classes
-                    // globalChatUnreadDot.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; position: absolute !important; top: 0.375rem !important; right: 0.375rem !important; width: 0.625rem; height: 0.625rem; background-color: blue; border-radius: 9999px;';
-                    // --- End Temporary Force ---
-
-                } else {
-                    globalChatUnreadDot.classList.add('hidden');
-                    // console.log('[Global Unread] Dot should be HIDDEN (added hidden class).');
-                    // --- Temporary Force Visibility (Reset) ---
-                    // If you uncommented the force above, uncomment this to reset when hiding
-                    // globalChatUnreadDot.style.cssText = '';
-                    // --- End Temporary Force ---
-                }
-            };
-
-            // --- Function to request unread check ---
-            const checkUnreadStatus = () => {
-                if (socket.connected) {
-                    // console.log('[Global Unread] Emitting checkGlobalUnread for user:', userId);
-                    socket.emit('checkGlobalUnread', { userId: userId });
-                } else {
-                    console.warn('[Global Unread] Cannot check status, socket not connected.');
-                }
-            };
-            // --- End function ---
+        // --- MODIFIED: Only initialize socket IF currentUserId was successfully obtained ---
+        if (currentUserId) {
+            console.log('[Menu Script] User ID found. Initializing socket...');
+        // --- END MODIFIED ---
+            // console.log('[Global Unread] User logged in, initializing socket.');
+            // --- ADD LOG ---
+            // console.log('[Menu Script] Initializing socket...'); // Moved log
+            // --- END LOG ---
+            socket = io(); // Initialize socket here
 
             socket.on('connect', () => {
-                // console.log('[Global Unread] Socket connected successfully. Socket ID:', socket.id);
-                // --- Authenticate socket with user ID ---
-                // Replace 'authenticate' with your actual event if different
-                // console.log('[Global Unread] Authenticating socket with user ID:', userId);
-                socket.emit('authenticate', userId);
-                // --- End authentication ---
-
-                // Initial check on connect
-                checkUnreadStatus();
+                // console.log('[Global Unread] Socket connected.');
+                // --- ADD LOG ---
+                console.log('[Menu Script] Socket connect event received. Emitting authenticate...');
+                // --- END LOG ---
+                // Authenticate immediately on connect
+                // console.log(`[Global Unread] Emitting authenticate for user: ${currentUserId}`);
+                socket.emit('authenticate', currentUserId);
             });
 
-            socket.on('updateGlobalUnread', (data) => {
-                // console.log(`[Global Unread] Received 'updateGlobalUnread' event. Data:`, data);
-                if (typeof data?.hasUnread !== 'undefined') {
-                    updateDotVisibility(data.hasUnread);
-                } else {
-                     console.warn('[Global Unread] Received updateGlobalUnread event with invalid data format:', data);
-                     updateDotVisibility(false); // Hide dot on invalid data
-                }
+            // --- Wait for Authentication Confirmation ---
+            socket.on('auth_success', (data) => {
+                // console.log(`[Global Unread] Received 'auth_success' for user ${data.userId}. Setting isAuthenticated = true.`);
+                // --- ADD LOG ---
+                console.log('[Menu Script] Received auth_success event. Setting isAuthenticated = true and attaching listeners.');
+                // --- END LOG ---
+                isAuthenticated = true; // Set flag
+
+                // --- Perform initial check and setup listeners AFTER auth ---
+                checkUnreadStatus(); // Perform the initial check now
+
+                // Listener for server pushing updates
+                socket.on('updateGlobalUnread', (data) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'updateGlobalUnread' event for user ${currentUserId}. Data:`, data);
+                    // --- END LOG ---
+                    if (typeof data.hasUnread === 'boolean') {
+                        updateDotVisibility(data.hasUnread);
+                    } else {
+                        console.warn("[Global Unread] Received 'updateGlobalUnread' with invalid data format:", data);
+                    }
+                });
+
+                // Listener for server requesting a re-check
+                socket.on('triggerGlobalUnreadCheck', () => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'triggerGlobalUnreadCheck' from server for user ${currentUserId}. Calling checkUnreadStatus.`);
+                    // --- END LOG ---
+                    checkUnreadStatus(); // Re-check status when triggered
+                });
+
+                // --- ADD: Listener for any new message ---
+                socket.on('newMessage', (message) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'newMessage' event (Chat: ${message?.chat}) for user ${currentUserId}. Triggering checkUnreadStatus.`);
+                    // --- END LOG ---
+                    // No need to check *which* chat, just re-check the global status
+                    checkUnreadStatus();
+                });
+                // --- END ADD ---
+
+                // --- ADD: Listener for chat rename (might affect unread status if timestamp changes) ---
+                socket.on('chatRenamed', (updatedChat) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'chatRenamed' event (Chat: ${updatedChat?._id}) for user ${currentUserId}. Triggering checkUnreadStatus.`);
+                    // --- END LOG ---
+                    checkUnreadStatus();
+                });
+                // --- END ADD ---
+
+                // --- ADD: Listener for unarchive (might affect unread status) ---
+                 socket.on('chatUnarchived', (unarchivedChat) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'chatUnarchived' event (Chat: ${unarchivedChat?._id}) for user ${currentUserId}. Triggering checkUnreadStatus.`);
+                    // --- END LOG ---
+                    checkUnreadStatus();
+                 });
+                // --- END ADD ---
+
+                // --- ADD: Listener for member changes (might involve system messages affecting timestamp) ---
+                socket.on('memberAdded', ({ chatId }) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'memberAdded' event (Chat: ${chatId}) for user ${currentUserId}. Triggering checkUnreadStatus.`);
+                    // --- END LOG ---
+                    checkUnreadStatus();
+                });
+                socket.on('memberRemoved', ({ chatId }) => {
+                    // --- ADD LOG ---
+                    console.log(`[Global Unread DEBUG] Received 'memberRemoved' event (Chat: ${chatId}) for user ${currentUserId}. Triggering checkUnreadStatus.`);
+                    // --- END LOG ---
+                    checkUnreadStatus();
+                });
+                // --- END ADD ---
+
+
+                // --- End listeners setup ---
             });
 
-            // --- Listen for server trigger ---
-            socket.on('triggerGlobalUnreadCheck', () => {
-                // console.log("[Global Unread] Received 'triggerGlobalUnreadCheck' from server.");
-                checkUnreadStatus(); // Re-check status when triggered
+            socket.on('auth_failure', (data) => {
+                console.error(`[Global Unread] Authentication failed: ${data.error}`);
+                // --- ADD LOG ---
+                console.error('[Menu Script] Received auth_failure event.');
+                // --- END LOG ---
+                isAuthenticated = false;
+                updateDotVisibility(false); // Hide dot on auth failure
             });
-            // --- End listener ---
+            // --- End Wait for Authentication Confirmation ---
+
 
             socket.on('disconnect', (reason) => {
                 // console.log('[Global Unread] Socket disconnected:', reason);
+                // --- ADD LOG ---
+                console.log(`[Menu Script] Socket disconnect event received. Reason: ${reason}`);
+                // --- END LOG ---
+                isAuthenticated = false; // Reset flag on disconnect
                 updateDotVisibility(false); // Hide dot on disconnect
             });
 
             socket.on('connect_error', (err) => {
                 console.error('[Global Unread] Socket connection error:', err.message);
+                // --- ADD LOG ---
+                console.error('[Menu Script] Received connect_error event.');
+                // --- END LOG ---
+                isAuthenticated = false; // Reset flag on error
                 updateDotVisibility(false); // Hide dot on connection error
             });
 
-        } else {
+        } else { // This else block now correctly corresponds to currentUserId being null/missing
             // console.log('[Global Unread] User not logged in or user._id missing. Ensuring dot is hidden.');
-            globalChatUnreadDot.classList.add('hidden'); // Ensure dot is hidden if user is not logged in
+            // --- ADD LOG ---
+            console.log('[Menu Script] User not logged in or currentUserId missing. Skipping socket setup.'); // Log remains valid
+            // --- END LOG ---
+            // Ensure dot is hidden if user is not logged in
+            if (globalChatUnreadDot && !globalChatUnreadDot.classList.contains('hidden')) {
+                 globalChatUnreadDot.classList.add('hidden');
+            }
         }
     });
 </script>

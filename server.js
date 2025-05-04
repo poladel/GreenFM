@@ -103,8 +103,16 @@ io.on('connection', (socket) => {
             }
             // console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
 
+            // --- ADD: Emit success back to client ---
+            console.log(`[SERVER AUTH] Emitting 'auth_success' to socket ${socket.id} for user ${userId}`);
+            socket.emit('auth_success', { userId: userId });
+            // --- END ADD ---
+
         } catch (error) {
             // console.error(`[SERVER JOIN ERROR] Error joining rooms for user ${userId} on socket ${socket.id}:`, error);
+            // --- ADD: Emit failure back to client (optional but good practice) ---
+            socket.emit('auth_failure', { error: 'Failed to join rooms' });
+            // --- END ADD ---
         }
     });
     // --- End Authentication Handling ---
@@ -138,36 +146,97 @@ io.on('connection', (socket) => {
         const { chatId } = data;
         const userId = socket.userId; // Get userId from the authenticated socket
 
-        if (!userId || !chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
+        // --- ADD: Check if userId exists on socket ---
+        if (!userId) {
+            console.error(`[SERVER LAST VIEWED] Cannot update last viewed. User not authenticated on socket ${socket.id}. Data:`, data);
+            return; // Stop if the socket isn't authenticated
+        }
+        // --- END ADD ---
+
+
+        if (!chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
             console.error(`[SERVER LAST VIEWED] Invalid data for updateLastViewed from socket ${socket.id}:`, { userId, chatId });
             return;
         }
 
         try {
-            const updatePath = `chatLastViewed.${chatId}`;
-            await User.findByIdAndUpdate(userId, { $set: { [updatePath]: new Date() } });
-            // console.log(`[SERVER LAST VIEWED] Updated last viewed for user ${userId}, chat ${chatId}`);
+            // --- Refined Update Logic ---
+            const user = await User.findById(userId);
+            if (!user) {
+                console.error(`[SERVER LAST VIEWED] User not found for ID: ${userId}`);
+                return;
+            }
 
-            // Optional: Re-check global unread status for this user after update
-            // (This ensures the dot hides immediately if this was the last unread chat)
-            // Find chats where the user is a member
-            const userChats = await Chat.find({ users: userId }).select('_id updatedAt').lean();
-            const user = await User.findById(userId).select('chatLastViewed').lean();
-            const lastViewedMap = user?.chatLastViewed || new Map();
-            let hasUnread = false;
-            for (const chat of userChats) {
-                const chatIdString = chat._id.toString();
-                const lastViewedTime = lastViewedMap instanceof Map ? lastViewedMap.get(chatIdString) : lastViewedMap[chatIdString];
-                const lastMessageTime = chat.updatedAt;
-                const lastViewedDate = lastViewedTime ? new Date(lastViewedTime) : new Date(0);
-                const lastMessageDate = lastMessageTime ? new Date(lastMessageTime) : new Date(0);
-                if (lastMessageDate > lastViewedDate) {
-                    hasUnread = true;
-                    break;
+            // Ensure chatLastViewed exists and is a Map
+            if (!user.chatLastViewed) {
+                console.log(`[SERVER LAST VIEWED] Initializing chatLastViewed Map for user ${userId}.`);
+                user.chatLastViewed = new Map();
+            } else if (!(user.chatLastViewed instanceof Map)) {
+                // Attempt to convert if it's a plain object (e.g., from older data)
+                console.log(`[SERVER LAST VIEWED] chatLastViewed for user ${userId} is not a Map. Attempting conversion.`);
+                try {
+                    user.chatLastViewed = new Map(Object.entries(user.chatLastViewed));
+                } catch (conversionError) {
+                    console.error(`[SERVER LAST VIEWED] Could not convert chatLastViewed to Map for user ${userId}. Resetting.`, conversionError);
+                    user.chatLastViewed = new Map(); // Reset if conversion fails
                 }
             }
-            // console.log(`[SERVER LAST VIEWED] Re-checked unread status for user ${userId}: ${hasUnread}. Emitting 'updateGlobalUnread'.`);
-            socket.emit('updateGlobalUnread', { hasUnread: hasUnread });
+
+            // Update the map
+            const updateTime = new Date();
+            user.chatLastViewed.set(chatId.toString(), updateTime);
+            console.log(`[SERVER LAST VIEWED] Attempting to save user ${userId} with chatLastViewed updated for chat ${chatId} at ${updateTime.toISOString()}`);
+            await user.save(); // Save the entire user document
+            console.log(`[SERVER LAST VIEWED] User ${userId} saved.`);
+            // --- End Refined Update Logic ---
+
+            // --- Verification Step ---
+            const savedUser = await User.findById(userId).select('chatLastViewed');
+            console.log(`[SERVER LAST VIEWED VERIFY] Re-fetched user ${userId}. chatLastViewed:`, savedUser?.chatLastViewed);
+            // --- End Verification Step ---
+
+
+            console.log(`[SERVER LAST VIEWED] Updated last viewed for user ${userId}, chat ${chatId}`);
+
+            // Re-check global unread status for this user after update
+            const userChats = await Chat.find({
+                users: userId,
+                archivedBy: { $ne: userId } // Exclude archived
+            }).select('_id updatedAt').lean();
+
+            // --- Use the re-fetched data ---
+            const lastViewedMap = savedUser?.chatLastViewed || new Map();
+            // --- End Use re-fetched data ---
+            let hasUnread = false;
+            console.log(`[SERVER LAST VIEWED RECHECK] Checking ${userChats.length} chats for user ${userId}. Map:`, lastViewedMap); // Log map used
+
+            for (const chat of userChats) {
+                const chatIdString = chat._id.toString();
+                const lastViewedTime = lastViewedMap.get(chatIdString);
+                const lastMessageTime = chat.updatedAt;
+
+                // Ensure dates are valid before comparison
+                const lastViewedDate = lastViewedTime instanceof Date ? lastViewedTime : new Date(0);
+                const lastMessageDate = lastMessageTime instanceof Date ? lastMessageTime : new Date(0);
+
+                // --- DETAILED LOGGING INSIDE LOOP (mirroring checkGlobalUnread) ---
+                console.log(`[SERVER LAST VIEWED RECHECK] Chat: ${chatIdString}`);
+                console.log(`  -> Last Message Time (Chat.updatedAt): ${lastMessageDate.toISOString()} (${lastMessageTime})`);
+                console.log(`  -> Last Viewed Time (User.chatLastViewed): ${lastViewedDate.toISOString()} (${lastViewedTime})`);
+                const isUnread = lastMessageDate > lastViewedDate;
+                console.log(`  -> Comparison: ${lastMessageDate.toISOString()} > ${lastViewedDate.toISOString()} ? ${isUnread}`);
+                // --- END DETAILED LOGGING ---
+
+                if (isUnread) {
+                    console.log(`  -> RESULT: UNREAD`);
+                    hasUnread = true;
+                    // break; // Keep break here for efficiency once an unread is found
+                } else {
+                     console.log(`  -> RESULT: READ`);
+                }
+            }
+            console.log(`[SERVER LAST VIEWED] Re-checked unread status for user ${userId} after update: ${hasUnread}. Emitting 'updateGlobalUnread' TO ROOM ${userId}.`);
+            io.to(userId).emit('updateGlobalUnread', { hasUnread: hasUnread });
 
         } catch (error) {
             console.error(`[SERVER LAST VIEWED] Error updating last viewed for user ${userId}, chat ${chatId}:`, error);
@@ -178,129 +247,82 @@ io.on('connection', (socket) => {
 
     // --- DETAILED LOGGING FOR checkGlobalUnread ---
     socket.on('checkGlobalUnread', async (data) => {
-        // Use socket.userId established during authentication
         const userId = socket.userId;
-        // console.log(`[SERVER IO] Received 'checkGlobalUnread' from socket ${socket.id} for user: ${userId}`);
+        // --- ADD LOG AT START ---
+        console.log(`[SERVER IO] Received 'checkGlobalUnread' from socket ${socket.id} for user: ${userId}. Data received:`, data);
+        // --- END ADD ---
 
-        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-            // This check might be redundant if authentication disconnects invalid users, but good for safety
-            console.error(`[SERVER IO] Invalid or missing userId ('${userId}') on authenticated socket ${socket.id} for checkGlobalUnread.`);
+        // --- ADD: Check if userId exists on socket ---
+        if (!userId) {
+            console.error(`[SERVER IO] Cannot check global unread. User not authenticated on socket ${socket.id}.`);
+            return; // Stop if the socket isn't authenticated
+        }
+        // --- END ADD ---
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) { // Keep this check too
+            console.error(`[SERVER IO] Invalid userId ('${userId}') on authenticated socket ${socket.id} for checkGlobalUnread.`);
             return;
         }
 
         try {
-            // Find chats where the user is a member AND not archived for this user
-            // Assuming 'archivedBy' is an array of user IDs who archived the chat
             const userChats = await Chat.find({
                 users: userId,
-                archivedBy: { $ne: userId } // Exclude chats archived by the user
-            }).select('_id updatedAt').lean();
+                archivedBy: { $ne: userId }
+            }).select('_id updatedAt').lean(); // Keep lean here for efficiency
 
-            // console.log(`[SERVER IO] Found ${userChats.length} active chats for user ${userId}.`);
+            console.log(`[SERVER IO] Found ${userChats.length} active chats for user ${userId}.`);
 
             if (userChats.length === 0) {
-                console.log(`[SERVER IO] No active chats found for user ${userId}. Emitting updateGlobalUnread: false.`);
-                socket.emit('updateGlobalUnread', { hasUnread: false });
+                console.log(`[SERVER IO] No active chats found for user ${userId}. Emitting updateGlobalUnread: false TO ROOM ${userId}.`);
+                // --- CHANGE: Emit to user's room ---
+                io.to(userId).emit('updateGlobalUnread', { hasUnread: false });
+                // --- END CHANGE ---
                 return;
             }
 
-            // Fetch last viewed times
-            const user = await User.findById(userId).select('chatLastViewed').lean();
-            // Ensure lastViewedMap is treated as a plain object if not a Map
-            const lastViewedData = user?.chatLastViewed;
-            let lastViewedMap = {};
-            if (lastViewedData instanceof Map) {
-                lastViewedMap = Object.fromEntries(lastViewedData);
-            } else if (typeof lastViewedData === 'object' && lastViewedData !== null) {
-                lastViewedMap = lastViewedData; // Assume it's already a plain object
-            }
+            // --- Fetch full user document (removed .lean()) ---
+            const user = await User.findById(userId).select('chatLastViewed');
+            // --- Log the fetched user object ---
+            console.log(`[SERVER IO] Fetched user object (no lean):`, user);
+            console.log(`[SERVER IO] User's chatLastViewed field type: ${typeof user?.chatLastViewed}, instanceof Map: ${user?.chatLastViewed instanceof Map}`);
 
-            // console.log(`[SERVER IO] User's last viewed map:`, lastViewedMap);
+            // --- Simplified Map Handling (no lean) ---
+            let lastViewedMap = (user && user.chatLastViewed instanceof Map) ? user.chatLastViewed : new Map();
+            console.log(`[SERVER IO] User's last viewed map (from full document):`, lastViewedMap);
+            // --- End Simplified Map Handling ---
+
 
             let hasUnread = false;
             for (const chat of userChats) {
                 const chatIdString = chat._id.toString();
-                const lastViewedTime = lastViewedMap[chatIdString]; // Access as plain object property
+                const lastViewedTime = lastViewedMap.get(chatIdString);
                 const lastMessageTime = chat.updatedAt;
-
-                const lastViewedDate = lastViewedTime ? new Date(lastViewedTime) : new Date(0);
-                const lastMessageDate = lastMessageTime ? new Date(lastMessageTime) : new Date(0);
-
-                if (lastMessageDate > lastViewedDate) {
-                    // console.log(`[SERVER IO] Chat ${chatIdString} is UNREAD for user ${userId}. Last message: ${lastMessageDate.toISOString()}, Last viewed: ${lastViewedDate.toISOString()}`);
+                const lastViewedDate = lastViewedTime instanceof Date ? lastViewedTime : new Date(0);
+                const lastMessageDate = lastMessageTime instanceof Date ? lastMessageTime : new Date(0);
+                console.log(`[SERVER IO CHECK] Chat: ${chatIdString}`);
+                console.log(`  -> Last Message Time (Chat.updatedAt): ${lastMessageDate.toISOString()} (${lastMessageTime})`);
+                console.log(`  -> Last Viewed Time (User.chatLastViewed): ${lastViewedDate.toISOString()} (${lastViewedTime})`);
+                const isUnread = lastMessageDate > lastViewedDate;
+                console.log(`  -> Comparison: ${lastMessageDate.toISOString()} > ${lastViewedDate.toISOString()} ? ${isUnread}`);
+                if (isUnread) {
+                    console.log(`  -> RESULT: UNREAD`);
                     hasUnread = true;
-                    break;
+                    // break; // Keep break commented out for full logging if needed
                 } else {
-                     console.log(`[SERVER IO] Chat ${chatIdString} is READ for user ${userId}. Last message: ${lastMessageDate.toISOString()}, Last viewed: ${lastViewedDate.toISOString()}`);
+                    console.log(`  -> RESULT: READ`);
                 }
             }
 
-            // console.log(`[SERVER IO] Final unread status for user ${userId}: ${hasUnread}. Emitting 'updateGlobalUnread' to socket ${socket.id}.`);
-            socket.emit('updateGlobalUnread', { hasUnread: hasUnread });
+            console.log(`[SERVER IO] Final unread status for user ${userId}: ${hasUnread}. Emitting 'updateGlobalUnread' TO ROOM ${userId}.`);
+            // --- Emit to user's room (already changed in previous step) ---
+            io.to(userId).emit('updateGlobalUnread', { hasUnread: hasUnread });
+            // --- END Emit ---
 
         } catch (error) {
             console.error(`[SERVER IO] Error processing checkGlobalUnread for user ${userId} on socket ${socket.id}:`, error);
         }
     });
     // --- END DETAILED LOGGING ---
-
-    // --- Refine newMessage Handling ---
-    // This might live in chatController or directly here. Ensure it uses user-specific rooms.
-    // Example if handled directly in server.js:
-    socket.on('clientSendMessage', async (data) => { // Assuming client emits 'clientSendMessage'
-        const { chatId, content /* other fields */ } = data;
-        const senderId = socket.userId; // Get sender from authenticated socket
-
-        if (!senderId || !chatId || !content) {
-            console.error(`[SERVER IO - clientSendMessage] Invalid message data from socket ${socket.id}:`, data);
-            // Optionally emit an error back to sender
-            return;
-        }
-
-        // console.log(`[SERVER IO - clientSendMessage] Received message for chat ${chatId} from user ${senderId}`);
-
-        try {
-            // 1. Save the message (replace with your actual saving logic)
-            // const savedMessage = await saveMessageFunction({ chatId, senderId, content });
-            // const populatedMessage = await populateMessageFunction(savedMessage);
-            const populatedMessage = { // Placeholder
-                 _id: new mongoose.Types.ObjectId(),
-                 chat: chatId,
-                 sender: { _id: senderId, username: 'User' /* other sender fields */ },
-                 content: content,
-                 createdAt: new Date(),
-                 updatedAt: new Date(), // Ensure updatedAt is set
-                 isSystemMessage: false,
-                 toObject: function() { return this; } // Mock toObject for consistency
-            };
-
-            // 2. Emit to the chat room
-            const targetRoom = chatId.toString();
-            // console.log(`[SERVER IO EMIT] Attempting to emit 'newMessage' to room: ${targetRoom}`);
-            const socketsInRoom = await io.in(targetRoom).allSockets();
-            // console.log(`[SERVER IO EMIT] Sockets currently in room ${targetRoom}:`, Array.from(socketsInRoom));
-            io.to(targetRoom).emit('newMessage', populatedMessage.toObject());
-            // console.log(`[SERVER IO EMIT] Successfully emitted 'newMessage' to room ${targetRoom}.`);
-
-            // 3. Trigger global unread check for recipients
-            const chat = await Chat.findById(targetRoom).select('users').lean();
-            if (chat && chat.users) {
-                chat.users.forEach(userId => {
-                    const userIdString = userId.toString();
-                    if (userIdString !== senderId) { // Don't notify the sender
-                        // console.log(`[SERVER IO TRIGGER] Emitting 'triggerGlobalUnreadCheck' to user room: ${userIdString}`);
-                        io.to(userIdString).emit('triggerGlobalUnreadCheck'); // Emit to user-specific room
-                    }
-                });
-            }
-
-        } catch (error) {
-            console.error('[SERVER IO ERROR] Failed to process or emit clientSendMessage:', error);
-            // Optionally emit an error back to sender
-        }
-    });
-    // --- End refine newMessage Handling ---
-
 
     // Existing disconnect logic
     socket.on('disconnect', (reason) => {

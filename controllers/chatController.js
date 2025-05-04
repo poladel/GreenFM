@@ -36,6 +36,7 @@ exports.sendMessage = async (req, res) => {
     const { content } = req.body;
     const user = req.user || res.locals.user;
     const currentUserId = user._id; // Use consistent variable name
+    const io = req.io; // Get io instance
 
     if (!user || !user._id) {
         return res.status(401).json({ error: 'User not authenticated' });
@@ -43,29 +44,19 @@ exports.sendMessage = async (req, res) => {
 
     try {
         // --- Check and Unarchive if necessary ---
-        let chat = await Chat.findById(chatId); // Use 'let' to allow reassignment
+        let chat = await Chat.findById(chatId).populate('users', '_id'); // Populate user IDs
         if (!chat) {
-            return res.status(404).json({ error: 'Chat not found.' });
+            return res.status(404).json({ error: 'Chat not found' });
         }
 
         const archiveIndex = chat.archivedBy.findIndex(userId => userId.equals(currentUserId));
         if (archiveIndex > -1) {
             // User has archived this chat, unarchive it first
             chat.archivedBy.splice(archiveIndex, 1);
-            await chat.save();
-            console.log(`[DEBUG] Chat ${chatId} automatically unarchived by user ${currentUserId} upon sending message.`);
-
-            // Populate the chat to send back to the client for adding to the main list
-            const populatedChat = await chat.populate([
-                { path: 'users', select: 'username roles' },
-                { path: 'creator', select: '_id' }
-            ]);
-
-            // Emit unarchive event ONLY to the user who is sending the message
-            console.log(`[DEBUG] Emitting chatUnarchived (${chatId}) to user room: ${currentUserId.toString()} before sending message.`);
-            req.io.to(currentUserId.toString()).emit('chatUnarchived', populatedChat);
-            // Give a small delay to allow the client to process the unarchive event before the message arrives
-            await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay, adjust if needed
+            // No need to save here, will be saved with timestamp update
+            console.log(`[SERVER DEBUG] User ${currentUserId} sending message to archived chat ${chatId}. Unarchiving.`);
+            // Emit unarchive event to the sender only
+            io.to(currentUserId.toString()).emit('chatUnarchived', chat); // Send basic chat info
         }
         // --- End Check and Unarchive ---
 
@@ -79,13 +70,19 @@ exports.sendMessage = async (req, res) => {
 
         // --- Update Chat Timestamp ---
         // Ensure 'chat' is the latest version if it was modified during unarchive
-        chat = await Chat.findByIdAndUpdate(chatId, { updatedAt: Date.now() }, { new: true });
+        // Use findByIdAndUpdate to ensure atomicity if possible, or re-fetch if needed
+        chat = await Chat.findByIdAndUpdate(
+            chatId,
+            { updatedAt: Date.now(), $pull: { archivedBy: currentUserId } }, // Also ensure unarchive persists
+            { new: true }
+        ).populate('users', '_id'); // Re-populate users after update
+
         if (!chat) {
-             // This case should be rare if the chat existed before, but handle it
-             console.error(`[ERROR] Chat ${chatId} not found after attempting to update timestamp.`);
-             // Decide how to proceed - maybe just log and continue emitting message?
+            console.error(`[SERVER DEBUG] Failed to find chat ${chatId} after attempting timestamp update.`);
+            // Handle error appropriately, maybe return 500
+            return res.status(500).json({ error: 'Failed to update chat after sending message' });
         } else {
-            console.log(`[DEBUG] Updated timestamp for chat ${chatId}.`);
+            console.log(`[SERVER DEBUG] Chat ${chatId} timestamp updated to ${chat.updatedAt}`);
         }
         // --- End Update Chat Timestamp ---
 
@@ -96,7 +93,23 @@ exports.sendMessage = async (req, res) => {
         // --- ADD THIS LOG ---
         console.log(`[SERVER DEBUG] Attempting to emit 'newMessage' to room: ${chatId}`);
         // --- END ADDED LOG ---
-        req.io.to(chatId).emit('newMessage', fullMessage);
+        io.to(chatId).emit('newMessage', fullMessage);
+
+        // --- ADD: Trigger global unread check for OTHER participants ---
+        if (chat.users && chat.users.length > 0) {
+            chat.users.forEach(participant => {
+                const participantIdString = participant._id.toString();
+                // Don't trigger for the sender (their status is updated via updateLastViewed)
+                if (participantIdString !== currentUserId.toString()) {
+                    // --- ADD MORE DETAILED LOG ---
+                    console.log(`[SERVER GLOBAL UNREAD TRIGGER] Emitting 'triggerGlobalUnreadCheck' to user room: ${participantIdString} due to new message in chat ${chatId} sent by ${currentUserId}`);
+                    // --- END ADD ---
+                    io.to(participantIdString).emit('triggerGlobalUnreadCheck');
+                }
+            });
+        }
+        // --- END ADD ---
+
 
         res.status(201).json(fullMessage);
     } catch (err) {

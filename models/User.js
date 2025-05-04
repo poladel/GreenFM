@@ -75,6 +75,11 @@ const userSchema = new Schema({
     resetTokenExpiry: {
         type: Date,
         default: null
+    },
+    chatLastViewed: {
+        type: Map,
+        of: Date,
+        default: () => new Map() // Initialize with an empty Map
     }
 });
 

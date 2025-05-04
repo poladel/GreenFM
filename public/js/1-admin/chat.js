@@ -12,7 +12,9 @@ let loadedMessageIds = new Set();
 const CHAT_LAST_VIEWED_KEY = 'chatLastViewedTimestamps'; // localStorage key
 
 const socket = io();
+// --- CHANGE: Use dataset.userId consistently ---
 const currentUserId = document.body.dataset.userId;
+// --- END CHANGE ---
 const messagesDiv = document.getElementById('messages');
 const modal = document.getElementById('new-chat-modal');
 const modalBackdrop = document.getElementById('modal-backdrop');
@@ -65,6 +67,12 @@ function updateChatLastViewedTimestamp(chatId, timestamp) {
         timestamps[chatId] = timestamp;
         localStorage.setItem(CHAT_LAST_VIEWED_KEY, JSON.stringify(timestamps));
         console.log(`[LocalStorage] Updated last viewed timestamp for ${chatId} to ${timestamp}`);
+
+        // --- ADD THIS LOG ---
+        console.log(`[CLIENT EMIT] Attempting to emit 'updateLastViewed' for chat ${chatId}`);
+        // --- END ADD THIS LOG ---
+        socket.emit('updateLastViewed', { chatId: chatId }); // Emit event to server
+
     } catch (e) {
         console.error("Error saving chat timestamp to localStorage:", e);
     }
@@ -152,6 +160,19 @@ if (sidebarToggleBtn && sidebarContainer && chatAreaContainer) {
 socket.on('connect', () => {
     console.log(`[DEBUG] Socket connected with ID: ${socket.id}`);
 
+    // --- AUTHENTICATE FIRST ---
+    if (currentUserId) {
+        console.log(`[DEBUG] Emitting authenticate event for user: ${currentUserId}`);
+        socket.emit('authenticate', currentUserId); // Emit authentication immediately
+    } else {
+        console.error('[DEBUG] Cannot authenticate: currentUserId is missing.');
+        // Handle cases where user ID might not be available (e.g., redirect to login)
+        return; // Prevent further actions if not authenticated
+    }
+    // --- END AUTHENTICATE ---
+
+    // --- REMOVE: Initial room joining logic moved to after auth_success ---
+    /*
     // --- Join all rooms listed in the sidebar ---
     const chatRooms = document.querySelectorAll('.chat-room');
     console.log(`[DEBUG] Found ${chatRooms.length} chat rooms in sidebar. Joining rooms...`);
@@ -160,23 +181,60 @@ socket.on('connect', () => {
         if (roomId) {
             console.log(`[DEBUG] Emitting joinRoom for initial room: ${roomId}`);
             socket.emit('joinRoom', roomId);
-            // --- ADD THIS LOG ---
             console.log(`[CLIENT DEBUG] Emitted joinRoom(${roomId}) on connect.`);
-            // --- END ADDED LOG ---
         }
     });
     // --- End Join all rooms ---
 
     // If a chat was already active (e.g., from localStorage), rejoin its room upon connection/reconnection
-    // This ensures the *current* chat is definitely joined, even if it wasn't in the initial list for some reason.
     if (currentChatId) {
         console.log(`[DEBUG] Rejoining active room ${currentChatId} after connection.`);
         socket.emit('joinRoom', currentChatId);
-         // --- ADD THIS LOG ---
          console.log(`[CLIENT DEBUG] Emitted joinRoom(${currentChatId}) for active chat on connect.`);
-         // --- END ADDED LOG ---
     }
+    */
+    // --- END REMOVE ---
 });
+
+// --- ADD: Listen for Authentication Success ---
+socket.on('auth_success', (data) => {
+    console.log(`[DEBUG] Authentication successful for user: ${data.userId}. Proceeding with setup.`);
+
+    // --- Join all rooms listed in the sidebar AFTER successful auth ---
+    const chatRooms = document.querySelectorAll('.chat-room');
+    console.log(`[DEBUG] Found ${chatRooms.length} chat rooms in sidebar. Joining rooms post-auth...`);
+    chatRooms.forEach(room => {
+        const roomId = room.dataset.id;
+        if (roomId) {
+            console.log(`[DEBUG] Emitting joinRoom for initial room: ${roomId}`);
+            socket.emit('joinRoom', roomId);
+            console.log(`[CLIENT DEBUG] Emitted joinRoom(${roomId}) post-auth.`);
+        }
+    });
+    // --- End Join all rooms ---
+
+    // Rejoin active chat room if necessary
+    if (currentChatId) {
+        console.log(`[DEBUG] Rejoining active room ${currentChatId} post-auth.`);
+        socket.emit('joinRoom', currentChatId);
+        console.log(`[CLIENT DEBUG] Emitted joinRoom(${currentChatId}) for active chat post-auth.`);
+    }
+
+    // --- Trigger initial global unread check AFTER successful auth ---
+    console.log("[DEBUG] Emitting 'checkGlobalUnread' after successful authentication.");
+    socket.emit('checkGlobalUnread');
+    // --- END Trigger ---
+
+});
+// --- END Listen for Authentication Success ---
+
+// --- ADD: Listen for Authentication Failure ---
+socket.on('auth_failure', (data) => {
+    console.error(`[DEBUG] Authentication failed: ${data.error}. Chat functionality may be limited.`);
+    // Optionally, display a message to the user or disable chat features
+});
+// --- END Listen for Authentication Failure ---
+
 
 // --- END Socket Connection Handling ---
 
@@ -907,8 +965,6 @@ messageForm.addEventListener('submit', async e => { // Changed selector to messa
 
         const message = await res.json(); // Backend returns the saved message
 
-        // ** REMOVED tempElement removal from here **
-
         if (!res.ok) {
             console.error('❌ Message send failed:', message.error);
             // Visually mark the optimistic message as failed
@@ -921,9 +977,9 @@ messageForm.addEventListener('submit', async e => { // Changed selector to messa
         } else {
             // --- SUCCESS: Update localStorage immediately for sender ---
             // Use the timestamp from the server response if available, otherwise fallback
-            const finalTimestamp = message.createdAt || sentTimestamp;
-            updateChatLastViewedTimestamp(currentChatId, finalTimestamp);
-            console.log(`[DEBUG] Sender updated localStorage timestamp for chat ${currentChatId} immediately after successful send.`);
+            // const finalTimestamp = message.createdAt || sentTimestamp; // Timestamp update now handled by newMessage listener
+            // updateChatLastViewedTimestamp(currentChatId, finalTimestamp); // REMOVED THIS CALL
+            // console.log(`[DEBUG] Sender updated localStorage timestamp for chat ${currentChatId} immediately after successful send.`); // REMOVED THIS LOG
             // --- END Update localStorage ---
 
             // Success: rely on socket listener 'newMessage' to replace optimistic message
@@ -1130,10 +1186,10 @@ socket.on('newChatCreated', (chat) => {
         unreadDotSpan.className = `unread-dot w-2.5 h-2.5 bg-blue-500 rounded-full absolute top-2 right-2 ${dotHiddenClass}`;
         newChatDiv.appendChild(unreadDotSpan);
         if (!isCreator) {
-            console.log(`[DEBUG] Showing dot for new chat ${chat._id} (user not creator).`);
-            // --- UPDATE GLOBAL DOT ---
-            // updateGlobalUnreadStatus(); // Remove this call
-            // --- END UPDATE ---
+             console.log(`[DEBUG] Showing dot for new chat ${chat._id} (user not creator).`);
+             // --- UPDATE GLOBAL DOT ---
+             // updateGlobalUnreadStatus(); // Remove this call
+             // --- END UPDATE ---
         }
         // --- END ADD UNREAD DOT SPAN ---
 
@@ -1574,6 +1630,7 @@ socket.on('memberAdded', ({ chatId, addedUser, updatedMembers, creatorId }) => {
         openMembersModal(); // Re-fetch and re-render everything
     }
    
+
 
    
     // Optional: Update participant count in header if displayed
