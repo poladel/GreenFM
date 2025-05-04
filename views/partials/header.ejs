@@ -25,4 +25,4 @@
     </style>
 </head>
 <!-- Apply base body styles using Tailwind -->
-<body data-user-id="<%= user._id %>" class="overflow-hidden bg-gray-100 font-sans"> <!-- Equivalent to #EFEFEF background and Helvetica/Arial font -->
+<body data-user-id="<%= user ? user._id : '' %>" class="overflow-hidden bg-gray-100 font-sans"> <!-- Equivalent to #EFEFEF background and Helvetica/Arial font -->
