@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             button.textContent = '';
             button.dataset.slotId = '';
             button.dataset.applicationId = '';
-            delete button.dataset.state; // <<< ADD THIS LINE TO RESET THE STATE
+            delete button.dataset.state; // <<< Reset the state
 
             // --- More Efficient State Management ---
             let newState = 'disabled-outside'; // Default state (outside period or weekend)
@@ -429,27 +429,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                         isDisabled = true;
                     } else { // Future or current school day within the period
                         if (slotData) { // Slot exists in DB for this date/time/dept
-                            if (slotData.application) { // --- BOOKED ---
+                            // <<< ADD DETAILED LOGGING HERE >>>
+                            console.log(`[Display Check] Slot found for ${key}:`, JSON.stringify(slotData));
+                            console.log(`  -> Checking slotData.application:`, slotData.application);
+                            console.log(`  -> Checking slotData.application._id:`, slotData.application?._id);
+                            // <<< END DETAILED LOGGING >>>
+
+                            if (slotData.application && slotData.application._id) { // Check if application field exists and has an ID
                                 newState = 'booked';
-                                const applicantName = slotData.applicantName || 'Booked';
-                                const applicantSection = slotData.applicantSection || 'N/A';
-                                newText = `${applicantName} (${applicantSection})`;
-                                isDisabled = false; // Clickable to view details
+                                // Construct applicant name from populated data
+                                const app = slotData.application;
+                                newText = `${app.lastName}, ${app.firstName}${app.middleInitial ? ' ' + app.middleInitial + '.' : ''}${app.suffix ? ' ' + app.suffix : ''}`;
                                 newSlotId = slotData._id;
-                                newApplicationId = slotData.application ? slotData.application._id : (slotData.application || '');
-                            } else { // --- AVAILABLE (Explicitly in DB) ---
+                                newApplicationId = app._id; // Store the application ID
+                                isDisabled = false; // Booked slots are clickable
+                                console.log(`  -> RESULT: Marked as BOOKED`); // Log if booked
+                            } else { // Slot exists but is not booked (available)
                                 newState = 'available';
                                 newText = 'Available';
-                                isDisabled = false; // Clickable to delete/unmark
                                 newSlotId = slotData._id;
-                                // newApplicationId remains empty
+                                newApplicationId = ''; // No application ID
+                                isDisabled = false; // Available slots are clickable
+                                console.log(`  -> RESULT: Marked as AVAILABLE (Explicit)`); // Log if available
                             }
-                        } else { // --- IMPLICITLY AVAILABLE (Not in DB) ---
+                        } else { // Slot does NOT exist in DB, implicitly available
                             newState = 'implicitly-available';
-                            newText = ''; // No text needed
-                            isDisabled = false; // Clickable to create/mark
-                            // newSlotId remains empty
-                            // newApplicationId remains empty
+                            newText = ''; // No text for implicitly available
+                            newSlotId = ''; // No slot ID yet
+                            newApplicationId = '';
+                            isDisabled = false; // Implicitly available slots are clickable
+                             console.log(`[Display Check] No slot found for ${key}. Marked as IMPLICITLY AVAILABLE`); // Log if implicitly available
                         }
                     }
                 } else { // School day, but outside assessment period
@@ -487,8 +496,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         break;
                     case 'implicitly-available': // Not in DB, potential slot
                         // Base styles are already applied by className reset, just add the state marker
-                        button.classList.add('implicitly-available'); // Add marker class
-                        // Ensure hover effects still work if needed, base className might cover it
+                        button.classList.add('implicitly-available');                        // Ensure hover effects still work if needed, base className might cover it
                         break;
                     case 'past':
                         button.classList.add('past', 'bg-gray-200', 'text-gray-500', 'border-gray-300');
@@ -507,6 +515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             button.disabled = isDisabled;
             button.classList.toggle('cursor-not-allowed', isDisabled);
+            // Adjust opacity: Don't make 'past' slots overly faded, but keep others disabled looking
             button.classList.toggle('opacity-50', isDisabled && newState !== 'past');
             button.dataset.slotId = newSlotId; // Correctly set based on newState logic
             button.dataset.applicationId = newApplicationId; // Correctly set based on newState logic

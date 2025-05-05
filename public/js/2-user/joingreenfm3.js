@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusContainer = document.getElementById('staff-application-status');
     const spinner = document.getElementById('loading-spinner'); // Get spinner element
     let currentSubmissionId = null;
+    const currentUserId = document.body.dataset.userId; // <<< Get User ID from body data attribute
 
     // --- UPDATED SPINNER FUNCTIONS ---
     function showSpinner() {
@@ -25,23 +26,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- END UPDATED SPINNER FUNCTIONS ---
 
     // <<< Initialize Socket.IO >>>
-    const socket = io({
-        auth: {
-            token: document.cookie.split('jwt=')[1]?.split(';')[0] // Send token
+    const socket = io(); // Removed auth token here, will authenticate via event
+
+    socket.on('connect', () => {
+        console.log('Join GFM Step 3 Socket Connected:', socket.id);
+        // <<< Emit authenticate event with user ID >>>
+        if (currentUserId) {
+            console.log(`Emitting authenticate event for user: ${currentUserId}`);
+            socket.emit('authenticate', currentUserId);
+        } else {
+            console.error("User ID not found in body dataset. Cannot authenticate socket.");
         }
     });
 
-    socket.on('connect', () => console.log('Join GFM Step 3 Socket Connected:', socket.id));
+    // <<< Listen for successful authentication from server >>>
+    socket.on('auth_success', (data) => {
+        console.log(`Socket authentication successful for user: ${data.userId}`);
+        // You could potentially trigger the initial fetch here if needed,
+        // but DOMContentLoaded already handles it.
+    });
+
+    // <<< Listen for authentication failure (optional but good practice) >>>
+    socket.on('auth_failure', (data) => {
+        console.error(`Socket authentication failed: ${data.error}`);
+        // Handle failure, e.g., show an error message to the user
+    });
+
+
     socket.on('disconnect', () => console.log('Join GFM Step 3 Socket Disconnected'));
 
     // <<< Listen for Staff Submission Status Updates >>>
     socket.on('staffSubmissionStatusUpdate', (data) => {
         console.log('Received staffSubmissionStatusUpdate:', data);
+        // Check if the update is for the submission currently being viewed
         if (data.submissionId === currentSubmissionId) {
             console.log(`Status update matches current submission (${currentSubmissionId}). Refreshing display.`);
-            fetchStaffApplicationStatus(); // Re-fetch to get full, updated data
+            fetchStaffApplicationStatus(); // Re-fetch to get full, updated data and redraw UI
         } else {
-            console.log("Status update ignored (different submission ID).");
+            console.log(`Status update received for ${data.submissionId}, but currently viewing ${currentSubmissionId}. Ignoring.`);
         }
     });
     // <<< End Listener >>>
@@ -89,25 +111,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Apply Tailwind classes directly in the HTML strings
         const baseParagraphStyle = "text-base text-gray-700 mb-2";
-        const headingStyle = "text-xl font-bold text-greenfm-primary mb-3";
-        // Base button style for rejected/pending (original style)
-        const baseButtonStyle = "acknowledge-staff-btn mt-4 px-5 py-2 bg-greenfm-primary text-white text-sm font-semibold rounded-lg shadow hover:bg-greenfm-primary-dark focus:outline-none focus:ring-2 focus:ring-greenfm-primary focus:ring-opacity-50 transition duration-150 ease-in-out";
-        // Specific style for accepted button (white bg, green text, green border)
-        const acceptedButtonStyle = "acknowledge-staff-btn mt-4 px-5 py-2 bg-white text-green-600 border border-green-600 text-sm font-semibold rounded-lg shadow hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out";
+        const headingStyle = "text-xl font-bold text-green-800 mb-3"; // Adjusted heading color slightly for theme
+        // Dark green button style for rejected/pending (and now accepted too)
+        const darkGreenButtonStyle = "acknowledge-staff-btn mt-4 px-5 py-2 bg-green-800 text-white text-sm font-semibold rounded-lg shadow hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 transition duration-150 ease-in-out";
 
         if (lowerResult === 'accepted') {
             htmlContent = `
                 <h4 class="${headingStyle}">Application Approved!</h4>
                 <p class="${baseParagraphStyle}">Congratulations! Your application to join GreenFM (Department: ${preferredDepartment || 'N/A'}) has been <strong class="font-semibold text-green-600">approved</strong>.</p>
                 <p class="${baseParagraphStyle}">Welcome to the team!</p>
-                <button type="button" class="${acceptedButtonStyle}" data-submission-id="${_id}">Acknowledge & Continue</button>
+                <button type="button" class="${darkGreenButtonStyle}" data-submission-id="${_id}">Acknowledge & Continue</button>
             `;
         } else if (lowerResult === 'rejected') {
             htmlContent = `
                 <h4 class="${headingStyle}">Application Update</h4>
                 <p class="${baseParagraphStyle}">Thank you for applying to GreenFM (Department: ${preferredDepartment || 'N/A'}).</p>
                 <p class="${baseParagraphStyle}">We regret to inform you that your application has been <strong class="font-semibold text-red-600">rejected</strong> at this time.</p>
-                <button type="button" class="${baseButtonStyle}" data-submission-id="${_id}">Acknowledge</button>
+                <button type="button" class="${darkGreenButtonStyle}" data-submission-id="${_id}">Acknowledge</button>
             `;
         } else { // Pending
             htmlContent = `

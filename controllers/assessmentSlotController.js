@@ -2,6 +2,7 @@ const AssessmentSlot = require('../models/AssessmentSlot');
 const AssessmentPeriod = require('../models/AssessmentPeriod');
 const ApplyStaff = require('../models/ApplyStaff');
 const { endOfWeek, format } = require('date-fns');
+const mongoose = require('mongoose'); // Ensure mongoose is imported
 
 // <<< NEW HELPER FUNCTION >>>
 // Fetches distinct available dates for a dept/year and emits an update
@@ -191,19 +192,48 @@ exports.getAssessmentSlotsForWeek = async (req, res) => {
     try {
         // Ensure weekStart is treated as local date
         const weekStartDate = new Date(weekStart + 'T00:00:00'); // Assuming weekStart is YYYY-MM-DD
-
-        // Calculate end of the week (Saturday, assuming week starts Sunday)
-        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 0 }); // Use imported function
-
-        // Format dates for DB query (ensure this matches your DB date format)
-        const startDateString = format(weekStartDate, 'yyyy-MM-dd'); // Use imported function
-        const endDateString = format(weekEndDate, 'yyyy-MM-dd'); // Use imported function
+        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 0 });
+        const startDateString = format(weekStartDate, 'yyyy-MM-dd');
+        const endDateString = format(weekEndDate, 'yyyy-MM-dd');
 
         console.log(`Querying AssessmentSlots for Dept: ${department}, Year: ${year}, Between: ${startDateString} and ${endDateString}`);
 
-        const slots = await AssessmentSlot.find({
+        // <<< Step 1: Find slots WITHOUT population >>>
+        const slotsRaw = await AssessmentSlot.find({
             department: department,
-            year: parseInt(year, 10), // Ensure year is number for query
+            year: parseInt(year, 10),
+            date: { $gte: startDateString, $lte: endDateString }
+        })
+        .select('+application') // <<< Explicitly select the application field
+        .lean(); // <<< Use lean for raw data inspection
+
+        // <<< Log the raw data for the problem slot >>>
+        const problemSlotRaw = slotsRaw.find(slot => slot._id.toString() === '680c94cd5dd3b8de91a54b1e');
+        if (problemSlotRaw) {
+            console.log(`[Backend RAW Check] Problem Slot (ID: 680c94cd5dd3b8de91a54b1e) RAW Data BEFORE populate:`, JSON.stringify(problemSlotRaw, null, 2));
+            console.log(`   -> Raw Application field type: ${typeof problemSlotRaw.application}`);
+            console.log(`   -> Raw Application field value:`, problemSlotRaw.application); // <<< THIS IS THE KEY VALUE TO CHECK
+            // <<< Check if the referenced application exists >>>
+            if (problemSlotRaw.application && mongoose.Types.ObjectId.isValid(problemSlotRaw.application)) {
+                const referencedApp = await ApplyStaff.findById(problemSlotRaw.application).select('_id lastName firstName').lean();
+                if (referencedApp) {
+                    console.log(`   -> Referenced ApplyStaff document FOUND:`, referencedApp);
+                } else {
+                    console.error(`   -> !!! Referenced ApplyStaff document NOT FOUND in DB for ID: ${problemSlotRaw.application} !!!`);
+                }
+            } else {
+                 console.warn(`   -> Raw Application field is null, empty, or invalid ObjectId.`);
+            }
+        } else {
+            console.log(`[Backend RAW Check] Problem Slot (ID: 680c94cd5dd3b8de91a54b1e) NOT FOUND in raw query results for this week/dept.`);
+        }
+        // <<< End Log raw data >>>
+
+
+        // <<< Step 2: Perform the population (original query) >>>
+        const slotsPopulated = await AssessmentSlot.find({
+            department: department,
+            year: parseInt(year, 10),
             date: { $gte: startDateString, $lte: endDateString }
         })
         .populate({
@@ -211,9 +241,23 @@ exports.getAssessmentSlotsForWeek = async (req, res) => {
             model: 'ApplyStaff',
             select: 'lastName firstName middleInitial suffix section dlsudEmail studentNumber preferredDepartment preferredSchedule'
         })
-        .sort({ date: 1, time: 1 });
+        .sort({ date: 1, time: 1 }); // <<< Keep the sort here for the final response
 
-        res.status(200).json(slots);
+
+        // <<< Existing logging for populated data (keep for comparison) >>>
+        console.log(`[Backend Populate Check] Found ${slotsPopulated.length} populated slots for week ${weekStart}, Dept: ${department}`);
+        const problemSlotPopulated = slotsPopulated.find(slot => slot._id.toString() === '680c94cd5dd3b8de91a54b1e');
+        if (problemSlotPopulated) {
+            console.log(`[Backend Populate Check] Problem Slot (ID: 680c94cd5dd3b8de91a54b1e) Data AFTER populate (BEFORE sending):`, JSON.stringify(problemSlotPopulated, null, 2));
+            console.log(`   -> Populated Application field type: ${typeof problemSlotPopulated.application}`);
+            console.log(`   -> Populated Application field value:`, problemSlotPopulated.application);
+        } else {
+            // This might happen if the raw check didn't find it either
+            console.log(`[Backend Populate Check] Problem Slot (ID: 680c94cd5dd3b8de91a54b1e) NOT FOUND in populated results.`);
+        }
+        // <<< END Existing logging >>>
+
+        res.status(200).json(slotsPopulated); // <<< Send the POPULATED data >>>
 
     } catch (error) {
         console.error('Error fetching assessment slots for week:', error);
@@ -227,16 +271,39 @@ exports.deleteAssessmentSlot = async (req, res) => {
     try {
         const slotId = req.params.id;
         const io = req.io; // Get io instance from request object
+        // Fetch the slot *without* populating initially
         const slot = await AssessmentSlot.findById(slotId);
 
         if (!slot) return res.status(404).json({ message: 'Available slot not found.' });
-        if (slot.application) return res.status(400).json({ message: 'Cannot delete a slot that is already booked.' });
+
+        // <<< MODIFIED CHECK: Block deletion ONLY if application ObjectId exists AND the referenced document is found >>>
+        let isActuallyBooked = false;
+        if (slot.application && mongoose.Types.ObjectId.isValid(slot.application)) {
+            console.log(`[Delete Check] Slot ${slotId} has application reference: ${slot.application}. Verifying existence...`);
+            const referencedApp = await ApplyStaff.findById(slot.application).select('_id').lean(); // Check if doc exists
+            if (referencedApp) {
+                console.log(`[Delete Check] Referenced application ${slot.application} FOUND. Slot is actually booked.`);
+                isActuallyBooked = true;
+            } else {
+                console.warn(`[Delete Check] Referenced application ${slot.application} NOT FOUND. Treating as available (broken reference).`);
+            }
+        } else {
+             console.log(`[Delete Check] Slot ${slotId} has no application reference or it's invalid. Treating as available.`);
+        }
+
+        if (isActuallyBooked) {
+            return res.status(400).json({ message: 'Cannot delete a slot that is currently booked by an existing application.' });
+        }
+        // <<< END MODIFIED CHECK >>>
+
 
         // <<< Store details BEFORE deleting >>>
         const department = slot.department;
         const year = slot.year;
         // <<< End Store >>>
 
+        // --- If we reach here, the slot is either truly available or has a broken reference ---
+        console.log(`Proceeding with deletion of slot ${slotId} (Dept: ${department}, Year: ${year})`);
         await AssessmentSlot.findByIdAndDelete(slotId);
 
         // Emit standard update for admin grid
@@ -256,7 +323,7 @@ exports.deleteAssessmentSlot = async (req, res) => {
         await emitAvailableDates(io, department, year);
         // <<< END ADDED >>>
 
-        res.status(200).json({ message: 'Available slot deleted successfully.' });
+        res.status(200).json({ message: 'Available slot (or slot with broken reference) deleted successfully.' }); // Updated message
     } catch (error) {
         console.error('Error deleting assessment slot:', error);
         res.status(500).json({ message: `Server error deleting slot: ${error.message}` });

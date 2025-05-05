@@ -208,14 +208,27 @@ exports.acknowledgeResult = async (req, res) => {
 
         // Check if the submission was actually accepted
         if (submission.result !== 'Accepted') {
-            // Allow acknowledging rejection, but don't update role/department
+            // --- Logic for REJECTED/OTHER acknowledgment ---
             submission.acknowledged = true;
             await submission.save();
-            console.log(`User ${userId} acknowledged rejected submission ${id}`);
+            console.log(`User ${userId} acknowledged non-accepted submission ${id}`);
+
+            // <<< ADD: Find user and reset GFM flags for non-acceptance >>>
+            const userToUpdate = await User.findById(userId);
+            if (userToUpdate) {
+                userToUpdate.completedJoinGFMStep1 = false;
+                userToUpdate.completedJoinGFMStep2 = false;
+                await userToUpdate.save();
+                console.log(`User ${userId} GFM step flags reset after acknowledging non-accepted submission.`);
+            } else {
+                console.warn(`User ${userId} not found when trying to reset GFM flags for non-accepted submission ${id}`);
+            }
+            // <<< END ADD >>>
+
             // Send response indicating acknowledgment but no role change
              return res.status(200).json({
-                message: 'Rejection acknowledged.',
-                logout: false // Or true if you want logout on rejection ack
+                message: 'Result acknowledged.', // Updated message
+                logout: false // Don't force logout on non-acceptance ack
             });
         }
 
@@ -236,8 +249,8 @@ exports.acknowledgeResult = async (req, res) => {
         const oldRole = userToUpdate.roles; // Capture old role (string)
 
         // <<< UPDATE FLAGS AND ROLE HERE >>>
-        userToUpdate.completedJoinGFMStep1 = false;
-        userToUpdate.completedJoinGFMStep2 = false;
+        userToUpdate.completedJoinGFMStep1 = false; // Already here for acceptance
+        userToUpdate.completedJoinGFMStep2 = false; // Already here for acceptance
         userToUpdate.roles = 'Staff'; // Assign the string 'Staff' (assuming single role schema)
         userToUpdate.department = submission.preferredDepartment;
         // <<< END UPDATE >>>
