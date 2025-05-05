@@ -120,8 +120,23 @@ io.on('connection', (socket) => {
 
     // --- Handle Client Joining Specific Chat Rooms ---
     socket.on('joinRoom', async (roomId) => {
+        // --- ADD: Handle specific live comments room ---
+        if (roomId === 'live-comments-room') {
+            try {
+                socket.join(roomId);
+                console.log(`[SERVER JOIN] Socket ${socket.id} (User: ${socket.userId || 'N/A'}) joined special room: ${roomId}`);
+                console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+                return; // Exit early after joining the special room
+            } catch (error) {
+                console.error(`[SERVER JOIN ERROR] Error joining special room ${roomId} for socket ${socket.id}:`, error);
+                return; // Exit on error
+            }
+        }
+        // --- END ADD ---
+
+        // --- Existing logic for chat room ObjectIds ---
         if (!roomId || !mongoose.Types.ObjectId.isValid(roomId)) {
-             console.error(`[SERVER JOIN] Invalid roomId ('${roomId}') from socket ${socket.id}.`);
+             console.error(`[SERVER JOIN] Invalid chat roomId ('${roomId}') from socket ${socket.id}.`);
              return;
         }
         // Optional: Verify user has access to this room before joining
@@ -133,8 +148,8 @@ io.on('connection', (socket) => {
 
         try {
             socket.join(roomId);
-            // console.log(`[SERVER JOIN] Socket ${socket.id} (User: ${socket.userId || 'N/A'}) joined chat room: ${roomId}`);
-            // console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
+            console.log(`[SERVER JOIN] Socket ${socket.id} (User: ${socket.userId || 'N/A'}) joined chat room: ${roomId}`);
+            console.log(`[SERVER ROOMS] Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
         } catch (error) {
             console.error(`[SERVER JOIN ERROR] Error joining chat room ${roomId} for socket ${socket.id}:`, error);
         }
@@ -334,16 +349,19 @@ io.on('connection', (socket) => {
         const { text, username } = data;
         try {
             const comment = await Comment.create({ text, username });
-            
+
+            // Emit specifically to the live comments room
             io.to('live-comments-room').emit('newComment', {
                 text: comment.text,
                 username: comment.username,
                 createdAt: comment.createdAt
             });
-    
+
             console.log(`💬 [${username}] commented: ${text}`);
         } catch (err) {
             console.error('Error saving comment:', err.message);
+            // Optionally, emit an error back to the sender
+            // socket.emit('commentError', { message: 'Failed to save comment.' });
         }
     });
 
