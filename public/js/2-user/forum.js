@@ -84,6 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
 			this.currentPage = 1;
 			this.isLoading = false;
 			this.totalPages = 1;
+			this.currentMediaIndex = 0; // For modal
+			this.currentMediaList = []; // For modal
 
 			console.log("[ForumApp] Initializing with User ID:", this.currentUserId, "Roles:", this.currentUserRoles); // Log initialization
 
@@ -122,6 +124,14 @@ document.addEventListener("DOMContentLoaded", function () {
 				paginationContainer: document.getElementById(
 					"pagination-container"
 				),
+				// --- Modal Elements ---
+				mediaModal: document.getElementById("media-modal"),
+				modalImage: document.getElementById("modal-image"),
+				modalVideo: document.getElementById("modal-video"),
+				closeModalButton: document.getElementById("close-modal-button"),
+				leftArrow: document.getElementById("left-arrow-button"),
+				rightArrow: document.getElementById("right-arrow-button"),
+				// --- End Modal Elements ---
 			};
 		}
 
@@ -269,29 +279,92 @@ document.addEventListener("DOMContentLoaded", function () {
 						(src) => src === mediaItem.src
 					);
 					openMediaModal(initialIndex >= 0 ? initialIndex : 0);
+				} else if (mediaItem && this.elements.mediaModal) { // Check if it's a media item and modal exists
+					this.updateCurrentMediaList(mediaItem); // Populate this.currentMediaList
+					const initialIndex = this.currentMediaList.findIndex(
+						(src) => src === mediaItem.src
+					);
+					this.openMediaModal(initialIndex >= 0 ? initialIndex : 0); // Call the class method
 				}
 			});
+
+			// --- Modal Event Listeners ---
+			this.elements.closeModalButton?.addEventListener('click', this.closeMediaModal.bind(this));
+			this.elements.leftArrow?.addEventListener('click', () => this.navigateMedia(-1));
+			this.elements.rightArrow?.addEventListener('click', () => this.navigateMedia(1));
+			// --- End Modal Event Listeners ---
 		}
 
 		updateCurrentMediaList(clickedMediaElement) {
 			const postMediaContainer = clickedMediaElement.closest(
 				".post-media-container"
-			); // Changed selector
+			);
 			if (postMediaContainer) {
 				const mediaElements = Array.from(
 					postMediaContainer.querySelectorAll(
 						".post-media-img, .post-media-video"
 					)
 				);
-				window.currentMediaList = mediaElements.map((el) => el.src);
+				// Store the list in the class property
+				this.currentMediaList = mediaElements.map((el) => el.src);
 				console.log(
 					"Updated media list for modal:",
-					window.currentMediaList
+					this.currentMediaList
 				);
 			} else {
-				window.currentMediaList = [clickedMediaElement.src];
+				// Fallback if container not found (shouldn't happen with correct structure)
+				this.currentMediaList = [clickedMediaElement.src];
 			}
+			// Remove the update to the global window variable if not needed elsewhere
+			// window.currentMediaList = this.currentMediaList;
 		}
+
+		// --- Media Modal Methods (Adapted from home.js) ---
+		openMediaModal(index) {
+			if (!this.elements.mediaModal || !this.elements.modalImage || !this.elements.modalVideo || index < 0 || index >= this.currentMediaList.length) {
+				console.error("Cannot open modal or index out of bounds.", index, this.currentMediaList);
+				return;
+			}
+
+			this.currentMediaIndex = index;
+			const src = this.currentMediaList[this.currentMediaIndex];
+			const isVideo = src.includes('.mp4') || src.includes('video'); // Basic check, adjust if needed
+
+			if (isVideo) {
+				this.elements.modalVideo.src = src;
+				this.elements.modalVideo.style.display = 'block';
+				this.elements.modalImage.style.display = 'none';
+				this.elements.modalVideo.currentTime = 0; // Reset video
+				// this.elements.modalVideo.play(); // Optional: auto-play
+			} else {
+				this.elements.modalImage.src = src;
+				this.elements.modalImage.style.display = 'block';
+				this.elements.modalVideo.style.display = 'none';
+				this.elements.modalVideo.pause(); // Pause video if switching to image
+			}
+
+			this.elements.mediaModal.classList.remove('hidden');
+			this.elements.mediaModal.classList.add('flex');
+			document.body.style.overflow = 'hidden'; // Disable body scroll
+		}
+
+		closeMediaModal() {
+			if (!this.elements.mediaModal || !this.elements.modalVideo) return;
+
+			this.elements.mediaModal.classList.add('hidden');
+			this.elements.mediaModal.classList.remove('flex');
+			this.elements.modalVideo.pause(); // Stop video
+			this.elements.modalVideo.currentTime = 0;
+			document.body.style.overflow = ''; // Re-enable body scroll
+		}
+
+		navigateMedia(direction) {
+			if (this.currentMediaList.length <= 1) return; // No navigation needed for single item
+
+			const newIndex = (this.currentMediaIndex + direction + this.currentMediaList.length) % this.currentMediaList.length;
+			this.openMediaModal(newIndex); // Open modal with the new index
+		}
+		// --- End Media Modal Methods ---
 
 		handleFileSelect(event) {
 			const files = event.target.files;

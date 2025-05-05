@@ -117,6 +117,19 @@
                 </div>
 
             </div> <!-- End forum-main-content -->
+
+            <!-- Media Modal (Copied from home.ejs, adjusted IDs if necessary) -->
+            <div id="media-modal" class="media-modal hidden fixed inset-0 z-[9999] bg-black/80 flex justify-center items-center p-4 lg:p-8">
+                <span id="close-modal-button" class="close-modal absolute top-2 right-5 text-4xl text-white cursor-pointer z-10">×</span>
+                <div class="modal-content relative w-full h-full flex items-center justify-center">
+                    <button id="left-arrow-button" class="nav-arrow left-arrow absolute top-1/2 transform -translate-y-1/2 left-[-3vw] lg:left-[-50px] bg-none border-none text-4xl text-white cursor-pointer p-2.5 z-10">❮</button>
+                    <img id="modal-image" class="modal-media block max-w-full max-h-full w-auto h-auto object-contain rounded-lg" style="display: none;">
+                    <video id="modal-video" class="modal-media block max-w-full max-h-full w-auto h-auto object-contain rounded-lg" controls style="display: none;"></video>
+                    <button id="right-arrow-button" class="nav-arrow right-arrow absolute top-1/2 transform -translate-y-1/2 right-[-3vw] lg:right-[-50px] bg-none border-none text-4xl text-white cursor-pointer p-2.5 z-10">❯</button>
+                </div>
+            </div>
+            <!-- End Media Modal -->
+
         </div> <!-- End content-wrap -->
         <%- include('../partials/footer.ejs') %> <!-- Include Footer -->
     </div> <!-- End page-container -->
