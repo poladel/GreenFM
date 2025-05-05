@@ -13,7 +13,6 @@ const userRoutes = [
     // Public routes (auth: false or omitted)
     { path: '/Live', view: '2-user/2-live', pageTitle: 'Live',  headerTitle: 'LIVE', cssFile: 'css/live.css'},
     { path: '/Forum', view: '2-user/3-forum', pageTitle: 'Forum', headerTitle: 'FORUM', cssFile: 'css/forum.css'},
-    { path: '/Archives', view: '2-user/4-archives', pageTitle: 'Archives', headerTitle: 'ARCHIVES', cssFile: 'css/archive.css' },
     { path: '/Playlist', view: '2-user/5-playlist', pageTitle: 'Playlist', headerTitle: 'PLAYLIST', cssFile: 'css/playlist.css' },
     { path: '/About', view: '2-user/8-about', pageTitle: 'About Us', headerTitle: 'ABOUT US' , cssFile: 'css/about.css'},
     { path: '/Contact', view: '2-user/9-contact', pageTitle: 'Contact Us', headerTitle: 'CONTACT US', cssFile: 'css/contact.css' },
@@ -99,20 +98,6 @@ userRoutes.forEach(userRoute => {
             let playlist = [];
             if (userRoute.path === '/Playlist') {
                 playlist = await Playlist.find().sort({ createdAt: -1 });
-            }
-
-            // Handle Archives route specifically
-            if (userRoute.path === '/Archives') {
-                const Archive = require('../models/Archive');
-                const archives = await Archive.find().sort({ createdAt: -1 });
-                return res.render(userRoute.view, {
-                    pageTitle: userRoute.pageTitle,
-                    cssFile: userRoute.cssFile,
-                    user: user, // <<< Ensure user is passed here
-                    headerTitle: userRoute.headerTitle,
-                    currentPath: req.path,
-                    archives
-                });
             }
 
             // Delegate to controller if specified

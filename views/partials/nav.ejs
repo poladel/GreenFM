@@ -56,6 +56,20 @@
                     <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">FORUM</span>
                 </a>
             </li>
+
+            <li class="text-center my-[3px]">
+                <!-- Check if currentPath matches '/Archives' -->
+                <a href="/Archives" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
+                    <% if (typeof currentPath !== 'undefined' && currentPath === '/Archives') { %>
+                        bg-green-700 text-white scale-105
+                    <% } else { %>
+                        text-gray-800
+                    <% } %>
+                ">
+                    <i class="fas fa-box-archive text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i> <!-- Archive icon -->
+                    <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">ARCHIVES</span>
+                </a>
+            </li>
             
             <li class="text-center my-[3px]">
                 <!-- Check if currentPath matches '/Playlist' -->

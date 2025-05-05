@@ -6,7 +6,10 @@ const archiveSchema = new mongoose.Schema({
     required: true,
   },
   files: {
-    type: [String],
+    type: [{
+        url: { type: String, required: true },
+        name: { type: String, required: true }
+    }],
     default: [],
   },
   createdAt: {

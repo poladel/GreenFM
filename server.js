@@ -398,7 +398,7 @@ app.use(userRoutes);
 app.use(adminRoutes);
 app.use(authRoutes);
 app.use(postRoutes);
-app.use('/', archiveRoutes);
+app.use('/archives', archiveRoutes);
 app.use(joinBlocktimerRoutes);
 app.use(joinGFMRoutes);
 app.use(staffSubmissionRoutes);
