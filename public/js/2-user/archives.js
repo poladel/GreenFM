@@ -4,12 +4,17 @@ const closeUploadBtn = document.getElementById('closeModalBtn');
 
 openUploadBtn?.addEventListener('click', () => {
   uploadModal.style.display = 'block';
+  document.body.classList.add('modal-open');
 });
 closeUploadBtn?.addEventListener('click', () => {
   uploadModal.style.display = 'none';
+  document.body.classList.remove('modal-open');
 });
 window.addEventListener('click', (e) => {
-  if (e.target === uploadModal) uploadModal.style.display = 'none';
+  if (e.target === uploadModal) {
+    uploadModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
 });
 
 document.getElementById('modal-upload-form')?.addEventListener('submit', async (e) => {
@@ -25,6 +30,7 @@ document.getElementById('modal-upload-form')?.addEventListener('submit', async (
 
     if (res.ok) {
       uploadModal.style.display = 'none';
+      document.body.classList.remove('modal-open');
       window.location.reload();
     } else {
       alert('Upload failed.');
@@ -62,14 +68,15 @@ document.querySelectorAll('.folder-header').forEach(header => {
   header.addEventListener('click', () => {
     const folder = header.closest('.folder');
     const files = JSON.parse(folder.dataset.files || '[]');
+    const folderId = folder.dataset.id;
 
-    // Show modal
     viewModal.style.display = 'block';
-    renderFileList(files);
+    document.body.classList.add('modal-open');
+    renderFileList(files, folderId);
   });
 });
 
-function renderFileList(files) {
+function renderFileList(files, folderId) {
   previewArea.innerHTML = '';
 
   if (files.length === 0) {
@@ -82,10 +89,12 @@ function renderFileList(files) {
 
   files.forEach(file => {
     const fileName = file.split('/').pop();
+    const fileExt = fileName.split('.').pop().toLowerCase();
     const thumb = document.createElement('div');
     thumb.className = 'file-thumb';
 
     let inner;
+
     if (/\.(jpg|jpeg|png|gif)$/i.test(file)) {
       inner = document.createElement('img');
       inner.src = file;
@@ -96,29 +105,68 @@ function renderFileList(files) {
       inner.className = 'archive-thumb';
       inner.muted = true;
     } else {
-      inner = document.createElement('a');
-      inner.href = file;
-      inner.textContent = 'Download';
-      inner.target = '_blank';
-    }
+      // Document or unknown file → show file icon wrapped in download link
+      const link = document.createElement('a');
+      link.href = file;
+      link.download = fileName;
+      link.target = '_blank';
+    
+      const icon = document.createElement('img');
+      icon.src = '../img/file.png';
+      icon.alt = 'File icon';
+      icon.className = 'archive-thumb';
+    
+      link.appendChild(icon);
+      inner = link;
+    }    
 
     thumb.appendChild(inner);
+
     const name = document.createElement('div');
     name.className = 'file-name';
     name.textContent = fileName;
     thumb.appendChild(name);
 
-    thumb.addEventListener('click', () => previewSingleFile(file));
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.className = 'delete-file-btn';
+    deleteBtn.dataset.folder = folderId;
+    deleteBtn.dataset.url = file;
+    deleteBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm('Delete this file?')) return;
+      try {
+        const res = await fetch(`/archives/${folderId}/files`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileUrl: file })
+        });
+        if (res.ok) {
+          alert('File deleted.');
+          window.location.reload();
+        } else {
+          alert('Failed to delete file.');
+        }
+      } catch (err) {
+        console.error('File delete error:', err);
+        alert('An error occurred.');
+      }
+    });
+
+    thumb.appendChild(deleteBtn);
+    thumb.addEventListener('click', () => previewSingleFile(file, files, folderId));
     listContainer.appendChild(thumb);
   });
 
   previewArea.appendChild(listContainer);
 }
 
-function previewSingleFile(file) {
-  previewArea.innerHTML = ''; // clear current
+function previewSingleFile(file, allFiles, folderId) {
+  previewArea.innerHTML = '';
   const wrapper = document.createElement('div');
   wrapper.className = 'single-preview';
+
+  const fileExt = file.split('.').pop().toLowerCase();
 
   if (/\.(jpg|jpeg|png|gif)$/i.test(file)) {
     const img = document.createElement('img');
@@ -132,6 +180,20 @@ function previewSingleFile(file) {
     video.autoplay = true;
     video.className = 'full-preview';
     wrapper.appendChild(video);
+  } else if (fileExt === 'pdf') {
+    const iframe = document.createElement('iframe');
+    inner.src = '../img/file.png';
+    iframe.src = file;
+    iframe.className = 'full-preview';
+    iframe.style.height = '80vh';
+    wrapper.appendChild(iframe);
+  } else if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(fileExt)) {
+    const iframe = document.createElement('iframe');
+    inner.src = '../img/file.png';
+    iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(file)}&embedded=true`;
+    iframe.className = 'full-preview';
+    iframe.style.height = '80vh';
+    wrapper.appendChild(iframe);
   } else {
     const link = document.createElement('a');
     link.href = file;
@@ -144,84 +206,50 @@ function previewSingleFile(file) {
   backBtn.textContent = '←';
   backBtn.className = 'back-button';
   backBtn.addEventListener('click', () => {
-    renderFileList(JSON.parse(document.querySelector('.folder[data-files]').dataset.files || '[]'));
+    renderFileList(allFiles, folderId);
   });
 
   previewArea.appendChild(backBtn);
   previewArea.appendChild(wrapper);
 }
 
-// Close modal
-closeViewModalBtn.addEventListener('click', () => {
+// Close view modal
+closeViewModalBtn?.addEventListener('click', () => {
   viewModal.style.display = 'none';
+  document.body.classList.remove('modal-open');
 });
 window.addEventListener('click', (e) => {
-  if (e.target === viewModal) viewModal.style.display = 'none';
+  if (e.target === viewModal) {
+    viewModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
 });
 
-document.getElementById("openModalBtn").addEventListener("click", () => {
-    document.body.classList.add("modal-open");
-  });
-  
-  document.getElementById("closeModalBtn").addEventListener("click", () => {
-    document.body.classList.remove("modal-open");
-  });
-  
-  document.getElementById("closeViewModalBtn").addEventListener("click", () => {
-    document.body.classList.remove("modal-open");
-  });
-  
-  document.querySelectorAll('.delete-folder-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const folderId = btn.getAttribute('data-id');
-      if (!confirm('Are you sure you want to delete this folder?')) return;
-  
-      try {
-        const res = await fetch(`/archives/${folderId}`, {
-          method: 'DELETE',
-        });
-  
-        if (res.ok) {
-          alert('Folder deleted successfully.');
-          window.location.reload();
-        } else {
-          alert('Failed to delete folder.');
-        }
-      } catch (err) {
-        console.error('Delete error:', err);
-        alert('An error occurred while deleting.');
+// Folder delete
+document.querySelectorAll('.delete-folder-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const folderId = btn.getAttribute('data-id');
+    if (!confirm('Are you sure you want to delete this folder?')) return;
+
+    try {
+      const res = await fetch(`/archives/${folderId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        alert('Folder deleted successfully.');
+        window.location.reload();
+      } else {
+        alert('Failed to delete folder.');
       }
-    });
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('An error occurred while deleting.');
+    }
   });
+});
 
-
-  document.querySelectorAll('.delete-file-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const folderId = btn.dataset.folder;
-      const fileUrl = btn.dataset.url;
-  
-      if (!confirm('Delete this file?')) return;
-  
-      try {
-        const res = await fetch(`/archives/${folderId}/files`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileUrl })
-        });
-  
-        if (res.ok) {
-          alert('File deleted.');
-          window.location.reload();
-        } else {
-          alert('Failed to delete file.');
-        }
-      } catch (err) {
-        console.error('File delete error:', err);
-        alert('An error occurred.');
-      }
-    });
-  });
-
+// Add files to folder modal
 const addFilesModal = document.getElementById('addFilesModal');
 const closeAddFilesModalBtn = document.getElementById('closeAddFilesModalBtn');
 const addFilesForm = document.getElementById('add-files-form');
@@ -232,17 +260,22 @@ document.querySelectorAll('.add-files-btn').forEach(btn => {
     const folderId = btn.getAttribute('data-id');
     addFilesFolderIdInput.value = folderId;
     addFilesModal.style.display = 'block';
+    document.body.classList.add('modal-open');
   });
 });
 
-closeAddFilesModalBtn.addEventListener('click', () => {
+closeAddFilesModalBtn?.addEventListener('click', () => {
   addFilesModal.style.display = 'none';
+  document.body.classList.remove('modal-open');
 });
 window.addEventListener('click', (e) => {
-  if (e.target === addFilesModal) addFilesModal.style.display = 'none';
+  if (e.target === addFilesModal) {
+    addFilesModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
 });
 
-addFilesForm.addEventListener('submit', async (e) => {
+addFilesForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const folderId = addFilesFolderIdInput.value;
   const formData = new FormData(addFilesForm);
@@ -256,6 +289,7 @@ addFilesForm.addEventListener('submit', async (e) => {
     if (res.ok) {
       alert('Files added successfully!');
       addFilesModal.style.display = 'none';
+      document.body.classList.remove('modal-open');
       window.location.reload();
     } else {
       alert('Failed to add files.');

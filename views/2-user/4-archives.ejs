@@ -18,7 +18,7 @@
               <h3>Create New Folder</h3>
               <form id="modal-upload-form" enctype="multipart/form-data" action="/upload" method="POST">
                 <input type="text" id="modal-folder-name" name="folderName" placeholder="Folder name..." required>
-                <input type="file" id="modal-file-input" name="files" multiple accept="image/*,video/*">
+                <input type="file" id="modal-file-input" name="files" multiple>
                 <button type="submit" class="upload-button">Upload</button>
               </form>
             </div>
@@ -50,9 +50,10 @@
         <% } else { %>
           <% archives.forEach(folder => { %>
             <div class="folder"
-                data-name="<%= folder.folderName ? folder.folderName.toLowerCase() : 'untitled' %>"
-                data-date="<%= new Date(folder.createdAt).toISOString() %>"
-                data-files='<%- JSON.stringify(folder.files || []) %>'>
+              data-id="<%= folder._id %>"
+              data-name="<%= folder.folderName ? folder.folderName.toLowerCase() : 'untitled' %>"
+              data-date="<%= new Date(folder.createdAt).toISOString() %>"
+              data-files='<%- JSON.stringify(folder.files || []) %>'>
               <div class="folder-header">
                 <img src="/img/folder.png" alt="Folder Icon" class="folder-icon">
                 <span class="folder-name"><%= folder.folderName %></span>
@@ -103,7 +104,7 @@
             <span class="close-btn" id="closeAddFilesModalBtn">&times;</span>
             <h3>Add More Files to Folder</h3>
             <form id="add-files-form" class="add-files-form" enctype="multipart/form-data">
-              <input type="file" name="files" id="add-files-input" multiple accept="image/*,video/*">
+              <input type="file" name="files" id="add-files-input" multiple>
               <input type="hidden" name="folderId" id="add-files-folder-id">
               <button type="submit" class="upload-button">Upload</button>
             </form>
