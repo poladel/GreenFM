@@ -20,43 +20,87 @@ function showToast(message, type = "success") {
 		toast.classList.add("translate-y-0", "opacity-100");
 	});
 
-	// Remove toast after 3 seconds - Changed add class
+	// Remove toast after a shorter duration (e.g., 2 seconds)
 	setTimeout(() => {
-		toast.classList.add("opacity-0", "-translate-y-4");
-		toast.addEventListener("transitionend", () => {
-			toast.remove();
-		});
-	}, 3000);
+		toast.classList.remove("translate-y-0", "opacity-100");
+		toast.classList.add("translate-y-full", "opacity-0"); // Animate out downwards
+		// Remove the element after the animation completes
+		toast.addEventListener('transitionend', () => {
+			if (toast.parentNode) { // Check if it hasn't been removed already
+				toast.remove();
+			}
+		}, { once: true }); // Ensure listener runs only once
+	}, 2000); // Changed duration from 3000 to 2000 (2 seconds)
 }
 
-// --- Forum App Class ---
+// --- Helper function to handle fetch responses ---
+function handleApiResponse(response, action = 'performing action') {
+	if (!response.ok) {
+		return response.json().then((data) => {
+			const error = new Error(data.message || "Unknown error");
+			error.data = data;
+			throw error;
+		});
+	}
+	return response.json();
+}
+
+// --- Spinner Functions ---
+function showSpinner() {
+	const spinnerHtml = `
+	<div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+		<div class="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-green-400"></div>
+	</div>`;
+	document.body.insertAdjacentHTML("beforeend", spinnerHtml);
+}
+
+function hideSpinner() {
+	const spinner = document.querySelector(".fixed.inset-0.flex");
+	if (spinner) {
+		spinner.remove();
+	}
+}
+// --- End Spinner Functions ---
+
+
 document.addEventListener("DOMContentLoaded", function () {
-	const FILE_UPLOAD_LIMITS = window.FILE_UPLOAD_LIMITS || {
-		fileSize: 10485760,
-		files: 6,
-	}; // Fallback
+	// --- Initialize Socket.IO *inside* DOMContentLoaded ---
+	const socket = io(); // Connect to the server
+	console.log("[Socket Init] Socket.IO client initialized.");
+	// --- End Initialize ---
 
 	class ForumApp {
 		constructor() {
-			this.currentUserId = window.currentUserId || null;
-			this.currentUserRoles = window.currentUserRoles || []; // Store user roles
-			this.selectedFiles = [];
-			this.editPostId = null;
-			this.isLoadingPosts = false;
+			// --- Use global window variables ---
+			this.currentUserId = window.currentUserId || null; // Read from window object
+			this.currentUserRoles = window.currentUserRoles || [];
+			// --- End Use global ---
+
+			// --- Assign the initialized socket ---
+			this.socket = socket; // Use the 'socket' variable defined above
+			// --- End Assign ---
+
+			this.elements = {};
 			this.currentPage = 1;
+			this.isLoading = false;
+			this.totalPages = 1;
 
-			// *** Bind 'this' for methods called directly from event listeners or async contexts ***
-			this.loadPosts = this.loadPosts.bind(this);
-			this.handlePostSubmit = this.handlePostSubmit.bind(this);
-			this.handlePollSubmit = this.handlePollSubmit.bind(this);
-			this.handleFileSelect = this.handleFileSelect.bind(this); // Bind file handler too
-			// Other methods called via delegation (like toggleLike, editPostHandler etc.)
-			// usually don't need explicit binding here if the delegation logic calls them correctly (e.g., this.toggleLike(...)).
-			// If you were passing `this.toggleLike` directly as a callback, you *would* bind it.
+			console.log("[ForumApp] Initializing with User ID:", this.currentUserId, "Roles:", this.currentUserRoles); // Log initialization
 
-			this.cacheElements(); // Cache elements after binding potentially needed methods
+			this.cacheElements();
 			this.init();
-			console.log("Forum App Initialized. User ID:", this.currentUserId, "Roles:", this.currentUserRoles);
+			// --- Always setup socket listeners ---
+			console.log("[ForumApp] Setting up socket listeners for all users.");
+			this.setupSocketListeners(); // Moved outside the conditional block
+
+			// --- Conditionally authenticate ---
+			if (this.currentUserId) {
+				console.log("[ForumApp] User logged in, emitting authenticate.");
+				this.socket.emit('authenticate', this.currentUserId); // Authenticate socket connection
+			} else {
+				console.log("[ForumApp] User not logged in, skipping authentication.");
+			}
+			// --- End Conditional authenticate ---
 		}
 
 		cacheElements() {
@@ -93,14 +137,23 @@ document.addEventListener("DOMContentLoaded", function () {
 		}
 
 		setupEventListeners() {
+			// --- Verify Post Form Listener ---
+			if (this.elements.postForm) {
+				this.elements.postForm.addEventListener("submit", this.handlePostSubmit.bind(this));
+				console.log("[Event Listener] Attached submit listener to #post-form."); // Add log
+			} else {
+				console.log("[Event Listener] Post form not found, skipping listener attachment."); // Add log if form missing
+			}
+			// --- End Verify ---
+
 			// Use the bound methods for direct listeners
 			this.elements.imageInput?.addEventListener(
 				"change",
-				this.handleFileSelect
+				this.handleFileSelect.bind(this) // Ensure 'this' is bound
 			);
 			this.elements.videoInput?.addEventListener(
 				"change",
-				this.handleFileSelect
+				this.handleFileSelect.bind(this) // Ensure 'this' is bound
 				);
 			// REMOVED custom click listeners for add-image-button and add-video-button
 			/*
@@ -117,16 +170,17 @@ document.addEventListener("DOMContentLoaded", function () {
 					this.elements.videoInput?.click(); // Trigger the hidden input click
 				});
 			*/
-			this.elements.postForm?.addEventListener(
+			// REMOVED DUPLICATE LISTENER
+			/* this.elements.postForm?.addEventListener(
 				"submit",
 				this.handlePostSubmit
-			);
+			); */
 			this.elements.addOptionBtn?.addEventListener("click", () =>
 				this.handleAddPollOption()
 			); // Arrow func ok here
 			this.elements.pollForm?.addEventListener(
 				"submit",
-				this.handlePollSubmit
+				this.handlePollSubmit.bind(this) // Ensure 'this' is bound
 			);
             // Add listener for removing poll options using event delegation
             this.elements.pollOptionsWrapper?.addEventListener('click', (event) => {
@@ -251,6 +305,8 @@ document.addEventListener("DOMContentLoaded", function () {
 						event.target.value = null;
 						return;
 					}
+					// Check if this.selectedFiles is initialized
+					if (!this.selectedFiles) this.selectedFiles = [];
 					const existingVideo = this.selectedFiles.find((f) =>
 						f.type.startsWith("video/")
 					);
@@ -263,21 +319,27 @@ document.addEventListener("DOMContentLoaded", function () {
 						return;
 					}
 				}
+				// Check if this.selectedFiles is initialized
+				if (!this.selectedFiles) this.selectedFiles = [];
 				const currentFileCount = this.selectedFiles.length;
 				const totalAfterAdd = currentFileCount + filesToAdd.length;
-				if (totalAfterAdd > FILE_UPLOAD_LIMITS.files) {
+				// Use global constants if defined, otherwise fallback
+				const fileLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.files : 6;
+				const sizeLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.fileSize : 10 * 1024 * 1024;
+
+				if (totalAfterAdd > fileLimit) {
 					showToast(
-						`Max ${FILE_UPLOAD_LIMITS.files} files.`,
+						`Max ${fileLimit} files.`,
 						"error"
 					);
 					event.target.value = null;
 					return;
 				}
 				for (const file of filesToAdd) {
-					if (file.size > FILE_UPLOAD_LIMITS.fileSize) {
+					if (file.size > sizeLimit) {
 						showToast(
 							`File "${file.name}" > ${
-								FILE_UPLOAD_LIMITS.fileSize / (1024 * 1024)
+								sizeLimit / (1024 * 1024)
 							}MB.`,
 							"error"
 						);
@@ -296,12 +358,15 @@ document.addEventListener("DOMContentLoaded", function () {
 				this.selectedFiles.push(...filesToAdd);
 				this.previewFiles();
 			}
-			event.target.value = null;
+			// Don't reset value here, allow multiple selections if desired (browser handles this)
+			// event.target.value = null;
 		}
 		previewFiles() {
 			/* ... Same logic ... */ if (!this.elements.previewContainer)
 				return;
 			this.elements.previewContainer.innerHTML = "";
+			// Check if this.selectedFiles is initialized
+			if (!this.selectedFiles) this.selectedFiles = [];
 			this.selectedFiles.forEach((file, index) => {
 				const reader = new FileReader();
 				reader.onload = (e) => {
@@ -343,7 +408,10 @@ document.addEventListener("DOMContentLoaded", function () {
 			});
 		}
 		removeFile(indexToRemove) {
-			/* ... Same logic ... */ this.selectedFiles.splice(
+			/* ... Same logic ... */
+			// Check if this.selectedFiles is initialized
+			if (!this.selectedFiles) this.selectedFiles = [];
+			this.selectedFiles.splice(
 				indexToRemove,
 				1
 			);
@@ -509,61 +577,112 @@ document.addEventListener("DOMContentLoaded", function () {
 		resetPostForm() {
 			/* ... Same logic ... */ if (this.elements.postForm)
 				this.elements.postForm.reset();
-			this.selectedFiles = [];
+			// Use the new method here
+			this.updateFileInputs(); // Ensure this is called
 			if (this.elements.previewContainer)
 				this.elements.previewContainer.innerHTML = "";
-			if (this.elements.imageInput) this.elements.imageInput.value = null;
-			if (this.elements.videoInput) this.elements.videoInput.value = null;
+			// No need to clear input values again, updateFileInputs does it
+			// if (this.elements.imageInput) this.elements.imageInput.value = null;
+			// if (this.elements.videoInput) this.elements.videoInput.value = null;
 		}
 		async handlePostSubmit(e) {
 			/* ... Same logic ... */ e.preventDefault();
-			if (!this.elements.postForm || !this.elements.postTitleInput)
+			console.log("[handlePostSubmit] Form submitted."); // Add log
+
+			// Ensure this.elements.postForm is valid
+			if (!this.elements.postForm) {
+				console.error("[handlePostSubmit] Post form element not found.");
 				return;
-			const title = this.elements.postTitleInput.value.trim();
-			const text = this.elements.postTextInput?.value.trim();
-			if (!title) return showToast("Post title is required.", "error");
-			const formData = new FormData();
-			formData.append("title", title);
-			if (text) formData.append("text", text);
-			if (this.selectedFiles.length > FILE_UPLOAD_LIMITS.files)
-				return showToast(
-					`Max ${FILE_UPLOAD_LIMITS.files} files.`,
-					"error"
-				);
-			const videoFiles = this.selectedFiles.filter((f) =>
-				f.type.startsWith("video/")
-			);
-			if (videoFiles.length > 1)
-				return showToast("Only one video file allowed.", "error");
-			this.selectedFiles.forEach((file) =>
-				formData.append("media", file)
-			);
-			const postSubmitButton = this.elements.postButton;
-			if (postSubmitButton) {
-				postSubmitButton.disabled = true;
-				postSubmitButton.textContent = "Posting...";
 			}
+
+			const formData = new FormData(this.elements.postForm);
+
+			// Append selected files manually if they aren't being picked up automatically
+			// Check if this.selectedFiles is initialized
+			if (!this.selectedFiles) this.selectedFiles = [];
+			this.selectedFiles.forEach((file) => {
+				// Use 'media[]' as the field name expected by multer's .any() or specific field names
+				formData.append('media[]', file, file.name);
+			});
+
+			// Debug: Log FormData contents
+			// for (let [key, value] of formData.entries()) {
+			// 	console.log(`[FormData] ${key}:`, value);
+			// }
+
+			const title = formData.get('title')?.trim();
+
+			if (!title) {
+				showToast('❌ Post title is required.', 'error');
+				console.log("[handlePostSubmit] Title is missing."); // Add log
+				return; // This should now correctly prevent the fetch
+			}
+
+			// Disable button and show spinner
+			if (this.elements.postButton) {
+				this.elements.postButton.disabled = true;
+				this.elements.postButton.textContent = 'Posting...';
+				console.log("[handlePostSubmit] Button disabled."); // Add log
+			}
+			showSpinner();
+
 			try {
-				const res = await fetch("/posts", {
-					method: "POST",
-					body: formData,
-					credentials: "include",
+				console.log("[handlePostSubmit] Sending fetch request to /posts..."); // Add log
+				const response = await fetch('/posts', {
+					method: 'POST',
+					body: formData, // Send FormData directly
+					credentials: 'include',
+					// No 'Content-Type' header needed for FormData; browser sets it with boundary
 				});
-				const data = await res.json();
-				if (res.ok && data.success) {
-					showToast("✅ Post created!");
-					this.resetPostForm();
-					this.loadPosts();
+				console.log("[handlePostSubmit] Fetch response received:", response.status); // Add log
+
+				// Use handleApiResponse for consistent error handling and JSON parsing
+				const data = await handleApiResponse(response, 'creating post');
+				console.log("[handlePostSubmit] Parsed response data:", data); // Add log
+
+				if (data.success) {
+					showToast('✅ Post created successfully!');
+					// Socket event 'newPost' will handle adding the post to the UI
+					if (this.elements.postForm) this.elements.postForm.reset();
+					if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = ''; // Clear previews
+					this.updateFileInputs(); // Ensure this is called correctly
+					console.log("[handlePostSubmit] Post successful, form reset."); // Add log
 				} else {
-					throw new Error(data.error || data.message || "Failed");
+					// Error handled by handleApiResponse, but log here too
+					console.error("[handlePostSubmit] Post creation failed:", data.error || 'Unknown error');
+					// No need to throw again if handleApiResponse already did
 				}
 			} catch (err) {
-				showToast(`❌ Error: ${err.message}`, "error");
-			} finally {
-				if (postSubmitButton) {
-					postSubmitButton.disabled = false;
-					postSubmitButton.textContent = "Post";
+				// Catch errors from fetch or handleApiResponse
+				console.error('[handlePostSubmit] Error during post submission:', err);
+				// Check if the specific error is the one we are fixing
+				if (err instanceof TypeError && err.message.includes("updateFileInputs is not a function")) {
+					console.error("[handlePostSubmit] Caught the 'updateFileInputs is not a function' error. Ensure the method is defined on the class.");
 				}
+				if (err.message !== 'AUTH_REDIRECT') { // Avoid duplicate toast for auth errors
+					showToast(`❌ Error creating post: ${err.message}`, 'error');
+				}
+				// Ensure button is re-enabled even on error
+				if (this.elements.postButton) {
+					this.elements.postButton.disabled = false;
+					this.elements.postButton.textContent = 'Post';
+					console.log("[handlePostSubmit] Button re-enabled after error."); // Add log
+				}
+			} finally {
+				// Ensure button is always re-enabled and spinner hidden
+				if (this.elements.postButton && !this.elements.postButton.disabled) { // Check if not already re-enabled in catch
+					this.elements.postButton.disabled = false;
+					this.elements.postButton.textContent = 'Post';
+					console.log("[handlePostSubmit] Button re-enabled in finally block."); // Add log
+				} else if (this.elements.postButton && this.elements.postButton.disabled) {
+					// If it's still disabled here, it means the success path was taken OR catch didn't re-enable
+					// Re-enable it just in case something went wrong in the success path before reset
+					this.elements.postButton.disabled = false;
+					this.elements.postButton.textContent = 'Post';
+					console.log("[handlePostSubmit] Button re-enabled in finally (was still disabled)."); // Add log
+				}
+				hideSpinner();
+				console.log("[handlePostSubmit] Spinner hidden."); // Add log
 			}
 		}
 		async loadPosts(page = 1) {
@@ -628,8 +747,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 			const isOwner =
 				post.userId && post.userId._id === this.currentUserId;
-			// Check if user is owner OR Admin
+			// Check if user is owner OR Admin/Staff
 			const canModify = isOwner || this.currentUserRoles.includes('Admin') || this.currentUserRoles.includes('Staff');
+			// --- ADD Check if user is logged in ---
+			const isLoggedIn = !!this.currentUserId;
+			// --- END Check ---
 
 			const createdAt = post.createdAt
 				? new Date(post.createdAt).toLocaleString("en-US", {
@@ -688,31 +810,65 @@ document.addEventListener("DOMContentLoaded", function () {
 				})
 				.join("");
 
+			// --- Conditionally add buttons based on isLoggedIn ---
+			const likeButtonHTML = `
+				<button class="like-button flex items-center gap-1 ${
+					userLiked ? "text-red-500" : "text-gray-500"
+				} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
+					<span>❤️</span>
+					<span class="like-count font-medium">${likeCount}</span>
+				</button>`;
+
+			const commentToggleButtonHTML = isLoggedIn ? `
+				<button class="comment-toggle-button text-green-600 hover:underline text-sm flex items-center gap-1 bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
+					<span>💬</span> Comment
+				</button>` : '';
+
+			const reportButtonHTML = isLoggedIn ? `
+				<button class="report-button text-xs text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 ml-auto bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded-[10px]" data-post-id="${
+					post._id
+				}">
+					<span>🚩</span> Report
+				</button>` : '';
+			// --- END Conditional buttons ---
+
 			// Use canModify for both Edit and Delete buttons
 			div.innerHTML = `
-                            <div class="post-item w-full"> <div class="post-info"> <div class="post-header flex justify-between items-start mb-1"> <h3 class="text-lg font-bold text-gray-800">${
-								post.title
-							}</h3> </div> <p class="post-author text-sm font-semibold text-green-700 mb-2">By: ${
-				post.userId?.username || "Unknown User"
-			}</p> ${
-				post.text
-					? `<p class="post-text text-base text-gray-700 mb-3 whitespace-pre-wrap">${post.text}</p>`
-					: ""
-			} <p class="post-date text-[11px] text-gray-400 absolute top-5 right-5">${createdAt}</p> <div class="post-media-container mt-3 grid gap-2 ${gridClasses}">${mediaHTML}</div> </div> ${pollSectionHTML} <div class="post-actions flex gap-2.5 items-center mt-2.5 flex-wrap border-t border-gray-200 pt-3"> <button class="like-button flex items-center gap-1 ${
-				userLiked ? "text-red-500" : "text-gray-500"
-			} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]"> <span>❤️</span> <span class="like-count font-medium">${likeCount}</span> </button> <button class="comment-toggle-button text-green-600 hover:underline text-sm flex items-center gap-1 bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]"> <span>💬</span> Comment </button> ${
-				canModify // Use canModify here
-					? `<button class="post-edit-btn bg-blue-100 text-blue-600 hover:bg-blue-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Edit</button> <button class="post-delete-btn bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Delete</button>`
-					: ""
-			} <button class="report-button text-xs text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 ml-auto bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded-[10px]" data-post-id="${
-				post._id
-			}"> <span>🚩</span> Report </button> </div> <div class="post-comments mt-4 pt-2.5 border-t border-gray-300"> <div class="comment-input-wrapper hidden mt-2" id="comment-input-wrapper-${
-				post._id
-			}"> <form class="flex gap-2 items-center"> <input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" placeholder="Write a comment..." required> <button type="submit" class="post-comment-submit comment-btn py-2 px-3.5 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-sm hover:bg-[#00591F]">Comment</button> </form> </div> <div class="comments-list mt-2.5 space-y-2" id="comments-${
-				post._id
-			}"></div> </div> </div> `;
+				<div class="post-item w-full">
+					<div class="post-info">
+						<div class="post-header flex justify-between items-start mb-1">
+							<h3 class="text-lg font-bold text-gray-800">${post.title}</h3>
+						</div>
+						<p class="post-author text-sm font-semibold text-green-700 mb-2">By: ${post.userId?.username || "Unknown User"}</p>
+						${post.text ? `<p class="post-text text-base text-gray-700 mb-3 whitespace-pre-wrap">${post.text}</p>` : ""}
+						<p class="post-date text-[11px] text-gray-400 absolute top-5 right-5">${createdAt}</p>
+						<div class="post-media-container mt-3 grid gap-2 ${gridClasses}">${mediaHTML}</div>
+					</div>
+					${pollSectionHTML}
+					<div class="post-actions flex gap-2.5 items-center mt-2.5 flex-wrap border-t border-gray-200 pt-3">
+						${likeButtonHTML} ${/* Insert conditional Like button */''}
+						${commentToggleButtonHTML} ${/* Insert conditional Comment button */''}
+						${canModify // Use canModify here for Edit/Delete
+							? `<button class="post-edit-btn bg-blue-100 text-blue-600 hover:bg-blue-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Edit</button>
+							   <button class="post-delete-btn bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Delete</button>`
+							: ""
+						}
+						${reportButtonHTML} ${/* Insert conditional Report button */''}
+					</div>
+					<div class="post-comments mt-4 pt-2.5 border-t border-gray-300">
+						${isLoggedIn ? /* Only show comment input form if logged in */`
+						<div class="comment-input-wrapper hidden mt-2" id="comment-input-wrapper-${post._id}">
+							<form class="flex gap-2 items-center">
+								<input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-[10px] text-sm bg-gray-100 text-gray-800 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" placeholder="Write a comment..." required>
+								<button type="submit" class="post-comment-submit comment-btn py-2 px-3.5 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-sm hover:bg-[#00591F]">Comment</button>
+							</form>
+						</div>` : ''}
+						<div class="comments-list mt-2.5 space-y-2" id="comments-${post._id}"></div>
+					</div>
+				</div>`;
 			return div;
 		}
+
 		getGridMediaClasses(media) {
 			/* ... Same logic ... */ const count = media
 				? media.filter((m) => m && m.url).length
@@ -890,10 +1046,13 @@ document.addEventListener("DOMContentLoaded", function () {
 		}
         renderComment(postId, comment) {
             const isOwner = comment.userId && comment.userId._id === this.currentUserId;
+            const isLoggedIn = !!this.currentUserId;
+            // --- Modify canDelete check ---
             // Determine if the user can delete (owner or specific roles)
-            // Example: Add Admin/Staff check if needed
-            const canDelete = isOwner; // || (window.userRoles && (window.userRoles.includes('Admin') || window.userRoles.includes('Staff')));
-            const canEdit = isOwner;
+            const isAdminOrStaff = this.currentUserRoles.includes('Admin') || this.currentUserRoles.includes('Staff');
+            const canDelete = isLoggedIn && (isOwner || isAdminOrStaff); // Allow if owner OR admin/staff
+            // --- End Modify canDelete check ---
+            const canEdit = isLoggedIn && isOwner; // Only logged-in owner can edit
             const commentDate = comment.createdAt ? new Date(comment.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '';
 
             // Use Flexbox for the header to better control spacing
@@ -903,22 +1062,24 @@ document.addEventListener("DOMContentLoaded", function () {
                         <strong class="text-green-700 font-semibold mr-2 flex-shrink-0">${comment.userId?.username || 'Anonymous'}</strong>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <span class="text-xs text-gray-400">${commentDate}</span>
-                            <div class="comment-actions flex gap-2"> 
-                                ${canEdit ? `<button class="comment-edit-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0">Edit</button>` : ''}
-                                ${canDelete ? `<button class="comment-delete-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0">Delete</button>` : ''}
-                            </div>
+                            ${isLoggedIn ? /* Only show actions if logged in */`
+							<div class="comment-actions flex gap-2">
+								${canEdit ? `<button class="comment-edit-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0">Edit</button>` : ''}
+								${canDelete ? `<button class="comment-delete-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0">Delete</button>` : ''}
+							</div>` : ''}
                         </div>
                     </div>
-                     <div class="comment-content-area"> 
+                     <div class="comment-content-area">
                          <p class="comment-text ml-1 text-gray-800 break-words whitespace-pre-wrap">${comment.text}</p>
                      </div>
+                    ${isLoggedIn ? /* Only show edit form if logged in */`
                     <div class="comment-edit-form-wrapper hidden mt-1">
                         <textarea class="comment-edit-input w-full p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 resize-none" rows="2">${comment.text}</textarea>
                         <div class="flex justify-end gap-1 mt-1">
                             <button class="comment-save-btn py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F]">Save</button>
                             <button class="comment-cancel-btn py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs">Cancel</button>
                         </div>
-                    </div>
+                    </div>` : ''}
                 </div>`;
         }
 		toggleCommentInput(postId) {
@@ -948,14 +1109,17 @@ document.addEventListener("DOMContentLoaded", function () {
 				if (res.ok && data.success && data.comment) {
 					textarea.value = "";
 					this.toggleCommentInput(postId);
-					const noCommentsMsg =
-						commentsList.querySelector("p.text-gray-500");
-					if (noCommentsMsg) noCommentsMsg.remove();
-					commentsList.insertAdjacentHTML(
-						"beforeend",
-						this.renderComment(postId, data.comment)
-					);
+					// --- REMOVE Manual Comment Insertion ---
+					// const noCommentsMsg =
+					// 	commentsList.querySelector("p.text-gray-500");
+					// if (noCommentsMsg) noCommentsMsg.remove();
+					// commentsList.insertAdjacentHTML(
+					// 	"beforeend",
+					// 	this.renderComment(postId, data.comment)
+					// );
+					// --- END REMOVE ---
 					showToast("✅ Comment posted!");
+					// The 'newComment' socket event will handle adding the comment to the DOM
 				} else {
 					throw new Error(data.error || "Failed");
 				}
@@ -1123,7 +1287,7 @@ document.addEventListener("DOMContentLoaded", function () {
 						newTextEl.className = "post-text text-base text-gray-700 mb-3 whitespace-pre-wrap";
 						newTextEl.innerText = updatedText;
 						// Insert after the title element
-						newTitleEl.insertAdjacentElement('afterend', newTextEl);
+						titleEl?.insertAdjacentElement('afterend', newTextEl);
 					}
 
 					// --- Restore Media/Poll Display ---
@@ -1270,15 +1434,17 @@ document.addEventListener("DOMContentLoaded", function () {
 			saveBtn.disabled = true;
 			saveBtn.textContent = "Saving...";
 			try {
+                // --- VERIFY THIS FETCH CALL ---
 				const res = await fetch(
-					`/posts/${postId}/comments/${commentId}`, // Corrected endpoint if needed
+					`/posts/${postId}/comments/${commentId}`, // Ensure this URL is correct
 					{
-						method: "PUT",
+						method: "PUT", // Ensure method is PUT
 						headers: { "Content-Type": "application/json" },
 						credentials: "include",
 						body: JSON.stringify({ text: updatedText }),
 					}
 				);
+                // --- END VERIFICATION ---
 				const data = await res.json();
 				if (res.ok && data.success) {
 					showToast("✅ Comment updated!");
@@ -1293,7 +1459,10 @@ document.addEventListener("DOMContentLoaded", function () {
 						actionButtons
 					);
 				} else {
-					throw new Error(data.error || "Failed");
+                    // --- Add logging for non-OK responses ---
+                    console.error(`[saveCommentEdit] Error response from server: ${res.status}`, data);
+                    // --- End logging ---
+					throw new Error(data.error || `Failed with status ${res.status}`); // Include status in error
 				}
 			} catch (err) {
 				showToast(`❌ Error: ${err.message}`, "error");
@@ -1438,11 +1607,247 @@ document.addEventListener("DOMContentLoaded", function () {
 				button.classList.remove("opacity-50", "cursor-not-allowed");
 			}
 		}
+
+		setupSocketListeners() {
+			// --- Comment Deleted (Existing) ---
+			this.socket.on('commentDeleted', ({ postId, commentId }) => {
+				console.log(`[Socket Receive] Received commentDeleted for post ${postId}, comment ${commentId}`);
+				const commentElement = document.getElementById(`comment-${commentId}`);
+				if (commentElement) {
+					commentElement.remove();
+					console.log(`Removed comment element ${commentId}`);
+					this.updateCommentCountDisplay(postId, -1);
+				} else {
+					console.log(`Comment element ${commentId} not found on this page.`);
+				}
+			});
+
+			// --- Post Deleted ---
+			this.socket.on('postDeleted', ({ postId }) => {
+				console.log(`[Socket Receive] Received postDeleted for post ${postId}`);
+				const postElement = this.elements.postsContainer?.querySelector(`.post[data-id="${postId}"]`);
+				if (postElement) {
+					postElement.remove();
+					console.log(`Removed post element ${postId}`);
+					// Optional: Check if posts container is empty and show "No posts" message
+					if (this.elements.postsContainer && this.elements.postsContainer.children.length === 0) {
+						this.elements.postsContainer.innerHTML = '<p class="text-center text-gray-500 py-10">No posts found.</p>';
+					}
+				} else {
+					console.log(`Post element ${postId} not found on this page.`);
+				}
+			});
+
+
+			// --- New Post ---
+			this.socket.on('newPost', (post) => {
+				console.log('[Socket Receive] Received newPost:', post);
+				// Check if post already exists (e.g., if user submitted it themselves)
+				if (document.querySelector(`.post[data-id="${post._id}"]`)) {
+					console.log(`[Socket Receive] Post ${post._id} already exists, skipping prepend.`);
+					return;
+				}
+				const postElement = this.createPostElement(post);
+				// Prepend to the container if it exists
+				if (this.elements.postsContainer) {
+					this.elements.postsContainer.prepend(postElement);
+					// Remove "no posts" message if present
+					const noPostsMsg = this.elements.postsContainer.querySelector('p.text-gray-500'); // More specific selector
+					if (noPostsMsg && noPostsMsg.textContent.includes("No posts found")) noPostsMsg.remove();
+					// Attach listeners if needed (delegation might cover this)
+					this.attachPostListeners(postElement);
+					// Load comments for the new post
+					this.loadComments(post._id, postElement.querySelector('.comments-list'));
+				} else {
+					console.warn("[Socket Receive] Posts container not found, cannot prepend new post.");
+				}
+			});
+
+			// --- Post Liked ---
+			this.socket.on('postLiked', ({ postId, likes }) => {
+				console.log(`[Socket Receive] Received postLiked for post ${postId}`);
+				const postElement = this.elements.postsContainer?.querySelector(`.post[data-id="${postId}"]`); // Use optional chaining
+				if (postElement) {
+					const likeButton = postElement.querySelector('.like-button');
+					const likeCountSpan = postElement.querySelector('.like-count');
+					if (likeButton && likeCountSpan) {
+						const likeCount = Array.isArray(likes) ? likes.length : 0;
+						// Check currentUserId even if logged out (it will be null/undefined)
+						const userLiked = this.currentUserId ? likes.some(likeId => likeId.toString() === this.currentUserId) : false;
+
+						likeCountSpan.textContent = likeCount;
+						likeButton.classList.toggle('text-red-500', userLiked); // Set red if liked
+						likeButton.classList.toggle('text-gray-500', !userLiked); // Set gray if not liked
+					}
+				}
+			});
+
+			// --- New Comment ---
+			this.socket.on('newComment', ({ postId, comment }) => {
+				console.log(`[Socket Receive] Received newComment for post ${postId}:`, comment);
+				const commentsList = document.getElementById(`comments-${postId}`);
+				if (commentsList) {
+					// --- ADD Check if comment already exists ---
+					const existingComment = document.getElementById(`comment-${comment._id}`);
+					if (existingComment) {
+						console.log(`[Socket Receive] Comment ${comment._id} already exists, skipping append.`);
+						return; // Don't add if it's already there
+					}
+					// --- END Check ---
+
+					// Remove "no comments" message if present
+					const noCommentsMsg = commentsList.querySelector('p.text-gray-500');
+					if (noCommentsMsg && noCommentsMsg.textContent.includes("No comments yet")) noCommentsMsg.remove();
+
+					const commentHTML = this.renderComment(postId, comment);
+					commentsList.insertAdjacentHTML('beforeend', commentHTML);
+					// Attach listeners if needed for the new comment (edit/delete)
+					const newCommentElement = commentsList.lastElementChild;
+					if (newCommentElement) {
+						// Call the newly defined method
+						this.attachCommentListeners(newCommentElement, postId);
+					}
+					this.updateCommentCountDisplay(postId, 1); // Increment count
+				}
+			});
+
+			// --- Poll Voted ---
+			this.socket.on('pollVoted', ({ postId, poll }) => {
+				console.log(`[Socket Receive] Received pollVoted for post ${postId}`);
+				const postElement = this.elements.postsContainer?.querySelector(`.post[data-id="${postId}"]`); // Use optional chaining
+				if (postElement && poll) {
+					const pollContainer = postElement.querySelector('.post-poll'); // Use the specific class
+					if (pollContainer) {
+						// Re-render the entire poll section
+						// Pass currentUserId (even if null) for render logic
+						const updatedPostData = { _id: postId, poll: poll };
+						const updatedPollHTML = this.renderPollSection(updatedPostData);
+						pollContainer.outerHTML = updatedPollHTML; // Replace the old section
+						// Re-attach listeners for the updated poll section
+						const newPollSection = postElement.querySelector('.post-poll'); // Find the newly added section
+						if (newPollSection) {
+							// Call the newly defined method
+							this.attachPollListeners(newPollSection, postId);
+						}
+					}
+				}
+			});
+
+			// --- Post Updated ---
+			this.socket.on('postUpdated', (updatedPost) => {
+				console.log(`[Socket Receive] Received postUpdated for post ${updatedPost._id}`);
+				const postElement = this.elements.postsContainer?.querySelector(`.post[data-id="${updatedPost._id}"]`); // Use optional chaining
+				if (postElement) {
+					// Option 1: Simple Update (Title and Text) - Less disruptive
+					const titleEl = postElement.querySelector('h3.text-lg');
+					const textEl = postElement.querySelector('.post-text');
+					if (titleEl) titleEl.textContent = updatedPost.title;
+					if (textEl) {
+						textEl.textContent = updatedPost.text;
+						textEl.style.display = updatedPost.text ? 'block' : 'none'; // Show/hide based on content
+					} else if (updatedPost.text) {
+						// If text element didn't exist but now there's text, create it
+						const newTextEl = document.createElement('p');
+						newTextEl.className = 'post-text text-base text-gray-700 mb-3 whitespace-pre-wrap';
+						newTextEl.textContent = updatedPost.text;
+						// Insert after the title element
+						// --- FIX: Use titleEl instead of newTitleEl ---
+						titleEl?.insertAdjacentElement('afterend', newTextEl);
+						// --- END FIX ---
+					}
+					// Update edited timestamp if displayed (assuming you add one)
+					// const dateEl = postElement.querySelector('.post-date');
+					// if (dateEl && updatedPost.updatedAt) { ... update date ... }
+
+					// Option 2: Full Re-render (More robust if structure changes, but might lose state)
+					// const newPostElement = this.createPostElement(updatedPost);
+					// postElement.replaceWith(newPostElement);
+					// this.attachPostListeners(newPostElement); // Re-attach if needed
+					// this.loadComments(updatedPost._id, newPostElement.querySelector('.comments-list')); // Reload comments
+				}
+			});
+
+			// --- Comment Updated ---
+			this.socket.on('commentUpdated', ({ postId, comment }) => {
+				console.log(`[Socket Receive] Received commentUpdated for post ${postId}, comment ${comment._id}`);
+				const commentElement = document.getElementById(`comment-${comment._id}`);
+				if (commentElement) {
+					// Update the text content directly
+					const textElement = commentElement.querySelector('.comment-text');
+					if (textElement) {
+						textElement.textContent = comment.text;
+					}
+					// Optionally update timestamp or add an "(edited)" marker
+				}
+			});
+
+
+		}
+
+		// --- Add updateFileInputs method ---
+		updateFileInputs() {
+			// Clear the value of file inputs to prevent re-uploading the same files
+			if (this.elements.imageInput) this.elements.imageInput.value = null;
+			if (this.elements.videoInput) this.elements.videoInput.value = null;
+			// Reset the internal selectedFiles array
+			this.selectedFiles = [];
+			console.log("[updateFileInputs] File inputs cleared and selectedFiles reset."); // Add log
+		}
+		// --- End add updateFileInputs method ---
+
+		// --- Add attachPostListeners method ---
+		attachPostListeners(postElement) {
+			// Since we use event delegation on postsContainer, specific listeners
+			// might not be needed here unless there are edge cases.
+			// For now, just log that it was called.
+			console.log(`[attachPostListeners] Called for post element:`, postElement);
+			// Example: If you had direct listeners (which you don't seem to have now):
+			// const likeButton = postElement.querySelector('.like-button');
+			// likeButton?.addEventListener('click', () => this.toggleLike(...));
+		}
+		// --- End add attachPostListeners method ---
+
+		// --- Add attachCommentListeners method ---
+		attachCommentListeners(commentElement, postId) {
+			// Similar to attachPostListeners, delegation handles most clicks.
+			// This might be needed if comment-specific setup is required.
+			console.log(`[attachCommentListeners] Called for comment element:`, commentElement, `in post ${postId}`);
+			// Example:
+			// const editBtn = commentElement.querySelector('.comment-edit-btn');
+			// editBtn?.addEventListener('click', () => this.editCommentHandler(...));
+		}
+		// --- End add attachCommentListeners method ---
+
+		// --- Add attachPollListeners method ---
+		attachPollListeners(pollSectionElement, postId) {
+			// Delegation handles poll voting clicks on the LI.
+			console.log(`[attachPollListeners] Called for poll section:`, pollSectionElement, `in post ${postId}`);
+			// Example:
+			// const options = pollSectionElement.querySelectorAll('.poll-option-item-clickable');
+			// options.forEach(opt => opt.addEventListener('click', () => this.votePoll(...)));
+		}
+		// --- End add attachPollListeners method ---
+
+		// --- Helper to update comment count display (if you have one) ---
+		updateCommentCountDisplay(postId, change) {
+			// Example: Find a counter element and update it
+			// const countElement = document.querySelector(`.post[data-id="${postId}"] .comment-count-display`);
+			// if (countElement) {
+			//     const currentCount = parseInt(countElement.textContent) || 0;
+			//     countElement.textContent = Math.max(0, currentCount + change); // Ensure count doesn't go below 0
+			// }
+			console.log(`Comment count change for post ${postId}: ${change}`); // Placeholder
+		}
+
+
+	} // <-- End of ForumApp class
+
+	// Initialize the app *after* socket is defined
+	window.app = new ForumApp();
+
+	// Initial check for remove buttons and add button state on page load (if needed)
+	if (window.app && window.app.elements.pollOptionsWrapper) {
+		window.app.updateRemoveOptionButtons();
 	}
 
-	window.app = new ForumApp(); // Initialize
-    // Initial check for remove buttons and add button state on page load
-    if (window.app && window.app.elements.pollOptionsWrapper) {
-        window.app.updateRemoveOptionButtons();
-    }
-}); // End DOMContentLoaded
+}); // <-- End of DOMContentLoaded listener

@@ -123,11 +123,16 @@
 
     <!-- Inject User ID and Roles into global scope for JS -->
     <script>
-      window.currentUserId = "<%= userIdString %>";
+      // Ensure userIdString is correctly quoted or null/empty string
+      window.currentUserId = "<%= userIdString %>" || null; // Use null if empty string
       // Inject user roles as a JSON string, default to empty array if no user
       window.currentUserRoles = <%- user ? JSON.stringify(user.roles || []) : '[]' %>;
       window.FILE_UPLOAD_LIMITS = { fileSize: 10 * 1024 * 1024, files: 6 };
+      console.log('[EJS] window.currentUserId set to:', window.currentUserId); // Debug log
     </script>
+
+    <!-- ADD Socket.IO Client Library (Ensure this is BEFORE forum.js) -->
+    <script src="/socket.io/socket.io.js"></script>
 
     <!-- Forum Script -->
     <script src="/js/2-user/forum.js"></script>

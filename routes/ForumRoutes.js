@@ -25,10 +25,11 @@ router.post('/poll/vote', requireAuth, forumController.votePoll);
 router.put('/poll/:postId', requireAuth, forumController.updatePoll);
 
 // Edit comment route
-router.put('/posts/:postId/comment/:commentId', requireAuth, forumController.updateComment); // Use controller updateComment
-
-// Delete comment route
-router.delete('/posts/:postId/comments/:commentId', requireAuth, forumController.deleteComment); // Use controller deleteComment
+router.put(
+    '/posts/:postId/comments/:commentId', // Changed 'comment' to 'comments'
+    requireAuth,
+    forumController.updateComment // Use controller updateComment
+);
 
 // Forum page route with pagination
 router.get('/forum', /* Removed requireAuth for public view */ async (req, res) => {

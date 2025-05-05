@@ -76,22 +76,35 @@ const uploadToCloudinary = (file) => {
 exports.handleFileUploads = (req, res, next) => {
   upload(req, res, async (err) => {
     try {
-      if (err) throw err instanceof multer.MulterError 
-        ? new Error(`Upload error: ${err.message}`) 
-        : err;
+      // --- Fix incomplete error handling ---
+      if (err) {
+        // Log the specific multer error
+        console.error('[Multer Error]', err);
+        // Re-throw multer errors or other upload errors to be caught below
+        throw err instanceof multer.MulterError
+          ? new Error(`Upload error: ${err.message} (Field: ${err.field || 'N/A'})`) // Add field info
+          : err;
+      }
+      // --- End fix ---
 
       const files = req.files || [];
-      req.uploadedMedia = files.length > 0 
+      console.log('[handleFileUploads] Files received by multer:', files.map(f => ({ fieldname: f.fieldname, originalname: f.originalname, mimetype: f.mimetype, size: f.size }))); // Log file details
+
+      req.uploadedMedia = files.length > 0
         ? await Promise.all(files.map(uploadToCloudinary))
         : [];
+
+      console.log('[handleFileUploads] Uploaded media to Cloudinary:', req.uploadedMedia); // Log Cloudinary results
 
       next();
     } catch (error) {
       console.error('Upload processing error:', error);
-      res.status(500).json({ 
+      // Send specific error message if available, otherwise generic
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process uploads';
+      res.status(500).json({
         success: false,
-        error: 'Failed to process uploads',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: errorMessage, // Use the specific error message
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined // Include stack in dev
       });
     }
   });
@@ -100,7 +113,13 @@ exports.handleFileUploads = (req, res, next) => {
 // Controller Method
 
 exports.createPost = async (req, res) => {
+  const io = req.io; // Use req.io attached by middleware
   try {
+    // --- Add Logging for received body and files ---
+    console.log('[createPost] Request Body:', req.body);
+    console.log('[createPost] Uploaded Media (from middleware):', req.uploadedMedia);
+    // --- End Logging ---
+
     const { title, text, pollQuestion, pollOptions } = req.body; // Get poll data from body
     let media = [];
 
@@ -112,9 +131,17 @@ exports.createPost = async (req, res) => {
       }));
     }
 
+    // --- Add Check for Title ---
+    if (!title || title.trim() === '') {
+        console.error('[createPost] Error: Title is missing or empty in request body.');
+        return res.status(400).json({ success: false, error: 'Post title is required.' });
+    }
+    // --- End Check ---
+
+
     const newPost = new ForumPost({
       userId: req.user._id,
-      title,
+      title: title.trim(), // Trim title here as well
       text,
       media,
       poll: pollQuestion ? {
@@ -124,7 +151,25 @@ exports.createPost = async (req, res) => {
     });
 
     await newPost.save();
-    res.json({ success: true, post: newPost });
+
+    // --- Populate user details before emitting ---
+    const populatedPost = await ForumPost.populate(newPost, {
+      path: 'userId',
+      select: 'username profilePicture'
+    });
+    // --- End Populate ---
+
+    // --- Emit socket event ---
+    if (io) { // Check if io exists before emitting
+        io.emit('newPost', populatedPost.toObject()); // Emit the populated post
+        console.log(`[Socket Emit] Emitted newPost: ${populatedPost._id}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit newPost event.');
+    }
+    // --- End Emit ---
+
+    // Respond with populated post as well
+    res.status(201).json({ success: true, post: populatedPost.toObject() });
   } catch (err) {
     console.error('Create post error:', err);
     res.status(500).json({ success: false, error: err.message });
@@ -188,6 +233,7 @@ exports.getPostById = async (req, res) => {
 };
 
 exports.updatePost = async (req, res) => {
+  const io = req.io; // Use req.io
   try {
     const { title, text } = req.body;
     const postId = req.params.id;
@@ -222,11 +268,21 @@ exports.updatePost = async (req, res) => {
 
     await post.save();
     
-    // Populate user details for the response
+    // Populate user details for the response and emit
     const populatedPost = await ForumPost.populate(post, {
       path: 'userId',
       select: 'username profilePicture' // Adjust fields as needed
     });
+
+    // --- Emit socket event ---
+    if (io) { // Check io
+        // Emit the fully populated post object
+        io.emit('postUpdated', populatedPost.toObject());
+        console.log(`[Socket Emit] Emitted postUpdated: ${populatedPost._id}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit postUpdated event.');
+    }
+    // --- End Emit ---
 
     res.json({
       success: true,
@@ -243,8 +299,9 @@ exports.updatePost = async (req, res) => {
 };
 
 exports.deletePost = async (req, res) => {
+  const io = req.io; // Use req.io
+  const postId = req.params.id; // Get postId early
   try {
-    const postId = req.params.id;
     const userId = req.user._id;
     const userRoles = req.user.roles || []; // Get user roles
 
@@ -268,6 +325,15 @@ exports.deletePost = async (req, res) => {
     post.deletedAt = new Date();
     await post.save();
 
+    // --- Emit socket event ---
+    if (io) { // Check io
+        io.emit('postDeleted', { postId });
+        console.log(`[Socket Emit] Emitted postDeleted: ${postId}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit postDeleted event.');
+    }
+    // --- End Emit ---
+
     res.json({ success: true, message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Delete post error:', error);
@@ -281,9 +347,9 @@ exports.deletePost = async (req, res) => {
 
 
 exports.toggleLike = async (req, res) => {
+  const io = req.io; // Use req.io
+  const postId = req.params.id; // Get postId early
   try {
-    const postId = req.params.id;
-    // Use req.user which is set by requireAuth
     const userId = req.user?._id; 
 
     if (!userId) {
@@ -309,8 +375,17 @@ exports.toggleLike = async (req, res) => {
 
     await post.save();
 
-    // Return the updated array of likes (or just the count if preferred)
-    res.json({ success: true, likes: post.likes }); 
+    // --- Emit socket event ---
+    if (io) { // Check io
+        io.emit('postLiked', { postId, likes: post.likes });
+        console.log(`[Socket Emit] Emitted postLiked: ${postId}, Likes: ${post.likes.length}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit postLiked event.');
+    }
+    // --- End Emit ---
+
+    // Return the updated array of likes
+    res.json({ success: true, likes: post.likes });
   } catch (error) {
     console.error('Toggle like error:', error);
     res.status(500).json({
@@ -322,9 +397,10 @@ exports.toggleLike = async (req, res) => {
 };
 
 exports.addComment = async (req, res) => {
+  const io = req.io; // Use req.io
+  const postId = req.params.id; // Get postId early
   try {
     const { text } = req.body;
-    const postId = req.params.id;
     const userId = req.user._id;
 
     if (!text?.trim()) {
@@ -351,6 +427,7 @@ exports.addComment = async (req, res) => {
     post.comments.push(newComment);
     await post.save();
 
+    // Populate the newly added comment with user details
     const populatedPost = await ForumPost.populate(post, {
       path: 'comments.userId',
       select: 'username profilePicture'
@@ -358,10 +435,19 @@ exports.addComment = async (req, res) => {
 
     const addedComment = populatedPost.comments[post.comments.length - 1];
 
+    // --- Emit socket event ---
+    if (io) { // Check io
+        io.emit('newComment', { postId, comment: addedComment.toObject() });
+        console.log(`[Socket Emit] Emitted newComment for post ${postId}, comment ${addedComment._id}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit newComment event.');
+    }
+    // --- End Emit ---
+
     res.status(201).json({
       success: true,
       comment: addedComment.toObject(),
-      commentCount: post.comments.length
+      commentCount: post.comments.length // Keep sending count in response if needed
     });
   } catch (error) {
     console.error('Add comment error:', error);
@@ -398,30 +484,96 @@ exports.updateComment = async (req, res) => {
   const { postId, commentId } = req.params;
   const { text } = req.body;
   const userId = req.user._id;
+  const io = req.io; // Use req.io
+
+  // --- Add Detailed Logging ---
+  console.log(`[Update Comment] Received request for Post ID: ${postId}, Comment ID: ${commentId}`);
+  // --- End Logging ---
 
   try {
     const post = await ForumPost.findById(postId);
-    if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
-
-    const comment = post.comments.id(commentId);
-    if (!comment || comment.userId.toString() !== userId.toString()) {
-      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    if (!post || post.isDeleted) { // Check if post exists and is not deleted
+        // --- Add Logging ---
+        console.log(`[Update Comment] Post not found or deleted for ID: ${postId}`);
+        // --- End Logging ---
+        return res.status(404).json({ success: false, error: 'Post not found' });
     }
 
-    comment.text = text;
+    // --- Add Logging ---
+    console.log(`[Update Comment] Found post. Attempting to find comment ID: ${commentId} within post.`);
+    // --- End Logging ---
+    const comment = post.comments.id(commentId);
+
+    // --- Explicitly check if comment exists ---
+    if (!comment || comment.isDeleted) { // Also check if comment is soft-deleted
+      // --- Add Logging ---
+      console.log(`[Update Comment] Comment not found or deleted for ID: ${commentId} in post ${postId}. Comment object:`, comment);
+      // --- End Logging ---
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+    // --- End Check ---
+
+    // --- Add Logging ---
+    console.log(`[Update Comment] Found comment. Checking authorization. Comment User ID: ${comment.userId}, Request User ID: ${userId}`);
+    // --- End Logging ---
+
+    // --- Check authorization (ownership) ---
+    if (comment.userId.toString() !== userId.toString()) {
+      // --- Add Logging ---
+      console.log(`[Update Comment] Authorization failed for user ${userId} on comment ${commentId}.`);
+      // --- End Logging ---
+      return res.status(403).json({ success: false, error: 'Unauthorized to update this comment' });
+    }
+    // --- End Check ---
+
+    // --- Validate input ---
+    if (text === undefined || text === null || text.trim() === '') { // Also check for empty trimmed text
+        // --- Add Logging ---
+        console.log(`[Update Comment] Validation failed: Comment text is missing or empty.`);
+        // --- End Logging ---
+        return res.status(400).json({ success: false, error: 'Comment text cannot be empty' });
+    }
+    // --- End Validation ---
+
+    // --- Add Logging ---
+    console.log(`[Update Comment] Authorization and validation passed. Updating comment text.`);
+    // --- End Logging ---
+
+    comment.text = text.trim(); // Trim the text
+    comment.edited = true; // Mark as edited
+    comment.updatedAt = new Date(); // Update timestamp
     await post.save();
 
-    res.json({ success: true, comment });
+    // --- Populate comment user details before emitting ---
+     const populatedPost = await ForumPost.populate(post, {
+       path: 'comments.userId',
+       select: 'username profilePicture'
+     });
+     const updatedComment = populatedPost.comments.id(commentId);
+    // --- End Populate ---
+
+    // --- Emit socket event ---
+    if (io) { // Check io
+        // Emit the populated comment object
+        io.emit('commentUpdated', { postId, comment: updatedComment.toObject() });
+        console.log(`[Socket Emit] Emitted commentUpdated for post ${postId}, comment ${commentId}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit commentUpdated event.');
+    }
+    // --- End Emit ---
+
+    res.json({ success: true, comment: updatedComment.toObject() });
   } catch (err) {
-    console.error(err);
+    console.error('Update comment error:', err); // Log the full error
     res.status(500).json({ success: false, error: 'Failed to update comment' });
   }
 };
 
 exports.deleteComment = async (req, res) => {
   const { id: postId, commentId } = req.params;
-  const userId = req.user._id; // Get current user ID
-  const userRoles = req.user.roles || []; // Get user roles
+  const userId = req.user._id;
+  const userRoles = req.user.roles || [];
+  const io = req.io; // Use req.io
 
   try {
     const post = await ForumPost.findById(postId);
@@ -438,13 +590,23 @@ exports.deleteComment = async (req, res) => {
     const isOwner = comment.userId.toString() === userId.toString();
     const isAdminOrStaff = userRoles.includes('Admin') || userRoles.includes('Staff');
 
-    if (!isOwner && !isAdminOrStaff) {
+    if (!isOwner && !isAdminOrStaff) { // Allow if owner OR admin/staff
         return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
     }
 
     // Perform soft delete on the subdocument
-    comment.isDeleted = true; 
+    comment.isDeleted = true;
+    comment.deletedAt = new Date(); // Add deleted timestamp
     await post.save(); // Save the parent document
+
+    // --- Emit socket event (already implemented in previous step) ---
+    if (io) { // Check io
+        io.emit('commentDeleted', { postId, commentId });
+        console.log(`[Socket Emit] Emitted commentDeleted for post ${postId}, comment ${commentId}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit commentDeleted event.');
+    }
+    // --- End Emit ---
 
     res.json({ success: true, message: 'Comment deleted successfully' });
   } catch (error) {
@@ -457,22 +619,56 @@ exports.deleteComment = async (req, res) => {
 // Create Poll
 exports.createPoll = async (req, res) => {
   const { question, options } = req.body;
+  const io = req.io; // Get io instance
 
   try {
     if (!question || !options || options.length < 2) {
-      return res.status(400).json({ success: false, message: 'Invalid poll' });
+      return res.status(400).json({ success: false, message: 'Invalid poll data: Question and at least 2 options required.' });
     }
 
+    // --- Create the post with poll data ---
     const newPost = new ForumPost({
       userId: req.user._id,
+      // Add a default title or make it optional in the model if polls don't need titles
+      title: question.substring(0, 50) + (question.length > 50 ? '...' : ''), // Example: Use question start as title
+      text: '', // Polls might not have separate text
       poll: {
-        question,
-        options: options.map(opt => ({ text: opt.trim(), votes: [] }))
+        question: question.trim(), // Trim question
+        options: options
+          .map(opt => ({ text: opt.trim(), votes: [] })) // Trim options
+          .filter(opt => opt.text) // Filter out empty options after trimming
       }
     });
 
+    // --- Validate again after trimming/filtering options ---
+    if (newPost.poll.options.length < 2) {
+        return res.status(400).json({ success: false, message: 'Invalid poll data: At least 2 non-empty options required.' });
+    }
+    // --- End Validation ---
+
+
     await newPost.save();
-    res.json({ success: true, message: 'Poll created successfully!' });
+
+    // --- Populate user details before emitting/responding ---
+    const populatedPost = await ForumPost.populate(newPost, {
+      path: 'userId',
+      select: 'username profilePicture' // Select fields needed by frontend
+    });
+    // --- End Populate ---
+
+    // --- Emit socket event ---
+    if (io) {
+        io.emit('newPost', populatedPost.toObject()); // Emit the full post object
+        console.log(`[Socket Emit] Emitted newPost (Poll): ${populatedPost._id}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit newPost event for poll.');
+    }
+    // --- End Emit ---
+
+    // --- Respond with the created post object ---
+    res.status(201).json({ success: true, post: populatedPost.toObject() });
+    // --- End Response ---
+
   } catch (err) {
     console.error('Poll creation error:', err);
     res.status(500).json({ success: false, message: 'Error creating poll' });
@@ -484,6 +680,7 @@ exports.createPoll = async (req, res) => {
 exports.votePoll = async (req, res) => {
   const { postId, optionIndex } = req.body;
   const userId = req.user._id;
+  const io = req.io; // Use req.io attached by middleware
 
   try {
     const post = await ForumPost.findById(postId);
@@ -497,10 +694,19 @@ exports.votePoll = async (req, res) => {
     post.poll.options[optionIndex].votes.push(userId);
     await post.save();
 
-    // Return the updated poll object with the vote count
+    // --- Emit socket event ---
+    if (io) { // Check io
+        io.emit('pollVoted', { postId, poll: post.poll }); // Send updated poll data
+        console.log(`[Socket Emit] Emitted pollVoted for post ${postId}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit pollVoted event.');
+    }
+    // --- End Emit ---
+
+    // Return the updated poll object
     res.json({
       success: true,
-      poll: post.poll // Send the updated poll with the new vote count
+      poll: post.poll
     });
   } catch (error) {
     console.error('Error voting for poll:', error);
