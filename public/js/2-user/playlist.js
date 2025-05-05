@@ -234,7 +234,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
             <div class="song-item flex items-center justify-between bg-gray-100 p-2.5 rounded-[10px]" data-genre="${genre}" data-song-id="${songId}">
                 <div class="song-info flex items-center gap-2.5">
-                    <div class="song-thumbnail w-10 h-10 bg-gray-300 rounded-md flex-shrink-0"></div>
+                    <!-- Thumbnail Placeholder - Replaced with Play Icon -->
+                    <div class="song-thumbnail w-10 h-10 text-gray-400 rounded-md flex-shrink-0 flex items-center justify-center bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
                     <div class="song-text flex flex-col">
                         <p class="song-title font-bold text-gray-800 text-base mb-0 leading-tight">
                             <a href="${link}" target="_blank" class="text-blue-600 hover:underline">${title}</a>
@@ -279,6 +284,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Remove "empty" message if present
         const emptyMessage = songList.querySelector('.empty-playlist-message');
         if (emptyMessage) emptyMessage.remove();
+
+        // Update scroll state
+        updateSongListScroll(songList);
     }
 
     // --- Function to remove a song from the list ---
@@ -292,6 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (songList.children.length === 0) {
              songList.innerHTML = '<p class="text-center text-gray-500 py-4 empty-playlist-message">The playlist is currently empty.</p>';
         }
+        // Update scroll state
+        updateSongListScroll(songList);
     }
 
     // --- Function to update like button state ---
@@ -315,6 +325,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     likeButton.classList.remove('text-red-500');
                     likeButton.classList.add('text-gray-500');
                 }
+            }
+        }
+    }
+    // --- END ADDED FUNCTIONS ---
+
+
+    // --- Function to manage song list scrolling ---
+    function updateSongListScroll(songListContainer) {
+        if (!songListContainer) return;
+        const songItems = songListContainer.querySelectorAll('.song-item');
+        const songCount = songItems.length;
+        const scrollThreshold = 15; // Number of songs before scrolling starts
+        const scrollClasses = ['max-h-[700px]', 'overflow-y-auto', 'pr-2']; // Adjust max-h as needed
+
+        if (songCount > scrollThreshold) {
+            // Add scroll classes if not already present
+            if (!songListContainer.classList.contains(scrollClasses[0])) {
+                songListContainer.classList.add(...scrollClasses);
+            }
+        } else {
+            // Remove scroll classes if present
+            if (songListContainer.classList.contains(scrollClasses[0])) {
+                songListContainer.classList.remove(...scrollClasses);
             }
         }
     }
@@ -361,4 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (songList && songList.children.length === 0) {
          songList.innerHTML = '<p class="text-center text-gray-500 py-4 empty-playlist-message">The playlist is currently empty.</p>';
     }
+
+    // Initial check for scroll state on page load
+    updateSongListScroll(songList);
 });

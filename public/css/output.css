@@ -1357,6 +1357,10 @@ video {
   height: 1px;
 }
 
+.max-h-72 {
+  max-height: 18rem;
+}
+
 .max-h-\[100px\] {
   max-height: 100px;
 }
@@ -1385,8 +1389,8 @@ video {
   max-height: 100%;
 }
 
-.max-h-72 {
-  max-height: 18rem;
+.max-h-\[700px\] {
+  max-height: 700px;
 }
 
 .min-h-\[250px\] {
