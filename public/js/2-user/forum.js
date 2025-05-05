@@ -294,72 +294,75 @@ document.addEventListener("DOMContentLoaded", function () {
 		}
 
 		handleFileSelect(event) {
-			/* ... Same logic ... */ const files = event.target.files;
-			const inputType =
-				event.target.id === "video-input" ? "video" : "image";
-			if (files.length > 0) {
-				const filesToAdd = Array.from(files);
-				if (inputType === "video") {
-					if (filesToAdd.length > 1) {
-						showToast("Only one video file per post.", "error");
-						event.target.value = null;
-						return;
-					}
-					// Check if this.selectedFiles is initialized
-					if (!this.selectedFiles) this.selectedFiles = [];
-					const existingVideo = this.selectedFiles.find((f) =>
-						f.type.startsWith("video/")
-					);
-					if (existingVideo) {
-						showToast(
-							"Only one video allowed. Remove existing first.",
-							"error"
-						);
-						event.target.value = null;
-						return;
-					}
-				}
-				// Check if this.selectedFiles is initialized
-				if (!this.selectedFiles) this.selectedFiles = [];
-				const currentFileCount = this.selectedFiles.length;
-				const totalAfterAdd = currentFileCount + filesToAdd.length;
-				// Use global constants if defined, otherwise fallback
-				const fileLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.files : 6;
-				const sizeLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.fileSize : 10 * 1024 * 1024;
+			const files = event.target.files;
+			const inputType = event.target.id === "video-input" ? "video" : "image";
 
-				if (totalAfterAdd > fileLimit) {
-					showToast(
-						`Max ${fileLimit} files.`,
-						"error"
-					);
-					event.target.value = null;
-					return;
+			if (!files || files.length === 0) return; // No files selected
+
+			// Initialize selectedFiles if it doesn't exist
+			if (!this.selectedFiles) this.selectedFiles = [];
+
+			const filesToAdd = Array.from(files);
+			const currentFileCount = this.selectedFiles.length;
+			const currentVideo = this.selectedFiles.find(f => f.type.startsWith("video/"));
+
+			// Use global constants if defined, otherwise fallback
+			const fileLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.files : 6;
+			const sizeLimit = typeof FILE_UPLOAD_LIMITS !== 'undefined' ? FILE_UPLOAD_LIMITS.fileSize : 10 * 1024 * 1024; // 10MB
+
+			let addedFileCount = 0;
+			let rejectedFiles = [];
+
+			for (const file of filesToAdd) {
+				// Check total file limit
+				if (currentFileCount + addedFileCount >= fileLimit) {
+					rejectedFiles.push(file.name + " (limit reached)");
+					continue; // Skip remaining files if limit reached
 				}
-				for (const file of filesToAdd) {
-					if (file.size > sizeLimit) {
-						showToast(
-							`File "${file.name}" > ${
-								sizeLimit / (1024 * 1024)
-							}MB.`,
-							"error"
-						);
-						event.target.value = null;
-						return;
+
+				// Check video specific limits
+				if (file.type.startsWith("video/")) {
+					if (currentVideo) {
+						rejectedFiles.push(file.name + " (only 1 video allowed)");
+						continue; // Skip if a video already exists
 					}
-					if (
-						!file.type.startsWith("image/") &&
-						!file.type.startsWith("video/")
-					) {
-						showToast(`Unsupported type: "${file.name}".`, "error");
-						event.target.value = null;
-						return;
+					if (filesToAdd.filter(f => f.type.startsWith("video/")).length > 1 && inputType === "video") {
+						// This check prevents selecting multiple videos *at once* from the video input
+						showToast("Only one video file per post.", "error");
+						event.target.value = null; // Clear the input that tried to add multiple videos
+						return; // Stop processing this batch
 					}
 				}
-				this.selectedFiles.push(...filesToAdd);
+
+				// Check file size
+				if (file.size > sizeLimit) {
+					rejectedFiles.push(file.name + ` (> ${sizeLimit / (1024 * 1024)}MB)`);
+					continue; // Skip if too large
+				}
+
+				// Check file type
+				if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+					rejectedFiles.push(file.name + " (unsupported type)");
+					continue; // Skip if unsupported type
+				}
+
+				// If all checks pass, add the file
+				this.selectedFiles.push(file);
+				addedFileCount++;
+			}
+
+			// Show errors for rejected files
+			if (rejectedFiles.length > 0) {
+				showToast(`❌ Files not added: ${rejectedFiles.join(', ')}`, "error");
+			}
+
+			// Update previews if any files were added
+			if (addedFileCount > 0) {
 				this.previewFiles();
 			}
-			// Don't reset value here, allow multiple selections if desired (browser handles this)
-			// event.target.value = null;
+
+			// Clear the specific input value after processing to allow re-selecting the same file if needed after removal
+			event.target.value = null;
 		}
 		previewFiles() {
 			/* ... Same logic ... */ if (!this.elements.previewContainer)
@@ -595,94 +598,105 @@ document.addEventListener("DOMContentLoaded", function () {
 				return;
 			}
 
-			const formData = new FormData(this.elements.postForm);
+			// --- Create FormData MANUALLY ---
+			const formData = new FormData();
 
-			// Append selected files manually if they aren't being picked up automatically
-			// Check if this.selectedFiles is initialized
+			// Get title and text directly from elements
+			const title = this.elements.postTitleInput?.value.trim();
+			const text = this.elements.postTextInput?.value.trim();
+
+			// Append title and text if they exist
+			if (title) formData.append('title', title);
+			if (text) formData.append('text', text);
+			// --- End Create FormData MANUALLY ---
+
+
+			// --- Manually Append Files from this.selectedFiles ---
+			// This ensures the files managed by the preview/removal logic are sent.
 			if (!this.selectedFiles) this.selectedFiles = [];
 			this.selectedFiles.forEach((file) => {
-				// Use 'media[]' as the field name expected by multer's .any() or specific field names
-				formData.append('media[]', file, file.name);
+				// Use 'media' as the field name expected by multer.any()
+				formData.append('media', file, file.name); // Changed from 'media[]' to 'media' if using .any()
 			});
+			// --- END Manually Append ---
 
-			// Debug: Log FormData contents
-			// for (let [key, value] of formData.entries()) {
-			// 	console.log(`[FormData] ${key}:`, value);
-			// }
-
-			const title = formData.get('title')?.trim();
-
-			if (!title) {
-				showToast('❌ Post title is required.', 'error');
-				console.log("[handlePostSubmit] Title is missing."); // Add log
-				return; // This should now correctly prevent the fetch
+			// Debug: Log FormData contents (Optional: uncomment to verify before sending)
+			console.log("[FormData Contents Before Fetch]:");
+			for (let [key, value] of formData.entries()) {
+			 	console.log(`  ${key}:`, value instanceof File ? `${value.name} (${value.size} bytes)` : value);
 			}
+
+
+			// --- Combined Validation ---
+			// Use the variables retrieved earlier
+			if (!title && this.selectedFiles.length === 0 && !text) {
+				showToast('❌ Post cannot be empty. Add a title, text, or media.', 'error');
+				console.log("[handlePostSubmit] Post is empty.");
+				return;
+			}
+			// Require title if there's text or media
+			if (!title && (text || this.selectedFiles.length > 0)) {
+				showToast('❌ Post title is required when adding text or media.', 'error');
+				console.log("[handlePostSubmit] Title is missing.");
+				return;
+			}
+			// --- End Combined Validation ---
+
 
 			// Disable button and show spinner
 			if (this.elements.postButton) {
 				this.elements.postButton.disabled = true;
 				this.elements.postButton.textContent = 'Posting...';
-				console.log("[handlePostSubmit] Button disabled."); // Add log
+				console.log("[handlePostSubmit] Button disabled.");
 			}
 			showSpinner();
 
 			try {
-				console.log("[handlePostSubmit] Sending fetch request to /posts..."); // Add log
+				console.log("[handlePostSubmit] Sending fetch request to /posts...");
 				const response = await fetch('/posts', {
 					method: 'POST',
-					body: formData, // Send FormData directly
+					body: formData, // Send FormData with manually appended files
 					credentials: 'include',
-					// No 'Content-Type' header needed for FormData; browser sets it with boundary
 				});
-				console.log("[handlePostSubmit] Fetch response received:", response.status); // Add log
+				console.log("[handlePostSubmit] Fetch response received:", response.status);
 
-				// Use handleApiResponse for consistent error handling and JSON parsing
 				const data = await handleApiResponse(response, 'creating post');
-				console.log("[handlePostSubmit] Parsed response data:", data); // Add log
+				console.log("[handlePostSubmit] Parsed response data:", data);
 
 				if (data.success) {
 					showToast('✅ Post created successfully!');
-					// Socket event 'newPost' will handle adding the post to the UI
 					if (this.elements.postForm) this.elements.postForm.reset();
-					if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = ''; // Clear previews
-					this.updateFileInputs(); // Ensure this is called correctly
-					console.log("[handlePostSubmit] Post successful, form reset."); // Add log
+					if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = '';
+					this.updateFileInputs(); // Clears inputs and this.selectedFiles
+					console.log("[handlePostSubmit] Post successful, form reset.");
 				} else {
-					// Error handled by handleApiResponse, but log here too
-					console.error("[handlePostSubmit] Post creation failed:", data.error || 'Unknown error');
-					// No need to throw again if handleApiResponse already did
+					// Throw error even if handled by handleApiResponse, to ensure catch block runs
+					throw new Error(data.error || 'Post creation failed on server.');
 				}
 			} catch (err) {
-				// Catch errors from fetch or handleApiResponse
 				console.error('[handlePostSubmit] Error during post submission:', err);
-				// Check if the specific error is the one we are fixing
-				if (err instanceof TypeError && err.message.includes("updateFileInputs is not a function")) {
-					console.error("[handlePostSubmit] Caught the 'updateFileInputs is not a function' error. Ensure the method is defined on the class.");
-				}
-				if (err.message !== 'AUTH_REDIRECT') { // Avoid duplicate toast for auth errors
-					showToast(`❌ Error creating post: ${err.message}`, 'error');
-				}
-				// Ensure button is re-enabled even on error
+				// Display the error message from the caught error
+				showToast(`❌ Error creating post: ${err.message}`, 'error');
+				// No need to check for AUTH_REDIRECT here as handleApiResponse doesn't throw that
+
+				// Always re-enable the button in case of error
 				if (this.elements.postButton) {
 					this.elements.postButton.disabled = false;
 					this.elements.postButton.textContent = 'Post';
-					console.log("[handlePostSubmit] Button re-enabled after error."); // Add log
+					console.log("[handlePostSubmit] Button re-enabled after error.");
 				}
 			} finally {
-				// Ensure button is always re-enabled and spinner hidden
-				if (this.elements.postButton && !this.elements.postButton.disabled) { // Check if not already re-enabled in catch
+				// Simplified finally block
+				if (this.elements.postButton && !this.elements.postButton.disabled) {
+					// If button wasn't disabled (e.g., validation failed before fetch), ensure text is correct
+					this.elements.postButton.textContent = 'Post';
+				} else if (this.elements.postButton && this.elements.postButton.disabled && this.elements.postButton.textContent === 'Posting...') {
+					// If fetch finished but resulted in error (button still disabled), re-enable it
 					this.elements.postButton.disabled = false;
 					this.elements.postButton.textContent = 'Post';
-					console.log("[handlePostSubmit] Button re-enabled in finally block."); // Add log
-				} else if (this.elements.postButton && this.elements.postButton.disabled) {
-					// If it's still disabled here, it means the success path was taken OR catch didn't re-enable
-					// Re-enable it just in case something went wrong in the success path before reset
-					this.elements.postButton.disabled = false;
-					this.elements.postButton.textContent = 'Post';
-					console.log("[handlePostSubmit] Button re-enabled in finally (was still disabled)."); // Add log
 				}
 				hideSpinner();
-				console.log("[handlePostSubmit] Spinner hidden."); // Add log
+				console.log("[handlePostSubmit] Spinner hidden.");
 			}
 		}
 		async loadPosts(page = 1) {
@@ -747,11 +761,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 			const isOwner =
 				post.userId && post.userId._id === this.currentUserId;
-			// Check if user is owner OR Admin/Staff
 			const canModify = isOwner || this.currentUserRoles.includes('Admin') || this.currentUserRoles.includes('Staff');
-			// --- ADD Check if user is logged in ---
 			const isLoggedIn = !!this.currentUserId;
-			// --- END Check ---
+
+			// --- Check if current user has reported this post ---
+			const userHasReported = isLoggedIn && Array.isArray(post.reports) && post.reports.some(report => report.userId === this.currentUserId);
+			// --- End Check ---
 
 			const createdAt = post.createdAt
 				? new Date(post.createdAt).toLocaleString("en-US", {
@@ -814,23 +829,24 @@ document.addEventListener("DOMContentLoaded", function () {
 			const likeButtonHTML = `
 				<button class="like-button flex items-center gap-1 ${
 					userLiked ? "text-red-500" : "text-gray-500"
-				} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
+				} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]" ${!isLoggedIn ? 'disabled title="Log in to like"' : ''}>
 					<span>❤️</span>
 					<span class="like-count font-medium">${likeCount}</span>
-				</button>`;
+				</button>`; // Added disabled state if not logged in
 
 			const commentToggleButtonHTML = isLoggedIn ? `
 				<button class="comment-toggle-button text-green-600 hover:underline text-sm flex items-center gap-1 bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
 					<span>💬</span> Comment
 				</button>` : '';
 
+			// --- Update Report Button HTML based on userHasReported ---
 			const reportButtonHTML = isLoggedIn ? `
-				<button class="report-button text-xs text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 ml-auto bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded-[10px]" data-post-id="${
+				<button class="report-button text-xs ${userHasReported ? 'text-gray-400 cursor-default' : 'text-gray-500 hover:text-red-600 hover:underline'} flex items-center gap-1 ml-auto bg-gray-100 ${userHasReported ? '' : 'hover:bg-gray-200'} py-1 px-2 rounded-[10px]" data-post-id="${
 					post._id
-				}">
-					<span>🚩</span> Report
+				}" ${userHasReported ? 'disabled' : ''}>
+					<span>${userHasReported ? '✅' : '🚩'}</span> ${userHasReported ? 'Reported' : 'Report'}
 				</button>` : '';
-			// --- END Conditional buttons ---
+			// --- End Update Report Button HTML ---
 
 			// Use canModify for both Edit and Delete buttons
 			div.innerHTML = `
@@ -846,14 +862,14 @@ document.addEventListener("DOMContentLoaded", function () {
 					</div>
 					${pollSectionHTML}
 					<div class="post-actions flex gap-2.5 items-center mt-2.5 flex-wrap border-t border-gray-200 pt-3">
-						${likeButtonHTML} ${/* Insert conditional Like button */''}
-						${commentToggleButtonHTML} ${/* Insert conditional Comment button */''}
-						${canModify // Use canModify here for Edit/Delete
+						${likeButtonHTML}
+						${commentToggleButtonHTML}
+						${canModify
 							? `<button class="post-edit-btn bg-blue-100 text-blue-600 hover:bg-blue-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Edit</button>
 							   <button class="post-delete-btn bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-medium transition duration-200">Delete</button>`
 							: ""
 						}
-						${reportButtonHTML} ${/* Insert conditional Report button */''}
+						${reportButtonHTML}
 					</div>
 					<div class="post-comments mt-4 pt-2.5 border-t border-gray-300">
 						${isLoggedIn ? /* Only show comment input form if logged in */`
@@ -1287,7 +1303,9 @@ document.addEventListener("DOMContentLoaded", function () {
 						newTextEl.className = "post-text text-base text-gray-700 mb-3 whitespace-pre-wrap";
 						newTextEl.innerText = updatedText;
 						// Insert after the title element
+						// --- FIX: Use titleEl instead of newTitleEl ---
 						titleEl?.insertAdjacentElement('afterend', newTextEl);
+						// --- END FIX ---
 					}
 
 					// --- Restore Media/Poll Display ---
@@ -1584,11 +1602,24 @@ document.addEventListener("DOMContentLoaded", function () {
 		async reportPost(postId, button) {
 			/* ... Same logic ... */ if (!this.currentUserId)
 				return showToast("Log in to report.", "error");
+			// --- Add check if already reported ---
+			if (button.disabled || button.textContent.includes('Reported')) {
+				return; // Already reported or in process
+			}
+			// --- End check ---
 			if (!confirm("Report post?")) return;
+
+			const originalButtonText = button.innerHTML;
 			button.disabled = true;
 			button.classList.add("opacity-50", "cursor-not-allowed");
+			button.innerHTML = `<span>⏳</span> Reporting...`;
+
 			try {
 				const reason = prompt("Reason (optional):");
+				if (reason === null) {
+					throw new Error("Report cancelled.");
+				}
+
 				const res = await fetch(`/posts/${postId}/report`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -1598,13 +1629,44 @@ document.addEventListener("DOMContentLoaded", function () {
 				const data = await res.json();
 				if (res.ok && data.success) {
 					showToast("✅ Post reported.");
+					// --- Permanently change button state ---
+					button.innerHTML = `<span>✅</span> Reported`;
+					button.disabled = true; // Keep disabled
+					button.classList.remove("hover:text-red-600", "hover:underline", "hover:bg-gray-200"); // Remove hover effects
+					button.classList.add("text-gray-400", "cursor-default"); // Add reported styles
+					// --- End Permanently change button state ---
 				} else {
-					throw new Error(data.error || "Failed");
+					// --- Handle "already reported" error specifically ---
+					if (res.status === 400 && data.error?.includes("already reported")) {
+						showToast("ℹ️ You have already reported this post.", "info"); // Use info type
+						// Update button state to reflect it's reported
+						button.innerHTML = `<span>✅</span> Reported`;
+						button.disabled = true;
+						button.classList.remove("hover:text-red-600", "hover:underline", "hover:bg-gray-200");
+						button.classList.add("text-gray-400", "cursor-default", "opacity-50", "cursor-not-allowed"); // Ensure disabled styles are applied
+					} else {
+						throw new Error(data.error || "Failed");
+					}
+					// --- End Handle "already reported" error ---
 				}
 			} catch (err) {
-				showToast(`❌ Error: ${err.message}`, "error");
-				button.disabled = false;
-				button.classList.remove("opacity-50", "cursor-not-allowed");
+				if (err.message !== "Report cancelled.") {
+					showToast(`❌ Error: ${err.message}`, "error");
+				}
+				// --- Restore button only if error was NOT "already reported" and NOT cancellation ---
+				if (err.message !== "Report cancelled." && !err.message?.includes("already reported")) {
+					button.disabled = false;
+					button.classList.remove("opacity-50", "cursor-not-allowed");
+					button.innerHTML = originalButtonText;
+				} else if (err.message === "Report cancelled.") {
+					// If cancelled, just restore original state
+					button.disabled = false;
+					button.classList.remove("opacity-50", "cursor-not-allowed");
+					button.innerHTML = originalButtonText;
+				}
+				// --- End Restore button logic ---
+			} finally {
+				// Remove the "Reporting..." state handling from finally, it's handled in try/catch now
 			}
 		}
 
@@ -1790,7 +1852,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			if (this.elements.imageInput) this.elements.imageInput.value = null;
 			if (this.elements.videoInput) this.elements.videoInput.value = null;
 			// Reset the internal selectedFiles array
-			this.selectedFiles = [];
+			this.selectedFiles = []; // Reset the array managed by previews
 			console.log("[updateFileInputs] File inputs cleared and selectedFiles reset."); // Add log
 		}
 		// --- End add updateFileInputs method ---

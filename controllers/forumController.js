@@ -2,12 +2,9 @@
 const ForumPost = require('../models/ForumPost');
 const cloudinary = require('../config/cloudinaryConfig');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const streamifier = require('streamifier');
-
-
-
+const sendEmail = require('../config/mailer'); // Import sendEmail
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -181,7 +178,7 @@ exports.createPost = async (req, res) => {
 exports.getAllPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5; // Match frontend limit
     const skip = (page - 1) * limit;
 
     const posts = await ForumPost.find({ isDeleted: { $ne: true } })
@@ -189,7 +186,12 @@ exports.getAllPosts = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .populate('userId', 'username profilePicture')
-      .lean();
+      // --- Select reports.userId to send to frontend ---
+      .select('-comments -__v') // Example: Exclude full comments, keep other fields
+      // Or explicitly select needed fields including reports.userId
+      // .select('title text userId media likes poll reports.userId createdAt updatedAt edited')
+      // --- End Select ---
+      .lean(); // Use lean for performance
 
     const totalPosts = await ForumPost.countDocuments({ isDeleted: { $ne: true } });
 
@@ -200,6 +202,7 @@ exports.getAllPosts = async (req, res) => {
       currentPage: page
     });
   } catch (err) {
+    console.error('Error fetching posts:', err); // Log error
     res.status(500).json({ success: false, error: 'Failed to fetch posts' });
   }
 };
@@ -209,7 +212,10 @@ exports.getPostById = async (req, res) => {
     const post = await ForumPost.findById(req.params.id)
       .populate('userId', 'username profilePicture')
       .populate('comments.userId', 'username profilePicture')
-      .populate('likes', 'username profilePicture');
+      .populate('likes', 'username profilePicture')
+      // --- Select reports.userId here too if needed for single post view ---
+      .select('-__v'); // Example selection
+      // --- End Select ---
 
     if (!post || post.isDeleted) {
       return res.status(404).json({
@@ -218,9 +224,17 @@ exports.getPostById = async (req, res) => {
       });
     }
 
+    // Filter out deleted comments before sending
+    const postObject = post.toObject(); // Convert to plain object if not using .lean()
+    if (postObject.comments) {
+        postObject.comments = postObject.comments.filter(c => !c.isDeleted);
+    }
+
+
     res.json({
       success: true,
-      post
+      // post // Send original Mongoose object if needed elsewhere
+      post: postObject // Send the modified object
     });
   } catch (error) {
     console.error('Get post error:', error);
@@ -255,19 +269,30 @@ exports.updatePost = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Not authorized to update this post' });
     }
 
+    // --- Add Check: Prevent title/text edit if poll has votes ---
+    if (post.poll && post.poll.options && post.poll.options.some(opt => opt.votes && opt.votes.length > 0)) {
+        // Allow Admins/Staff to edit even if votes exist? (Optional - uncomment if needed)
+        // if (!isAdminOrStaff) {
+            console.log(`[Update Post] Attempt blocked: Post ${postId} has a poll with votes.`);
+            return res.status(400).json({ success: false, error: 'Cannot edit title when votes exist.' });
+        // }
+    }
+    // --- End Check ---
+
+
     // Update fields if provided
     if (title !== undefined) post.title = title.trim();
     if (text !== undefined) post.text = text.trim(); // Allow empty text
-    
+
     // Note: Media is NOT updated here as per current frontend logic
     // If media update is needed later, handleFileUploads would need to be added back
     // conditionally or a separate route created.
-    
+
     post.updatedAt = new Date();
     post.edited = true; // Mark as edited
 
     await post.save();
-    
+
     // Populate user details for the response and emit
     const populatedPost = await ForumPost.populate(post, {
       path: 'userId',
@@ -720,24 +745,127 @@ exports.updatePoll = async (req, res) => {
   const { postId } = req.params;
   const { question, options } = req.body;
   const userId = req.user._id;
+  const io = req.io; // Use req.io
 
   try {
     const post = await ForumPost.findById(postId);
-    if (!post || post.userId.toString() !== req.user._id.toString()) {
+    // --- Check Post Existence and Ownership ---
+    if (!post || post.isDeleted) {
+        return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+    if (!post.poll) {
+        return res.status(400).json({ success: false, message: 'This post does not contain a poll' });
+    }
+    if (post.userId.toString() !== userId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this poll' });
     }
+    // --- End Checks ---
 
+    // --- Check for Existing Votes ---
+    const hasVotes = post.poll.options.some(opt => opt.votes && opt.votes.length > 0);
+    if (hasVotes) {
+        return res.status(400).json({ success: false, message: 'Cannot edit a poll that already has votes' });
+    }
+    // --- End Check for Votes ---
+
+    // --- Validate Input ---
     if (!question || !Array.isArray(options) || options.length < 2) {
       return res.status(400).json({ success: false, message: 'Poll must have a question and at least 2 options' });
     }
+    const trimmedOptions = options.map(opt => ({ text: opt.trim(), votes: [] })).filter(opt => opt.text);
+    if (trimmedOptions.length < 2) {
+        return res.status(400).json({ success: false, message: 'Poll must have at least 2 non-empty options' });
+    }
+    // --- End Validation ---
 
-    post.poll.question = question;
-    post.poll.options = options.map(opt => ({ text: opt.trim(), votes: [] }));
+    // --- Update Poll Data ---
+    post.poll.question = question.trim();
+    post.poll.options = trimmedOptions; // Use the validated and trimmed options
+    post.edited = true; // Mark the post as edited
+    post.updatedAt = new Date();
+    // --- End Update ---
 
     await post.save();
+
+    // --- Emit Socket Event ---
+    if (io) {
+        // Send the updated poll subdocument along with the postId
+        io.emit('pollUpdated', { postId, poll: post.poll });
+        console.log(`[Socket Emit] Emitted pollUpdated for post ${postId}`);
+    } else {
+        console.warn('[Socket Emit] req.io not found. Cannot emit pollUpdated event.');
+    }
+    // --- End Emit ---
+
     res.json({ success: true, poll: post.poll });
   } catch (error) {
     console.error('Update poll error:', error);
     res.status(500).json({ success: false, message: 'Failed to update poll' });
   }
 };
+
+// --- Update Report Post Functionality ---
+exports.reportPost = async (req, res) => {
+    const { postId } = req.params;
+    const { reason } = req.body;
+    const userId = req.user._id; // Assuming requireAuth middleware adds user to req
+
+    try {
+        // --- Fetch post *without* lean() to use .save() ---
+        const post = await ForumPost.findById(postId);
+        // --- End Fetch ---
+        if (!post || post.isDeleted) {
+            return res.status(404).json({ success: false, error: 'Post not found' });
+        }
+
+        // Safeguard: Ensure post.reports is an array (already added in schema with default)
+        if (!Array.isArray(post.reports)) {
+             console.warn(`[Report Post] Post ${postId} 'reports' field is not an array. Initializing.`);
+             post.reports = [];
+        }
+
+
+        // Check if user has already reported this post
+        const existingReport = post.reports.find(report => report.userId.toString() === userId.toString());
+        if (existingReport) {
+            return res.status(400).json({ success: false, error: 'You have already reported this post' });
+        }
+
+        // Add report details to the post
+        const reportDetails = {
+            userId: userId,
+            reason: reason || 'No reason provided',
+            // reportedAt is set by default in schema
+        };
+        post.reports.push(reportDetails);
+        await post.save(); // Save the updated post document
+
+        // --- Send Email Notification using sendEmail ---
+        if (process.env.ADMIN_EMAIL) {
+            try {
+                const subject = `Forum Post Reported: ${postId}`;
+                const htmlContent = `<p>A forum post has been reported.</p>
+                           <p><strong>Post ID:</strong> ${postId}</p>
+                           <p><strong>Reported by User ID:</strong> ${userId} (Username: ${req.user.username || 'N/A'})</p>
+                           <p><strong>Reason:</strong> ${reportDetails.reason}</p>
+                           <p><strong>Reported At:</strong> ${new Date().toISOString()}</p> <!-- Use current date for email -->
+                           <p><a href="${req.protocol}://${req.get('host')}/forum#post-${postId}">View Post</a></p>`;
+
+                await sendEmail(process.env.ADMIN_EMAIL, subject, htmlContent);
+                console.log(`[Mailer] Report email sent successfully via sendEmail to ${process.env.ADMIN_EMAIL} for post ${postId}`);
+            } catch (emailError) {
+                console.error(`[Mailer] Failed to send report email via sendEmail for post ${postId}:`, emailError);
+            }
+        } else {
+            console.warn(`[Mailer] ADMIN_EMAIL not set. Skipping report email for post ${postId}.`);
+        }
+        // --- End Send Email Notification ---
+
+        res.json({ success: true, message: 'Post reported successfully' });
+
+    } catch (error) {
+        console.error('Error reporting post:', error);
+        res.status(500).json({ success: false, error: 'Failed to report post' });
+    }
+};
+// --- End Report Post Functionality ---

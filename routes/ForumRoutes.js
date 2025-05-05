@@ -3,7 +3,6 @@ const router = express.Router();
 const forumController = require('../controllers/forumController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const ForumPost = require('../models/ForumPost');
-const { Report } = require('../models/ForumPost'); // Import the Report model
 
 // Forum post routes (API endpoints)
 router.post('/posts', requireAuth, forumController.handleFileUploads, forumController.createPost); // File upload is handled here
@@ -30,6 +29,10 @@ router.put(
     requireAuth,
     forumController.updateComment // Use controller updateComment
 );
+
+// --- Add Report Route ---
+router.post('/posts/:postId/report', requireAuth, forumController.reportPost);
+// --- End Add Report Route ---
 
 // Forum page route with pagination
 router.get('/forum', /* Removed requireAuth for public view */ async (req, res) => {

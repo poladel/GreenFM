@@ -6,7 +6,12 @@ const commentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   text: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  isDeleted: { type: Boolean, default: false }
+  // --- Add edited and deleted fields ---
+  edited: { type: Boolean, default: false },
+  updatedAt: { type: Date },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date }
+  // --- End Add ---
 });
 
 // Media Schema
@@ -21,6 +26,14 @@ const pollOptionSchema = new mongoose.Schema({
   votes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] 
 });
 
+// --- Add Report Schema ---
+const reportSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    reason: { type: String },
+    reportedAt: { type: Date, default: Date.now }
+}, { _id: false }); // No separate _id needed for reports within the post
+// --- End Add Report Schema ---
+
 // Forum Post Schema
 const forumPostSchema = new mongoose.Schema({
   title: { type: String, default: '' },
@@ -33,7 +46,14 @@ const forumPostSchema = new mongoose.Schema({
     question: String,
     options: [pollOptionSchema]
   },
-  isDeleted: { type: Boolean, default: false }
+  // --- Add reports field ---
+  reports: { type: [reportSchema], default: [] }, // Array of reports
+  // --- End Add reports field ---
+  // --- Add edited and deleted fields ---
+  edited: { type: Boolean, default: false },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date }
+  // --- End Add ---
 }, { timestamps: true });
 
 module.exports = mongoose.model('ForumPost', forumPostSchema, 'ForumPosts');
