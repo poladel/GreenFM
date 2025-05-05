@@ -23,7 +23,8 @@ const ALLOWED_FILE_TYPES = [
   'image/png',
   'image/webp',
   'video/mp4',
-  'video/quicktime'
+  'video/quicktime',
+  'image/gif' // <<< Add image/gif
 ];
 
 // Multer configuration
@@ -187,9 +188,8 @@ exports.getAllPosts = async (req, res) => {
       .limit(limit)
       .populate('userId', 'username profilePicture')
       // --- Select reports.userId to send to frontend ---
-      .select('-comments -__v') // Example: Exclude full comments, keep other fields
-      // Or explicitly select needed fields including reports.userId
-      // .select('title text userId media likes poll reports.userId createdAt updatedAt edited')
+      // Explicitly select fields needed, including reports.userId
+      .select('title text userId media likes poll reports.userId createdAt updatedAt edited isDeleted')
       // --- End Select ---
       .lean(); // Use lean for performance
 
@@ -213,9 +213,10 @@ exports.getPostById = async (req, res) => {
       .populate('userId', 'username profilePicture')
       .populate('comments.userId', 'username profilePicture')
       .populate('likes', 'username profilePicture')
-      // --- Select reports.userId here too if needed for single post view ---
-      .select('-__v'); // Example selection
+      // --- Select reports.userId here too ---
+      .select('title text userId media likes poll reports comments createdAt updatedAt edited isDeleted') // Ensure reports.userId is included if needed
       // --- End Select ---
+      // Removed .lean() here because we modify the object below
 
     if (!post || post.isDeleted) {
       return res.status(404).json({
@@ -225,7 +226,7 @@ exports.getPostById = async (req, res) => {
     }
 
     // Filter out deleted comments before sending
-    const postObject = post.toObject(); // Convert to plain object if not using .lean()
+    const postObject = post.toObject(); // Convert to plain object
     if (postObject.comments) {
         postObject.comments = postObject.comments.filter(c => !c.isDeleted);
     }
@@ -233,7 +234,6 @@ exports.getPostById = async (req, res) => {
 
     res.json({
       success: true,
-      // post // Send original Mongoose object if needed elsewhere
       post: postObject // Send the modified object
     });
   } catch (error) {
@@ -790,7 +790,7 @@ exports.updatePoll = async (req, res) => {
     // --- Emit Socket Event ---
     if (io) {
         // Send the updated poll subdocument along with the postId
-        io.emit('pollUpdated', { postId, poll: post.poll });
+        io.emit('pollUpdated', { postId, poll: post.poll }); // <<< NOTE: Ensure client handles 'pollUpdated' event
         console.log(`[Socket Emit] Emitted pollUpdated for post ${postId}`);
     } else {
         console.warn('[Socket Emit] req.io not found. Cannot emit pollUpdated event.');

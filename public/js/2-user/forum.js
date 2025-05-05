@@ -47,15 +47,21 @@ function handleApiResponse(response, action = 'performing action') {
 
 // --- Spinner Functions ---
 function showSpinner() {
+	// --- Add ID to the spinner container ---
 	const spinnerHtml = `
-	<div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+	<div id="global-spinner" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
 		<div class="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-green-400"></div>
 	</div>`;
+	// --- End Add ID ---
+	// Remove existing spinner first to prevent duplicates
+	hideSpinner();
 	document.body.insertAdjacentHTML("beforeend", spinnerHtml);
 }
 
 function hideSpinner() {
-	const spinner = document.querySelector(".fixed.inset-0.flex");
+	// --- Select by ID ---
+	const spinner = document.getElementById("global-spinner");
+	// --- End Select by ID ---
 	if (spinner) {
 		spinner.remove();
 	}
@@ -873,7 +879,7 @@ document.addEventListener("DOMContentLoaded", function () {
 				this.elements.postButton.textContent = 'Posting...';
 				console.log("[handlePostSubmit] Button disabled.");
 			}
-			showSpinner();
+			showSpinner(); // Show spinner before fetch
 
 			try {
 				console.log("[handlePostSubmit] Sending fetch request to /posts...");
@@ -884,19 +890,34 @@ document.addEventListener("DOMContentLoaded", function () {
 				});
 				console.log("[handlePostSubmit] Fetch response received:", response.status);
 
-				const data = await handleApiResponse(response, 'creating post');
-				console.log("[handlePostSubmit] Parsed response data:", data);
+				// --- Check for non-JSON success response (e.g., 201 Created) ---
+				if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+					const data = await handleApiResponse(response, 'creating post');
+					console.log("[handlePostSubmit] Parsed response data:", data);
 
-				if (data.success) {
+					if (data.success) {
+						showToast('✅ Post created successfully!');
+						if (this.elements.postForm) this.elements.postForm.reset();
+						if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = '';
+						this.updateFileInputs(); // Clears inputs and this.selectedFiles
+						console.log("[handlePostSubmit] Post successful, form reset.");
+					} else {
+						// Throw error even if handled by handleApiResponse, to ensure catch block runs
+						throw new Error(data.error || 'Post creation failed on server.');
+					}
+				} else if (response.ok) {
+					// Handle non-JSON success (e.g., if server sends 201 without JSON body)
+					console.log("[handlePostSubmit] Post successful (non-JSON response).");
 					showToast('✅ Post created successfully!');
 					if (this.elements.postForm) this.elements.postForm.reset();
 					if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = '';
-					this.updateFileInputs(); // Clears inputs and this.selectedFiles
-					console.log("[handlePostSubmit] Post successful, form reset.");
+					this.updateFileInputs();
 				} else {
-					// Throw error even if handled by handleApiResponse, to ensure catch block runs
-					throw new Error(data.error || 'Post creation failed on server.');
+					// Handle non-ok responses (attempt to parse JSON for error message)
+					await handleApiResponse(response, 'creating post'); // This will throw if !response.ok
 				}
+				// --- End Check for non-JSON success response ---
+
 			} catch (err) {
 				console.error('[handlePostSubmit] Error during post submission:', err);
 				// Display the error message from the caught error
@@ -910,17 +931,14 @@ document.addEventListener("DOMContentLoaded", function () {
 					console.log("[handlePostSubmit] Button re-enabled after error.");
 				}
 			} finally {
-				// Simplified finally block
-				if (this.elements.postButton && !this.elements.postButton.disabled) {
-					// If button wasn't disabled (e.g., validation failed before fetch), ensure text is correct
-					this.elements.postButton.textContent = 'Post';
-				} else if (this.elements.postButton && this.elements.postButton.disabled && this.elements.postButton.textContent === 'Posting...') {
-					// If fetch finished but resulted in error (button still disabled), re-enable it
+				// --- Ensure button is always re-enabled and spinner hidden ---
+				if (this.elements.postButton) {
 					this.elements.postButton.disabled = false;
 					this.elements.postButton.textContent = 'Post';
 				}
-				hideSpinner();
+				hideSpinner(); // Hide spinner regardless of success or error
 				console.log("[handlePostSubmit] Spinner hidden.");
+				// --- End Ensure ---
 			}
 		}
 		async loadPosts(page = 1) {
@@ -1059,13 +1077,15 @@ document.addEventListener("DOMContentLoaded", function () {
 				.join("");
 
 			// --- Conditionally add buttons based on isLoggedIn ---
+			// --- Remove disabled attribute logic from like button ---
 			const likeButtonHTML = `
 				<button class="like-button flex items-center gap-1 ${
 					userLiked ? "text-red-500" : "text-gray-500"
-				} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]" ${!isLoggedIn ? 'disabled title="Log in to like"' : ''}>
+				} hover:text-red-400 transition duration-200 text-sm bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
 					<span>❤️</span>
 					<span class="like-count font-medium">${likeCount}</span>
-				</button>`; // Added disabled state if not logged in
+				</button>`;
+			// --- End Remove disabled attribute logic ---
 
 			const commentToggleButtonHTML = isLoggedIn ? `
 				<button class="comment-toggle-button text-green-600 hover:underline text-sm flex items-center gap-1 bg-gray-100 hover:bg-gray-200 py-1.5 px-3 rounded-[10px]">
@@ -1380,10 +1400,14 @@ document.addEventListener("DOMContentLoaded", function () {
 			}
 		}
 		toggleLike(postId, button) {
-			/* ... Same logic ... */ if (!this.currentUserId) {
-				showToast("Log in to like.", "error");
-				return;
+			// --- Add check for logged-in user ---
+			if (!this.currentUserId) {
+				showToast("ℹ️ Please log in to like posts.", "info"); // Use info type for prompt
+				return; // Stop execution if not logged in
 			}
+			// --- End check ---
+
+			/* ... Rest of the existing logic ... */
 			const likeCountSpan = button.querySelector(".like-count");
 			const currentCount = parseInt(likeCountSpan.textContent || "0", 10);
 			const liked = button.classList.contains("text-red-500");
@@ -1557,10 +1581,15 @@ document.addEventListener("DOMContentLoaded", function () {
 				if (saveButton) {
 					saveButton.disabled = false;
 					saveButton.textContent = "Save";
+								}
+			} finally {
+				// --- Ensure button is always re-enabled ---
+				if (saveButton) {
+					saveButton.disabled = false;
+					saveButton.textContent = "Save";
 				}
 			}
 		}
-
 		cancelPostEdit(postId, titleInput, textInput, mediaContainer, pollContainer, actionsContainer, originalTitle, originalText) {
 			// --- Restore Title ---
 			const originalTitleEl = document.createElement("h3");
