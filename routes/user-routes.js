@@ -115,19 +115,6 @@ userRoutes.forEach(userRoute => {
                 });
             }
 
-            // Handle restricted routes (This check might be redundant if requireAuth/checkRoles handle it)
-            if (userRoute.restricted) {
-                // const user = res.locals.user; // Already defined above
-                if (!user || (userRoute.roles && !user.roles.some(role => userRoute.roles.includes(role)))) { // Check if user exists and has *any* of the required roles
-                    return res.render('restricted', {
-                        message: 'Access Denied: Insufficient Permissions',
-                        redirectUrl: '/',
-                        user: user // Pass user even to restricted page if available
-                    });
-                }
-            }
-
-
             // Delegate to controller if specified
             if (userRoute.controller) {
                 // Ensure controllers also receive user if needed, or pass it in res.locals
@@ -152,6 +139,8 @@ userRoutes.forEach(userRoute => {
             console.error(`Error handling route ${userRoute.path}:`, error);
             // Pass user to error page if possible
             res.status(500).render('error', { // Assuming you have an error.ejs view
+                 pageTitle: 'Error',
+                 headerTitle: 'Error', // Add this line
                  message: 'Server Error',
                  error: process.env.NODE_ENV === 'development' ? error : {}, // Show details only in dev
                  user: res.locals.user // Pass user to error page
