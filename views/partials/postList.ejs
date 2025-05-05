@@ -82,36 +82,37 @@
                          <button type="submit" class="comment-btn py-1.5 px-3 bg-[#00722A] text-white border-none rounded-[10px] font-bold cursor-pointer text-xs hover:bg-[#00591F] flex-shrink-0">Comment</button> <!-- Reduced padding/text size, added flex-shrink-0 -->
                      </form>
                  <% } %>
-                 <div class="comment-list mt-2.5 space-y-2">
-                     <% post.comments && post.comments.forEach(comment => { %>
-                         <div class="comment bg-gray-50 p-2 rounded-[10px] text-sm relative border-b border-gray-200 last:border-b-0" id="comment-<%= comment._id %>">
-                             <div class="comment-content">
-                                 <strong class="text-green-700"><%= comment.username %>:</strong>
-                                 <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700 break-words"><%= comment.text %></span> <!-- Added break-words -->
+                 <%# Conditionally add scroll classes if comment count > 5 %>
+                 <div class="comment-list mt-2.5 space-y-2 <%= post.comments && post.comments.length > 5 ? 'max-h-[200px] overflow-y-auto pr-2' : '' %>">
+                     <% if (post.comments && post.comments.length > 0) { %>
+                         <% post.comments.forEach(comment => { %>
+                             <div class="comment bg-gray-50 p-2 rounded-[10px] text-sm relative border-b border-gray-200 last:border-b-0" id="comment-<%= comment._id %>">
+                                 <div class="comment-content">
+                                     <strong class="text-green-700"><%= comment.username %>:</strong>
+                                     <span class="comment-text ml-1 inline-block max-w-[90%] text-gray-700 break-words"><%= comment.text %></span> <!-- Added break-words -->
+                                 </div>
+                                 <div class="comment-actions absolute top-2 right-2 flex gap-2">
+                                      <!-- Edit Button (Author Only) -->
+                                      <% if (user && user.username === comment.username) { %>
+                                         <button class="edit-comment-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
+                                     <% } %>
+                                     <!-- Delete Button (Author, Admin, Staff) -->
+                                     <% if (user && (user.username === comment.username || user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
+                                         <button class="delete-comment-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">Delete</button>
+                                     <% } %>
+                                 </div>
+                                  <!-- Edit Form (Hidden by default) -->
+                                 <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form hidden flex gap-1.5 mt-1">
+                                     <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 min-w-0" value="<%= comment.text %>" required /> <!-- Added min-w-0 -->
+                                     <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F] flex-shrink-0">Save</button> <!-- Added flex-shrink-0 -->
+                                     <button type="button" onclick="cancelEditComment('<%= comment._id %>')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs flex-shrink-0">Cancel</button> <!-- Added flex-shrink-0 -->
+                                 </form>
                              </div>
-                             <div class="comment-actions absolute top-2 right-2 flex gap-2">
-                                  <!-- Edit Button (Author Only) -->
-                                  <% if (user && user.username === comment.username) { %>
-                                     <button class="edit-comment-btn bg-none border-none cursor-pointer text-xs text-blue-600 hover:underline p-0" onclick="enableEditComment('<%= post._id %>', '<%= comment._id %>')">Edit</button>
-                                 <% } %>
-                                 <!-- Delete Button (Author, Admin, Staff) -->
-                                 <% if (user && (user.username === comment.username || user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
-                                     <button class="delete-comment-btn bg-none border-none cursor-pointer text-xs text-red-600 hover:underline p-0" onclick="deleteComment('<%= post._id %>', '<%= comment._id %>')">Delete</button>
-                                 <% } %>
-                             </div>
-                              <!-- Edit Form (Hidden by default) -->
-                             <form onsubmit="editComment(event, '<%= post._id %>', '<%= comment._id %>')" class="edit-comment-form hidden flex gap-1.5 mt-1">
-                                 <input type="text" class="edit-comment-input flex-1 p-1.5 text-sm rounded-[10px] border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 min-w-0" value="<%= comment.text %>" required /> <!-- Added min-w-0 -->
-                                 <button type="submit" class="py-1 px-2.5 rounded-[10px] border-none bg-[#00722A] text-white font-bold cursor-pointer text-xs hover:bg-[#00591F] flex-shrink-0">Save</button> <!-- Added flex-shrink-0 -->
-                                 <button type="button" onclick="cancelEditComment('<%= comment._id %>')" class="py-1 px-2.5 rounded-[10px] border-none bg-gray-400 hover:bg-gray-500 text-white font-bold cursor-pointer text-xs flex-shrink-0">Cancel</button> <!-- Added flex-shrink-0 -->
-                             </form>
-                         </div>
-                     <% }) %>
-                     <% if (post.comments && post.comments.length > 2) { %> <%# Logic for load more button %>
-                        <button class="load-more-comments text-blue-600 text-sm hover:underline" onclick="loadMoreComments('<%= post._id %>')">View all <%= post.comments.length %> comments</button>
-                     <% } else if (!post.comments || post.comments.length === 0) { %> <%# Show 'No comments' if none exist %>
-                        <p class="text-xs text-gray-500 no-comments">No comments yet.</p>
+                         <% }) %>
+                     <% } else { %> <%# Show 'No comments' if none exist %>
+                         <p class="text-xs text-gray-500 no-comments">No comments yet.</p>
                      <% } %>
+                     <%# Removed the 'Load more comments' button logic %>
                  </div>
              </div> <!-- End post-comments -->
         </div> <!-- End post-item -->
