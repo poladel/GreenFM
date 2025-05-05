@@ -1,121 +1,137 @@
 <%- include('../partials/header.ejs') %>
+<!-- Removed link to archive.css -->
 
-<div class="page-container">
-  <div class="content-wrap">
-    <div class="container">
+<body class="overflow-x-hidden"> <!-- Added from archive.css body -->
+
+<div class="page-container flex flex-col min-h-screen">
+  <div class="content-wrap flex-1">
+     <!-- Adjusted main container margin for sidebar -->
+    <div class="container ml-0 lg:ml-[15vw] xl:ml-[14vw]">
       <%- include('../partials/nav.ejs') %>
       <%- include('../partials/menu.ejs') %>
 
+      <!-- Admin Upload Button -->
       <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
-        <div class="upload-container">
-            <button id="openModalBtn" class="upload-button">Create Folder</button>
-          </div>
-          
-          <!-- Modal -->
-          <div id="uploadModal" class="modal" style="display: none;">
-            <div class="modal-content">
-              <span class="close-btn" id="closeModalBtn">&times;</span>
-              <h3>Create New Folder</h3>
+        <!-- Styles from .upload-container, .upload-button -->
+        <div class="upload-container mt-[1vw] mx-[3vw] md:mx-[4vw] flex justify-start">
+            <button id="openModalBtn" class="upload-button bg-greenfm-primary text-white py-2.5 px-5 text-sm font-bold border-none rounded-lg cursor-pointer transition duration-300 hover:bg-greenfm-primary-dark">Create Folder</button>
+        </div>
+
+        <!-- Upload/Create Folder Modal -->
+        <!-- Styles from .modal, .modal-content, h3, form elements, .close-btn, .upload-button -->
+         <div id="uploadModal" class="modal hidden fixed z-[1000] inset-0 bg-black bg-opacity-50 overflow-y-auto">
+            <div class="modal-content bg-white my-[5%] mx-auto p-7 rounded-[15px] w-[90%] max-w-md shadow-xl relative">
+              <span class="close-btn absolute top-3 right-4 text-xl font-bold text-gray-500 cursor-pointer hover:text-black" id="closeModalBtn">×</span>
+              <h3 class="m-0 mb-5 text-xl text-gray-800">Create New Folder</h3>
               <form id="modal-upload-form" enctype="multipart/form-data" action="/upload" method="POST">
-                <input type="text" id="modal-folder-name" name="folderName" placeholder="Folder name..." required>
-                <input type="file" id="modal-file-input" name="files" multiple accept="image/*,video/*">
-                <button type="submit" class="upload-button">Upload</button>
+                <input type="text" id="modal-folder-name" name="folderName" placeholder="Folder name..." required class="w-full p-2.5 mb-4 rounded-lg border border-gray-300 bg-greenfm-light-gray text-sm text-gray-800 outline-none focus:ring-1 focus:ring-greenfm-primary focus:border-greenfm-primary placeholder-gray-500">
+                 <!-- Basic file input styling, enhanced by ::file-selector-button -->
+                <input type="file" id="modal-file-input" name="files" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-greenfm-primary file:text-white hover:file:bg-greenfm-primary-dark file:cursor-pointer mb-4">
+                <button type="submit" class="upload-button w-full bg-greenfm-primary text-white py-2.5 px-5 text-sm font-bold border-none rounded-lg cursor-pointer transition duration-300 hover:bg-greenfm-primary-dark">Upload</button>
               </form>
             </div>
-          </div>          
+        </div>
       <% } %>
 
-      <div class="archive-filters">
-        <input type="text" id="searchInput" placeholder="Search folders...">
-        <select id="filterMonth">
-          <option value="">Month</option>
-          <% for (let m = 0; m < 12; m++) { %>
-            <option value="<%= m %>"><%= new Date(2000, m).toLocaleString('default', { month: 'long' }) %></option>
-          <% } %>
-        </select>
-
-        <select id="filterYear">
-          <option value="">Year</option>
-          <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
-            <option value="<%= y %>"><%= y %></option>
-          <% } %>
-        </select>
-
-        <button id="filterBtn">Filter</button>
+      <!-- Archive Filters -->
+      <!-- Styles from .archive-filters, input, select, #filterBtn -->
+       <div class="archive-filters bg-white py-[15px] px-5 my-[1vw] mx-[3vw] md:mx-[4vw] rounded-[15px] shadow-lg flex flex-wrap gap-2.5 items-center w-[94vw] md:w-[92vw] lg:w-[83vw]">
+          <input type="text" id="searchInput" placeholder="Search folders..." class="flex-grow basis-full sm:basis-1/2 lg:w-[50vw] p-2.5 rounded-lg border border-gray-300 bg-greenfm-light-gray text-sm text-gray-800 outline-none focus:ring-1 focus:ring-greenfm-primary focus:border-greenfm-primary placeholder-gray-500">
+          <select id="filterMonth" class="p-2.5 rounded-lg border border-gray-300 bg-greenfm-light-gray text-sm text-gray-800 outline-none basis-1/3 sm:basis-auto lg:w-[12vw]">
+            <option value="">Month</option>
+            <% for (let m = 0; m < 12; m++) { %>
+              <option value="<%= m %>"><%= new Date(2000, m).toLocaleString('default', { month: 'long' }) %></option>
+            <% } %>
+          </select>
+          <select id="filterYear" class="p-2.5 rounded-lg border border-gray-300 bg-greenfm-light-gray text-sm text-gray-800 outline-none basis-1/3 sm:basis-auto lg:w-[12vw]">
+            <option value="">Year</option>
+            <% const currentYear = new Date().getFullYear(); for (let y = currentYear; y >= currentYear - 10; y--) { %>
+              <option value="<%= y %>"><%= y %></option>
+            <% } %>
+          </select>
+          <button id="filterBtn" class="bg-greenfm-primary text-white py-2.5 px-4 text-sm font-bold border-none rounded-lg cursor-pointer transition duration-300 hover:bg-greenfm-primary-dark basis-1/3 sm:basis-auto">Filter</button>
       </div>
 
-      <div class="folders-container" id="folders-container">
+      <!-- Folders Container -->
+      <!-- Styles from .folders-container, .folder, .folder-header, .folder-icon, .folder-name, .delete-folder-btn, .folder-date, .add-files-btn, .no-archives -->
+       <div class="folders-container my-[2vw] mx-[3vw] md:mx-[4vw] flex flex-wrap gap-5 justify-start" id="folders-container">
         <% if (archives.length === 0) { %>
-          <p class="no-archives">No archives available yet.</p>
+          <p class="no-archives my-[2vw] mx-[4vw] text-base text-gray-500 w-full">No archives available yet.</p>
         <% } else { %>
           <% archives.forEach(folder => { %>
-            <div class="folder"
+            <!-- Folder Card -->
+            <div class="folder bg-white rounded-[15px] shadow-md p-5 w-full sm:w-[calc(50%-10px)] md:w-[calc(33.33%-14px)] lg:w-[calc(25%-15px)] xl:w-[280px] cursor-pointer transition duration-200 hover:-translate-y-1 flex flex-col justify-between"
+                data-id="<%= folder._id %>"
                 data-name="<%= folder.folderName ? folder.folderName.toLowerCase() : 'untitled' %>"
                 data-date="<%= new Date(folder.createdAt).toISOString() %>"
                 data-files='<%- JSON.stringify(folder.files || []) %>'>
-              <div class="folder-header">
-                <img src="/img/folder.png" alt="Folder Icon" class="folder-icon">
-                <span class="folder-name"><%= folder.folderName %></span>
-                <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
-                  <button class="delete-folder-btn" data-id="<%= folder._id %>">X</button>
-                <% } %>                
-              </div>
-      
-              <div class="folder-contents">
-                <% if (folder.files.length === 0) { %>
-                  <p>No files in this folder.</p>
-                <% } else { %>
-                  <% folder.files.forEach(file => { %>
-                    <% if (file.match(/\.(jpg|jpeg|png|gif)$/i)) { %>
-                      <img src="<%= file %>" alt="File" class="archive-file">
-                    <% } else if (file.match(/\.(mp4|webm|ogg)$/i)) { %>
-                      <video controls class="archive-video">
-                        <source src="<%= file %>" type="video/mp4">
-                        Your browser does not support the video tag.
-                      </video>
-                    <% } else { %>
-                      <a href="<%= file %>" target="_blank">Download File</a>
+
+                <!-- Folder Header -->
+                <div class="folder-header flex items-center justify-between mb-4 gap-2.5">
+                    <img src="/img/folder.png" alt="Folder Icon" class="folder-icon w-[30px] h-[30px] flex-shrink-0">
+                    <span class="folder-name text-base font-bold text-greenfm-primary flex-1 whitespace-nowrap overflow-hidden text-ellipsis" title="<%= folder.folderName %>"><%= folder.folderName %></span>
+                    <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                    <button class="delete-folder-btn bg-transparent border-none text-base text-red-600 cursor-pointer font-bold transition duration-300 hover:text-red-800 p-1" data-id="<%= folder._id %>" title="Delete Folder">X</button>
                     <% } %>
-                  <% }) %>
-                <% } %>
-              </div>
-      
-              <p class="folder-date">Created: <%= new Date(folder.createdAt).toLocaleDateString() %></p>
-              <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
-                <button class="add-files-btn" data-id="<%= folder._id %>">Add More Files</button>
-              <% } %>
-              
+                </div>
+
+                <!-- Folder Date and Add Button -->
+                 <div class="mt-auto pt-2 border-t border-gray-100 flex justify-between items-center">
+                    <p class="folder-date mt-0 mb-0 text-xs text-gray-500">Created: <%= new Date(folder.createdAt).toLocaleDateString() %></p>
+                    <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                        <button class="add-files-btn bg-greenfm-primary text-white py-1.5 px-3 text-xs font-semibold border-none rounded-md cursor-pointer shadow-sm transition duration-200 ease-in-out hover:bg-greenfm-primary-dark hover:-translate-y-px" data-id="<%= folder._id %>">Add Files</button>
+                    <% } %>
+                </div>
             </div>
           <% }) %>
         <% } %>
+      </div>
 
         <!-- View Files Modal -->
-        <div id="viewFilesModal" class="modal" style="display: none;">
-            <div class="modal-content">
-            <span class="close-btn" id="closeViewModalBtn">&times;</span>
-            <h3>Folder Contents</h3>
-            <div id="previewArea"></div>
-            </div>
+        <!-- Styles from .modal, .modal-content, h3, .close-btn, #previewArea, .file-list-modal, .archive-thumb, .full-preview, .single-preview, .back-button -->
+         <div id="viewFilesModal" class="modal hidden fixed z-[1000] inset-0 bg-black bg-opacity-50 overflow-y-auto">
+            <div class="modal-content bg-white my-[5%] mx-auto p-7 rounded-[15px] w-[90%] max-w-3xl lg:max-w-4xl shadow-xl relative">
+                <span class="close-btn absolute top-3 right-4 text-xl font-bold text-gray-500 cursor-pointer hover:text-black" id="closeViewModalBtn">×</span>
+                <h3 class="m-0 mb-5 text-xl text-gray-800">Folder Contents</h3>
+                 <!-- Preview Area - Grid for thumbs, changes for single preview -->
+                <div id="previewArea" class="mt-4 p-2.5 text-xs min-h-[200px] flex flex-col">
+                    <!-- Content Added by JS -->
+                    <!-- JS adds .file-list-modal: flex flex-wrap gap-3 justify-center mt-4 -->
+                    <!-- JS adds .file-thumb: relative -->
+                    <!-- JS adds .archive-thumb: w-24 h-[70px] object-cover rounded-md cursor-pointer -->
+                    <!-- JS adds .file-name: text-center text-[10px] mt-1 truncate w-24 -->
+                    <!-- JS adds .delete-file-btn: absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs cursor-pointer -->
+                     <!-- JS adds .single-preview: flex flex-col items-center -->
+                    <!-- JS adds .full-preview: max-w-full max-h-[80vh] rounded-lg mt-5 -->
+                    <!-- JS adds .back-button: self-start mb-3 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 cursor-pointer font-bold -->
+                 </div>
+                  <!-- Delete Folder Button (Added inside modal) -->
+                  <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
+                      <button class="modal-delete-btn mt-4 w-full bg-red-600 text-white py-2.5 px-5 text-sm font-bold border-none rounded-lg cursor-pointer transition duration-300 hover:bg-red-800" data-id="">Delete This Folder</button>
+                  <% } %>
+             </div>
         </div>
 
-        <div id="addFilesModal" class="modal" style="display: none;">
-          <div class="modal-content">
-            <span class="close-btn" id="closeAddFilesModalBtn">&times;</span>
-            <h3>Add More Files to Folder</h3>
+        <!-- Add Files Modal -->
+        <!-- Styles from #addFilesModal, .modal-content, h3, form, input, button -->
+         <div id="addFilesModal" class="modal hidden fixed z-[1000] inset-0 bg-black bg-opacity-50 overflow-y-auto">
+          <div class="modal-content bg-white my-[5%] mx-auto p-7 rounded-[15px] w-[90%] max-w-md shadow-xl relative">
+            <span class="close-btn absolute top-3 right-4 text-xl font-bold text-gray-500 cursor-pointer hover:text-black" id="closeAddFilesModalBtn">×</span>
+            <h3 class="m-0 mb-5 text-xl text-gray-800">Add More Files to Folder</h3>
             <form id="add-files-form" class="add-files-form" enctype="multipart/form-data">
-              <input type="file" name="files" id="add-files-input" multiple accept="image/*,video/*">
+              <!-- File Input Styling -->
+              <input type="file" name="files" id="add-files-input" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-greenfm-primary file:text-white hover:file:bg-greenfm-primary-dark file:cursor-pointer mb-4">
               <input type="hidden" name="folderId" id="add-files-folder-id">
-              <button type="submit" class="upload-button">Upload</button>
+              <button type="submit" class="upload-button w-full bg-greenfm-primary text-white py-2.5 px-5 text-sm font-bold border-none rounded-lg cursor-pointer transition duration-300 hover:bg-greenfm-primary-dark">Upload</button>
             </form>
           </div>
         </div>
-        
-        </div>
-      
-    </div>
-  </div>
+
+    </div> <!-- End container -->
+  </div> <!-- End content-wrap -->
 
   <%- include('../partials/footer.ejs') %>
-  <script src="js/2-user/archives.js"></script>
+  <script src="/js/2-user/archives.js"></script> <!-- Keep JS -->
 </div>
 </body>
+</html>

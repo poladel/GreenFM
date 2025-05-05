@@ -122,3 +122,29 @@ exports.uploadFiles = (req, res) => {
     });
   };
   
+  exports.deleteFileFromFolder = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { fileUrl } = req.body;
+  
+      if (!fileUrl) return res.status(400).json({ error: 'File URL required' });
+  
+      const folder = await Archive.findById(id);
+      if (!folder) return res.status(404).json({ error: 'Folder not found' });
+  
+      folder.files = folder.files.filter(f => f !== fileUrl);
+      await folder.save();
+  
+      // Optionally delete from Cloudinary
+      /*
+      const publicId = fileUrl.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(`archives/${publicId}`, { resource_type: 'auto' });
+      */
+  
+      return res.status(200).json({ message: 'File deleted' });
+    } catch (err) {
+      console.error('Error deleting file:', err);
+      return res.status(500).json({ error: 'Server error while deleting file' });
+    }
+  };
+  

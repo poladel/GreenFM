@@ -397,3 +397,28 @@ body.modal-open {
     margin-top: 1rem;
   }
   
+  /* --- Delete Folder Button inside Modal --- */
+.modal-delete-btn {
+    background-color: #D11A2A;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.modal-delete-btn:hover {
+    background-color: #A00;
+}
+
+.full-preview {
+    width: 100%;
+    max-height: 80vh;
+    border: none;
+  }
+  

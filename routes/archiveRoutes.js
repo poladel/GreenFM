@@ -7,5 +7,6 @@ router.get('/archives', archiveController.getArchives);
 router.post('/upload', archiveController.uploadFiles); // Multer handled inside controller
 router.delete('/archives/:id', archiveController.deleteFolder);
 router.post('/archives/:id/add-files', archiveController.addFilesToFolder);
+router.delete('/archives/:id/files', archiveController.deleteFileFromFolder);
 
 module.exports = router;
