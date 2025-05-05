@@ -464,14 +464,19 @@ function setupSignaturePreview() {
         return;
     }
 
-    // Define allowed MIME types
-    const allowedTypes = ['image/jpeg', 'image/png'];
+    // Define allowed MIME types *only for basic preview filtering*
+    // The strict validation happens on submit
+    const previewAllowedTypes = ['image/jpeg', 'image/png'];
 
     signatureUploadInput.addEventListener("change", function (event) {
         const file = event.target.files[0];
 
-        // Check if file exists and its type is in the allowed list
-        if (file && allowedTypes.includes(file.type)) {
+        // Clear previous preview state
+        previewContainer.classList.add('hidden');
+        signatureImage.src = "";
+
+        // Basic check for preview generation - NO SIZE CHECK HERE
+        if (file && previewAllowedTypes.includes(file.type)) {
             const reader = new FileReader();
 
             reader.onload = function (e) {
@@ -479,20 +484,19 @@ function setupSignaturePreview() {
                 previewContainer.classList.remove('hidden'); // Show the preview using Tailwind
             };
             reader.onerror = function() {
-                alert("Error reading signature file.");
-                previewContainer.classList.add('hidden'); // Hide preview using Tailwind
-                signatureImage.src = "";
+                // Don't alert here, just prevent preview
+                console.error("Error reading signature file for preview.");
+                // No need to hide preview, already hidden
+                // Don't clear input here, let submit validation handle it
             }
             reader.readAsDataURL(file); // Convert the file to a Data URL
-        } else {
-            previewContainer.classList.add('hidden'); // Hide the preview using Tailwind
-            signatureImage.src = ""; // Clear the src
-            if (file) { // If a file was selected but invalid type
-                // Update the alert message for specific allowed types
-                alert("Please select a valid image file for the signature (JPG, JPEG, or PNG only).");
-                signatureUploadInput.value = ''; // Clear the file input
-            }
+        } else if (file) {
+            // If a file is selected but not a valid image type for preview,
+            // do nothing here. The submit validation will catch it.
+            console.warn("Selected file type not suitable for preview:", file.type);
+            // DO NOT alert or clear input here.
         }
+        // If no file or invalid type, preview remains hidden
     });
 }
 
@@ -548,6 +552,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const otherCheckbox = form1.querySelector("#other");
         const otherInput = form1.querySelector("#other-input");
         const showTypeCheckboxes = form1.querySelectorAll("input[name='showDetails.type[]']"); // Correct selector
+        const signatureFileInput = document.getElementById('signature-upload'); // Moved up for validation
+        const crosspostingYesSelected = form1.querySelector('input[name="contactInfo.crossposting"]:checked')?.value === "Yes"; // Moved up
+        const fbLinkInputForSubmit = form1.querySelector('input[name="contactInfo.fbLink"]'); // Moved up
+
+        // Define validation constants here
+        const allowedSignatureTypes = ['image/jpeg', 'image/png'];
+        const maxSignatureFileSize = 5 * 1024 * 1024; // 5 MB
 
         // 1. Check Show Type Selection
         let atLeastOneTypeChecked = false;
@@ -559,8 +570,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!atLeastOneTypeChecked) {
             alert("Please choose at least one type of show.");
+            // Focus first checkbox? Maybe not necessary.
             return; // Stop execution
         }
+
 
         // 2. Check 'Other' Input if 'Other' is checked
         if (otherCheckbox && otherCheckbox.checked) {
@@ -572,20 +585,41 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // 3. Check Crossposting Link if 'Yes' is selected
-        const crosspostingYesSelected = form1.querySelector('input[name="contactInfo.crossposting"]:checked')?.value === "Yes";
-        const fbLinkInputForSubmit = form1.querySelector('input[name="contactInfo.fbLink"]');
         if (crosspostingYesSelected && (!fbLinkInputForSubmit || fbLinkInputForSubmit.value.trim() === "")) {
             alert("Please enter the Facebook Crossposting Link (required when 'Yes' is selected).");
             fbLinkInputForSubmit?.focus();
             return; // Stop submission
         }
 
-        // 4. Check Signature File Presence
-        const signatureFileInput = document.getElementById('signature-upload');
-        if (!signatureFileInput?.files || signatureFileInput.files.length === 0) {
+        // 4. Check Signature File Presence, Type, and Size (MOVED HERE)
+        const signatureFile = signatureFileInput?.files[0]; // Get the file
+
+        if (!signatureFile) {
              alert("Please upload the proponent's signature.");
              signatureFileInput?.focus();
              return; // Stop submission
+        }
+
+        // Check file type
+        if (!allowedSignatureTypes.includes(signatureFile.type)) {
+            alert(`Invalid signature file type. Please upload JPG, JPEG, or PNG only. Type found: ${signatureFile.type}`);
+            signatureFileInput.value = ''; // Clear the invalid file
+            signatureFileInput?.focus();
+             // Also hide preview if it was somehow shown
+             document.getElementById("signature-preview")?.classList.add('hidden');
+             document.getElementById("signature-image")?.setAttribute('src', '');
+            return; // Stop submission
+        }
+
+        // Check file size
+        if (signatureFile.size > maxSignatureFileSize) {
+            alert(`Signature file size exceeds the limit of ${maxSignatureFileSize / 1024 / 1024} MB. Size found: ${(signatureFile.size / 1024 / 1024).toFixed(2)} MB`);
+            signatureFileInput.value = ''; // Clear the invalid file
+            signatureFileInput?.focus();
+             // Also hide preview if it was somehow shown
+             document.getElementById("signature-preview")?.classList.add('hidden');
+             document.getElementById("signature-image")?.setAttribute('src', '');
+            return; // Stop submission
         }
         // --- END PRELIMINARY VALIDATION ---
 
@@ -692,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             // --- Signature Upload ---
-            const signatureFile = signatureFileInput.files[0]; // Already checked for presence
+            // File object is already available from validation step
             const uploadResult = await uploadFileToServer(signatureFile); // This will throw error if upload fails
             data.proponentSignature = uploadResult.url; // Add URL to data object
             // --- End Signature Upload ---
