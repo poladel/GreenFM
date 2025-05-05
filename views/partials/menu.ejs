@@ -1,19 +1,21 @@
 <!-- Outer container for sticky positioning and full-width background -->
-<!-- Added pr-4 for consistent right padding -->
 <div class="sticky top-0 z-[99] bg-gray-100 w-full pl-16 pr-4 lg:pl-[14vw]">
     <!-- Inner container for max-width, centering -->
+    <!-- Reverted to items-center -->
     <div class="header-content max-w-6xl 2xl:max-w-screen-xl mx-auto flex items-center pt-[2vh] pb-[1vh]">
 
         <!-- Page Title Container -->
+        <!-- Reverted to h-[50px], removed py-2, added overflow-hidden -->
         <div class="posts-title-container bg-white p-[2px] pl-4 text-left mt-[0] shadow-md rounded-[15px] h-[50px] flex items-center flex-grow overflow-hidden">
-            <h3 class="posts-title font-semibold text-base text-gray-800 ml-5 truncate">
+            <!-- Changed text-sm to text-xs for small screens -->
+            <h3 class="posts-title font-semibold text-xs lg:text-base text-gray-800 lg:ml-5 lg:truncate whitespace-normal">
                 <%= headerTitle %> <!-- Corrected variable name -->
             </h3>
         </div>
 
         <!-- Chat Icon Container -->
-        <!-- Added relative positioning to the container -->
-        <div class="chat-search-container relative bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
+        <!-- Removed mt-[1px] -->
+        <div class="chat-search-container relative bg-white p-[2px] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[6vw] h-[50px] flex justify-center items-center flex-shrink-0">
             <a href="/Chat" class="flex items-center justify-center w-full h-full">
                 <img src="/img/email.png" alt="Chat Icon" class="icon w-5 h-auto">
                 <!-- Global Unread Dot - Ensure it starts hidden -->
@@ -22,14 +24,15 @@
         </div>
 
         <!-- User Login/Dropdown Container -->
-        <!-- Removed pr-4 from here, handled by outer wrapper's pr-4 -->
-        <div class="user-log-container relative bg-white p-[2px] mt-[0] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[10vw] h-[50px] flex justify-center items-center flex-shrink-0 overflow-visible">
+        <!-- Removed mt-[1px] -->
+        <div class="user-log-container relative bg-white p-[2px] ml-[1vw] shadow-md rounded-[15px] w-14 lg:w-[10vw] h-[50px] flex justify-center items-center flex-shrink-0 overflow-visible">
             <% if (user) { %>
                 <!-- User is logged in: Dropdown -->
                 <div class="user-dropdown relative cursor-pointer w-full h-full flex items-center justify-center" id="userDropdown">
                     <!-- User Icon and Name -->
                     <div class="user-container flex items-center justify-center px-2">
                         <img src="/img/user.png" alt="User Icon" class="user-icon-dropdown w-5 h-auto lg:mr-1.5">
+                        <!-- Added truncate back for the username span -->
                         <span class="login-text text-sm text-gray-800 truncate hidden lg:inline"><%= user.username %></span>
                     </div>
                     <!-- Dropdown Content -->

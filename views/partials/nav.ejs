@@ -1,6 +1,5 @@
 <!-- Sidebar Toggle Button (Visible only on small screens) -->
-<!-- Hamburger icon using SVG for better control -->
-<button class="sidebar-toggle lg:hidden fixed top-[2vh] left-[1vw] z-[9999] bg-white text-green-700 shadow-md rounded-xl cursor-pointer flex justify-center items-center h-[50px] w-[50px]"> <!-- Removed p-2, mr-[5vw]. Added h-[50px], w-[50px] -->
+<button class="sidebar-toggle lg:hidden fixed top-[2vh] left-[1vw] z-[101] bg-white text-green-700 shadow-md rounded-xl cursor-pointer flex justify-center items-center h-[50px] w-[50px]">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
     </svg>
@@ -8,15 +7,13 @@
 
 <!--
   Sidebar Container:
-  - hidden by default, lg:flex to show on large screens.
-  - 'active' class (added by JS) will override 'hidden' on small screens.
-  - fixed positioning.
-  - Added lg:max-h-[96vh] and lg:overflow-y-auto to prevent vertical overflow on large screens.
+  - Changed to fixed positioning for consistent behavior.
+  - Added max-height and overflow for scrollability.
 -->
-<div class="sidebars hidden lg:flex fixed top-[2vh] left-[1vw] z-[100] flex-col gap-[1vh] lg:max-h-[96vh] lg:overflow-y-auto">
+<div class="sidebars hidden lg:flex fixed lg:top-[2vh] lg:left-[1vw] z-[100] flex-col lg:gap-[1vh] lg:max-h-[calc(100vh-4vh)] overflow-y-auto overflow-x-hidden">
 
     <!-- Main Sidebar -->
-    <div class="sidebar w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+    <div class="sidebar w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center">
         <img src="/img/GFMLogo.png" alt="GFM Logo" class="logo block my-[1vh] mx-auto w-3/5 h-auto rounded-[10px]">
         <h1 class="title text-center text-green-700 text-[0.9em] my-[5px] font-medium hidden lg:block">95.9 GREEN FM</h1>
         <ul class="menu list-none p-0 my-[5px] w-full">
@@ -55,7 +52,7 @@
                         text-gray-800
                     <% } %>
                 ">
-                    <i class="fas fa-comments text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i> <!-- Added Forum icon -->
+                    <i class="fas fa-comments text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i>
                     <span class="hidden lg:inline lg:text-[11px] 2xl:text-[0.9em]">FORUM</span>
                 </a>
             </li>
@@ -78,7 +75,7 @@
     </div>
 
     <!-- Sidebar 1 (Admin/User Specific Links) -->
-    <div class="sidebar1 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+    <div class="sidebar1 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center">
         <ul class="menu list-none p-0 my-[5px] w-full">
             <% if (user && (user.roles.includes('Admin') || user.roles.includes('Staff'))) { %>
                 <li class="text-center my-[3px]">
@@ -154,7 +151,7 @@
     </div>
 
     <!-- Sidebar 2 (About/Contact/Socials) -->
-    <div class="sidebar2 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center overflow-hidden">
+    <div class="sidebar2 w-[12vw] max-w-[300px] bg-white rounded-[15px] py-[1vw] px-0 shadow-md flex flex-col items-center">
         <ul class="menu list-none p-0 my-[5px] w-full">
             <li class="text-center my-[3px]">
                  <!-- Check if currentPath matches '/About' -->
@@ -192,27 +189,6 @@
 
 <!-- JavaScript to toggle the sidebar -->
 <style>
-    /* Add a specific style for the active mobile sidebar if needed */
-    /* For example, to ensure it stacks vertically and takes full width */
-    /* .active-mobile-sidebar { */
-        /* Example: Override fixed positioning for mobile flow */
-        /* position: absolute; */
-        /* top: 0; */
-        /* left: 0; */
-        /* width: 80%; /* Example width */
-        /* height: 100vh; */
-        /* background-color: white; /* Ensure background */
-        /* flex-direction: column; */
-        /* overflow-y: auto; /* Allow scrolling */
-        /* Add transitions if desired */
-        /* transition: transform 0.3s ease-in-out; */
-        /* transform: translateX(0); */
-    /* } */
-    /* Style for when sidebar is hidden on mobile */
-    /* .sidebars.hidden:not(.lg\:flex) { */
-        /* transform: translateX(-100%); */
-    /* } */
-
     /* Ensure toggle button is above sidebar when active */
     .sidebar-toggle {
         z-index: 101; /* Higher than .sidebars */
@@ -220,11 +196,10 @@
 
     /* Style for when sidebar is open on mobile */
     .mobile-sidebar-open {
-        padding-top: 8vh; /* Push content down below toggle button (adjust 8vh as needed) */
-        height: 100vh;    /* Take full viewport height */
+        /* Removed padding-top */
+        height: 100vh;     /* Full viewport height */
         width: 30vw;      /* Reduced width */
         max-width: 210px; /* Reduced max-width */
-        overflow-y: auto; /* Allow scrolling */
         background-color: white; /* Give the container a background */
         flex-direction: column; /* Stack sidebars vertically */
         gap: 0; /* Remove gap between sidebars when stacked */
@@ -233,19 +208,22 @@
         /* Add transition for smooth opening */
         transition: transform 0.3s ease-in-out;
         transform: translateX(0);
-        /* Ensure it starts off-screen before transition */
+        /* Position it fixed to stay in place */
+        position: fixed;
         left: 0;
         top: 0; /* Align to top */
-}
-
-/* ... rest of the styles ... */
+        overflow-y: auto; /* Enable vertical scrolling */
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+        z-index: 100; /* Ensure it's above most content */
+        /* Remove lg: specific styles inherited from base .sidebars */
+        max-height: none !important; /* Override lg:max-h */
+    }
 
     /* Style for when sidebar is hidden on mobile (for transition) */
     .sidebars.hidden:not(.lg\:flex) {
         transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
     }
-
 
     /* Style adjustments for children within mobile open state */
     .mobile-sidebar-open .sidebar,
@@ -257,7 +235,10 @@
         border-radius: 0; /* Optional: remove rounding */
         box-shadow: none; /* Optional: remove individual shadows */
         padding: 1vh 0; /* Adjust vertical padding */
+        /* Ensure these elements don't shrink */
+        flex-shrink: 0;
     }
+    
     /* Add a separator line between stacked sidebars */
     .mobile-sidebar-open > div:not(:last-child) {
         border-bottom: 1px solid #eee;
@@ -266,11 +247,11 @@
     /* Adjust logo position within the padded container */
     .mobile-sidebar-open .sidebar .logo {
          width: 50%; /* Example: Adjust size */
-         margin-top: 0; /* Remove top margin as container has padding */
+         margin-top: 2vh; /* Add some top margin */
          margin-bottom: 1vh;
     }
 
-    /* Show text, hide icons, adjust layout for mobile */
+    /* Show text, hide icons, adjust layout for mobile (Base mobile styles) */
     .mobile-sidebar-open .title {
         display: block !important; /* Show title */
         font-size: 0.8em !important;
@@ -280,7 +261,7 @@
         font-size: 0.8em !important;
     }
     .mobile-sidebar-open .menu i {
-         display: none !important; /* Hide icons */
+         display: none !important; /* Hide icons by default in mobile view */
     }
     .mobile-sidebar-open .menu a {
         justify-content: flex-start !important; /* Align text left */
@@ -291,12 +272,61 @@
         display: flex !important; /* Show social icons */
         padding-bottom: 1vh;
     }
+    
     /* Ensure Manage Account/Logout are hidden */
     .mobile-sidebar-open .user-section .hidden.lg\:block {
         display: none !important;
     }
 
+    /* Media Query for screens between 376px and 425px */
+    @media (min-width: 376px) and (max-width: 425px) {
+        /* This query only adjusts font size, inherits icon/text display from base */
+        .mobile-sidebar-open .title {
+            font-size: 0.7em !important; /* Smaller title text */
+        }
+        .mobile-sidebar-open .menu span {
+            font-size: 0.7em !important; /* Smaller menu text */
+        }
+    }
+
+    /* Media Query for very small screens (e.g., 375px width or less) */
+    @media (max-width: 375px) { /* Overrides base to show icons */
+        .mobile-sidebar-open {
+            width: 18vw; /* Further reduce width */
+            max-width: 70px; /* Max width suitable for icons */
+        }
+
+        .mobile-sidebar-open .sidebar .logo {
+            width: 80%; /* Adjust logo size if needed */
+            margin-top: 1.5vh;
+        }
+
+        .mobile-sidebar-open .title {
+            display: none !important; /* Hide title */
+        }
+
+        .mobile-sidebar-open .menu span {
+            display: none !important; /* Hide menu text */
+        }
+
+        .mobile-sidebar-open .menu i {
+            display: inline-block !important; /* Show icons */
+            font-size: 1.1em !important; /* Adjust icon size if needed */
+        }
+
+        .mobile-sidebar-open .menu a {
+            justify-content: center !important; /* Center the icon */
+            padding-left: 5px !important;  /* Adjust padding */
+            padding-right: 5px !important;
+        }
+
+        .mobile-sidebar-open .social-icons {
+            display: none !important; /* Hide social icons */
+        }
+    }
+
 </style>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const toggleButton = document.querySelector('.sidebar-toggle');
@@ -307,61 +337,75 @@
                 event.stopPropagation(); // Prevent click from immediately closing sidebar via document listener
                 const isOpen = !sidebarsContainer.classList.contains('hidden');
 
-                if (isOpen) {
-                    // Closing sidebar
-                    sidebarsContainer.classList.add('hidden');
-                    sidebarsContainer.classList.remove('flex'); // Keep flex for lg:flex
+                if (isOpen && window.innerWidth < 1024) { // Only applies to mobile view closing
+                    // Closing sidebar on mobile
+                    sidebarsContainer.classList.add('hidden'); // Hide it first for transition
                     sidebarsContainer.classList.remove('mobile-sidebar-open'); // Remove mobile class
-                } else {
-                    // Opening sidebar
-                    sidebarsContainer.classList.remove('hidden');
-                    // Add flex only if below lg, otherwise lg:flex handles it
-                    if (window.innerWidth < 1024) {
-                        sidebarsContainer.classList.add('flex');
-                        sidebarsContainer.classList.add('mobile-sidebar-open');
-                    } else {
-                        // On large screens, ensure lg:flex is the one controlling display
-                        sidebarsContainer.classList.remove('flex'); // Remove inline flex if added previously
-                    }
+                    // We don't need to manage 'flex' here as 'hidden' takes precedence
+                } else if (!isOpen && window.innerWidth < 1024) {
+                     // Opening sidebar on mobile
+                    sidebarsContainer.classList.remove('hidden'); // Make it visible
+                    sidebarsContainer.classList.add('mobile-sidebar-open'); // Add mobile styles
+                    // 'display: flex !important' in mobile-sidebar-open handles display
+                }
+                // Note: On large screens (>= 1024px), the button is hidden, so this click handler
+                // effectively only controls the mobile sidebar state. The lg:flex class handles
+                // visibility on large screens based on the presence/absence of 'hidden'.
+            });
+
+            // Close sidebar if clicking outside of it on smaller screens
+            document.addEventListener('click', (event) => {
+                const isClickInsideSidebar = sidebarsContainer.contains(event.target);
+                const isClickOnToggleButton = toggleButton.contains(event.target);
+                const isSmallScreen = window.innerWidth < 1024; // lg breakpoint
+                // Check if mobile sidebar is open by checking for the class
+                const isMobileOpen = sidebarsContainer.classList.contains('mobile-sidebar-open');
+
+                // If mobile sidebar is open and click is outside
+                if (isMobileOpen && isSmallScreen && !isClickInsideSidebar && !isClickOnToggleButton) {
+                    sidebarsContainer.classList.add('hidden'); // Hide for transition
+                    sidebarsContainer.classList.remove('mobile-sidebar-open'); // Remove mobile class
                 }
             });
 
-             // Close sidebar if clicking outside of it on smaller screens
-             document.addEventListener('click', (event) => {
-                 const isClickInsideSidebar = sidebarsContainer.contains(event.target);
-                 const isClickOnToggleButton = toggleButton.contains(event.target);
-                 const isSmallScreen = window.innerWidth < 1024; // lg breakpoint
-                 const isOpen = !sidebarsContainer.classList.contains('hidden');
+            // Handle resize to adjust classes
+            window.addEventListener('resize', () => {
+                const isSmallScreen = window.innerWidth < 1024;
+                const isMobileOpen = sidebarsContainer.classList.contains('mobile-sidebar-open');
 
-                 // If sidebar is visible on small screen and click is outside
-                 if (isOpen && isSmallScreen && !isClickInsideSidebar && !isClickOnToggleButton) {
-                      sidebarsContainer.classList.add('hidden');
-                      sidebarsContainer.classList.remove('flex');
-                      sidebarsContainer.classList.remove('mobile-sidebar-open'); // Remove mobile class
+                if (!isSmallScreen) {
+                    // Resized to Large Screen
+                    // If mobile sidebar was open, remove its class.
+                    // Ensure 'hidden' is also removed so lg:flex can show it.
+                    if (isMobileOpen) {
+                        sidebarsContainer.classList.remove('mobile-sidebar-open');
+                    }
+                    // Always ensure 'hidden' is removed on large screens so lg:flex applies
+                    sidebarsContainer.classList.remove('hidden');
+
+                } else {
+                    // Resized to Small Screen
+                    // If the mobile sidebar was open OR if it was visible due to large screen view
+                    // force it back to the default hidden state for small screens.
+                    // The user will need to toggle it again if they want it open.
+                    if (isMobileOpen || !sidebarsContainer.classList.contains('hidden')) {
+                         sidebarsContainer.classList.remove('mobile-sidebar-open'); // Ensure mobile class is removed
+                         sidebarsContainer.classList.add('hidden'); // Ensure it's hidden by default on small screens
+                    }
+                    // If it was already hidden and mobile-sidebar-open wasn't present, do nothing.
+                }
+            });
+
+            // Initial check on load
+             if (window.innerWidth < 1024) {
+                 if (!sidebarsContainer.classList.contains('mobile-sidebar-open')) {
+                    sidebarsContainer.classList.add('hidden');
                  }
-             });
+             } else {
+                 sidebarsContainer.classList.remove('mobile-sidebar-open');
+                 // No need to remove 'hidden' here on load, lg:flex handles visibility if not hidden
+             }
 
-             // Optional: Handle resize to adjust classes
-             window.addEventListener('resize', () => {
-                 const isSmallScreen = window.innerWidth < 1024;
-                 const isOpen = !sidebarsContainer.classList.contains('hidden');
-
-                 if (isSmallScreen) {
-                     // If screen becomes small and sidebar is open, ensure mobile classes are present
-                     if (isOpen) {
-                         sidebarsContainer.classList.add('flex'); // Ensure flex is present
-                         sidebarsContainer.classList.add('mobile-sidebar-open');
-                     }
-                 } else {
-                     // If screen becomes large, remove mobile class and inline flex
-                     sidebarsContainer.classList.remove('mobile-sidebar-open');
-                     sidebarsContainer.classList.remove('flex'); // lg:flex will take over if open
-                     // Ensure it's not hidden if it should be visible on large screens
-                     if (isOpen) {
-                         sidebarsContainer.classList.remove('hidden'); // Ensure lg:flex can show it
-                     }
-                 }
-             });
 
         } else {
             console.error("Sidebar toggle button or container not found.");
