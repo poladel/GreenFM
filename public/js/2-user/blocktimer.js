@@ -464,10 +464,14 @@ function setupSignaturePreview() {
         return;
     }
 
+    // Define allowed MIME types
+    const allowedTypes = ['image/jpeg', 'image/png'];
+
     signatureUploadInput.addEventListener("change", function (event) {
         const file = event.target.files[0];
 
-        if (file && file.type.startsWith('image/')) { // Basic type check
+        // Check if file exists and its type is in the allowed list
+        if (file && allowedTypes.includes(file.type)) {
             const reader = new FileReader();
 
             reader.onload = function (e) {
@@ -484,7 +488,8 @@ function setupSignaturePreview() {
             previewContainer.classList.add('hidden'); // Hide the preview using Tailwind
             signatureImage.src = ""; // Clear the src
             if (file) { // If a file was selected but invalid type
-                alert("Please select a valid image file for the signature (JPG, PNG).");
+                // Update the alert message for specific allowed types
+                alert("Please select a valid image file for the signature (JPG, JPEG, or PNG only).");
                 signatureUploadInput.value = ''; // Clear the file input
             }
         }
