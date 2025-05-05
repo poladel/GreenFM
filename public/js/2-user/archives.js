@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoaded
 
+  // <<< ADDED: Define Limits (mirror backend) >>>
+  const MAX_FILE_SIZE_MB = 100;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  // <<< END ADDED >>>
+
   // <<< ADDED: Socket.IO Connection >>>
   const socket = io(); // Connect to the server
 
@@ -89,11 +94,23 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
           const submitButton = form.querySelector('button[type="submit"]');
           const originalButtonText = submitButton.textContent;
           const folderName = formData.get('folderName')?.trim();
+          const filesInput = form.querySelector('input[type="file"]'); // Get the file input
 
           if (!folderName) {
               alert('Folder name is required.');
               return;
            }
+
+          // <<< ADDED: Client-side file size validation >>>
+          if (filesInput && filesInput.files.length > 0) {
+              for (const file of filesInput.files) {
+                  if (file.size > MAX_FILE_SIZE_BYTES) {
+                      alert(`File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`);
+                      return; // Stop submission
+                  }
+              }
+          }
+          // <<< END ADDED >>>
 
           // <<< ADDED: Pre-check folder name existence >>>
           submitButton.disabled = true;
@@ -285,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
                       <button class="rename-folder-btn text-blue-600 hover:text-blue-800 p-1" data-id="${folderData._id}" data-name="${folderData.folderName}" title="Rename Folder">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
                       </button>
                   ` : ''}
                   ${canModify ? `
@@ -439,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
   // <<< ADDED: Event Delegation for All Folder Card Interactions >>>
   if (foldersContainer) {
       foldersContainer.addEventListener('click', (e) => { // Pass the original event 'e'
-          console.log(`[DELEGATION START] Target:`, e.target); // Log start
 
           // --- PRIORITIZE BUTTON CLICKS ---
           const renameButton = e.target.closest('.rename-folder-btn');
@@ -538,10 +553,18 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
               fileElement.className = 'archive-thumb w-20 h-20 md:w-24 md:h-24 object-cover rounded-md cursor-pointer border border-gray-200';
               fileElement.addEventListener('click', () => previewSingleFile(fileObject, files, folderId, folderName));
           } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+              // <<< MODIFIED: Video Thumbnail Handling >>>
               fileElement = document.createElement('video');
-              fileElement.className = 'archive-thumb w-20 h-20 md:w-24 md:h-24 object-contain rounded-md cursor-pointer border border-gray-200 bg-gray-100 flex items-center justify-center';
-              fileElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>';
+              // Apply styling classes
+              fileElement.className = 'archive-thumb w-20 h-20 md:w-24 md:h-24 object-cover rounded-md cursor-pointer border border-gray-200 bg-gray-800'; // Use object-cover, adjust bg if needed
+              fileElement.src = fileUrl; // Set the source
+              fileElement.muted = true; // Mute for potential browser policies
+              fileElement.preload = 'metadata'; // Hint to browser to load enough data for first frame/duration
+              // REMOVED: fileElement.innerHTML = '<svg>...';
               fileElement.addEventListener('click', () => previewSingleFile(fileObject, files, folderId, folderName));
+              // Optional: Add poster attribute if you have thumbnail images for videos
+              // fileElement.poster = 'path/to/video-poster.jpg';
+              // <<< END MODIFIED >>>
           } else {
               fileElement = document.createElement('div');
               fileElement.className = 'archive-thumb w-20 h-20 md:w-24 md:h-24 object-contain rounded-md cursor-pointer border border-gray-200 bg-gray-100 flex items-center justify-center';
@@ -825,9 +848,23 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
           const folderId = addFilesFolderIdInput.value;
           const submitButton = form.querySelector('button[type="submit"]');
           const originalButtonText = submitButton.textContent;
+          const filesInput = form.querySelector('input[type="file"]'); // Get the file input
+
           if (!folderId) { alert("Error: Folder ID is missing."); return; }
           const formData = new FormData(addFilesForm);
           if (!formData.has('files') || !formData.get('files').name) { alert("Please select files to upload."); return; }
+
+          // <<< ADDED: Client-side file size validation >>>
+          if (filesInput && filesInput.files.length > 0) {
+              for (const file of filesInput.files) {
+                  if (file.size > MAX_FILE_SIZE_BYTES) {
+                      alert(`File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`);
+                      return; // Stop submission
+                  }
+              }
+          }
+          // <<< END ADDED >>>
+
           try {
               submitButton.disabled = true;
               submitButton.textContent = 'Uploading...';
@@ -852,6 +889,10 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
           } catch (err) {
               console.error('Add files error:', err);
               alert('Error adding files.');
+              // <<< Ensure button is re-enabled in case of client-side validation failure or early exit >>>
+              submitButton.disabled = false;
+              submitButton.textContent = originalButtonText;
+              // <<< END Ensure >>>
           } finally {
               if (!addFilesModal.classList.contains('hidden')) {
                   submitButton.disabled = false;

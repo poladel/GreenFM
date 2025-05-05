@@ -4,6 +4,11 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const path = require('path');
 
+// <<< ADDED: Define Limits >>>
+const MAX_FILE_SIZE_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; // 100 MB in bytes
+// <<< END ADDED >>>
+
 // Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -29,6 +34,11 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({
     storage: storage,
+    // <<< ADDED: Limits configuration >>>
+    limits: {
+        fileSize: MAX_FILE_SIZE_BYTES // Apply the limit here
+    },
+    // <<< END ADDED >>>
     fileFilter: (req, file, cb) => {
         cb(null, true);
     }
@@ -110,7 +120,20 @@ exports.checkFolderName = async (req, res) => {
 // POST /upload → upload files and save metadata
 exports.uploadFiles = (req, res) => {
     upload(req, res, async function (err) {
-      // ... existing multer error handling ...
+      // <<< MODIFIED: Handle Multer file size limit error >>>
+      if (err instanceof multer.MulterError) {
+        console.error('Multer error creating folder:', err);
+        // Check specifically for file size limit exceeded
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
+        }
+        // Handle other potential multer errors
+        return res.status(500).json({ error: `Upload error: ${err.message}` });
+      } else if (err) {
+        console.error('Unknown error creating folder:', err);
+        return res.status(500).json({ error: 'Upload failed due to an unknown error' });
+      }
+      // <<< END MODIFIED >>>
 
       try {
         const folderName = req.body.folderName?.trim(); // Trim whitespace
@@ -196,13 +219,20 @@ exports.uploadFiles = (req, res) => {
   
   exports.addFilesToFolder = (req, res) => {
     upload(req, res, async function (err) {
+      // <<< MODIFIED: Handle Multer file size limit error >>>
       if (err instanceof multer.MulterError) {
         console.error('Multer error adding files:', err);
+        // Check specifically for file size limit exceeded
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
+        }
+        // Handle other potential multer errors
         return res.status(500).json({ error: `Multer upload failed: ${err.message}` });
       } else if (err) {
         console.error('Unknown error adding files:', err);
         return res.status(500).json({ error: 'Upload failed due to an unknown error' });
       }
+      // <<< END MODIFIED >>>
 
       const folderId = req.params.id;
       const newFilesData = req.files?.map(file => ({
