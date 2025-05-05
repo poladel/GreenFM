@@ -233,12 +233,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (event.target.classList.contains('post-media-img')) {
-            currentMediaList = Array.from(event.target.parentElement.getElementsByClassName('post-media-img'))
-                .map(img => img.src);
-            openMediaModal(event.target.src, 'image');
-        } else if (event.target.classList.contains('post-media')) {
-            openMediaModal(event.target.src, 'video');
+        const mediaItem = event.target.closest('.post-media-img, .post-media-video');
+
+        if (mediaItem) {
+            // This check prevents the default play/pause when a video element is clicked
+            if (mediaItem.tagName === 'VIDEO') {
+                console.log("[Home Click Debug] Preventing default video click behavior.");
+                event.preventDefault(); // Stop the browser from playing/pausing the clicked video
+            }
+
+            if (mediaItem.classList.contains('post-media-img')) {
+                currentMediaList = Array.from(mediaItem.parentElement.getElementsByClassName('post-media-img'))
+                    .map(img => img.src);
+                openMediaModal(mediaItem.src, 'image');
+            } else if (mediaItem.classList.contains('post-media')) {
+                openMediaModal(mediaItem.src, 'video');
+            }
         }
     });
 });

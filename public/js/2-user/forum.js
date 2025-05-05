@@ -202,9 +202,11 @@ document.addEventListener("DOMContentLoaded", function () {
 			// Event delegation - calls methods using 'this' correctly
 			this.elements.postsContainer?.addEventListener("click", (event) => {
 				const target = event.target;
+                // console.log("[Click Debug] Target:", target);
+
 				const postElement = target.closest(".post");
 				const postId = postElement?.dataset.id;
-				const commentItem = target.closest(".comment"); // Changed selector to .comment
+				const commentItem = target.closest(".comment");
 				const commentId = commentItem?.dataset.commentId;
 
 				const likeButton = target.closest(".like-button");
@@ -212,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 					".comment-toggle-button"
 				);
 				const postCommentSubmitButton = target.closest(
-					".post-comment-submit" // Corrected class name if needed
+					".post-comment-submit"
 				);
 				const editButton = target.closest(".post-edit-btn");
 				const deleteButton = target.closest(".post-delete-btn");
@@ -221,10 +223,12 @@ document.addEventListener("DOMContentLoaded", function () {
 				const commentDeleteButton = target.closest(
 					".comment-delete-btn"
 				);
-				const reportButton = target.closest(".report-button");
-				const mediaItem = target.closest(
-					".post-media-img, .post-media-video"
-				);
+				const reportButton = target.closest(".report-button"); // Keep this definition
+				// --- Refine mediaItem detection ---
+				const mediaItem = target.closest(".post-media-img, .post-media-video");
+                // console.log("[Click Debug] Found mediaItem via closest:", mediaItem);
+				// --- End Refine ---
+
                 // Find comment save/cancel buttons within the specific comment item
                 const commentSaveButton = target.closest(".comment-save-btn");
                 const commentCancelButton = target.closest(".comment-cancel-btn");
@@ -253,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     // --- END DEBUGGING ---
 					this.votePoll(postId, parseInt(optionIndex, 10), pollOptionItem); // Pass the LI element
 				} else if (commentEditButton && postId && commentId) {
-                    this.editCommentHandler(postId, commentId, commentEditButton);
+                    this.editCommentHandler(commentId); // Pass the button itself
                 } else if (commentDeleteButton && postId && commentId) {
                     this.safeDeleteComment(postId, commentId, commentDeleteButton);
                 } else if (commentSaveButton && postId && commentId) {
@@ -272,20 +276,57 @@ document.addEventListener("DOMContentLoaded", function () {
                         this.cancelCommentEdit(commentContent, editFormWrapper, actionButtons);
                     }
                 } else if (reportButton && postId) {
-					this.reportPost(postId, reportButton);
-				} else if (mediaItem && typeof openMediaModal === "function") {
-					this.updateCurrentMediaList(mediaItem);
-					const initialIndex = window.currentMediaList.findIndex(
-						(src) => src === mediaItem.src
-					);
-					openMediaModal(initialIndex >= 0 ? initialIndex : 0);
-				} else if (mediaItem && this.elements.mediaModal) { // Check if it's a media item and modal exists
-					this.updateCurrentMediaList(mediaItem); // Populate this.currentMediaList
-					const initialIndex = this.currentMediaList.findIndex(
-						(src) => src === mediaItem.src
-					);
-					this.openMediaModal(initialIndex >= 0 ? initialIndex : 0); // Call the class method
+					this.reportPost(postId, reportButton); // Correct location for report call
+				// --- Refined Modal Trigger Logic (Index-based) ---
+				} else if (mediaItem && this.elements.mediaModal) {
+					console.log("[Click Debug] Media item detected. Tag:", mediaItem.tagName);
+
+                    // --- Prevent default video play/pause on click ---
+                    if (mediaItem.tagName === 'VIDEO') {
+                        console.log("[Click Debug] Preventing default video click behavior.");
+                        event.preventDefault(); // Stop the browser from playing/pausing the clicked video
+                    }
+                    // --- End Prevent default ---
+
+					// 1. Find the container of the clicked media item
+					const postMediaContainer = mediaItem.closest(".post-media-container");
+
+					if (postMediaContainer) {
+						// 2. Get all media elements within that container in DOM order
+						const allMediaElements = Array.from(
+							postMediaContainer.querySelectorAll(".post-media-img, .post-media-video")
+						);
+
+						// 3. Find the index of the *clicked* element within this list
+						const initialIndex = allMediaElements.findIndex(el => el === mediaItem);
+                        console.log(`[Click Debug] Found index by element comparison: ${initialIndex}`);
+
+						if (initialIndex >= 0) {
+							// 4. Update the list for modal navigation (uses src/type)
+							this.updateCurrentMediaList(mediaItem); // Still needed for navigation data
+
+							// 5. Open the modal using the found index
+                            console.log(`[Click Debug] Calling openMediaModal with index ${initialIndex}.`);
+							this.openMediaModal(initialIndex);
+						} else {
+							console.error("[Click Debug] Clicked media element not found within its container's media list.", mediaItem, allMediaElements);
+						}
+					} else {
+						console.error("[Click Debug] Could not find '.post-media-container' for the clicked media item.", mediaItem);
+						// Fallback: Try the old method just in case, or open the first item
+						this.updateCurrentMediaList(mediaItem);
+						if (this.currentMediaList.length > 0) {
+							this.openMediaModal(0);
+						}
+					}
+				// --- End Refined Modal Trigger Logic (Index-based) ---
 				}
+				// --- REMOVE Duplicate reportButton check ---
+				// else if (reportButton && postId) {
+                //    // This block is redundant and removed
+                // }
+                // --- END REMOVE ---
+                // ... other else if conditions ...
 			});
 
 			// --- Modal Event Listeners ---
@@ -299,70 +340,180 @@ document.addEventListener("DOMContentLoaded", function () {
 			const postMediaContainer = clickedMediaElement.closest(
 				".post-media-container"
 			);
+			this.currentMediaList = []; // Reset the list
 			if (postMediaContainer) {
 				const mediaElements = Array.from(
 					postMediaContainer.querySelectorAll(
-						".post-media-img, .post-media-video"
+						".post-media-img, .post-media-video" // Select both image and video elements
 					)
 				);
-				// Store the list in the class property
-				this.currentMediaList = mediaElements.map((el) => el.src);
+				// Store objects with src and type
+				this.currentMediaList = mediaElements.map((el) => {
+					let src = '';
+					let type = 'image'; // Default to image
+					if (el.tagName === 'VIDEO') {
+						// --- Prioritize <source> tag ---
+						const sourceTag = el.querySelector('source');
+						src = sourceTag ? sourceTag.src : el.src; // Fallback to video.src if no source tag
+						type = 'video';
+                        // console.log(`[UpdateMediaList Debug] Video Element:`, el, `Source Tag:`, sourceTag, `Derived Src: ${src}`); // Keep if needed
+						// --- End Prioritize ---
+					} else { // Assumed IMG tag
+						src = el.src;
+						type = 'image';
+                        // console.log(`[UpdateMediaList Debug] Image Element:`, el, `Derived Src: ${src}`); // Keep if needed
+					}
+					return { src, type };
+				});
 				console.log(
 					"Updated media list for modal:",
 					this.currentMediaList
 				);
 			} else {
-				// Fallback if container not found (shouldn't happen with correct structure)
-				this.currentMediaList = [clickedMediaElement.src];
+				// Fallback if container not found (should ideally not happen)
+                console.warn("[UpdateMediaList Debug] post-media-container not found. Using fallback.");
+				let src = '';
+				let type = 'image';
+				if (clickedMediaElement.tagName === 'VIDEO') {
+					const sourceTag = clickedMediaElement.querySelector('source');
+					src = sourceTag ? sourceTag.src : clickedMediaElement.src;
+					type = 'video';
+				} else {
+					src = clickedMediaElement.src;
+					type = 'image';
+				}
+				this.currentMediaList = [{ src, type }];
 			}
-			// Remove the update to the global window variable if not needed elsewhere
-			// window.currentMediaList = this.currentMediaList;
 		}
 
 		// --- Media Modal Methods (Adapted from home.js) ---
 		openMediaModal(index) {
+			// --- Add Debugging ---
+			console.log("[openMediaModal] Checking modal element:", this.elements.mediaModal);
+			// --- End Debugging ---
+
 			if (!this.elements.mediaModal || !this.elements.modalImage || !this.elements.modalVideo || index < 0 || index >= this.currentMediaList.length) {
-				console.error("Cannot open modal or index out of bounds.", index, this.currentMediaList);
+				console.error("Cannot open modal: Missing elements or index out of bounds.", {
+					modal: !!this.elements.mediaModal,
+					image: !!this.elements.modalImage,
+					video: !!this.elements.modalVideo,
+					index,
+					listLength: this.currentMediaList.length
+				});
 				return;
 			}
 
 			this.currentMediaIndex = index;
-			const src = this.currentMediaList[this.currentMediaIndex];
-			const isVideo = src.includes('.mp4') || src.includes('video'); // Basic check, adjust if needed
+			const currentMediaItem = this.currentMediaList[this.currentMediaIndex]; // Get the object {src, type}
+			const src = currentMediaItem.src;
+			const isVideo = currentMediaItem.type === 'video'; // Use the type property
+
+			console.log(`[openMediaModal] Opening index ${index}, type: ${currentMediaItem.type}, src: ${src}`); // Debug log
+
+			// Clear previous sources to prevent issues
+			this.elements.modalVideo.removeAttribute('src');
+            this.elements.modalVideo.innerHTML = ''; // Clear any existing <source> tags inside modal video
+			this.elements.modalImage.src = '';
+			// Ensure video controls are visible if it's a video
+			this.elements.modalVideo.controls = isVideo;
+
 
 			if (isVideo) {
-				this.elements.modalVideo.src = src;
+                console.log("[openMediaModal] Handling VIDEO type."); // Log video path
+
+                // --- Create and append source tag for modal video ---
+                const sourceElement = document.createElement('source');
+                sourceElement.src = src;
+                // Try to infer type, default to video/mp4
+                let mimeType = 'video/mp4';
+                if (src.toLowerCase().endsWith('.mov')) {
+                    mimeType = 'video/quicktime';
+                } // Add more types if needed
+                sourceElement.type = mimeType;
+                console.log("[openMediaModal] Created source element:", sourceElement); // Log source element
+                this.elements.modalVideo.appendChild(sourceElement);
+                // --- End source tag ---
+
 				this.elements.modalVideo.style.display = 'block';
 				this.elements.modalImage.style.display = 'none';
-				this.elements.modalVideo.currentTime = 0; // Reset video
-				// this.elements.modalVideo.play(); // Optional: auto-play
+				this.elements.modalVideo.currentTime = 0; // Reset video time
+
+                // --- Add Video Element Debugging ---
+                console.log("[openMediaModal] Video element reference:", this.elements.modalVideo);
+                console.log("[openMediaModal] Video display style set to:", this.elements.modalVideo.style.display);
+
+                // Check computed style shortly after setting it
+                requestAnimationFrame(() => {
+                    const computedDisplay = window.getComputedStyle(this.elements.modalVideo).display;
+                    console.log("[openMediaModal] Video computed display style:", computedDisplay);
+                    if (computedDisplay !== 'block') {
+                        console.warn("[openMediaModal] Video computed display is NOT 'block'. Check CSS conflicts.");
+                    }
+                });
+
+                // Add error listener
+                const videoErrorListener = (event) => {
+                    console.error("[openMediaModal] Video Error Event:", event);
+                    console.error("[openMediaModal] Video Error Code:", this.elements.modalVideo.error?.code);
+                    console.error("[openMediaModal] Video Error Message:", this.elements.modalVideo.error?.message);
+                    // Remove listener after firing
+                    this.elements.modalVideo.removeEventListener('error', videoErrorListener);
+                };
+                this.elements.modalVideo.addEventListener('error', videoErrorListener);
+                // --- End Video Element Debugging ---
+
+
+				this.elements.modalVideo.load(); // Explicitly load the new source
+				console.log("[openMediaModal] Called video.load(). Current source:", this.elements.modalVideo.currentSrc); // Log what the browser is trying to load
+				// this.elements.modalVideo.play(); // Optional: auto-play, might be intrusive
 			} else {
+                console.log("[openMediaModal] Handling IMAGE type."); // Log image path
 				this.elements.modalImage.src = src;
 				this.elements.modalImage.style.display = 'block';
 				this.elements.modalVideo.style.display = 'none';
 				this.elements.modalVideo.pause(); // Pause video if switching to image
 			}
 
-			this.elements.mediaModal.classList.remove('hidden');
-			this.elements.mediaModal.classList.add('flex');
-			document.body.style.overflow = 'hidden'; // Disable body scroll
+            // --- Add Debugging for Class Changes ---
+            console.log("[openMediaModal] Current modal classes BEFORE change:", this.elements.mediaModal.className);
+            this.elements.mediaModal.classList.remove('hidden');
+            this.elements.mediaModal.classList.add('flex');
+            console.log("[openMediaModal] Current modal classes AFTER change:", this.elements.mediaModal.className);
+            // --- End Debugging ---
+
+            document.body.style.overflow = 'hidden'; // Disable body scroll
 		}
 
 		closeMediaModal() {
-			if (!this.elements.mediaModal || !this.elements.modalVideo) return;
+			// --- Add Debugging ---
+			console.log("[closeMediaModal] Checking modal element:", this.elements.mediaModal);
+			// --- End Debugging ---
 
+			if (!this.elements.mediaModal || !this.elements.modalVideo) {
+				console.warn("[closeMediaModal] Modal or modal video element not found.");
+				return;
+			}
+
+            // --- Add Debugging for Class Changes ---
+            console.log("[closeMediaModal] Current modal classes BEFORE change:", this.elements.mediaModal.className);
 			this.elements.mediaModal.classList.add('hidden');
 			this.elements.mediaModal.classList.remove('flex');
+            console.log("[closeMediaModal] Current modal classes AFTER change:", this.elements.mediaModal.className);
+            // --- End Debugging ---
+
 			this.elements.modalVideo.pause(); // Stop video
 			this.elements.modalVideo.currentTime = 0;
 			document.body.style.overflow = ''; // Re-enable body scroll
+			// Ensure source is cleared on close as well
+            this.elements.modalVideo.removeAttribute('src');
+            this.elements.modalVideo.innerHTML = ''; // Clear <source> tags
 		}
 
 		navigateMedia(direction) {
 			if (this.currentMediaList.length <= 1) return; // No navigation needed for single item
 
 			const newIndex = (this.currentMediaIndex + direction + this.currentMediaList.length) % this.currentMediaList.length;
-			this.openMediaModal(newIndex); // Open modal with the new index
+			this.openMediaModal(newIndex); // Open modal with the new index - works with object array
 		}
 		// --- End Media Modal Methods ---
 
@@ -866,6 +1017,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			const mediaHTML = (post.media || [])
 				.slice(0, 6)
 				.map((media, index) => {
+					// ... existing class calculations ...
 					const itemSpecificClass = this.getGridItemClasses(
 						post.media?.length || 0,
 						media,
@@ -878,13 +1030,19 @@ document.addEventListener("DOMContentLoaded", function () {
 						: "h-[280px]";
 					const objectFitClass =
 						(post.media?.length === 1 && media.type === "image") ||
-						(post.media?.length === 0 && media.type === "video")
+						(post.media?.length === 0 && media.type === "video") // Corrected logic? Should be media.type === 'video'
 							? "object-contain bg-gray-100"
 							: "object-cover";
 					const bgClass = media.type === "video" ? "bg-black" : "";
-					const mediaType =
-						media.mimeType ||
-						(media.type === "video" ? "video/mp4" : "image/webp");
+					// --- Determine media type for <source> tag ---
+					// Use Cloudinary's format or infer from URL if needed, default to mp4 for video
+					let videoMimeType = 'video/mp4'; // Default
+					if (media.url && media.url.toLowerCase().endsWith('.mov')) {
+						videoMimeType = 'video/quicktime';
+					}
+					const mediaType = media.type === "video" ? videoMimeType : "image/webp"; // Use webp for images as per controller
+					// --- End Determine media type ---
+
 					if (!media || !media.url) {
 						console.warn(
 							"Skipping media item due to missing URL:",
@@ -892,9 +1050,11 @@ document.addEventListener("DOMContentLoaded", function () {
 						);
 						return "";
 					}
+					// --- Use media.type from database ---
 					return media.type === "image"
 						? `<img src="${media.url}" alt="Post media" class="post-media-img w-full ${mediaHeightClass} ${objectFitClass} rounded-[15px] shadow-sm cursor-pointer ${itemSpecificClass}" loading="lazy">`
-						: `<video controls class="post-media-video w-full ${mediaHeightClass} ${objectFitClass} rounded-[15px] shadow-sm ${bgClass} ${itemSpecificClass}" oncontextmenu="return false;" preload="metadata"><source src="${media.url}" type="${mediaType}"></video>`;
+						: `<video controls controlslist="nodownload" class="post-media-video w-full ${mediaHeightClass} ${objectFitClass} rounded-[15px] shadow-sm ${bgClass} ${itemSpecificClass}" oncontextmenu="return false;" preload="metadata"><source src="${media.url}" type="${mediaType}"></video>`; // Added controlslist, ensure type is correct
+					// --- End Use media.type ---
 				})
 				.join("");
 
@@ -1426,7 +1586,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 			// --- Restore Buttons ---
 			this.restoreEditDeleteButtons(actionsContainer);
-		}
+				}
 
 		// Helper function to restore original Edit/Delete buttons
 		restoreEditDeleteButtons(actionsContainer) {
@@ -1467,7 +1627,7 @@ document.addEventListener("DOMContentLoaded", function () {
 				showToast(`❌ Error: ${err.message}`, "error");
 			}
 		}
-		editCommentHandler(postId, commentId, button) {
+		editCommentHandler(button) {
 			/* ... Uses classes from renderComment ... */
             // Use closest('.comment') to ensure we get the right parent
 			const commentItem = button.closest(".comment");
@@ -1486,7 +1646,9 @@ document.addEventListener("DOMContentLoaded", function () {
 				!commentContentArea || // Check the content area
 				!editFormWrapper ||
 				!editInput ||
+				
 				!actionButtons
+		
 			) {
                 console.error("Missing elements for comment edit:", { commentContentArea, editFormWrapper, editInput, actionButtons });
 				return;
