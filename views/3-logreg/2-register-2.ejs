@@ -51,10 +51,10 @@
       <div class="form-group flex items-center gap-[1vh]">
           <label class="text-[1.8vh] text-gray-800 font-bold">Are you from DLSU-D?</label>
           <label class="flex items-center text-[1.8vh] text-gray-800 cursor-pointer">
-              <input type="radio" id="dlsuD" name="dlsuD" value="true" required class="mr-1"> Yes
+              <input type="radio" id="dlsuD" name="dlsuD" value="true" required class="mr-1 w-4 h-4"> Yes <!-- Added w-4 h-4 -->
           </label>
           <label class="flex items-center text-[1.8vh] text-gray-800 cursor-pointer">
-              <input type="radio" id="dlsuDNo" name="dlsuD" value="false" class="mr-1"> No
+              <input type="radio" id="dlsuDNo" name="dlsuD" value="false" class="mr-1 w-4 h-4"> No <!-- Added w-4 h-4 -->
           </label>
           <div class="dlsuD-error error-text text-red-500 text-[1.6vh] ml-2"></div> <!-- Error message for radio -->
       </div>
@@ -62,9 +62,15 @@
       <!-- DLSU-D Specific Fields (Hidden Initially) -->
       <!-- Removed mb/mt-[1vw], relying on form gap -->
       <div id="dlsudEmailContainer" class="hidden flex-col items-start pt-4 border-t border-gray-200 gap-y-2"> <!-- Added gap-y-2 -->
-          <div>
+          <div class="w-full"> <!-- Added w-full wrapper to match student number -->
               <label for="dlsudEmail" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">DLSU-D Email:</label> <!-- Adjusted margin -->
-              <input type
+              <!-- Container styled as input field -->
+              <div class="flex items-center w-full p-[1.5vh] border border-gray-300 rounded-[1vh] box-border focus-within:border-[#00722A]">
+                  <input type="text" id="dlsudEmail" name="dlsudEmail" placeholder="@dlsud.edu.ph" required
+                         class="flex-grow border-none outline-none text-[2vh] text-gray-800 p-0 focus:ring-0"> <!-- Changed type to text -->
+              </div>
+              <div class="dlsudEmail-error error-text text-red-500 text-[1.6vh] mt-[1vh]"></div>
+          </div>
 
           <div class="w-full"> <!-- Removed mt-[1vw] -->
               <label for="studentNumber" class="text-[1.8vh] text-gray-800 font-bold mb-[0.8vh] block">Student Number:</label> <!-- Adjusted margin -->

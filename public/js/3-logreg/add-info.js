@@ -116,9 +116,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // If DLSU-D, handle student number N/A
                 if (data.studentNumberNotApplicable === 'on') {
-                    data.studentNumber = 'N/A'; // Set student number to N/A
+                    // data.studentNumber = 'N/A'; // Revert this change
+                    delete data.studentNumber; // Delete studentNumber field if N/A is checked
                 }
-                // Remove the checkbox state itself, we only need the studentNumber value
+                // Remove the checkbox state itself, we only need the studentNumber value (or its absence)
                 delete data.studentNumberNotApplicable;
             }
 
@@ -165,70 +166,143 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /*----------------------DLSUD EMAIL---------------------*/
-    // Keep the existing DLSUD email domain appending logic if dlsudEmailInput exists
-    if (dlsudEmailInput) {
+    /*----------------------DLSUD EMAIL (Adapted from blocktimer.js)---------------------*/
+    function setupDlsudEmailFormatting() {
         const domain = "@dlsud.edu.ph";
-        let shouldAppendDomain = true;
+        const emailInput = dlsudEmailInput; // Use the existing variable
 
-        function appendDomain() {
-            if (dlsudEmailInput.value.length > 0 && !dlsudEmailInput.value.endsWith(domain)) {
-                // Prevent appending if the input is just the domain itself or empty
-                if (dlsudEmailInput.value !== domain.substring(1)) { // Check without '@'
-                     dlsudEmailInput.value = dlsudEmailInput.value.replace(domain, "") + domain;
-                     // Set cursor position before the domain
-                     const cursorPos = dlsudEmailInput.value.length - domain.length;
-                     dlsudEmailInput.setSelectionRange(cursorPos, cursorPos);
-                }
+        if (!emailInput) return; // Exit if the input doesn't exist
+
+        // Function to format the email input on input event
+        function formatDlsudEmail() {
+            const originalValue = emailInput.value;
+            const originalCursorPos = emailInput.selectionStart; // Get cursor position
+
+            // Separate username and domain parts
+            let username = originalValue;
+            if (originalValue.endsWith(domain)) {
+                username = originalValue.substring(0, originalValue.length - domain.length);
+            } else if (originalValue.includes(domain)) {
+                // If domain is typed in the middle, remove it and anything after it for simplicity
+                username = originalValue.substring(0, originalValue.indexOf(domain));
             }
+
+            // Prevent deleting the domain if the cursor is within or at the start of it
+            // Allow deletion if the entire input is selected or if backspacing from just after the username
+            const isDeletingDomain = originalCursorPos > username.length && originalValue.length < (username + domain).length;
+
+            if (isDeletingDomain && !emailInput.dataset.justSelectedAll) {
+                 // If trying to delete part of the domain, reset value and cursor
+                 emailInput.value = username + domain;
+                 // Place cursor at end of username (before domain)
+                 emailInput.setSelectionRange(username.length, username.length);
+                 return; // Prevent further processing that might remove the domain
+            }
+
+            // Always ensure the domain is appended if there's a username
+            let newValue = username;
+            if (username.length > 0) {
+                newValue += domain;
+            } else {
+                 // If username becomes empty (e.g., select all + delete), clear the input
+                 newValue = '';
+                 // Optionally set placeholder back if needed
+                 // emailInput.placeholder = domain;
+            }
+
+            // Calculate the new cursor position *before* setting the value
+            // Keep the cursor within the username part
+            const newCursorPos = Math.min(originalCursorPos, username.length);
+
+            if (newValue !== originalValue) {
+                emailInput.value = newValue;
+            }
+
+            // Use setTimeout to ensure cursor position is set after value update is processed
+            setTimeout(() => {
+                // Re-check username length in case of rapid typing/deletion before timeout
+                // const currentUsername = emailInput.value.substring(0, emailInput.value.indexOf(domain)); // No longer needed for this calculation
+                // Set cursor directly to the calculated position before domain append/check
+                const finalCursorPos = newCursorPos;
+                emailInput.setSelectionRange(finalCursorPos, finalCursorPos);
+            }, 0);
+
+
+            // Reset the flag after processing
+            emailInput.dataset.justSelectedAll = 'false';
         }
 
-        dlsudEmailInput.addEventListener("input", function (event) {
-            // More robust check for deletion
-            if (event.inputType && event.inputType.startsWith("delete")) {
-                shouldAppendDomain = false;
-                return;
-            }
-            if (shouldAppendDomain) {
-                appendDomain();
-            }
-        });
+        // Use 'input' event for real-time formatting
+        emailInput.addEventListener("input", formatDlsudEmail);
 
-        dlsudEmailInput.addEventListener("keydown", function (event) {
-             // Reset flag unless it's a backspace/delete key at the start of the domain part
-             const cursorPos = dlsudEmailInput.selectionStart;
-             const domainStartIndex = dlsudEmailInput.value.length - domain.length;
-             if ((event.key === 'Backspace' && cursorPos > domainStartIndex) ||
-                 (event.key === 'Delete' && cursorPos >= domainStartIndex)) {
-                 shouldAppendDomain = false; // Allow deletion within the domain part
+        // Handle focus to initially format if needed (e.g., pre-filled values)
+        emailInput.addEventListener("focus", () => {
+             if (emailInput.value.length > 0 && !emailInput.value.endsWith(domain)) {
+                 formatDlsudEmail(); // Format on focus if needed
+             } else if (emailInput.value.length === 0) {
+                 // Optionally add domain placeholder or initial value on focus if empty
+                 // emailInput.placeholder = domain; // Ensure placeholder is correct
              } else {
-                 shouldAppendDomain = true;
+                 // If focused and already formatted, ensure cursor is before domain
+                 const usernameLength = emailInput.value.indexOf(domain);
+                 if (usernameLength !== -1 && emailInput.selectionStart > usernameLength) {
+                     // Use setTimeout here as well for consistency on focus
+                     setTimeout(() => {
+                         emailInput.setSelectionRange(usernameLength, usernameLength);
+                     }, 0);
+                 }
              }
         });
 
-        dlsudEmailInput.addEventListener("focus", function() {
-            // Ensure domain is appended or cursor is placed correctly on focus
-             if (dlsudEmailInput.value.length > 0 && !dlsudEmailInput.value.endsWith(domain)) {
-                 appendDomain();
-             } else if (dlsudEmailInput.value.endsWith(domain)) {
-                 // Place cursor before domain on focus if it ends with domain
-                 const cursorPos = dlsudEmailInput.value.length - domain.length;
-                 // Use setTimeout to ensure focus is fully established
-                 setTimeout(() => dlsudEmailInput.setSelectionRange(cursorPos, cursorPos), 0);
+         // Handle edge case: User selects all and deletes
+         emailInput.addEventListener('keydown', (e) => {
+             if ((e.key === 'Backspace' || e.key === 'Delete') && emailInput.selectionStart === 0 && emailInput.selectionEnd === emailInput.value.length) {
+                 emailInput.dataset.justSelectedAll = 'true'; // Flag that deletion is happening after select all
+             } else {
+                 emailInput.dataset.justSelectedAll = 'false';
              }
-        });
 
-        dlsudEmailInput.addEventListener("blur", function () {
-            // Append domain on blur if necessary
-            if (dlsudEmailInput.value.length > 0 && !dlsudEmailInput.value.endsWith(domain)) {
-                 appendDomain();
-            }
-            // Optional: Remove domain if input is empty or just '@dlsud.edu.ph'
-            if (dlsudEmailInput.value === domain) {
-                // dlsudEmailInput.value = ''; // Uncomment to clear if only domain remains
-            }
-        });
+             // Prevent cursor movement into the domain via arrow keys
+             const usernameLength = emailInput.value.indexOf(domain);
+             if (usernameLength !== -1) {
+                 if (e.key === 'ArrowRight' && emailInput.selectionStart === usernameLength) {
+                     e.preventDefault(); // Stop right arrow key if at the end of username
+                 }
+                 if (e.key === 'ArrowLeft' && emailInput.selectionStart === usernameLength + 1) {
+                     // Allow left arrow from start of domain back to end of username
+                 } else if (e.key === 'ArrowLeft' && emailInput.selectionStart > usernameLength) {
+                      e.preventDefault(); // Stop left arrow if deep inside domain
+                      emailInput.setSelectionRange(usernameLength, usernameLength); // Move to end of username
+                 }
+                 // Prevent Home/End keys from going into the domain easily
+                 if (e.key === 'End') {
+                     e.preventDefault();
+                     emailInput.setSelectionRange(usernameLength, usernameLength);
+                 }
+                 // Allow Home key to go to the start (position 0)
+             }
+         });
+
+         // Ensure cursor is positioned correctly after clicks
+         emailInput.addEventListener('click', () => {
+             const usernameLength = emailInput.value.indexOf(domain);
+             if (usernameLength !== -1 && emailInput.selectionStart > usernameLength) {
+                 // Use setTimeout here as well for consistency on click
+                 setTimeout(() => {
+                     emailInput.setSelectionRange(usernameLength, usernameLength);
+                 }, 0);
+             }
+         });
+
+         // Initial format on load if value exists
+         if (emailInput.value.length > 0) {
+             formatDlsudEmail();
+         }
     }
+
+    // Call the setup function
+    setupDlsudEmailFormatting();
+
 
 	/*----------------------STUDENT NUMBER---------------------*/
     // Keep the existing student number input validation logic if studentNumberInput exists
