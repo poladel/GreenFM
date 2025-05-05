@@ -1302,11 +1302,15 @@ document.addEventListener("DOMContentLoaded", function () {
 				if (comments.length === 0) {
 					container.innerHTML =
 						'<p class="text-xs text-gray-500 italic pl-2">No comments yet.</p>';
+					// --- No need to call updateCommentScroll here as it's empty ---
 					return;
 				}
 				container.innerHTML = comments
 					.map((c) => this.renderComment(postId, c))
 					.join("");
+				// --- Call updateCommentScroll after rendering ---
+				this.updateCommentScroll(container);
+				// --- End Call ---
 			} catch (error) {
 				console.error(`Load comments error:`, error);
 				container.innerHTML =
@@ -1656,7 +1660,7 @@ document.addEventListener("DOMContentLoaded", function () {
 				showToast(`❌ Error: ${err.message}`, "error");
 			}
 		}
-		editCommentHandler(button) {
+		editCommentHandler(button) { // Changed parameter name for clarity
 			/* ... Uses classes from renderComment ... */
             // Use closest('.comment') to ensure we get the right parent
 			const commentItem = button.closest(".comment");
@@ -1769,15 +1773,26 @@ document.addEventListener("DOMContentLoaded", function () {
 				);
 				const data = await res.json();
 				if (res.ok && data.success) {
-					button.closest(".comment-item")?.remove();
+					// --- Find comment element and list before removing ---
+					const commentElement = button.closest(".comment"); // Use .comment selector
+					const commentsList = commentElement?.closest(".comments-list");
+					// --- End Find ---
+					commentElement?.remove(); // Remove the element
 					showToast("🗑️ Comment deleted!");
+					// --- Update scroll state if list found ---
+					if (commentsList) {
+						this.updateCommentScroll(commentsList);
+					}
+					// --- End Update ---
 				} else {
 					throw new Error(data.error || "Failed");
 				}
 			} catch (err) {
 				showToast(`❌ Error: ${err.message}`, "error");
+				// --- Re-enable button on error ---
 				button.disabled = false;
 				button.classList.remove("opacity-50", "cursor-not-allowed");
+				// --- End Re-enable ---
 			}
 		}
 		async votePoll(postId, optionIndex, listItem) { // Parameter is now the LI element
@@ -1939,10 +1954,18 @@ document.addEventListener("DOMContentLoaded", function () {
 			this.socket.on('commentDeleted', ({ postId, commentId }) => {
 				console.log(`[Socket Receive] Received commentDeleted for post ${postId}, comment ${commentId}`);
 				const commentElement = document.getElementById(`comment-${commentId}`);
+				// --- Find comments list before removing element ---
+				const commentsList = commentElement?.closest(".comments-list");
+				// --- End Find ---
 				if (commentElement) {
 					commentElement.remove();
 					console.log(`Removed comment element ${commentId}`);
 					this.updateCommentCountDisplay(postId, -1);
+					// --- Update scroll state if list found ---
+					if (commentsList) {
+						this.updateCommentScroll(commentsList);
+					}
+					// --- End Update ---
 				} else {
 					console.log(`Comment element ${commentId} not found on this page.`);
 				}
@@ -2034,6 +2057,9 @@ document.addEventListener("DOMContentLoaded", function () {
 						this.attachCommentListeners(newCommentElement, postId);
 					}
 					this.updateCommentCountDisplay(postId, 1); // Increment count
+					// --- Update scroll state ---
+					this.updateCommentScroll(commentsList);
+					// --- End Update ---
 				}
 			});
 
@@ -2164,6 +2190,32 @@ document.addEventListener("DOMContentLoaded", function () {
 			// }
 			console.log(`Comment count change for post ${postId}: ${change}`); // Placeholder
 		}
+
+
+		// --- Add helper function to manage comment scrolling ---
+		updateCommentScroll(commentsListContainer) {
+			if (!commentsListContainer) return;
+			const commentElements = commentsListContainer.querySelectorAll('.comment'); // Select actual comment items
+			const commentCount = commentElements.length;
+			const scrollThreshold = 5; // Number of comments before scrolling starts
+
+			// console.log(`[updateCommentScroll] Found ${commentCount} comments in container:`, commentsListContainer); // Debug log
+
+			if (commentCount > scrollThreshold) {
+				// Add scroll classes if not already present
+				if (!commentsListContainer.classList.contains('max-h-72')) {
+					commentsListContainer.classList.add('max-h-72', 'overflow-y-auto', 'pr-2'); // Added padding-right for scrollbar space
+					// console.log(`[updateCommentScroll] Added scroll classes.`); // Debug log
+				}
+			} else {
+				// Remove scroll classes if present
+				if (commentsListContainer.classList.contains('max-h-72')) {
+					commentsListContainer.classList.remove('max-h-72', 'overflow-y-auto', 'pr-2');
+					// console.log(`[updateCommentScroll] Removed scroll classes.`); // Debug log
+				}
+			}
+		}
+		// --- End helper function ---
 
 
 	} // <-- End of ForumApp class
