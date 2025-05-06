@@ -126,8 +126,7 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
                   // Handle non-2xx responses (like 409 Conflict or 500 Server Error)
                   const errorData = await checkRes.json();
                   alert(`Error: ${errorData.error || 'Could not verify folder name.'}`);
-                  submitButton.disabled = false; // Re-enable button
-                  submitButton.textContent = originalButtonText;
+                  // Button/form reset handled in finally
                   return; // Stop the submission
               }
 
@@ -143,9 +142,8 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
 
               if (uploadRes.ok) {
                   closeModal(uploadModal);
-                  // <<< MODIFIED: Rely on socket 'archive_created' instead of reload >>>
-                  // window.location.reload();
-                  // <<< END MODIFIED >>>
+                  // Form reset handled in finally
+                  // Socket handles UI update
               } else {
                   // <<< MODIFIED: Attempt to parse JSON, fallback to text >>>
                   let errorData;
@@ -159,19 +157,19 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
                   }
                   alert(`Upload failed: ${errorData.error || 'Unknown error during upload.'}`);
                   // <<< END MODIFIED >>>
-                  // Button state is handled in finally block
+                  // Button/form reset handled in finally
               }
 
           } catch (err) {
               console.error('Folder creation error (check or upload):', err);
               alert('An error occurred during folder creation.');
-              // Button state is handled in finally block
+              // Button/form reset handled in finally
           } finally {
-              // Ensure button is always re-enabled and text restored if modal is still open
-              if (!uploadModal.classList.contains('hidden')) {
-                 submitButton.disabled = false;
-                 submitButton.textContent = originalButtonText;
-              }
+              // <<< MODIFIED: Always reset button state and form >>>
+              submitButton.disabled = false;
+              submitButton.textContent = originalButtonText;
+              form.reset(); // Reset the form fields (including file input)
+              // <<< END MODIFIED >>>
           }
           // <<< END Pre-check and Upload Logic >>>
       });
@@ -517,14 +515,14 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
 
       currentViewFiles = files;
 
+      // <<< MODIFIED: Simplify - Just update the dataset ID + ADD LOGGING >>>
       if (modalAddFilesBtn) {
           modalAddFilesBtn.dataset.id = folderId;
-          modalAddFilesBtn.replaceWith(modalAddFilesBtn.cloneNode(true));
-          const newModalAddFilesBtn = document.getElementById('modalAddFilesBtn');
-          if (newModalAddFilesBtn) {
-              newModalAddFilesBtn.addEventListener('click', handleOpenAddFilesModal);
-          }
+          // <<< ADDED: Log after setting dataset.id >>>
+          console.log(`[renderFileList] Set modalAddFilesBtn.dataset.id to: ${folderId}. Current button dataset:`, modalAddFilesBtn.dataset);
+          // <<< END ADDED >>>
       }
+      // <<< END MODIFIED >>>
 
       if (!Array.isArray(files) || files.length === 0) {
           previewArea.innerHTML = '<p class="text-center text-gray-500 py-4">No files in this folder.</p>';
@@ -827,21 +825,34 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
 
   // <<< ADDED: Handler function to open the Add Files modal >>>
   function handleOpenAddFilesModal(e) {
-      // ... function content remains the same ...
-      const button = e.currentTarget;
-      const folderId = button.dataset.id;
+      const button = e.currentTarget; // This is modalAddFilesBtn
+      // <<< ADDED: Log button element and its dataset directly >>>
+      console.log('[handleOpenAddFilesModal] Executing handler.');
+      console.log('[handleOpenAddFilesModal] Button Element:', button);
+      console.log('[handleOpenAddFilesModal] Button Dataset at execution time:', button.dataset);
+      // <<< END ADDED >>>
+      const folderId = button.dataset.id; // Read the CURRENT dataset ID
+      // <<< MODIFIED: Log the folder ID being used (using the variable) >>>
+      console.log(`[ADD FILES MODAL OPEN] Opening 'Add Files' modal for Folder ID: ${folderId}. Setting this ID in the hidden input.`);
+      // <<< END MODIFIED >>>
       if (addFilesFolderIdInput) addFilesFolderIdInput.value = folderId;
       openModal(addFilesModal);
   }
 
+  // <<< ADDED: Attach listener ONCE after handler definition >>>
+  if (modalAddFilesBtn) {
+      modalAddFilesBtn.addEventListener('click', handleOpenAddFilesModal);
+  }
+  // <<< END ADDED >>>
+
 
   // --- Add Files Modal Logic ---
   if (addFilesModal && closeAddFilesModalBtn && addFilesForm) {
-      // ... function content remains the same ...
       closeAddFilesModalBtn.addEventListener('click', () => closeModal(addFilesModal));
       addFilesModal.addEventListener('click', (e) => {
           if (e.target === addFilesModal) closeModal(addFilesModal);
       });
+
       addFilesForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const form = e.target;
@@ -873,6 +884,7 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
                   const updatedFolderData = await res.json();
                   alert('Files added successfully!');
                   closeModal(addFilesModal);
+                  // Form reset handled in finally
                   const mainFolderCard = document.querySelector(`.folder[data-id="${folderId}"]`);
                   if (mainFolderCard) {
                       mainFolderCard.dataset.files = JSON.stringify(updatedFolderData.folder.files);
@@ -885,21 +897,18 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
               } else {
                   const errorData = await res.json();
                   alert(`Failed to add files: ${errorData.error || 'Unknown error'}`);
+                  // Keep modal open on failure, button/form reset in finally
               }
           } catch (err) {
               console.error('Add files error:', err);
               alert('Error adding files.');
-              // <<< Ensure button is re-enabled in case of client-side validation failure or early exit >>>
+              // Keep modal open on error, button/form reset in finally
+          } finally {
+              // <<< MODIFIED: Always reset button state and form >>>
               submitButton.disabled = false;
               submitButton.textContent = originalButtonText;
-              // <<< END Ensure >>>
-          } finally {
-              if (!addFilesModal.classList.contains('hidden')) {
-                  submitButton.disabled = false;
-                  submitButton.textContent = originalButtonText;
-              } else {
-                 addFilesForm.reset();
-              }
+              form.reset(); // Reset the form fields (including file input)
+              // <<< END MODIFIED >>>
           }
       });
   }

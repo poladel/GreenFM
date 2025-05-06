@@ -260,12 +260,20 @@ exports.uploadFiles = (req, res) => {
             return res.status(404).json({ error: 'Folder not found' });
         }
 
+        // <<< ADDED: Log existing files before conflict check >>>
+        console.log(`[ADD FILES CHECK] Folder ID: ${folderId}. Existing files before check:`, JSON.stringify(folder.files.map(f => f.name), null, 2));
+        // <<< END ADDED >>>
+
         // <<< ADDED: Check for conflicts between new files and existing files >>>
         const existingFileNamesLower = folder.files.map(f => f.name.toLowerCase());
+        const newFileNamesLower = newFilesData.map(f => f.name.toLowerCase()); // <<< Ensure new names are also lowercased for check >>>
         const conflicts = newFileNamesLower.filter(newName => existingFileNamesLower.includes(newName));
 
         if (conflicts.length > 0) {
             await cleanupCloudinaryFiles(req.files); // Use req.files for cleanup
+            // <<< ADDED: Log conflict details >>>
+            console.log(`[ADD FILES CONFLICT] Folder ID: ${folderId}. Conflicts found: ${conflicts.join(', ')}. Existing names (lower): ${existingFileNamesLower.join(', ')}. New names (lower): ${newFileNamesLower.join(', ')}`);
+            // <<< END ADDED >>>
             return res.status(409).json({ error: `Filename conflict(s) detected: ${conflicts.join(', ')}. Please rename the uploaded file(s).` }); // 409 Conflict
         }
         // <<< END Conflict Check >>>
@@ -273,6 +281,10 @@ exports.uploadFiles = (req, res) => {
 
         folder.files.push(...newFilesData); // Push the array of objects
         await folder.save();
+
+        // <<< ADDED: Log before emitting socket event >>>
+        console.log(`[SOCKET EMIT] Emitting 'archive_updated' for folder ID: ${folder._id}. Data:`, JSON.stringify(folder, null, 2));
+        // <<< END ADDED >>>
 
         // <<< ADDED: Emit socket event for updated folder >>>
         // Send the entire updated folder object
@@ -350,8 +362,16 @@ exports.deleteFileFromFolder = async (req, res) => {
       }
       // --- End Cloudinary Deletion ---
 
+      // <<< MODIFIED: Filter and log before save >>>
+      const originalFileCount = folder.files.length;
       folder.files = folder.files.filter(f => f.url !== fileUrl);
+      const newFileCount = folder.files.length;
+      console.log(`[DELETE FILE] Folder ID: ${id}. File URL to delete: ${fileUrl}. File count before filter: ${originalFileCount}, after filter: ${newFileCount}.`);
+      console.log(`[DELETE FILE] Folder files array before save:`, JSON.stringify(folder.files.map(f => f.name), null, 2));
+      // <<< END MODIFIED >>>
+
       await folder.save();
+      console.log(`[DELETE FILE] Folder ID: ${id}. Save successful.`); // Log after save
 
       // <<< ADDED: Emit socket event for updated folder >>>
       // Send the entire updated folder object
