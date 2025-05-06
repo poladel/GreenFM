@@ -293,7 +293,9 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
   // <<< ADDED: Helper function to create a folder card element >>>
   function createFolderCardElement(folderData) {
       const div = document.createElement('div');
-      div.className = 'folder bg-white rounded-[15px] shadow-md p-5 cursor-pointer transition duration-200 hover:-translate-y-1 flex flex-col justify-between';
+      // <<< MODIFIED: Add min-height to ensure consistent card height even with wrapping names >>>
+      div.className = 'folder bg-white rounded-[15px] shadow-md p-5 cursor-pointer transition duration-200 hover:-translate-y-1 flex flex-col justify-between min-h-[130px]'; // Added min-h-[130px] (adjust as needed)
+      // <<< END MODIFIED >>>
       div.dataset.id = folderData._id;
       div.dataset.name = folderData.folderName ? folderData.folderName.toLowerCase() : 'untitled';
       div.dataset.date = new Date(folderData.createdAt).toISOString();
@@ -303,10 +305,15 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
       const canModify = document.body.dataset.canDeleteFiles === 'true'; // Use a more general name if rename uses same permission
 
       div.innerHTML = `
-          <div class="folder-header flex items-center justify-between mb-4 gap-2.5">
-              <img src="/img/folder.png" alt="Folder Icon" class="folder-icon w-[30px] h-[30px] flex-shrink-0">
-              <span class="folder-name text-base font-bold text-green-700 flex-1 whitespace-nowrap overflow-hidden text-ellipsis" title="${folderData.folderName}">${folderData.folderName}</span>
-              <div class="folder-actions flex items-center gap-1"> <!-- Wrapper for buttons -->
+          <div class="folder-header flex items-start justify-between mb-4 gap-2.5"> <!-- Changed items-center to items-start -->
+              <img src="/img/folder.png" alt="Folder Icon" class="folder-icon w-[30px] h-[30px] flex-shrink-0 mt-px"> <!-- Added mt-px for slight alignment -->
+              
+              <!-- <<< MODIFIED: Removed text truncation, added word break >>> -->
+              <span class="folder-name text-base font-bold text-green-700 flex-1 break-words mr-1" title="${folderData.folderName}">${folderData.folderName}</span> 
+              <!-- Removed: whitespace-nowrap, overflow-hidden, text-ellipsis. Added: break-words, mr-1 -->
+              <!-- <<< END MODIFIED >>> -->
+
+              <div class="folder-actions flex items-center gap-1 flex-shrink-0"> <!-- Added flex-shrink-0 -->
                   ${canModify ? `
                       <button class="rename-folder-btn text-blue-600 hover:text-blue-800 p-1" data-id="${folderData._id}" data-name="${folderData.folderName}" title="Rename Folder">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">

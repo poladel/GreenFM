@@ -1237,6 +1237,10 @@ video {
   margin-top: auto;
 }
 
+.mt-px {
+  margin-top: 1px;
+}
+
 .box-border {
   box-sizing: border-box;
 }
@@ -1440,6 +1444,10 @@ video {
 
 .min-h-screen {
   min-height: 100vh;
+}
+
+.min-h-\[130px\] {
+  min-height: 130px;
 }
 
 .w-10 {

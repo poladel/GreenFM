@@ -51,21 +51,27 @@
                 <% } else { %>
                     <% archives.forEach(folder => { %>
                         <!-- Folder Card -->
-                        <!-- Removed fixed width xl:w-[280px], relies on grid column width -->
-                        <div class="folder bg-white rounded-[15px] shadow-md p-5 cursor-pointer transition duration-200 hover:-translate-y-1 flex flex-col justify-between"
+                        <!-- <<< MODIFIED: Added min-height >>> -->
+                        <div class="folder bg-white rounded-[15px] shadow-md p-5 cursor-pointer transition duration-200 hover:-translate-y-1 flex flex-col justify-between min-h-[130px]"
                             data-id="<%= folder._id %>"
                             data-name="<%= folder.folderName ? folder.folderName.toLowerCase() : 'untitled' %>"
                             data-date="<%= new Date(folder.createdAt).toISOString() %>"
                             data-files='<%- JSON.stringify(folder.files || []) %>'>
 
                             <!-- Folder Header -->
-                            <div class="folder-header flex items-center justify-between mb-4 gap-2.5">
-                                <img src="/img/folder.png" alt="Folder Icon" class="folder-icon w-[30px] h-[30px] flex-shrink-0">
-                                <!-- <<< MODIFIED: Changed text color class >>> -->
-                                <span class="folder-name text-base font-bold text-green-700 flex-1 whitespace-nowrap overflow-hidden text-ellipsis" title="<%= folder.folderName %>"><%= folder.folderName %></span>
+                            <!-- <<< MODIFIED: Changed items-center to items-start >>> -->
+                            <div class="folder-header flex items-start justify-between mb-4 gap-2.5">
+                                <!-- <<< MODIFIED: Added mt-px for alignment >>> -->
+                                <img src="/img/folder.png" alt="Folder Icon" class="folder-icon w-[30px] h-[30px] flex-shrink-0 mt-px">
+
+                                <!-- <<< MODIFIED: Removed truncation, added word break >>> -->
+                                <span class="folder-name text-base font-bold text-green-700 flex-1 break-words mr-1" title="<%= folder.folderName %>"><%= folder.folderName %></span>
+                                <!-- Removed: whitespace-nowrap, overflow-hidden, text-ellipsis. Added: break-words, mr-1 -->
+                                <!-- <<< END MODIFIED >>> -->
+
                                 <% if (user && (user.roles === 'Admin' || user.roles === 'Staff' || (Array.isArray(user.roles) && (user.roles.includes('Admin') || user.roles.includes('Staff'))))) { %>
-                                <!-- <<< MODIFIED: Reduced spacing from space-x-1 to space-x-0.5 >>> -->
-                                <div class="flex items-center space-x-0.5">
+                                <!-- <<< MODIFIED: Added flex-shrink-0 to actions div >>> -->
+                                <div class="folder-actions flex items-center gap-1 flex-shrink-0">
                                     <!-- Rename Folder Button -->
                                     <button class="rename-folder-btn bg-transparent border-none text-base text-blue-600 cursor-pointer font-semibold transition duration-300 hover:text-blue-800 p-1" data-id="<%= folder._id %>" data-name="<%= folder.folderName %>" title="Rename Folder">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -82,7 +88,7 @@
                                 <% } %>
                             </div>
 
-                            <!-- Folder Date and Add Button -->
+                            <!-- Folder Date -->
                             <div class="mt-auto pt-2 border-t border-gray-100 flex justify-between items-center">
                                 <p class="folder-date mt-0 mb-0 text-xs text-gray-500">Created: <%= new Date(folder.createdAt).toLocaleDateString() %></p>
                                 <!-- <<< REMOVED Add Files button from here >>> -->
