@@ -61,9 +61,9 @@
                 <!-- Check if currentPath matches '/Archives' -->
                 <a href="/Archives" class="flex items-center justify-center decoration-none font-medium py-[10px] px-[20px] transition-colors duration-300 box-border overflow-hidden whitespace-nowrap hover:text-white hover:bg-green-700 hover:scale-105 transform
                     <% if (typeof currentPath !== 'undefined' && currentPath === '/Archives') { %>
-                        bg-green-700 text-white scale-105
+                        bg-green-700 text-white scale-105 /* Active state */
                     <% } else { %>
-                        text-gray-800
+                        text-gray-800 /* Default state */
                     <% } %>
                 ">
                     <i class="fas fa-box-archive text-lg md:text-xl inline-block flex-shrink-0 lg:hidden"></i> <!-- Archive icon -->

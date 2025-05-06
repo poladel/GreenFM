@@ -72,7 +72,7 @@ exports.getArchives = async (req, res, next) => { // Renamed, removed routeInfo
             cssFile: 'css/archive.css', // Defined internally
             user: res.locals.user, // Get user from res.locals
             headerTitle: 'ARCHIVES', // Defined internally
-            currentPath: req.path,
+            currentPath: '/Archives', // <<< MODIFIED: Hardcode path for nav highlighting >>>
             archives: archives // Pass fetched archives
         });
     } catch (err) {
@@ -209,16 +209,43 @@ exports.uploadFiles = (req, res) => {
         return res.status(404).json({ error: 'Folder not found' });
       }
 
-      // TODO: Implement Cloudinary file deletion for all files in the folder if needed
-      // This requires iterating through archive.files and calling cleanupCloudinaryFiles or similar
+      // --- Cloudinary File Deletion ---
+      if (archive.files && archive.files.length > 0) {
+          console.log(`Deleting ${archive.files.length} files from Cloudinary for folder ${id}...`);
+          const deletionPromises = archive.files.map(async (file) => {
+              try {
+                  const publicIdWithFolder = extractPublicIdFromUrl(file.url);
+                  if (publicIdWithFolder) {
+                      // Determine resource type (optional but safer)
+                      const fileExt = path.extname(file.url).substring(1).toLowerCase();
+                      let resourceType = 'raw';
+                      if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'].includes(fileExt)) resourceType = 'image';
+                      else if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'wmv'].includes(fileExt)) resourceType = 'video';
 
+                      await cloudinary.uploader.destroy(publicIdWithFolder, { resource_type: resourceType });
+                      console.log(`Deleted from Cloudinary: ${publicIdWithFolder}`);
+                  } else {
+                      console.warn(`Could not extract public_id for URL: ${file.url}`);
+                  }
+              } catch (cloudinaryError) {
+                  // Log error but don't stop the process, DB deletion should still happen
+                  console.error(`Failed to delete file ${file.url} from Cloudinary:`, cloudinaryError);
+              }
+          });
+          await Promise.all(deletionPromises); // Wait for all deletions to attempt
+          console.log(`Finished Cloudinary deletion attempts for folder ${id}.`);
+      }
+      // --- End Cloudinary File Deletion ---
+
+      // Delete folder from DB
       await archive.deleteOne();
+      console.log(`Deleted folder ${id} from database.`);
 
       // <<< ADDED: Emit socket event for deleted folder >>>
       req.io.emit('archive_deleted', { folderId: id });
       // <<< END ADDED >>>
 
-      return res.status(200).json({ message: 'Folder deleted' });
+      return res.status(200).json({ message: 'Folder and associated files deleted' }); // Updated message
     } catch (err) {
       console.error('Error deleting folder:', err);
       return res.status(500).json({ error: 'Failed to delete folder' });
