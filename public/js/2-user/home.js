@@ -84,33 +84,53 @@ document.addEventListener('DOMContentLoaded', () => {
             postButton.textContent = 'Posting...'; // Sets the text to "Posting..."
             // --- End disable button ---
 
-            const imageInput = document.getElementById('image-input');
-            const videoInput = document.getElementById('video-input');
+            const imageInput = document.getElementById('image-input'); // Keep reference if needed elsewhere
+            const videoInput = document.getElementById('video-input'); // Keep reference if needed elsewhere
             const titleValue = document.getElementById('post-title').value.trim();
             const textValue = document.querySelector('.post-textbox').value.trim();
+            const maxSize = 20 * 1024 * 1024; // 20MB in bytes
 
-            // Check number of images
-            if (imageInput.files.length > 6) {
-                showToast("You can upload a maximum of 6 images.");
+            // --- Combined Validation (Max Images & File Size) ---
+            // Check number of images first
+            if (imageFiles.length > MAX_IMAGES) { // Use MAX_IMAGES constant
+                showToast(`You can upload a maximum of ${MAX_IMAGES} images.`);
+                // Re-enable button before returning
+                postButton.disabled = false;
+                postButton.textContent = originalButtonText;
                 return;
             }
 
-            // Check image file sizes (20MB = 20 * 1024 * 1024)
-            for (let file of imageInput.files) {
-                if (file.size > 20 * 1024 * 1024) {
+            // Check image file sizes
+            for (let file of imageFiles) {
+                if (file.size > maxSize) {
                     showToast(`Image "${file.name}" exceeds the 20MB size limit.`);
+                    // Re-enable button before returning
+                    postButton.disabled = false;
+                    postButton.textContent = originalButtonText;
                     return;
                 }
             }
 
-            // Check video file size (20MB = 20 * 1024 * 1024)
-            if (videoInput.files.length > 0) {
-                const videoFile = videoInput.files[0];
-                if (videoFile.size > 20 * 1024 * 1024) {
-                    showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
-                    return;
-                }
+            // Check video file size
+            if (videoFile && videoFile.size > maxSize) {
+                showToast(`Video "${videoFile.name}" exceeds the 20MB size limit.`);
+                // Re-enable button before returning
+                postButton.disabled = false;
+                postButton.textContent = originalButtonText;
+                return;
             }
+            // --- End Combined Validation ---
+
+            // --- REMOVE old validation blocks ---
+            // Check number of images (moved above)
+            // if (imageInput.files.length > 6) { ... } // <<< REMOVE THIS BLOCK >>>
+
+            // Check image file sizes (moved above)
+            // for (let file of imageInput.files) { ... } // <<< REMOVE THIS LOOP >>>
+
+            // Check video file size (moved above)
+            // if (videoInput.files.length > 0) { ... } // <<< REMOVE THIS BLOCK >>>
+            // --- END REMOVAL ---
 
             const formData = new FormData();
             formData.append('title', titleValue);
@@ -136,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- End log ---
 
 
-            // --- Keep video logic as is ---
-            if (videoInput.files.length > 0) {
-                formData.append('video', videoInput.files[0]);
+            // --- Keep video logic as is, but use videoFile variable ---
+            if (videoFile) { // Check the global videoFile variable
+                formData.append('video', videoFile);
             }
             // --- End video logic ---
 
@@ -174,6 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Something went wrong!"); // Use showToast
             } finally {
                 // --- Re-enable button after fetch completes ---
+                // This runs even if validation failed earlier, but it's harmless
+                // as it just sets it back to the state it should already be in.
                 postButton.disabled = false;
                 postButton.textContent = originalButtonText; // Restores original text
                 // --- End re-enable button ---

@@ -1418,6 +1418,10 @@ video {
   min-height: 100px;
 }
 
+.min-h-\[130px\] {
+  min-height: 130px;
+}
+
 .min-h-\[150px\] {
   min-height: 150px;
 }
@@ -1444,10 +1448,6 @@ video {
 
 .min-h-screen {
   min-height: 100vh;
-}
-
-.min-h-\[130px\] {
-  min-height: 130px;
 }
 
 .w-10 {
@@ -1953,18 +1953,6 @@ video {
 
 .gap-y-4 {
   row-gap: 1rem;
-}
-
-.space-x-0\.5 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(0.125rem * var(--tw-space-x-reverse));
-  margin-left: calc(0.125rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-x-1 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(0.25rem * var(--tw-space-x-reverse));
-  margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
@@ -4165,10 +4153,6 @@ video {
 }
 
 @media (min-width: 1280px) {
-  .xl\:w-\[280px\] {
-    width: 280px;
-  }
-
   .xl\:w-\[45vw\] {
     width: 45vw;
   }
