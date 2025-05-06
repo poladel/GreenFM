@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
   // <<< ADDED: Define Limits (mirror backend) >>>
   const MAX_FILE_SIZE_MB = 100;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  const MAX_FILES_PER_FOLDER = 20; // <<< ADDED: Mirror backend limit
   // <<< END ADDED >>>
 
   // <<< ADDED: Socket.IO Connection >>>
@@ -100,6 +101,16 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
               alert('Folder name is required.');
               return;
            }
+
+          // <<< ADDED: Client-side file COUNT validation >>>
+          const selectedFilesCount = filesInput?.files?.length || 0;
+          if (selectedFilesCount > MAX_FILES_PER_FOLDER) {
+              // <<< MODIFIED: Clarify the alert message >>>
+              alert(`A folder cannot contain more than ${MAX_FILES_PER_FOLDER} files. You tried to create this folder with ${selectedFilesCount} files.`);
+              // <<< END MODIFIED >>>
+              return; // Stop submission
+          }
+          // <<< END ADDED >>>
 
           // <<< ADDED: Client-side file size validation >>>
           if (filesInput && filesInput.files.length > 0) {
@@ -863,7 +874,26 @@ document.addEventListener('DOMContentLoaded', () => { // Wrap in DOMContentLoade
 
           if (!folderId) { alert("Error: Folder ID is missing."); return; }
           const formData = new FormData(addFilesForm);
-          if (!formData.has('files') || !formData.get('files').name) { alert("Please select files to upload."); return; }
+          // <<< MODIFIED: Check file input directly for count >>>
+          const selectedFilesCount = filesInput?.files?.length || 0;
+          if (selectedFilesCount === 0) {
+              alert("Please select files to upload.");
+              return;
+          }
+          // <<< END MODIFIED >>>
+
+          // <<< ADDED: Client-side file COUNT validation >>>
+          // We also need to know how many files are *already* in the folder.
+          // Let's get this from the `currentViewFiles` array which is updated when the modal opens.
+          const currentFileCount = currentViewFiles.length;
+          const totalFileCount = currentFileCount + selectedFilesCount;
+
+          if (totalFileCount > MAX_FILES_PER_FOLDER) {
+              // This message is already correct as it considers existing files.
+              alert(`This folder already has ${currentFileCount} files. Adding ${selectedFilesCount} more would exceed the limit of ${MAX_FILES_PER_FOLDER} files.`);
+              return; // Stop submission
+          }
+          // <<< END ADDED >>>
 
           // <<< ADDED: Client-side file size validation >>>
           if (filesInput && filesInput.files.length > 0) {

@@ -7,6 +7,7 @@ const path = require('path');
 // <<< ADDED: Define Limits >>>
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; // 100 MB in bytes
+const MAX_FILES_PER_FOLDER = 20; // <<< ADDED: Maximum files per folder
 // <<< END ADDED >>>
 
 // Cloudinary config
@@ -154,6 +155,13 @@ exports.uploadFiles = (req, res) => {
         }
         // <<< END Duplicate Check >>>
 
+        // <<< ADDED: Check initial file count against limit >>>
+        const initialFileCount = req.files?.length || 0;
+        if (initialFileCount > MAX_FILES_PER_FOLDER) {
+            await cleanupCloudinaryFiles(req.files);
+            return res.status(400).json({ error: `Cannot create folder with more than ${MAX_FILES_PER_FOLDER} files. You uploaded ${initialFileCount}.` });
+        }
+        // <<< END ADDED >>>
 
         const filesData = req.files?.map(file => ({
             url: file.path, // Cloudinary URL
@@ -278,6 +286,16 @@ exports.uploadFiles = (req, res) => {
         }
         // <<< END Conflict Check >>>
 
+        // <<< ADDED: Check total file count against limit >>>
+        const currentFileCount = folder.files.length;
+        const newFileCount = newFilesData.length;
+        const totalFileCount = currentFileCount + newFileCount;
+
+        if (totalFileCount > MAX_FILES_PER_FOLDER) {
+            await cleanupCloudinaryFiles(req.files); // Clean up the newly uploaded files
+            return res.status(400).json({ error: `Cannot add files. Folder already has ${currentFileCount} files. Adding ${newFileCount} would exceed the limit of ${MAX_FILES_PER_FOLDER}.` });
+        }
+        // <<< END ADDED >>>
 
         folder.files.push(...newFilesData); // Push the array of objects
         await folder.save();
