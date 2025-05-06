@@ -1120,10 +1120,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if ((assessStartDate && !assessEndDate) || (!assessStartDate && assessEndDate)) { alert("Please provide both start and end dates for the Assessment Period, or leave both blank."); return false; }
         if (appStartDate && appEndDate && new Date(appEndDate) < new Date(appStartDate)) { alert("Application Period end date cannot be before the start date."); return false; }
         if (assessStartDate && assessEndDate && new Date(assessEndDate) < new Date(assessStartDate)) { alert("Assessment Period end date cannot be before the start date."); return false; }
-        // Allow assessment start to be same day as app start, but not before
-        if (appStartDate && assessStartDate && new Date(assessStartDate) < new Date(appStartDate)) { alert("Assessment Period start date cannot be before the Application Period start date."); return false; }
-        // Ensure assessment starts after application ends if both are provided
-        if (appEndDate && assessStartDate && new Date(assessStartDate) <= new Date(appEndDate)) { alert("Assessment Period start date must be after the Application Period end date."); return false; }
+        // <<< MODIFIED: Check if assessment starts AFTER application starts >>>
+        if (appStartDate && assessStartDate && new Date(assessStartDate) <= new Date(appStartDate)) {
+            alert("Assessment Period start date must be after the Application Period start date.");
+            return false;
+        }
+        // <<< END MODIFIED >>>
+        // <<< REMOVED: Check related to assessment start vs application end >>>
+        // if (appEndDate && assessStartDate && new Date(assessStartDate) <= new Date(appEndDate)) { alert("Assessment Period start date must be after the Application Period end date."); return false; }
+        // <<< END REMOVED >>>
         // <<< CHECK IF SAVING FOR CURRENT YEAR WHEN APP PERIOD HAS ENDED >>>
         const actualCurrentYear = new Date().getFullYear().toString();
         // Only perform this check if the user is trying to save an application period
